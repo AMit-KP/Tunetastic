@@ -37,9 +37,7 @@ public partial class App : Application
 
         services.AddTransient<MainViewModel>();
         services.AddSingleton<ContextMenuService>();
-        services.AddTransient<GeneralSettingViewModel>();
-        services.AddTransient<AppUpdateSettingViewModel>();
-        services.AddTransient<AboutUsSettingViewModel>();
+        services.AddTransient<SettingViewModel>();
         services.AddTransient<MusicControlViewModel>();
 
         return services.BuildServiceProvider();

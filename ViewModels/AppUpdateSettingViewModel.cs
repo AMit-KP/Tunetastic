@@ -1,7 +1,8 @@
-﻿using Windows.System;
+﻿using Windows.Storage;
+using Windows.System;
 
 namespace Tunetastic.ViewModels;
-public partial class AppUpdateSettingViewModel : ObservableObject
+public partial class SettingViewModel : ObservableObject
 {
     [ObservableProperty]
     public string currentVersion;
@@ -23,7 +24,7 @@ public partial class AppUpdateSettingViewModel : ObservableObject
 
     private string ChangeLog = string.Empty;
 
-    public AppUpdateSettingViewModel()
+    public SettingViewModel()
     {
         CurrentVersion = $"Current Version {ProcessInfoHelper.VersionWithPrefix}";
         LastUpdateCheck = Settings.LastUpdateCheck;
@@ -82,7 +83,7 @@ public partial class AppUpdateSettingViewModel : ObservableObject
     private async Task GoToUpdateAsync()
     {
         //Todo: Change Uri
-        await Launcher.LaunchUriAsync(new Uri("https://github.com/Ghost1372/DevWinUI/releases"));
+        await Launcher.LaunchUriAsync(new Uri(""));
     }
 
     [RelayCommand]
@@ -107,5 +108,19 @@ public partial class AppUpdateSettingViewModel : ObservableObject
         };
 
         await dialog.ShowAsync();
+    }
+
+    [RelayCommand]
+    void Reset()
+    {
+        _ = ResetAllSettings();
+        RestartApp();
+    }
+
+    public async Task ResetAllSettings() => await ApplicationData.Current.ClearAsync();
+
+    private void RestartApp()
+    {
+        Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
     }
 }
