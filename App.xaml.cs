@@ -40,6 +40,7 @@ public partial class App : Application
         services.AddTransient<GeneralSettingViewModel>();
         services.AddTransient<AppUpdateSettingViewModel>();
         services.AddTransient<AboutUsSettingViewModel>();
+        services.AddTransient<MusicControlViewModel>();
 
         return services.BuildServiceProvider();
     }

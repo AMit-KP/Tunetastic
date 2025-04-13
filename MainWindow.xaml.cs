@@ -25,6 +25,7 @@ public sealed partial class MainWindow : Window
                 .ConfigureTitleBar(AppTitleBar)
                 .ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappings.PageDictionary);
         }
+        MusicControlsArea.Navigate(typeof(MusicControl));
     }
 
     private void ThemeButton_Click(object sender, RoutedEventArgs e)
