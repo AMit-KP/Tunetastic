@@ -38,7 +38,8 @@
         <NavigationView x:Name="NavView"
                         Grid.Row="1"
                         IsBackButtonVisible="Collapsed"
-                        IsPaneToggleButtonVisible="False">
+                        IsPaneToggleButtonVisible="False"
+                        IsPaneOpen="False">
             <NavigationView.Header>
                 <dev:BreadcrumbNavigator x:Name="BreadCrumbNav" />
             </NavigationView.Header>
