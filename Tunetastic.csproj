@@ -45,6 +45,12 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>BreadcrumbPageMappings.cs</LastGenOutput>
     </None>
+    <Page Update="Views\PlayListPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\LibraryPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Compile Update="T4Templates\BreadcrumbPageMappings.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -55,6 +61,9 @@
     <None Include="Assets\**\*">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Views\PlayListPage.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

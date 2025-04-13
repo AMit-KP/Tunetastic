@@ -1,8 +1,8 @@
 ﻿namespace Tunetastic.Views;
 
-public sealed partial class HomeLandingPage : Page
+public sealed partial class MainPlayerPage : Page
 {
-    public HomeLandingPage()
+    public MainPlayerPage()
     {
         this.InitializeComponent();
     }

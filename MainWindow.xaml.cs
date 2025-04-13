@@ -19,7 +19,7 @@ public sealed partial class MainWindow : Window
         if (navService != null)
         {
             navService.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
-                .ConfigureDefaultPage(typeof(HomeLandingPage))
+                .ConfigureDefaultPage(typeof(MainPlayerPage))
                 .ConfigureSettingsPage(typeof(SettingsPage))
                 .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
                 .ConfigureTitleBar(AppTitleBar)
