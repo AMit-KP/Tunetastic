@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Tunetastic (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Tunetastic (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

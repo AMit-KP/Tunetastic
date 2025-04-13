@@ -1,0 +1,22 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/Ghost1372/DevWinUI/refs/heads/main/AppData.Schema.json",
+  "Groups": [
+    {
+      "UniqueId": "Tunetastic",
+      "Title": "Tunetastic",
+      "ImagePath": "ms-appx:///Assets/AppIcon.png",
+      "IsSpecialSection": false,
+      "ShowItemsWithoutGroup": true,
+      "IsExpanded": false,
+      "Items": [
+        {
+          "UniqueId": "Tunetastic.Views.HomeLandingPage",
+          "Title": "Tunetastic",
+          "Subtitle": "Tunetastic",
+          "ImagePath": "ms-appx:///Assets/AppIcon.png",
+          "HideItem": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+﻿global using CommunityToolkit.Mvvm.ComponentModel;
+global using CommunityToolkit.Mvvm.Input;
+global using DevWinUI;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.UI;
+global using Microsoft.UI.Xaml;
+global using Microsoft.UI.Xaml.Controls;
+global using Microsoft.UI.Xaml.Navigation;
+global using Tunetastic.Common;
+global using Tunetastic.ViewModels;
+global using Tunetastic.Views;
+global using static Tunetastic.Common.AppHelper;
