@@ -43,7 +43,14 @@
             <NavigationView.Header>
                 <dev:BreadcrumbNavigator x:Name="BreadCrumbNav" />
             </NavigationView.Header>
-            <Frame x:Name="NavFrame" />
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="120" />
+                </Grid.RowDefinitions>
+                <Frame x:Name="NavFrame" Grid.Row="0"/>
+                <Frame x:Name="MusicControlsArea" Grid.Row="1"/>
+            </Grid>
         </NavigationView>
     </Grid>
 </Window>
