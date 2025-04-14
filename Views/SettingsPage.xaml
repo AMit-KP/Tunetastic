@@ -6,123 +6,125 @@
       xmlns:dev="using:DevWinUI"
       xmlns:local="using:Tunetastic"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:views="using:Tunetastic.Views"
       xmlns:model="using:Tunetastic.Models"
+      xmlns:views="using:Tunetastic.Views"
       dev:BreadcrumbNavigator.IsHeaderVisible="True"
       mc:Ignorable="d">
-    <ScrollView Margin="{ThemeResource ContentPageMargin}"
-                Padding="{ThemeResource ContentPagePadding}"
-                HorizontalAlignment="Stretch"
-                VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="20"
-            Spacing="10">
+	<ScrollView Margin="{ThemeResource ContentPageMargin}"
+	            Padding="{ThemeResource ContentPagePadding}"
+	            HorizontalAlignment="Stretch"
+	            VerticalScrollBarVisibility="Auto">
+		<StackPanel Margin="20"
+		            Spacing="10">
 
-            <TextBlock Text="Library" FontSize="25"/>
-            <dev:SettingsExpander Description="Click to view all added libraries"
-                                  Header="All Libraries"
-                                  ItemsSource="{x:Bind Libraries}">
-                <dev:SettingsExpander.HeaderIcon>
-                    <FontIcon Glyph="&#xE8F4;" />
-                </dev:SettingsExpander.HeaderIcon>
-                <Button Content="Add New Folder"
-                        Click="AddNewFolder_ButtonClick"/>
+			<TextBlock FontSize="25"
+			           Text="Library" />
+			<dev:SettingsExpander Description="Click to view all added libraries"
+			                      Header="All Libraries"
+			                      ItemsSource="{x:Bind Libraries}">
+				<dev:SettingsExpander.HeaderIcon>
+					<FontIcon Glyph="&#xE8F4;" />
+				</dev:SettingsExpander.HeaderIcon>
+				<Button Click="AddNewFolder_ButtonClick"
+				        Content="Add New Folder" />
 
-                <dev:SettingsExpander.ItemTemplate>
-                    <DataTemplate x:DataType="model:MusicLibraryPath">
-                        <dev:SettingsCard Header="{x:Bind Name }"
-                                          Description="{x:Bind Path}">
-                            <Button Content="Remove Folder"
-                                    Click="RemoveFolder_ButtonClick"
-                                    CommandParameter="{x:Bind}"/>
-                        </dev:SettingsCard>
-                    </DataTemplate>
-                </dev:SettingsExpander.ItemTemplate>
-            </dev:SettingsExpander>
+				<dev:SettingsExpander.ItemTemplate>
+					<DataTemplate x:DataType="model:MusicLibraryPath">
+						<dev:SettingsCard Description="{x:Bind Path}"
+						                  Header="{x:Bind Name}">
+							<Button Click="RemoveFolder_ButtonClick"
+							        CommandParameter="{x:Bind}"
+							        Content="Remove Folder" />
+						</dev:SettingsCard>
+					</DataTemplate>
+				</dev:SettingsExpander.ItemTemplate>
+			</dev:SettingsExpander>
 
-            <dev:SettingsExpander x:Name="Scan"
-                                  Header="Scan Libraries for Songs">
-                <dev:SettingsExpander.HeaderIcon>
-                    <FontIcon Glyph="&#xE895;" />
-                </dev:SettingsExpander.HeaderIcon>
+			<dev:SettingsExpander x:Name="Scan"
+			                      Header="Scan Libraries for Songs">
+				<dev:SettingsExpander.HeaderIcon>
+					<FontIcon Glyph="&#xE895;" />
+				</dev:SettingsExpander.HeaderIcon>
 
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                    <ProgressRing Name="ProgressRing"
-                                  IsActive="False"
-                                  Visibility="Collapsed"/>
-                    <Button Content="Scan"
-                            Click="ScanButton_Click"/>
-                </StackPanel>
-                <dev:SettingsExpander.Items>
-                    <dev:SettingsCard Header="Ignore Short Tracks"
-                                      x:Name="IgnoreTrack">
-                        <NumberBox Name="numberBox"
-                                   Header="Duration"
-                                   SpinButtonPlacementMode="Inline"
-                                   SmallChange="1" />
-                    </dev:SettingsCard>
-                    <dev:SettingsCard Header="Ignore Duplicate Tracks"
-                                      Description="If turned on, it will use more memory (RAM) depending on the number of files scanned and also when the app starts if Scan At Startup is enabled.">
-                        <ToggleSwitch IsOn="False" 
-                                      Name="IgnoreDup"
-                                      Toggled="IgnoreDup_Toggled"/>
-                    </dev:SettingsCard>
+				<StackPanel Orientation="Horizontal"
+				            Spacing="10">
+					<ProgressRing Name="ProgressRing"
+					              IsActive="False"
+					              Visibility="Collapsed" />
+					<Button Click="ScanButton_Click"
+					        Content="Scan" />
+				</StackPanel>
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard x:Name="IgnoreTrack"
+					                  Header="Ignore Short Tracks">
+						<NumberBox Name="numberBox"
+						           Header="Duration"
+						           SmallChange="1"
+						           SpinButtonPlacementMode="Inline" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Description="If turned on, it will use more memory (RAM) depending on the number of files scanned and also when the app starts if Scan At Startup is enabled."
+					                  Header="Ignore Duplicate Tracks">
+						<ToggleSwitch Name="IgnoreDup"
+						              IsOn="False"
+						              Toggled="IgnoreDup_Toggled" />
+					</dev:SettingsCard>
 
-                    <dev:SettingsCard Header="Scan At Startup"
-                                      Description="Scans the library when the app starts. It'll increase the startup time.">
-                        <ToggleSwitch IsOn="False" 
-                                      Name="ScanAtStart"
-                                      Toggled="ScanAtStart_Toggled"/>
-                    </dev:SettingsCard>
-                </dev:SettingsExpander.Items>
-            </dev:SettingsExpander>
+					<dev:SettingsCard Description="Scans the library when the app starts. It'll increase the startup time."
+					                  Header="Scan At Startup">
+						<ToggleSwitch Name="ScanAtStart"
+						              IsOn="False"
+						              Toggled="ScanAtStart_Toggled" />
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
 
 
 
 
-            <TextBlock Text="Appearance &amp; behavior" FontSize="25"/>
+			<TextBlock FontSize="25"
+			           Text="Appearance &amp; behavior" />
 
-            <StackPanel
-            dev:PanelAttach.ChildrenTransitions="Default"
-            Spacing="5">
-                <dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
-                      Header="App theme"
-                      HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Theme.png}">
-                    <ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
-                        <ComboBoxItem Content="Light"
-                          Tag="Light" />
-                        <ComboBoxItem Content="Dark"
-                          Tag="Dark" />
-                        <ComboBoxItem Content="Default"
-                          Tag="Default" />
-                    </ComboBox>
-                </dev:SettingsCard>
-                <dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
-                      Header="Material"
-                      HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Backdrop.png}">
-                    <ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
-                        <ComboBoxItem Content="None"
-                          Tag="None" />
-                        <ComboBoxItem Content="Mica"
-                          Tag="Mica" />
-                        <ComboBoxItem Content="Mica Alt"
-                          Tag="MicaAlt" />
-                        <ComboBoxItem Content="Desktop Acrylic"
-                          Tag="DesktopAcrylic" />
-                        <ComboBoxItem Content="Acrylic Base"
-                          Tag="AcrylicBase" />
-                        <ComboBoxItem Content="Acrylic Thin"
-                          Tag="AcrylicThin" />
-                        <ComboBoxItem Content="Transparent"
-                          Tag="Transparent" />
-                    </ComboBox>
-                </dev:SettingsCard>
-                <dev:SettingsCard ActionIcon="{dev:BitmapIcon Source=Assets/Fluent/External.png}"
-                      Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
-                      Header="Accent color"
-                      HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Color.png}"
-                      IsClickEnabled="True"
-                      LaunchUri="ms-settings:colors" />
-                <!--<dev:SettingsExpander Description="Add tint to your window to make your experience more personalized."
+			<StackPanel dev:PanelAttach.ChildrenTransitions="Default"
+			            Spacing="5">
+				<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
+				                  Header="App theme"
+				                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Theme.png}">
+					<ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
+						<ComboBoxItem Content="Light"
+						              Tag="Light" />
+						<ComboBoxItem Content="Dark"
+						              Tag="Dark" />
+						<ComboBoxItem Content="Default"
+						              Tag="Default" />
+					</ComboBox>
+				</dev:SettingsCard>
+				<dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
+				                  Header="Material"
+				                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Backdrop.png}">
+					<ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
+						<ComboBoxItem Content="None"
+						              Tag="None" />
+						<ComboBoxItem Content="Mica"
+						              Tag="Mica" />
+						<ComboBoxItem Content="Mica Alt"
+						              Tag="MicaAlt" />
+						<ComboBoxItem Content="Desktop Acrylic"
+						              Tag="DesktopAcrylic" />
+						<ComboBoxItem Content="Acrylic Base"
+						              Tag="AcrylicBase" />
+						<ComboBoxItem Content="Acrylic Thin"
+						              Tag="AcrylicThin" />
+						<ComboBoxItem Content="Transparent"
+						              Tag="Transparent" />
+					</ComboBox>
+				</dev:SettingsCard>
+				<dev:SettingsCard ActionIcon="{dev:BitmapIcon Source=Assets/Fluent/External.png}"
+				                  Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
+				                  Header="Accent color"
+				                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Color.png}"
+				                  IsClickEnabled="True"
+				                  LaunchUri="ms-settings:colors" />
+				<!--<dev:SettingsExpander Description="Add tint to your window to make your experience more personalized."
                           Header="Tint Color"
                           HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Tint.png}">
                     <Button Padding="0">
@@ -164,84 +166,87 @@
                         </dev:SettingsCard>
                     </dev:SettingsExpander.ItemsHeader>
                 </dev:SettingsExpander>-->
-            </StackPanel>
+			</StackPanel>
 
 
 
-            <TextBlock Text="About" FontSize="25"/>
+			<TextBlock FontSize="25"
+			           Text="About" />
 
-            <dev:SettingsCard Header="{x:Bind ViewModel.CurrentVersion}"
-                              HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Update.png}">
-                <dev:SettingsCard.Description>
-                    <StackPanel Orientation="Horizontal"
-                                Spacing="5">
-                        <TextBlock Style="{StaticResource SecondaryTextStyle}"
-                                   Text="Last Update Check" />
-                        <TextBlock FlowDirection="LeftToRight"
-                                   Style="{StaticResource SecondaryTextStyle}"
-                                   Text="{x:Bind ViewModel.LastUpdateCheck}" />
-                    </StackPanel>
-                </dev:SettingsCard.Description>
-                <StackPanel Orientation="Horizontal"
-                            Spacing="10">
-                    <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
-                    <Button MinWidth="{StaticResource SettingActionControlMinWidth}"
-                            Command="{x:Bind ViewModel.CheckForUpdateCommand}"
-                            Content="Check for New Version"
-                            IsEnabled="{x:Bind ViewModel.IsCheckButtonEnabled, Mode=OneWay}"
-                            Style="{ThemeResource AccentButtonStyle}" />
-                </StackPanel>
-            </dev:SettingsCard>
+			<dev:SettingsCard Header="{x:Bind ViewModel.CurrentVersion}"
+			                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Update.png}">
+				<dev:SettingsCard.Description>
+					<StackPanel Orientation="Horizontal"
+					            Spacing="5">
+						<TextBlock Style="{StaticResource SecondaryTextStyle}"
+						           Text="Last Update Check" />
+						<TextBlock FlowDirection="LeftToRight"
+						           Style="{StaticResource SecondaryTextStyle}"
+						           Text="{x:Bind ViewModel.LastUpdateCheck}" />
+					</StackPanel>
+				</dev:SettingsCard.Description>
+				<StackPanel Orientation="Horizontal"
+				            Spacing="10">
+					<ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+					<Button MinWidth="{StaticResource SettingActionControlMinWidth}"
+					        Command="{x:Bind ViewModel.CheckForUpdateCommand}"
+					        Content="Check for New Version"
+					        IsEnabled="{x:Bind ViewModel.IsCheckButtonEnabled, Mode=OneWay}"
+					        Style="{ThemeResource AccentButtonStyle}" />
+				</StackPanel>
+			</dev:SettingsCard>
 
-            <dev:SettingsExpander Description="Description"
-                                  Header="Tunetastic"
-                                  HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
-                                  IsExpanded="False">
+			<dev:SettingsExpander Description="Description"
+			                      Header="Tunetastic"
+			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
+			                      IsExpanded="False">
 
-                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           IsTextSelectionEnabled="True"
-                           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
-                <dev:SettingsExpander.Items>
-                    <dev:SettingsCard HorizontalContentAlignment="Left"
-                                      ContentAlignment="Left">
-                        <StackPanel Orientation="Vertical"
-                                    Spacing="5">
-                            <TextBlock Text="Related Links" />
-                            <HyperlinkButton Content="Source Code"
-                                             NavigateUri="https://github.com/Ghost1372/DevWinUI" />
-                            <HyperlinkButton Content="Release Notes"
-                                             NavigateUri="https://github.com/Ghost1372/DevWinUI/releases" />
-                        </StackPanel>
-                    </dev:SettingsCard>
-                </dev:SettingsExpander.Items>
-            </dev:SettingsExpander>
+				<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+				           IsTextSelectionEnabled="True"
+				           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard HorizontalContentAlignment="Left"
+					                  ContentAlignment="Left">
+						<StackPanel Orientation="Vertical"
+						            Spacing="5">
+							<TextBlock Text="Related Links" />
+							<HyperlinkButton Content="Source Code"
+							                 NavigateUri="https://github.com/Ghost1372/DevWinUI" />
+							<HyperlinkButton Content="Release Notes"
+							                 NavigateUri="https://github.com/Ghost1372/DevWinUI/releases" />
+						</StackPanel>
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
 
-            
-            <TextBlock Text="Reset" FontSize="25"/>
-            <dev:SettingsCard Header="Reset All Saved Settings"
-                              Description="It will delete all saved data from Windows App Data. App will restart automatically.">
-                <dev:SettingsCard.HeaderIcon>
-                    <FontIcon Glyph="&#xE777;" />
-                </dev:SettingsCard.HeaderIcon>
 
-                <Button Content="Reset">
-                    <Button.Flyout>
-                        <Flyout>
-                            <Flyout.FlyoutPresenterStyle>
-                                <Style TargetType="FlyoutPresenter">
-                                    <Setter Property="Background" Value="Transparent"/>
-                                </Style>
-                            </Flyout.FlyoutPresenterStyle>
-                            <StackPanel>
-                                <TextBlock Style="{ThemeResource BodyTextBlockStyle}" Text="Are you sure?" />
-                                <Button Content="Yes"
-                                        Command="{x:Bind ViewModel.ResetCommand}"/>
-                            </StackPanel>
-                        </Flyout>
-                    </Button.Flyout>
-                </Button>
-            </dev:SettingsCard>
-        </StackPanel>
-    </ScrollView>
+			<TextBlock FontSize="25"
+			           Text="Reset" />
+			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
+			                  Header="Reset All Saved Settings">
+				<dev:SettingsCard.HeaderIcon>
+					<FontIcon Glyph="&#xE777;" />
+				</dev:SettingsCard.HeaderIcon>
+
+				<Button Content="Reset">
+					<Button.Flyout>
+						<Flyout>
+							<Flyout.FlyoutPresenterStyle>
+								<Style TargetType="FlyoutPresenter">
+									<Setter Property="Background" Value="Transparent" />
+								</Style>
+							</Flyout.FlyoutPresenterStyle>
+							<StackPanel>
+								<TextBlock Style="{ThemeResource BodyTextBlockStyle}"
+								           Text="Are you sure?" />
+								<Button Command="{x:Bind ViewModel.ResetCommand}"
+								        Content="Yes" />
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+			</dev:SettingsCard>
+		</StackPanel>
+	</ScrollView>
 </Page>
 

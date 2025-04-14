@@ -1,5 +1,5 @@
-﻿using Windows.Media.Playback;
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
+using Windows.Media.Playback;
 
 
 namespace Tunetastic.ViewModels;
@@ -68,16 +68,16 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 
         //new MediaPlayerElement().SetMediaPlayer(MediaPlayerManager.Instance.MediaPlayerInstance);
-        
+
         //MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
         //MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
-        
+
         RepeatButtonFontIcon = "\uF5E7";
         FontIconPlayPause = "\uE768";
         ToolTipTextRepeatButton = "Repeat Off";
         IsShuffleToggled = false;
         ToolTipTextShuffleButton = "Shuffle Off";
-        
+
         //MediaList.Instance.MediaPlaybackList.ItemOpened += MediaPlaybackList_ItemOpened;
         //MediaList.Instance.MediaPlaybackList.ItemFailed += MediaPlaybackList_ItemFailed;
     }
@@ -209,17 +209,17 @@ public partial class MusicControlViewModel : ObservableRecipient
         switch (repeatState)
         {
             case RepeatStates.Off:
-                RepeatButtonFontIcon    = "\uF5E7";
+                RepeatButtonFontIcon = "\uF5E7";
                 ToolTipTextRepeatButton = "Repeat Off";
                 break;
 
             case RepeatStates.All:
-                RepeatButtonFontIcon    = "\uE8EE";
+                RepeatButtonFontIcon = "\uE8EE";
                 ToolTipTextRepeatButton = "Repeat All";
                 break;
 
             case RepeatStates.One:
-                RepeatButtonFontIcon    = "\uE8ED";
+                RepeatButtonFontIcon = "\uE8ED";
                 ToolTipTextRepeatButton = "Repeat One";
                 break;
         }

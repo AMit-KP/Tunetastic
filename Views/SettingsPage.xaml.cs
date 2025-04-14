@@ -1,8 +1,6 @@
-﻿using Nucs.JsonSettings;
-using Tunetastic.Models;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
-using System.Collections.ObjectModel;
+using Tunetastic.Models;
 using Tunetastic.Services;
 
 namespace Tunetastic.Views;
@@ -18,7 +16,7 @@ public sealed partial class SettingsPage : Page
     {
         ViewModel = App.GetService<SettingViewModel>();
         this.InitializeComponent();
-        
+
         numberBox.ValueChanged += NumberBox_ValueChanged;
 
         try
