@@ -1,8 +1,7 @@
-﻿namespace Tunetastic.Models
+﻿namespace Tunetastic.Models;
+
+public class MusicLibraryPath
 {
-    public class MusicLibraryPath
-    {
-        public string? Name { get; set; }
-        public string? Path { get; set; }
-    }
+    public string? Name { get; set; }
+    public string? Path { get; set; }
 }

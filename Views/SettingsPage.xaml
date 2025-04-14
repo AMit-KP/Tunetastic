@@ -17,7 +17,7 @@
         <StackPanel Margin="20"
             Spacing="10">
 
-            <TextBlock Text="General" FontSize="25"/>
+            <TextBlock Text="Library" FontSize="25"/>
             <dev:SettingsExpander Description="Click to view all added libraries"
                                   Header="All Libraries"
                                   ItemsSource="{x:Bind Libraries}">
@@ -39,7 +39,7 @@
                 </dev:SettingsExpander.ItemTemplate>
             </dev:SettingsExpander>
 
-            <dev:SettingsExpander Name="Scan"
+            <dev:SettingsExpander x:Name="Scan"
                                   Header="Scan Libraries for Songs">
                 <dev:SettingsExpander.HeaderIcon>
                     <FontIcon Glyph="&#xE895;" />

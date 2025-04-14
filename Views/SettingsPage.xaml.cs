@@ -3,13 +3,12 @@ using Tunetastic.Models;
 using System.Text;
 using Microsoft.UI.Dispatching;
 using System.Collections.ObjectModel;
+using Tunetastic.Services;
 
 namespace Tunetastic.Views;
 
 public sealed partial class SettingsPage : Page
 {
-    LibrarySettings LibrarySaveSettings;
-
     public ObservableCollection<MusicLibraryPath> Libraries
     {
         get; set;
@@ -19,17 +18,22 @@ public sealed partial class SettingsPage : Page
     {
         ViewModel = App.GetService<SettingViewModel>();
         this.InitializeComponent();
-        LibrarySaveSettings = JsonSettings.Load<LibrarySettings>();
+        
         numberBox.ValueChanged += NumberBox_ValueChanged;
-        foreach (var lib in LibrarySaveSettings.LibraryPaths)
-        {
-            Libraries.Add(lib);
-        }
-        IgnoreDup.IsOn = LibrarySaveSettings.IgnoreEnabled;
-        ScanAtStart.IsOn = LibrarySaveSettings.ScanAtStartup;
 
-        IgnoreTrack.Description = $"Tracks are ignored if they are less than {LibrarySaveSettings.ignoreTracksBelowDuration} seconds";
-        numberBox.Value = LibrarySaveSettings.ignoreTracksBelowDuration;
+        try
+        {
+            Libraries.AddRange(LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths);
+        }
+        catch (Exception)
+        {
+        }
+        IgnoreDup.IsOn = LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled;
+        ScanAtStart.IsOn = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup;
+
+        IgnoreTrack.Description = $"Tracks are ignored if they are less than {LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration} seconds";
+        numberBox.Value = LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration;
+        Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
     }
 
     //private void OnColorChanged(ColorPicker sender, ColorChangedEventArgs args)
@@ -65,6 +69,9 @@ public sealed partial class SettingsPage : Page
 
         var musicfolders = await picker.PickMultipleFoldersAsync();
 
+        List<MusicLibraryPath> uniqueFolders = new();
+        uniqueFolders.AddRange(Libraries);
+
         foreach (var musicfolder in musicfolders)
         {
             var newFolder = new MusicLibraryPath
@@ -72,11 +79,15 @@ public sealed partial class SettingsPage : Page
                 Name = musicfolder.Name,
                 Path = musicfolder.Path
             };
-            Libraries.Add(newFolder);
+            uniqueFolders.Add(newFolder);
         }
+        uniqueFolders = uniqueFolders.DistinctBy(p => p.Path).ToList();
 
-        LibrarySaveSettings.LibraryPaths = Libraries.ToList();
-        LibrarySaveSettings.Save();
+        Libraries?.Clear();
+        Libraries.AddRange(uniqueFolders);
+        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths?.Clear();
+        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths = Libraries.ToList();
+        LibrarySettingsSaver.Instance.SaveSettings();
     }
 
     private void RemoveFolder_ButtonClick(object sender, RoutedEventArgs e)
@@ -86,8 +97,9 @@ public sealed partial class SettingsPage : Page
         if (button!.CommandParameter is MusicLibraryPath path)
             Libraries.Remove(path);
 
-        LibrarySaveSettings.LibraryPaths = Libraries.ToList();
-        LibrarySaveSettings.Save();
+        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths?.Clear();
+        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths = Libraries.ToList();
+        LibrarySettingsSaver.Instance.SaveSettings();
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
@@ -95,28 +107,32 @@ public sealed partial class SettingsPage : Page
         ProgressRing.IsActive = true;
         ProgressRing.Visibility = Visibility.Visible;
         Scan.IsEnabled = false;
+
         await Task.Delay(1000);
-        //await ViewModel.UpdateSongList();
+
+        await new GetMusicDataService().UpdateMetaData(true);
+
         Scan.IsEnabled = true;
         ProgressRing.IsActive = false;
         ProgressRing.Visibility = Visibility.Collapsed;
-        //Scan.Description set
+
+        Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
     }
 
     private void IgnoreDup_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch toggleSwitch)
-            LibrarySaveSettings.IgnoreEnabled = toggleSwitch.IsOn;
-        LibrarySaveSettings.Save();
+            LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled = toggleSwitch.IsOn;
+        LibrarySettingsSaver.Instance.SaveSettings();
     }
 
     private void ScanAtStart_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch toggleSwitch)
         {
-            LibrarySaveSettings.ScanAtStartup = toggleSwitch.IsOn;
+            LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup = toggleSwitch.IsOn;
         }
-        LibrarySaveSettings.Save();
+        LibrarySettingsSaver.Instance.SaveSettings();
     }
 
     private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args) => DispatcherQueue.GetForCurrentThread().TryEnqueue(DispatcherQueuePriority.Normal, async () =>
@@ -127,9 +143,9 @@ public sealed partial class SettingsPage : Page
             numberBox.Value = 0;
         }
         IgnoreTrack.Description = $"Tracks are ignored if they are less than {numberBox.Value} seconds";
-        
-        LibrarySaveSettings.ignoreTracksBelowDuration = numberBox.Value;
-        LibrarySaveSettings.Save();
+
+        LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration = numberBox.Value;
+        LibrarySettingsSaver.Instance.SaveSettings();
     });
 }
 

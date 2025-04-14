@@ -17,15 +17,21 @@ public class LibrarySettings : JsonSettings
 {
     public override string FileName { get; set; } = Constants.LibrariesDataPath;
 
-    public virtual List<MusicLibraryPath> LibraryPaths { get; set; } = new();
+    public virtual List<MusicLibraryPath> LibraryPaths { get; set; }
 
-    public virtual bool IgnoreEnabled { get; set; }
+    public virtual bool IgnoreDuplicateEnabled { get; set; }
 
     public virtual bool ScanAtStartup { get; set; }
 
     public virtual double ignoreTracksBelowDuration { get; set; }
 
-    public virtual string ScanResult { get; set; } = string.Empty;
+    public virtual string ScanResult { get; set; }
+
+    public virtual int totalTracks { get; set; }
 }
 
-
+public class AllSongList : JsonSettings
+{
+    public override string FileName { get; set; } = Constants.AllSongListPath;
+    public virtual List<string> SongPaths { get; set; }
+}

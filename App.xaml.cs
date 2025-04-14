@@ -1,4 +1,6 @@
-﻿namespace Tunetastic;
+﻿using Tunetastic.Services;
+
+namespace Tunetastic;
 
 public partial class App : Application
 {
@@ -43,7 +45,7 @@ public partial class App : Application
         return services.BuildServiceProvider();
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new MainWindow();
 
@@ -55,6 +57,9 @@ public partial class App : Application
         MainWindow.Activate();
 
         InitializeApp();
+        GetMusicDataService getMusicDataService = new();
+
+        await getMusicDataService.UpdateMetaData();
     }
 
     private async void InitializeApp()
