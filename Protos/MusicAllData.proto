@@ -1,0 +1,16 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Tunetastic.Generated.Protos";
+
+message Song {
+  string title = 1;
+  repeated string artists = 2;
+  double duration = 3;
+  string album = 4;
+  string path = 5;
+  string genre = 6;
+  string year = 7;
+}
+
+message SongList {
+  repeated Song songs = 1;
+}
