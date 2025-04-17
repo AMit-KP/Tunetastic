@@ -56,10 +56,8 @@ public partial class App : Application
 
         MainWindow.Activate();
 
+        await new GetMusicDataService().UpdateMetaData();
         InitializeApp();
-        GetMusicDataService getMusicDataService = new();
-
-        await getMusicDataService.UpdateMetaData();
     }
 
     private async void InitializeApp()

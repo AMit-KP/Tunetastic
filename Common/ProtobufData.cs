@@ -8,19 +8,24 @@ public class ProtobufData
     {
         SongList songsContainer = new SongList();
         songsContainer.Songs.AddRange(songList);
+
         using (FileStream output = File.Create(Constants.RootDirectoryPath + $"\\{DataFile.AllSongsMetaData}.bin"))
         {
             songsContainer.WriteTo(output);
         }
     }
 
-    public static SongList LoadDataFromBin(DataFile dataFile)
+    public static SongList LoadSongMetaDataFromBin(DataFile dataFile)
     {
-        if (!File.Exists(Constants.RootDirectoryPath + $"\\{dataFile}.bin")) return new SongList();
-
-        using (FileStream input = File.OpenRead(Constants.RootDirectoryPath + $"\\{dataFile}.bin"))
+        try
         {
-            return SongList.Parser.ParseFrom(input);
+            using (FileStream fileStream = new FileStream(Constants.RootDirectoryPath + $"\\{dataFile}.bin", FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (BufferedStream bufferedStream = new BufferedStream(fileStream))
+                return SongList.Parser.ParseFrom(bufferedStream);
+        }
+        catch (Exception)
+        {
+            return new SongList();
         }
     }
 

@@ -108,9 +108,6 @@ namespace Tunetastic.Generated.Protos {
     private static readonly pb::FieldCodec<string> _repeated_artists_codec
         = pb::FieldCodec.ForString(18);
     private readonly pbc::RepeatedField<string> artists_ = new pbc::RepeatedField<string>();
-    /// <summary>
-    /// Allows multiple artists
-    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<string> Artists {
@@ -502,9 +499,6 @@ namespace Tunetastic.Generated.Protos {
     private static readonly pb::FieldCodec<global::Tunetastic.Generated.Protos.Song> _repeated_songs_codec
         = pb::FieldCodec.ForMessage(10, global::Tunetastic.Generated.Protos.Song.Parser);
     private readonly pbc::RepeatedField<global::Tunetastic.Generated.Protos.Song> songs_ = new pbc::RepeatedField<global::Tunetastic.Generated.Protos.Song>();
-    /// <summary>
-    /// List of songs
-    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pbc::RepeatedField<global::Tunetastic.Generated.Protos.Song> Songs {

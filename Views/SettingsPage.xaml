@@ -62,7 +62,7 @@
 						           SmallChange="1"
 						           SpinButtonPlacementMode="Inline" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="If turned on, it will use more memory (RAM) depending on the number of files scanned and also when the app starts if Scan At Startup is enabled."
+					<dev:SettingsCard Description="If turned on, the app will ignore tracks that are already scanned once based on Title, Album, and Artist."
 					                  Header="Ignore Duplicate Tracks">
 						<ToggleSwitch Name="IgnoreDup"
 						              IsOn="False"
