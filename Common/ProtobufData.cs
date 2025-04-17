@@ -1,31 +1,29 @@
 ﻿using Google.Protobuf;
-using Tunetastic.Generated.Protos;
 
 namespace Tunetastic.Common;
 public class ProtobufData
 {
-    public static void SaveDataInBin(List<Song> songList)
+    public static void SaveToBin<T>(DataFile FileName, T data) where T : IMessage<T>
     {
-        SongList songsContainer = new SongList();
-        songsContainer.Songs.AddRange(songList);
+        using FileStream fileStream = new FileStream(Constants.RootDirectoryPath + $"\\{FileName}.bin", FileMode.Create, FileAccess.Write, FileShare.None);
+        using BufferedStream bufferedStream = new BufferedStream(fileStream);
 
-        using (FileStream output = File.Create(Constants.RootDirectoryPath + $"\\{DataFile.AllSongsMetaData}.bin"))
-        {
-            songsContainer.WriteTo(output);
-        }
+        data.WriteTo(bufferedStream);
+
     }
 
-    public static SongList LoadSongMetaDataFromBin(DataFile dataFile)
+    public static T LoadFromBin<T>(DataFile FileName) where T : IMessage<T>, new()
     {
         try
         {
-            using (FileStream fileStream = new FileStream(Constants.RootDirectoryPath + $"\\{dataFile}.bin", FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (BufferedStream bufferedStream = new BufferedStream(fileStream))
-                return SongList.Parser.ParseFrom(bufferedStream);
+            using FileStream fileStream = new FileStream(Constants.RootDirectoryPath + $"\\{FileName}.bin", FileMode.Open, FileAccess.Read, FileShare.Read);
+            using BufferedStream bufferedStream = new BufferedStream(fileStream);
+
+            return new MessageParser<T>(() => new T()).ParseFrom(bufferedStream);
         }
         catch (Exception)
         {
-            return new SongList();
+            return new T();
         }
     }
 
