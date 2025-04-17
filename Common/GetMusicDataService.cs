@@ -26,6 +26,7 @@ internal class GetMusicDataService
     {
         try
         {
+            ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries);
             List<string> LibrariesData = new();
             foreach (var item in LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths)
             {
@@ -104,7 +105,7 @@ internal class GetMusicDataService
                 }
             }
 
-            List<Song> musicDatas = new();
+            SongList songsContainer = new SongList();
             HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
 
             foreach (var filePath in audioFiles)
@@ -125,7 +126,7 @@ internal class GetMusicDataService
                         song.Artists.Add((audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist");
 
                         if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists[0], song.Album))))
-                            musicDatas.Add(song);
+                            songsContainer.Songs.Add(song);
                     }
                 }
                 catch (Exception)
@@ -134,10 +135,10 @@ internal class GetMusicDataService
                 }
             }
 
-            ProtobufData.SaveDataInBin(musicDatas);
+            ProtobufData.SaveToBin(DataFile.AllSongsMetaData, songsContainer);
 
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = $"Libraries: {libraries.Count} Songs: {musicDatas.Count}";
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.totalTracks = musicDatas.Count;
+            LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
+            LibrarySettingsSaver.Instance.LibrarySaveSettings.totalTracks = songsContainer.Songs.Count;
         }
         else
         {
