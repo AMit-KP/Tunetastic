@@ -29,5 +29,6 @@ public class ProtobufData
 public enum DataFile
 {
     AllSongsMetaData,
-    AllLibraries
+    AllLibraries,
+    FormatsAllowed
 }

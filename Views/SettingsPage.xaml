@@ -69,13 +69,31 @@
 						              Toggled="IgnoreDup_Toggled" />
 					</dev:SettingsCard>
 
-					<dev:SettingsCard Description="Scans the library when the app starts. It'll increase the startup time."
+					<dev:SettingsCard Description="Scans the library for tracks when the app starts. If turned on, it will increase the startup time."
 					                  Header="Scan At Startup">
 						<ToggleSwitch Name="ScanAtStart"
 						              IsOn="False"
 						              Toggled="ScanAtStart_Toggled" />
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
+
+			<dev:SettingsExpander x:Name="FileExt"
+			                      Header="File Extentions"
+			                      ItemsSource="{x:Bind AllFormats, Mode=TwoWay}">
+				<dev:SettingsExpander.Resources>
+					<x:Double x:Key="SettingsCardLeftIndention">40</x:Double>
+				</dev:SettingsExpander.Resources>
+				<dev:SettingsExpander.ItemTemplate>
+					<DataTemplate x:DataType="model:Format">
+						<dev:SettingsCard Description="{x:Bind Description}"
+						                  Header="{x:Bind Extension}">
+							<ToggleSwitch Name="{x:Bind Extension}"
+							              IsOn="{x:Bind Enabled, Mode=TwoWay}"
+							              Toggled="Ext_ToggleSwitch_Toggled" />
+						</dev:SettingsCard>
+					</DataTemplate>
+				</dev:SettingsExpander.ItemTemplate>
 			</dev:SettingsExpander>
 
 

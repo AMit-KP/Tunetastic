@@ -11,6 +11,12 @@ public sealed partial class SettingsPage : Page
     {
         get; set;
     } = new();
+
+    public ObservableCollection<Format> AllFormats
+    {
+        get; set;
+    } = new();
+
     public SettingViewModel ViewModel { get; }
     public SettingsPage()
     {
@@ -32,6 +38,8 @@ public sealed partial class SettingsPage : Page
         IgnoreTrack.Description = $"Tracks are ignored if they are less than {LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration} seconds";
         numberBox.Value = LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration;
         Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
+
+        UpdateExtentionListOnUI();
     }
 
 
@@ -144,5 +152,45 @@ public sealed partial class SettingsPage : Page
         LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration = numberBox.Value;
         LibrarySettingsSaver.Instance.SaveSettings();
     });
+
+    private void UpdateExtentionListOnUI()
+    {
+        var foramtList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
+        if (foramtList.Count == 0)
+        {
+            foramtList.Add(new Format() { Extension = ".mp3", Enabled = true, Description = "MPEG-1 Audio Layer 3 – The compression that saves valuable space while maintaining near-flawless quality of the original source of sound." });
+            foramtList.Add(new Format() { Extension = ".m4a", Enabled = true, Description = "MPEG-4 Audio - An audio file format developed by Apple, designed to store high-quality sound efficiently." });
+            foramtList.Add(new Format() { Extension = ".flac", Enabled = true, Description = "Free Lossless Audio Codec – This lossless audio format compresses audio data without losing any quality, making it perfect for preserving the original sound." });
+            foramtList.Add(new Format() { Extension = ".alac", Enabled = false, Description = "Apple Lossless Audio Codec – Developed by Apple, this lossless audio format is designed for use on Apple devices, ensuring high-quality audio playback." });
+            foramtList.Add(new Format() { Extension = ".wav", Enabled = false, Description = "Waveform Audio File Format – An uncompressed audio format that stores audio data in its raw waveform, offering pristine sound quality." });
+            foramtList.Add(new Format() { Extension = ".wma", Enabled = false, Description = "Windows Media Audio – Windows audio format known for its lossless compression, retaining high audio quality throughout all types of restructuring processes." });
+            foramtList.Add(new Format() { Extension = ".aac", Enabled = false, Description = "Advanced Audio Coding - An audio format that delivers decently high-quality sound and is enhanced using advanced coding." });
+            foramtList.Add(new Format() { Extension = ".ogg", Enabled = false, Description = "Ogg Vorbis – An open-source digital multimedia container format designed to provide for efficient streaming and manipulation of digital multimedia." });
+            foramtList.Add(new Format() { Extension = ".aiff", Enabled = false, Description = "Audio Interchange File Format – An uncompressed CD-quality audio format developed by Apple, commonly used in professional audio environments." });
+        }
+        AllFormats.AddRange(foramtList);
+        ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { foramtList } });
+
+        var Description = "File exteniosns allowed for scanning tracks: ";
+        foreach (var item in AllFormats)
+            if (item.Enabled) Description += $"{item.Extension.Replace(".", "")}, ";
+        FileExt.Description = Description.Remove(Description.Length - 2);
+    }
+
+    private void Ext_ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    {
+        var toggle = sender as ToggleSwitch;
+        if (toggle != null)
+        {
+            var formatUpdate = AllFormats.FirstOrDefault(e => e.Extension == toggle.Name);
+            if (formatUpdate != null) formatUpdate.Enabled = toggle.IsOn;
+            //TODO notification when all are off
+            ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { AllFormats } });
+            var Description = "File exteniosns allowed for scanning tracks: ";
+            foreach (var item in AllFormats)
+                if (item.Enabled) Description += $"{item.Extension.Replace(".", "")}, ";
+            FileExt.Description = Description.Remove(Description.Length - 2);
+        }
+    }
 }
 

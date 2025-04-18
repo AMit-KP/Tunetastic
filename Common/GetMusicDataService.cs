@@ -61,13 +61,14 @@ internal class GetMusicDataService
             ignoreDuplicates = false;
         }
 
-        List<string> extensions = new();        //TODO extension list
-        extensions.Add(".mp3");
-        extensions.Add(".m4a");
-        extensions.Add(".flac");
-        extensions.Add(".wav");
-        extensions.Add(".wma");
-        extensions.Add(".aac");
+        var formatList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
+
+        List<string> extensions = new();
+
+        foreach (var format in formatList)
+            if (format.Enabled) extensions.Add(format.Extension);
+
+        if (extensions.Count == 0) extensions.Add(".mp3");
 
         StorageFolder localFolder = ApplicationData.Current.LocalFolder;
         StorageFolder thumbnailFolder = await localFolder.CreateFolderAsync("AllSongViewThumbnails", CreationCollisionOption.OpenIfExists);
