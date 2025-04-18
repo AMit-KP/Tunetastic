@@ -69,7 +69,8 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="Protos/MusicAllData.proto" GrpcServices="None" OutputDir="Generated"/>
+    <Protobuf Include="Protos/MusicAllData.proto" GrpcServices="None" OutputDir="Generated" />
+    <Protobuf Include="Protos/LibraryPaths.proto" GrpcServices="None" OutputDir="Generated" />
   </ItemGroup>
 
   <!-- 

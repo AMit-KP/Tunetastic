@@ -1,4 +1,5 @@
-﻿using Tunetastic.Generated.Protos;
+﻿using Google.Protobuf.Collections;
+using Tunetastic.Generated.Protos;
 using Windows.Storage;
 
 namespace Tunetastic.Services;
@@ -22,22 +23,17 @@ internal class GetMusicDataService
             await Task.CompletedTask;
         }
     }
-    private Task<List<string>> GetAllLibrariesAsync()
+    private Task<RepeatedField<Library>> GetAllLibrariesAsync()
     {
         try
         {
-            ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries);
-            List<string> LibrariesData = new();
-            foreach (var item in LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths)
-            {
-                LibrariesData.Add(item.Path);
-            }
+            var LibrariesData = ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries;
 
             return Task.FromResult(LibrariesData);
         }
         catch (Exception)
         {
-            return Task.FromResult(new List<string>());
+            return Task.FromResult(new RepeatedField<Library>());
         }
     }
 
@@ -45,7 +41,12 @@ internal class GetMusicDataService
     {
         var audioFiles = new HashSet<string>();
 
-        var libraries = await GetAllLibrariesAsync();
+        var libraries = new List<string>();
+
+        foreach (var library in await GetAllLibrariesAsync())
+        {
+            libraries.Add(library.Path);
+        }
 
         double ignoreTrackDuration;
         bool ignoreDuplicates;

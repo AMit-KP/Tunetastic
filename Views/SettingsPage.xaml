@@ -6,7 +6,7 @@
       xmlns:dev="using:DevWinUI"
       xmlns:local="using:Tunetastic"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      xmlns:model="using:Tunetastic.Models"
+      xmlns:model="using:Tunetastic.Generated.Protos"
       xmlns:views="using:Tunetastic.Views"
       dev:BreadcrumbNavigator.IsHeaderVisible="True"
       mc:Ignorable="d">
@@ -29,7 +29,7 @@
 				        Content="Add New Folder" />
 
 				<dev:SettingsExpander.ItemTemplate>
-					<DataTemplate x:DataType="model:MusicLibraryPath">
+					<DataTemplate x:DataType="model:Library">
 						<dev:SettingsCard Description="{x:Bind Path}"
 						                  Header="{x:Bind Name}">
 							<Button Click="RemoveFolder_ButtonClick"

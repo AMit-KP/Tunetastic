@@ -1,13 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
-using Tunetastic.Models;
+using Tunetastic.Generated.Protos;
 using Tunetastic.Services;
 
 namespace Tunetastic.Views;
 
 public sealed partial class SettingsPage : Page
 {
-    public ObservableCollection<MusicLibraryPath> Libraries
+    public ObservableCollection<Library> Libraries
     {
         get; set;
     } = new();
@@ -21,7 +21,7 @@ public sealed partial class SettingsPage : Page
 
         try
         {
-            Libraries.AddRange(LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths);
+            Libraries.AddRange(ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries);
         }
         catch (Exception)
         {
@@ -34,6 +34,8 @@ public sealed partial class SettingsPage : Page
         Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
     }
 
+
+    #region Check Later
     //private void OnColorChanged(ColorPicker sender, ColorChangedEventArgs args)
     //{
     //    TintBox.Fill = new SolidColorBrush(args.NewColor);
@@ -55,49 +57,46 @@ public sealed partial class SettingsPage : Page
     //        }
     //        TintBox.Fill = new SolidColorBrush(color.Color);
     //    }
-    //}
+    //} 
+    #endregion
 
     private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
     {
         var Hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
         var picker = new DevWinUI.FolderPicker(Hwnd);
-        picker.Title = "Choose Library Folders";
-        picker.CommitButtonText = "Add Folders";
+        picker.Title = "Choose Library Folder(s)";
+        picker.CommitButtonText = "Add Folder(s)";
         picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
 
         var musicfolders = await picker.PickMultipleFoldersAsync();
 
-        List<MusicLibraryPath> uniqueFolders = new();
+        List<Library> uniqueFolders = new();
         uniqueFolders.AddRange(Libraries);
 
         foreach (var musicfolder in musicfolders)
         {
-            var newFolder = new MusicLibraryPath
+            var libraryData = new Library
             {
                 Name = musicfolder.Name,
                 Path = musicfolder.Path
             };
-            uniqueFolders.Add(newFolder);
+            uniqueFolders.Add(libraryData);
         }
         uniqueFolders = uniqueFolders.DistinctBy(p => p.Path).ToList();
 
         Libraries?.Clear();
         Libraries.AddRange(uniqueFolders);
-        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths?.Clear();
-        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths = Libraries.ToList();
-        LibrarySettingsSaver.Instance.SaveSettings();
+        ProtobufData.SaveToBin<LibraryList>(DataFile.AllLibraries, new LibraryList() { Libraries = { uniqueFolders } });
     }
 
     private void RemoveFolder_ButtonClick(object sender, RoutedEventArgs e)
     {
         var button = sender as Button;
 
-        if (button!.CommandParameter is MusicLibraryPath path)
-            Libraries.Remove(path);
+        if (button!.CommandParameter is Library library)
+            Libraries.Remove(library);
 
-        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths?.Clear();
-        LibrarySettingsSaver.Instance.LibrarySaveSettings.LibraryPaths = Libraries.ToList();
-        LibrarySettingsSaver.Instance.SaveSettings();
+        ProtobufData.SaveToBin<LibraryList>(DataFile.AllLibraries, new LibraryList() { Libraries = { Libraries } });
     }
 
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
