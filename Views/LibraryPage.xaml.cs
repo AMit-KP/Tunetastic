@@ -1,6 +1,8 @@
 ﻿// To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
+using Tunetastic.Views.LibraryViews;
+
 namespace Tunetastic.Views;
 /// <summary>
 /// An empty page that can be used on its own or navigated to within a Frame.
@@ -10,5 +12,7 @@ public sealed partial class LibraryPage : Page
     public LibraryPage()
     {
         this.InitializeComponent();
+        LibraryFrame.Navigate(typeof(AllSongsViewPage));
     }
+
 }

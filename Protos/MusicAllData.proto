@@ -3,7 +3,7 @@ option csharp_namespace = "Tunetastic.Generated.Protos";
 
 message Song {
   string title = 1;
-  repeated string artists = 2;
+  string artists = 2;
   double duration = 3;
   string album = 4;
   string path = 5;

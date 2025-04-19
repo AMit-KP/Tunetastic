@@ -120,14 +120,14 @@ internal class GetMusicDataService
                         {
                             Title = audioModel.Tag.Title ?? audioModel.Name,
                             Album = audioModel.Tag.Album ?? "Unknown Album",
+                            Artists = (audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
                             Duration = audioModel.Properties.Duration.TotalSeconds,
                             Path = filePath,
                             Year = audioModel.Tag.Year.ToString() ?? "Unknown Year",
                             Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"
                         };
-                        song.Artists.Add((audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist");
 
-                        if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists[0], song.Album))))
+                        if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
                             songsContainer.Songs.Add(song);
                     }
                 }

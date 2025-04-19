@@ -25,7 +25,7 @@ namespace Tunetastic.Generated.Protos {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChlQcm90b3MvTXVzaWNBbGxEYXRhLnByb3RvInIKBFNvbmcSDQoFdGl0bGUY",
-            "ASABKAkSDwoHYXJ0aXN0cxgCIAMoCRIQCghkdXJhdGlvbhgDIAEoARINCgVh",
+            "ASABKAkSDwoHYXJ0aXN0cxgCIAEoCRIQCghkdXJhdGlvbhgDIAEoARINCgVh",
             "bGJ1bRgEIAEoCRIMCgRwYXRoGAUgASgJEg0KBWdlbnJlGAYgASgJEgwKBHll",
             "YXIYByABKAkiIAoIU29uZ0xpc3QSFAoFc29uZ3MYASADKAsyBS5Tb25nQh6q",
             "AhtUdW5ldGFzdGljLkdlbmVyYXRlZC5Qcm90b3NiBnByb3RvMw=="));
@@ -76,7 +76,7 @@ namespace Tunetastic.Generated.Protos {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public Song(Song other) : this() {
       title_ = other.title_;
-      artists_ = other.artists_.Clone();
+      artists_ = other.artists_;
       duration_ = other.duration_;
       album_ = other.album_;
       path_ = other.path_;
@@ -105,13 +105,14 @@ namespace Tunetastic.Generated.Protos {
 
     /// <summary>Field number for the "artists" field.</summary>
     public const int ArtistsFieldNumber = 2;
-    private static readonly pb::FieldCodec<string> _repeated_artists_codec
-        = pb::FieldCodec.ForString(18);
-    private readonly pbc::RepeatedField<string> artists_ = new pbc::RepeatedField<string>();
+    private string artists_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<string> Artists {
+    public string Artists {
       get { return artists_; }
+      set {
+        artists_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
     }
 
     /// <summary>Field number for the "duration" field.</summary>
@@ -190,7 +191,7 @@ namespace Tunetastic.Generated.Protos {
         return true;
       }
       if (Title != other.Title) return false;
-      if(!artists_.Equals(other.artists_)) return false;
+      if (Artists != other.Artists) return false;
       if (!pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.Equals(Duration, other.Duration)) return false;
       if (Album != other.Album) return false;
       if (Path != other.Path) return false;
@@ -204,7 +205,7 @@ namespace Tunetastic.Generated.Protos {
     public override int GetHashCode() {
       int hash = 1;
       if (Title.Length != 0) hash ^= Title.GetHashCode();
-      hash ^= artists_.GetHashCode();
+      if (Artists.Length != 0) hash ^= Artists.GetHashCode();
       if (Duration != 0D) hash ^= pbc::ProtobufEqualityComparers.BitwiseDoubleEqualityComparer.GetHashCode(Duration);
       if (Album.Length != 0) hash ^= Album.GetHashCode();
       if (Path.Length != 0) hash ^= Path.GetHashCode();
@@ -232,7 +233,10 @@ namespace Tunetastic.Generated.Protos {
         output.WriteRawTag(10);
         output.WriteString(Title);
       }
-      artists_.WriteTo(output, _repeated_artists_codec);
+      if (Artists.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Artists);
+      }
       if (Duration != 0D) {
         output.WriteRawTag(25);
         output.WriteDouble(Duration);
@@ -267,7 +271,10 @@ namespace Tunetastic.Generated.Protos {
         output.WriteRawTag(10);
         output.WriteString(Title);
       }
-      artists_.WriteTo(ref output, _repeated_artists_codec);
+      if (Artists.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Artists);
+      }
       if (Duration != 0D) {
         output.WriteRawTag(25);
         output.WriteDouble(Duration);
@@ -301,7 +308,9 @@ namespace Tunetastic.Generated.Protos {
       if (Title.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Title);
       }
-      size += artists_.CalculateSize(_repeated_artists_codec);
+      if (Artists.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Artists);
+      }
       if (Duration != 0D) {
         size += 1 + 8;
       }
@@ -332,7 +341,9 @@ namespace Tunetastic.Generated.Protos {
       if (other.Title.Length != 0) {
         Title = other.Title;
       }
-      artists_.Add(other.artists_);
+      if (other.Artists.Length != 0) {
+        Artists = other.Artists;
+      }
       if (other.Duration != 0D) {
         Duration = other.Duration;
       }
@@ -372,7 +383,7 @@ namespace Tunetastic.Generated.Protos {
             break;
           }
           case 18: {
-            artists_.AddEntriesFrom(input, _repeated_artists_codec);
+            Artists = input.ReadString();
             break;
           }
           case 25: {
@@ -419,7 +430,7 @@ namespace Tunetastic.Generated.Protos {
             break;
           }
           case 18: {
-            artists_.AddEntriesFrom(ref input, _repeated_artists_codec);
+            Artists = input.ReadString();
             break;
           }
           case 25: {
