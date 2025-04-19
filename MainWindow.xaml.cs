@@ -12,8 +12,8 @@ public sealed partial class MainWindow : Window
         SetTitleBar(AppTitleBar);
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 
-        ((OverlappedPresenter)AppWindow.Presenter).PreferredMinimumWidth = 800;
-        ((OverlappedPresenter)AppWindow.Presenter).PreferredMinimumHeight = 600;
+        ((OverlappedPresenter)AppWindow.Presenter).PreferredMinimumWidth = 1000;
+        ((OverlappedPresenter)AppWindow.Presenter).PreferredMinimumHeight = 1000;
 
         var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
         if (navService != null)

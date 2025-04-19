@@ -49,7 +49,7 @@ public partial class App : Application
     {
         MainWindow = new MainWindow();
 
-        MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductNameAndVersion;
+        MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
         MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
 
         ThemeService.AutoInitialize(MainWindow);
