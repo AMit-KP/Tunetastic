@@ -135,6 +135,7 @@
     <PackageReference Include="NotifyIconEx" Version="1.1.2" />
     <PackageReference Include="nucs.JsonSettings" Version="2.0.2" />
     <PackageReference Include="nucs.JsonSettings.AutosaveGenerator" Version="2.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
     <PackageReference Include="System.Management" Version="9.0.4" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="WinUI.Dock" Version="1.1.0" />

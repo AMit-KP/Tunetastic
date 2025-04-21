@@ -24,15 +24,16 @@ namespace Tunetastic.Generated.Protos {
     static MusicAllDataReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChlQcm90b3MvTXVzaWNBbGxEYXRhLnByb3RvInIKBFNvbmcSDQoFdGl0bGUY",
-            "ASABKAkSDwoHYXJ0aXN0cxgCIAEoCRIQCghkdXJhdGlvbhgDIAEoARINCgVh",
-            "bGJ1bRgEIAEoCRIMCgRwYXRoGAUgASgJEg0KBWdlbnJlGAYgASgJEgwKBHll",
-            "YXIYByABKAkiIAoIU29uZ0xpc3QSFAoFc29uZ3MYASADKAsyBS5Tb25nQh6q",
-            "AhtUdW5ldGFzdGljLkdlbmVyYXRlZC5Qcm90b3NiBnByb3RvMw=="));
+            "ChlQcm90b3MvTXVzaWNBbGxEYXRhLnByb3RvIoEBCgRTb25nEg0KBXRpdGxl",
+            "GAEgASgJEg8KB2FydGlzdHMYAiABKAkSEAoIZHVyYXRpb24YAyABKAESDQoF",
+            "YWxidW0YBCABKAkSDAoEcGF0aBgFIAEoCRINCgVnZW5yZRgGIAEoCRIMCgR5",
+            "ZWFyGAcgASgJEg0KBWNvdmVyGAggASgJIiAKCFNvbmdMaXN0EhQKBXNvbmdz",
+            "GAEgAygLMgUuU29uZ0IeqgIbVHVuZXRhc3RpYy5HZW5lcmF0ZWQuUHJvdG9z",
+            "YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tunetastic.Generated.Protos.Song), global::Tunetastic.Generated.Protos.Song.Parser, new[]{ "Title", "Artists", "Duration", "Album", "Path", "Genre", "Year" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tunetastic.Generated.Protos.Song), global::Tunetastic.Generated.Protos.Song.Parser, new[]{ "Title", "Artists", "Duration", "Album", "Path", "Genre", "Year", "Cover" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tunetastic.Generated.Protos.SongList), global::Tunetastic.Generated.Protos.SongList.Parser, new[]{ "Songs" }, null, null, null, null)
           }));
     }
@@ -82,6 +83,7 @@ namespace Tunetastic.Generated.Protos {
       path_ = other.path_;
       genre_ = other.genre_;
       year_ = other.year_;
+      cover_ = other.cover_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -175,6 +177,18 @@ namespace Tunetastic.Generated.Protos {
       }
     }
 
+    /// <summary>Field number for the "cover" field.</summary>
+    public const int CoverFieldNumber = 8;
+    private string cover_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string Cover {
+      get { return cover_; }
+      set {
+        cover_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -197,6 +211,7 @@ namespace Tunetastic.Generated.Protos {
       if (Path != other.Path) return false;
       if (Genre != other.Genre) return false;
       if (Year != other.Year) return false;
+      if (Cover != other.Cover) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -211,6 +226,7 @@ namespace Tunetastic.Generated.Protos {
       if (Path.Length != 0) hash ^= Path.GetHashCode();
       if (Genre.Length != 0) hash ^= Genre.GetHashCode();
       if (Year.Length != 0) hash ^= Year.GetHashCode();
+      if (Cover.Length != 0) hash ^= Cover.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -257,6 +273,10 @@ namespace Tunetastic.Generated.Protos {
         output.WriteRawTag(58);
         output.WriteString(Year);
       }
+      if (Cover.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(Cover);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -295,6 +315,10 @@ namespace Tunetastic.Generated.Protos {
         output.WriteRawTag(58);
         output.WriteString(Year);
       }
+      if (Cover.Length != 0) {
+        output.WriteRawTag(66);
+        output.WriteString(Cover);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -325,6 +349,9 @@ namespace Tunetastic.Generated.Protos {
       }
       if (Year.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Year);
+      }
+      if (Cover.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Cover);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -358,6 +385,9 @@ namespace Tunetastic.Generated.Protos {
       }
       if (other.Year.Length != 0) {
         Year = other.Year;
+      }
+      if (other.Cover.Length != 0) {
+        Cover = other.Cover;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -406,6 +436,10 @@ namespace Tunetastic.Generated.Protos {
             Year = input.ReadString();
             break;
           }
+          case 66: {
+            Cover = input.ReadString();
+            break;
+          }
         }
       }
     #endif
@@ -451,6 +485,10 @@ namespace Tunetastic.Generated.Protos {
           }
           case 58: {
             Year = input.ReadString();
+            break;
+          }
+          case 66: {
+            Cover = input.ReadString();
             break;
           }
         }

@@ -9,6 +9,7 @@ message Song {
   string path = 5;
   string genre = 6;
   string year = 7;
+  string cover = 8;
 }
 
 message SongList {

@@ -1,6 +1,5 @@
 ﻿using Google.Protobuf.Collections;
 using Tunetastic.Generated.Protos;
-using Windows.Storage;
 
 namespace Tunetastic.Services;
 
@@ -70,11 +69,8 @@ internal class GetMusicDataService
 
         if (extensions.Count == 0) extensions.Add(".mp3");
 
-        StorageFolder localFolder = ApplicationData.Current.LocalFolder;
-        StorageFolder thumbnailFolder = await localFolder.CreateFolderAsync("AllSongViewThumbnails", CreationCollisionOption.OpenIfExists);
-
-        if (thumbnailFolder != null)
-            await thumbnailFolder.DeleteAsync(StorageDeleteOption.PermanentDelete);
+        var path = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.AllSongView.ToString());
+        if (Directory.Exists(path)) Directory.Delete(path, true);
 
         if (libraries?.Count > 0)
         {
@@ -124,7 +120,8 @@ internal class GetMusicDataService
                             Duration = audioModel.Properties.Duration.TotalSeconds,
                             Path = filePath,
                             Year = audioModel.Tag.Year.ToString() ?? "Unknown Year",
-                            Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"
+                            Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre",
+                            Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 100)
                         };
 
                         if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
