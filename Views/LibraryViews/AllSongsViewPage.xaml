@@ -31,8 +31,8 @@
 
 					<controls:DataTable Margin="12,0,0,0"
 					                    ColumnSpacing="10">
-						<controls:DataColumn CanResize="True"
-						                     Content="Title"
+						<controls:DataColumn DesiredWidth="40" />
+						<controls:DataColumn Content="Title"
 						                     DesiredWidth="300"
 						                     FontWeight="Bold" />
 						<controls:DataColumn CanResize="True"
@@ -44,7 +44,7 @@
 							           Text="Album" />
 						</controls:DataColumn>
 						<controls:DataColumn Content="Duration"
-						                     DesiredWidth="100"
+						                     DesiredWidth="125"
 						                     FontWeight="Bold" />
 					</controls:DataTable>
 				</Border>
@@ -53,29 +53,26 @@
 			<ListView.ItemTemplate>
 				<DataTemplate x:DataType="local:Song">
 					<controls:DataRow HorizontalAlignment="Left">
-						<!--<Grid Grid.Column="1"
-						      Width="40"
-						      Height="40"
+						<Grid Width="40"
+						      Height="60"
 						      CornerRadius="10">
 							<Image VerticalAlignment="Center"
-							       Source="{x:Bind AlbumArt}" />
-						</Grid>-->
-						<!--<Grid>
-							<Button x:Name="PlayNow">
-								<Button.Content>
-									<Grid>
-										<FontIcon Glyph="&#xF5B0;" />
-									</Grid>
-								</Button.Content>
-							</Button>
-						</Grid>-->
-						<TextBlock VerticalAlignment="Center"
+							       Source="{x:Bind Cover}" />
+						</Grid>
+						<dev:AutoScrollView VerticalAlignment="Center"
+						                    VerticalContentAlignment="Center"
+						                    IsPlaying="True">
+							<TextBlock HorizontalAlignment="Left"
+							           VerticalAlignment="Center"
 						           Text="{x:Bind Title}"
 						           ToolTipService.ToolTip="{x:Bind Title}" />
-						<TextBlock VerticalAlignment="Center"
+						</dev:AutoScrollView>
+						<TextBlock HorizontalAlignment="Left"
+						           VerticalAlignment="Center"
 						           Text="{x:Bind Artists}"
 						           ToolTipService.ToolTip="{x:Bind Artists}" />
-						<TextBlock VerticalAlignment="Center"
+						<TextBlock HorizontalAlignment="Left"
+						           VerticalAlignment="Center"
 						           Text="{x:Bind Album}"
 						           ToolTipService.ToolTip="{x:Bind Album}" />
 						<TextBlock HorizontalAlignment="Left"
