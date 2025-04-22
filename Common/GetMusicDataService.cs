@@ -114,7 +114,7 @@ internal class GetMusicDataService
                     {
                         var song = new Song
                         {
-                            Title = audioModel.Tag.Title ?? audioModel.Name,
+                            Title = audioModel.Tag.Title ?? audioModel.Name.Substring(audioModel.Name.LastIndexOf('\\') + 1),
                             Album = audioModel.Tag.Album ?? "Unknown Album",
                             Artists = (audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
                             Duration = audioModel.Properties.Duration.TotalSeconds,
