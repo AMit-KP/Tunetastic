@@ -18,6 +18,8 @@
 	<Grid>
 		<ListView Margin="10,10,10,10"
 		          VerticalAlignment="Top"
+		          IsItemClickEnabled="True"
+		          ItemClick="ListView_ItemClick"
 		          ItemsSource="{x:Bind AllSongs}">
 
 			<ListView.Header>
@@ -64,8 +66,8 @@
 						                    IsPlaying="True">
 							<TextBlock HorizontalAlignment="Left"
 							           VerticalAlignment="Center"
-						           Text="{x:Bind Title}"
-						           ToolTipService.ToolTip="{x:Bind Title}" />
+							           Text="{x:Bind Title}"
+							           ToolTipService.ToolTip="{x:Bind Title}" />
 						</dev:AutoScrollView>
 						<TextBlock HorizontalAlignment="Left"
 						           VerticalAlignment="Center"

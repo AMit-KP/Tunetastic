@@ -15,8 +15,10 @@ public sealed partial class AllSongsViewPage : Page
         AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
     }
 
-    private void PlayNow_Click(object sender, RoutedEventArgs e)
+    private void ListView_ItemClick(object sender, ItemClickEventArgs e)
     {
-
+        var track = e.ClickedItem as Song;
+        List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+        MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
     }
 }
