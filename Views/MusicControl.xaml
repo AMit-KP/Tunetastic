@@ -84,7 +84,7 @@
 			              Margin="0,0,445,20"
 			              HorizontalAlignment="Center"
 			              VerticalAlignment="Center"
-			              Command="{x:Bind ViewModel.ShuffleCommand}"
+			              Command="{x:Bind ViewModel.ShuffleToggleCommand}"
 			              CornerRadius="23"
 			              IsChecked="{x:Bind ViewModel.IsShuffleToggled, Mode=TwoWay}"
 			              ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextShuffleButton, Mode=OneWay}">
@@ -130,6 +130,7 @@
 			        VerticalAlignment="Center"
 			        Command="{x:Bind ViewModel.RepeatButtonToggleCommand}"
 			        CornerRadius="23"
+			        Style="{x:Bind ViewModel.RepeatButtonStyle, Mode=OneWay}"
 			        ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextRepeatButton, Mode=OneWay}">
 				<Button.Content>
 					<Grid>

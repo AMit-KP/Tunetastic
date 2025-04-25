@@ -8,45 +8,56 @@ public partial class MusicControlViewModel : ObservableRecipient
 {
     private readonly DispatcherQueue _dispatcherQueue;
 
-    [ObservableProperty]
-    public string fontIconPlayPause;
-
-    [ObservableProperty]
-    private bool isShuffleToggled;
-
-    [ObservableProperty]
-    public MediaPlaybackState playbackState;
-
-    [ObservableProperty]
-    public string repeatButtonFontIcon;
-
-    private RepeatStates repeatState = RepeatStates.Off;
-
-    [ObservableProperty]
-    public string toolTipTextPlayPause;
-
-    [ObservableProperty]
-    public string toolTipTextRepeatButton;
-
-    [ObservableProperty]
-    public string toolTipTextShuffleButton;
-
-    [ObservableProperty]
-    public double durationOfSong;
-
     private bool isUpdatingProgressBar = false;
 
-    public double progressBarValue;
+    private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 
+    public MusicControlViewModel()
+    {
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        _musicPlayer.MediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
+
+        _musicPlayer.MediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
+
+        _musicPlayer.MediaPlayer.MediaOpened += PlaybackSession_MediaOpenedAsync;
+        //_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
+    }
+
+    private string _fontIconPlayPause = "\uE768";
+    public string FontIconPlayPause
+    {
+        get => _fontIconPlayPause;
+        set => SetProperty(ref _fontIconPlayPause, value);
+    }
+
+    private string _repeatButtonFontIcon = "\uE8EE";
+    public string RepeatButtonFontIcon
+    {
+        get => _repeatButtonFontIcon;
+        set => SetProperty(ref _repeatButtonFontIcon, value);
+    }
+
+    private double _progressBarValue;
     public double ProgressBarValue
     {
-        get => progressBarValue;
+        get => _progressBarValue;
         set
         {
-            if (progressBarValue != value)
+            if (_progressBarValue != value)
             {
-                progressBarValue = value;
-                OnPropertyChanged(nameof(ProgressBarValue));
+                _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
+                {
+                    _progressBarValue = value;
+                    try
+                    {
+                        OnPropertyChanged(nameof(ProgressBarValue));
+                    }
+                    catch (Exception)
+                    {
+                    }
+                });
+
                 if (!isUpdatingProgressBar)
                 {
                     UpdatePlaybackPosition();
@@ -55,55 +66,129 @@ public partial class MusicControlViewModel : ObservableRecipient
         }
     }
 
-    public MusicControlViewModel()
+    private double _durationOfSong;
+    public double DurationOfSong
     {
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-        //NowPlaying.Instance.CreateAudioInstance(@"C:\Users\amitp\Music\Soundtracks and Instrumentals\Avatar's Love - Samuel Kim.mp3");
-        //MediaList.Instance.AddFiles(new List<string> { @"C:\Users\amitp\Music\Soundtracks and Instrumentals\Avatar's Love - Samuel Kim.mp3" });
-        //MediaPlayerManager.Instance.MediaPlayerInstance.Source = MediaSource.CreateFromUri(new Uri(@"C:\Users\amitp\Music\Soundtracks and Instrumentals\Avatar's Love - Samuel Kim.mp3"));
-        //MediaPlayerManager.Instance.MediaPlayerInstance.Source = MediaList.Instance.MediaPlaybackList;
-
-        //playbackState = MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PlaybackState;
-
-
-        //new MediaPlayerElement().SetMediaPlayer(MediaPlayerManager.Instance.MediaPlayerInstance);
-
-        //MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-        //MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
-
-        RepeatButtonFontIcon = "\uF5E7";
-        FontIconPlayPause = "\uE768";
-        ToolTipTextRepeatButton = "Repeat Off";
-        IsShuffleToggled = false;
-        ToolTipTextShuffleButton = "Shuffle Off";
-
-        //MediaList.Instance.MediaPlaybackList.ItemOpened += MediaPlaybackList_ItemOpened;
-        //MediaList.Instance.MediaPlaybackList.ItemFailed += MediaPlaybackList_ItemFailed;
+        get => _durationOfSong;
+        set => SetProperty(ref _durationOfSong, value);
     }
 
-    private void MediaPlaybackList_ItemFailed(MediaPlaybackList sender, MediaPlaybackItemFailedEventArgs args)
+    private bool _isShuffleToggled = false;
+    public bool IsShuffleToggled
     {
-        throw new NotImplementedException();    //TODO
+        get => _isShuffleToggled;
+        set => SetProperty(ref _isShuffleToggled, value);
     }
 
-    private void MediaPlaybackList_ItemOpened(MediaPlaybackList sender, MediaPlaybackItemOpenedEventArgs args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+    private Style _repeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
+    public Style RepeatButtonStyle
     {
-        await UpdateUI();
+        get => _repeatButtonStyle;
+        set => SetProperty(ref _repeatButtonStyle, value);
+    }
+
+    private string _toolTipTextPlayPause = "Play";
+    public string ToolTipTextPlayPause
+    {
+        get => _toolTipTextPlayPause;
+        set => SetProperty(ref _toolTipTextPlayPause, value);
+    }
+
+    private string _toolTipTextShuffleButton = "Shuffle Off";
+    public string ToolTipTextShuffleButton
+    {
+        get => _toolTipTextShuffleButton;
+        set => SetProperty(ref _toolTipTextShuffleButton, value);
+    }
+
+    private string _toolTipTextRepeatButton = "Repeat All";
+    public string ToolTipTextRepeatButton
+    {
+        get => _toolTipTextRepeatButton;
+        set => SetProperty(ref _toolTipTextRepeatButton, value);
+    }
+
+    [RelayCommand]
+    private void TogglePlayPause()
+    {
+        if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
+        {
+            _musicPlayer.Pause();
+        }
+        else if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Paused)
+        {
+            _musicPlayer.Play();
+        }
+    }
+
+    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
+    {
+        switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
+        {
+            case MediaPlaybackState.Paused:
+            case MediaPlaybackState.None:
+                FontIconPlayPause = "\uE768";
+                ToolTipTextPlayPause = "Play";
+                break;
+
+            case MediaPlaybackState.Playing:
+            case MediaPlaybackState.Buffering:
+            case MediaPlaybackState.Opening:
+                FontIconPlayPause = "\uE769";
+                ToolTipTextPlayPause = "Pause";
+                break;
+        }
     });
 
-    private void MediaPlaybackList_CurrentItemChanged(MediaPlaybackList sender, CurrentMediaPlaybackItemChangedEventArgs args)
+
+    [RelayCommand]
+    private void NextSong() => _musicPlayer.Next();
+
+    [RelayCommand]
+    private void PreviousSong() => _musicPlayer.Previous();
+
+
+    [RelayCommand]
+    private void ForwardSong() => ProgressBarValue++;
+
+    [RelayCommand]
+    private void RewindSong() => ProgressBarValue--;
+
+
+    [RelayCommand]
+    private void ShuffleToggle()
     {
-        throw new NotImplementedException();
+        _musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
+        ToolTipTextShuffleButton = IsShuffleToggled ? "Shuffle On" : "Shuffle Off";
     }
 
-    private async Task UpdateUI()
+    [RelayCommand]
+    private void RepeatButtonToggle()
     {
-        await Task.Delay(500);
-        //DurationOfSong = MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.NaturalDuration.TotalSeconds;
+        switch (_musicPlayer.RepeatStatus)
+        {
+            case RepeatMode.None:
+                _musicPlayer.SetRepeatMode(RepeatMode.All);
+                RepeatButtonFontIcon = "\uE8EE";
+                ToolTipTextRepeatButton = "Repeat All";
+                RepeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
+                break;
+            case RepeatMode.All:
+                _musicPlayer.SetRepeatMode(RepeatMode.One);
+                RepeatButtonFontIcon = "\uE8ED";
+                ToolTipTextRepeatButton = "Repeat One";
+                RepeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
+                break;
+            case RepeatMode.One:
+                _musicPlayer.SetRepeatMode(RepeatMode.None);
+                RepeatButtonFontIcon = "\uF5E7";
+                ToolTipTextRepeatButton = "Repeat Off";
+                RepeatButtonStyle = (Style)Application.Current.Resources["DefaultButtonStyle"];
+                break;
+        }
     }
 
-    private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+    private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
     {
         isUpdatingProgressBar = true;
         ProgressBarValue = sender.Position.TotalSeconds;
@@ -113,123 +198,24 @@ public partial class MusicControlViewModel : ObservableRecipient
 
     public async void UpdatePlaybackPosition()
     {
-        //MediaPlayerManager.Instance.MediaPlayerInstance.IsMuted = true;
-        //MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.Position = TimeSpan.FromSeconds(ProgressBarValue);
-        //await Task.Delay(500);
-        //MediaPlayerManager.Instance.MediaPlayerInstance.IsMuted = false;
-    }
-
-    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
-    {
-        //switch (MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PlaybackState)
-        //{
-        //    case MediaPlaybackState.Paused:
-        //        FontIconPlayPause    = "\uE768";
-        //        ToolTipTextPlayPause = "Play";
-        //        break;
-
-        //    case MediaPlaybackState.Playing:
-        //        FontIconPlayPause    = "\uE769";
-        //        ToolTipTextPlayPause = "Pause";
-        //        break;
-
-        //    case MediaPlaybackState.Buffering:
-        //        FontIconPlayPause    = "\uE768";
-        //        ToolTipTextPlayPause = "Play";
-        //        break;
-
-        //    case MediaPlaybackState.None:
-        //    case MediaPlaybackState.Opening:
-        //        break;
-        //}
-    });
-
-    [RelayCommand]
-    private void TogglePlayPause()
-    {
-        //if (MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
-        //{
-        //    MediaPlayerManager.Instance.MediaPlayerInstance.Pause();
-        //}
-        //else if (MediaPlayerManager.Instance.MediaPlayerInstance.PlaybackSession.PlaybackState == MediaPlaybackState.Paused)
-        //{
-        //    MediaPlayerManager.Instance.MediaPlayerInstance.Play();
-        //}
-    }
-
-    [RelayCommand]
-    private void Shuffle()
-    {
-        if (IsShuffleToggled)
+        _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
         {
-            ToolTipTextShuffleButton = "Shuffle On";
-            //MediaList.Instance.MediaPlaybackList.ShuffleEnabled = true;
-        }
-        else
-        {
-            ToolTipTextShuffleButton = "Shuffle Off";
-            //MediaList.Instance.MediaPlaybackList.ShuffleEnabled = false;
-        }
+            _musicPlayer.MediaPlayer.IsMuted = true;
+            _musicPlayer.MediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(ProgressBarValue);
+            await Task.Delay(500);
+            _musicPlayer.MediaPlayer.IsMuted = false;
+        });
     }
 
-    [RelayCommand]
-    private void NextSong()
+    private async void PlaybackSession_MediaOpenedAsync(MediaPlayer sender, object args)
     {
-        //MediaList.Instance.MediaPlaybackList.MoveNext();
+        await Task.Delay(100);
+        _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+        {
+            DurationOfSong = _musicPlayer.MediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
+        });
     }
 
-    [RelayCommand]
-    private void PreviousSong()
-    {
-        //MediaList.Instance.MediaPlaybackList.MovePrevious();
-    }
-
-    [RelayCommand]
-    private void ForwardSong() => ProgressBarValue++;
-
-    [RelayCommand]
-    private void RewindSong() => ProgressBarValue--;
-
-    [RelayCommand]
-    private void RepeatButtonToggle()
-    {
-        if (repeatState == RepeatStates.Off)
-        {
-            repeatState = RepeatStates.All;
-        }
-        else if (repeatState == RepeatStates.All)
-        {
-            repeatState = RepeatStates.One;
-        }
-        else if (repeatState == RepeatStates.One)
-        {
-            repeatState = RepeatStates.Off;
-        }
-
-        switch (repeatState)
-        {
-            case RepeatStates.Off:
-                RepeatButtonFontIcon = "\uF5E7";
-                ToolTipTextRepeatButton = "Repeat Off";
-                break;
-
-            case RepeatStates.All:
-                RepeatButtonFontIcon = "\uE8EE";
-                ToolTipTextRepeatButton = "Repeat All";
-                break;
-
-            case RepeatStates.One:
-                RepeatButtonFontIcon = "\uE8ED";
-                ToolTipTextRepeatButton = "Repeat One";
-                break;
-        }
-    }
-
-    private enum RepeatStates
-    {
-        Off,
-        All,
-        One
-    }
 
 }
+
