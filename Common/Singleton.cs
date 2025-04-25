@@ -41,6 +41,7 @@ public class MusicPlayer
     private MusicPlayer()
     {
         MediaPlayer = new MediaPlayer();
+        MediaPlayer.AutoPlay = false;
         SongQueue = new Queue<string>();
         MediaPlayer.MediaEnded += (s, e) => HandleTrackEnd();
     }
@@ -49,26 +50,29 @@ public class MusicPlayer
     {
         get
         {
-            if (_instance == null)
-                _instance = new MusicPlayer();
+            _instance ??= new MusicPlayer();
             return _instance;
         }
     }
 
-    public void LoadPlaylist(List<string> songPaths, string? startingSong = null)
+    public async void LoadPlaylist(List<string> songPaths, string? startingSong = null)
     {
+        await LoadSong(startingSong ?? songPaths[0]);
+        _ = Task.Run(() =>
+        {
+
         OriginalPlaylist = new List<string>(songPaths);
 
         ShuffleSongs(startingSong);
-
-        Play();
+        });
     }
 
     public void ToggleShuffle(ShuffleMode mode)
     {
         ShuffleStatus = mode;
-        ShuffleSongs(ActualPlaylist[currentIndex]);
+        if (ActualPlaylist?.Count > 0) ShuffleSongs(ActualPlaylist[currentIndex]);
     }
+
     public void SetRepeatMode(RepeatMode mode)
     {
         RepeatStatus = mode;
@@ -76,28 +80,64 @@ public class MusicPlayer
 
     public void AddToQueue(string songPath) => SongQueue?.Enqueue(songPath);        //TODO queue system
 
-    public async void Play()
+    public async void LoadSong()
     {
         //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
 
-        await CrossfadeTransition(ActualPlaylist[currentIndex]);
+        if (ActualPlaylist?.Count > 0)
+        {
+            //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
+            MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(ActualPlaylist[currentIndex]));
+            MediaPlayer.Play();
     }
+    }
+
+    public async Task LoadSong(string songPath)
+    {
+        //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
+
+        if (ActualPlaylist?.Count > 0)
+        {
+            //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
+            MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+            MediaPlayer.Play();
+        }
+    }
+
 
     public async void Pause()
     {
-        //get settings for this
-        await CrossfadePause();
-        //MediaPlayer.Pause();
+        //TODO get settings for this
+        //await CrossfadePause();
+        MediaPlayer.Pause();
     }
+
+    public async void Play()
+    {
+        //TODO get settings for this
+        //await CrossfadePause();
+        MediaPlayer.Play();
+    }
+
+
     public async void Previous()
     {
         //TODO get settings for this restart or prev
+        try
+        {
         currentIndex = currentIndex == 0 ? ActualPlaylist.Count - 1 : currentIndex - 1;
-        Play();
+            LoadSong();
+    }
+        catch (Exception)
+        {
+            //TODO notification
+        }
     }
 
     public async void Next()
     {
+        try
+        {
         if (SongQueue?.Count > 0)
         {
             await CrossfadeTransition(SongQueue.Dequeue());
@@ -120,7 +160,7 @@ public class MusicPlayer
                 }
                 else
                 {
-                    await CrossfadeStop();
+                        await CrossfadePause();
                     return;
                 }
             }
@@ -130,12 +170,17 @@ public class MusicPlayer
             }
             else if (RepeatStatus == RepeatMode.None)
             {
-                await CrossfadeStop();
+                    await CrossfadePause();
                 return;
             }
         }
 
-        Play();
+            LoadSong();
+    }
+        catch (Exception)
+        {
+            //TODO notification
+        }
     }
 
     private void ReorderPlaylist(string startingSong)
@@ -179,8 +224,18 @@ public class MusicPlayer
             await Task.Delay(50);
         }
 
+        try
+        {
         MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
         MediaPlayer.Play();
+        }
+        catch (Exception)
+        {
+            //TODO error notification
+            MediaPlayer.Volume = volume;
+            Next();
+
+        }
 
         // Fade in new track
         for (double i = 0; i <= volume; i += 0.05)
@@ -201,16 +256,6 @@ public class MusicPlayer
 
         MediaPlayer.Pause();
         MediaPlayer.Volume = volume;
-    }
-    private async Task CrossfadeStop()
-    {
-        //TODO get settings for time
-        for (double i = MediaPlayer.Volume; i > 0; i -= 0.05)
-        {
-            MediaPlayer.Volume = i;
-            await Task.Delay(100);
-        }
-        MediaPlayer.Pause();
     }
 
     private void HandleTrackEnd()
