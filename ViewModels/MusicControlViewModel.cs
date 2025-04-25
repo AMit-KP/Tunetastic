@@ -12,18 +12,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 
     private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 
-    public MusicControlViewModel()
-    {
-        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-
-        _musicPlayer.MediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
-
-        _musicPlayer.MediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
-
-        _musicPlayer.MediaPlayer.MediaOpened += PlaybackSession_MediaOpenedAsync;
-        //_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
-    }
-
     private string _fontIconPlayPause = "\uE768";
     public string FontIconPlayPause
     {
@@ -108,6 +96,33 @@ public partial class MusicControlViewModel : ObservableRecipient
         set => SetProperty(ref _toolTipTextRepeatButton, value);
     }
 
+    public MusicControlViewModel()
+    {
+        _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+        _musicPlayer.MediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
+
+        _musicPlayer.MediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
+
+        _musicPlayer.MediaPlayer.MediaOpened += PlaybackSession_MediaOpenedAsync;
+        //_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
+
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        if (localSettings.Values.ContainsKey("ShuffleStatus"))
+            ShuffleToggle((bool)localSettings.Values["ShuffleStatus"]);
+
+        if (localSettings.Values.ContainsKey("RepeatStatus"))
+            RepeatButtonToggle(Enum.Parse<RepeatMode>(localSettings.Values["RepeatStatus"]?.ToString()));
+
+        if (localSettings.Values.ContainsKey("LastPlayed"))
+        {
+            _musicPlayer.LoadSong(localSettings.Values["LastPlayed"].ToString(), play: false);          //TODO get settings
+
+            if (localSettings.Values.ContainsKey("PlayBackPosition"))
+                ProgressBarValue = double.Parse(localSettings.Values["PlayBackPosition"].ToString());
+        }
+    }
+
     [RelayCommand]
     private void TogglePlayPause()
     {
@@ -156,36 +171,58 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 
     [RelayCommand]
-    private void ShuffleToggle()
+    private void ShuffleToggle(bool? shuffleSaved = null)
     {
+        IsShuffleToggled = shuffleSaved ?? IsShuffleToggled;
         _musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
         ToolTipTextShuffleButton = IsShuffleToggled ? "Shuffle On" : "Shuffle Off";
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values["ShuffleStatus"] = IsShuffleToggled;
     }
 
     [RelayCommand]
-    private void RepeatButtonToggle()
+    private void RepeatButtonToggle(RepeatMode? repeatSaved = null)
     {
-        switch (_musicPlayer.RepeatStatus)
+        RepeatMode repeatMode = RepeatMode.All;
+        if (repeatSaved != null)
+            repeatMode = repeatSaved.Value;
+        else
         {
-            case RepeatMode.None:
+            if (_musicPlayer.RepeatStatus == RepeatMode.All)
+            {
+                repeatMode = RepeatMode.One;
+            }
+            else if (_musicPlayer.RepeatStatus == RepeatMode.One)
+            {
+                repeatMode = RepeatMode.None;
+            }
+            else if (_musicPlayer.RepeatStatus == RepeatMode.None)
+            {
+                repeatMode = RepeatMode.All;
+            }
+        }
+
+        switch (repeatMode)
+        {
+            case RepeatMode.All:
                 _musicPlayer.SetRepeatMode(RepeatMode.All);
                 RepeatButtonFontIcon = "\uE8EE";
                 ToolTipTextRepeatButton = "Repeat All";
                 RepeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
                 break;
-            case RepeatMode.All:
+            case RepeatMode.One:
                 _musicPlayer.SetRepeatMode(RepeatMode.One);
                 RepeatButtonFontIcon = "\uE8ED";
                 ToolTipTextRepeatButton = "Repeat One";
                 RepeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
                 break;
-            case RepeatMode.One:
+            case RepeatMode.None:
                 _musicPlayer.SetRepeatMode(RepeatMode.None);
                 RepeatButtonFontIcon = "\uF5E7";
                 ToolTipTextRepeatButton = "Repeat Off";
                 RepeatButtonStyle = (Style)Application.Current.Resources["DefaultButtonStyle"];
                 break;
         }
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values["RepeatStatus"] = _musicPlayer.RepeatStatus.ToString();
     }
 
     private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>

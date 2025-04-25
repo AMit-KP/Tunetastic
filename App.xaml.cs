@@ -58,6 +58,7 @@ public partial class App : Application
 
         await new GetMusicDataService().UpdateMetaData();
         InitializeApp();
+        MainWindow.Closed += (s, e) => MusicPlayer.Instance.SavePlayBackPosition();
     }
 
     private async void InitializeApp()

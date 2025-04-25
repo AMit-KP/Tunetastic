@@ -117,7 +117,11 @@ public partial class SettingViewModel : ObservableObject
         RestartApp();
     }
 
-    public async Task ResetAllSettings() => await ApplicationData.Current.ClearAsync();
+    public async Task ResetAllSettings()
+    {
+        ApplicationData.Current.LocalSettings.Values.Clear();
+        await ApplicationData.Current.ClearAsync();
+    }
 
     private void RestartApp()
     {

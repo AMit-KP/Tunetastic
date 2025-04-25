@@ -36,7 +36,7 @@ public class MusicPlayer
     private bool alreadyPlayed = false;
 
     public ShuffleMode ShuffleStatus { get; private set; } = ShuffleMode.Off;
-    public RepeatMode RepeatStatus { get; private set; } = RepeatMode.None;
+    public RepeatMode RepeatStatus { get; private set; } = RepeatMode.All;
 
     private MusicPlayer()
     {
@@ -82,25 +82,26 @@ public class MusicPlayer
 
     public async void LoadSong()
     {
-        //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
-
         if (ActualPlaylist?.Count > 0)
         {
-            //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
-            MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(ActualPlaylist[currentIndex]));
-            MediaPlayer.Play();
+            LoadSong(ActualPlaylist[currentIndex]);
     }
     }
 
-    public async Task LoadSong(string songPath)
+    public async Task LoadSong(string songPath, bool play = true)
     {
+        try
+        {
         //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
 
-        if (ActualPlaylist?.Count > 0)
-        {
             //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
             MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
-            MediaPlayer.Play();
+            if (play) MediaPlayer.Play();
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values["LastPlayed"] = songPath;
+        }
+        catch (Exception)
+        {
+            //TODO notification
         }
     }
 
@@ -261,6 +262,11 @@ public class MusicPlayer
     private void HandleTrackEnd()
     {
         Next();
+    }
+
+    public void SavePlayBackPosition()
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values["PlayBackPosition"] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
     }
 }
 
