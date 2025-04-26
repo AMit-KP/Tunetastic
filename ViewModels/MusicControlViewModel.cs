@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Dispatching;
+using Tunetastic.Views.LibraryViews;
 using Windows.Media.Playback;
 
 
@@ -120,6 +121,16 @@ public partial class MusicControlViewModel : ObservableRecipient
 
             if (localSettings.Values.ContainsKey("PlayBackPosition"))
                 ProgressBarValue = double.Parse(localSettings.Values["PlayBackPosition"].ToString());
+
+            if (localSettings.Values.ContainsKey("CurrentPlaylist") && localSettings.Values.ContainsKey("CurrentIndex"))
+            {
+                switch (localSettings.Values["CurrentPlaylist"].ToString())
+                {
+                    case "AllSongsViewPage":
+                        new AllSongsViewPage().LoadAsPlayList(int.Parse(localSettings.Values["CurrentIndex"].ToString()));
+                        break;
+                }
+            }
         }
     }
 

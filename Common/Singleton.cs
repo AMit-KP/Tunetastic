@@ -83,6 +83,17 @@ public class MusicPlayer
         });
     }
 
+    public async void LoadLastPlayed(List<string> songPaths, int index)
+    {
+        _ = Task.Run(() =>
+        {
+            OriginalPlaylist = new List<string>(songPaths);
+
+            ShuffleSongs();
+            currentIndex = index;
+        });
+    }
+
     public void ToggleShuffle(ShuffleMode mode)
     {
         ShuffleStatus = mode;
@@ -284,6 +295,7 @@ public class MusicPlayer
     public void SavePlayBackPosition()
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values["PlayBackPosition"] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values["CurrentIndex"] = currentIndex.ToString();
     }
 }
 
