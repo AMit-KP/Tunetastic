@@ -35,6 +35,22 @@ public class MusicPlayer
     private int currentIndex = 0;
     private bool alreadyPlayed = false;
 
+    public event EventHandler<string> CurrentSongChanged;
+
+    private string _currentSong = "";
+    public string CurrentSong
+    {
+        get => _currentSong;
+        set
+        {
+            if (_currentSong != value)
+            {
+                _currentSong = value;
+                CurrentSongChanged?.Invoke(this, _currentSong);
+            }
+        }
+    }
+
     public ShuffleMode ShuffleStatus { get; private set; } = ShuffleMode.Off;
     public RepeatMode RepeatStatus { get; private set; } = RepeatMode.All;
 
@@ -57,7 +73,7 @@ public class MusicPlayer
 
     public async void LoadPlaylist(List<string> songPaths, string? startingSong = null)
     {
-        await LoadSong(startingSong ?? songPaths[0]);
+        await LoadSong(startingSong ?? songPaths[0]);           //TODO load playlist at 1st
         _ = Task.Run(() =>
         {
 
@@ -97,7 +113,8 @@ public class MusicPlayer
             //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
             MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
             if (play) MediaPlayer.Play();
-            Windows.Storage.ApplicationData.Current.LocalSettings.Values["LastPlayed"] = songPath;
+            CurrentSong = songPath;
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values["LastPlayed"] = CurrentSong;
         }
         catch (Exception)
         {

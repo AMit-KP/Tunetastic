@@ -1,5 +1,5 @@
 ﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using TagLib;
 using Image = SixLabors.ImageSharp.Image;
@@ -10,7 +10,7 @@ public class ImageResizer
 {
     public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[] pictures, int width, int height)
     {
-        var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, thumbnailFolder.ToString(), "Cover_" + new string(Enumerable.Range(0, 10).Select(_ => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[new Random().Next(62)]).ToArray()) + ".jpg");
+        var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, thumbnailFolder.ToString(), "Cover_" + new string(Enumerable.Range(0, 10).Select(_ => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[new Random().Next(62)]).ToArray()) + ".png");
         Directory.CreateDirectory(Path.GetDirectoryName(thumbnailFilePath));
         byte[] imageData;
         try
@@ -31,7 +31,30 @@ public class ImageResizer
             Mode = ResizeMode.Max
         }));
 
-        image.Save(thumbnailFilePath, new JpegEncoder { Quality = 100 });
+        image.Save(thumbnailFilePath, new PngEncoder());
+
+        return thumbnailFilePath;
+    }
+
+    public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[] pictures, string? fileName = null)
+    {
+        var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, thumbnailFolder.ToString(), fileName ?? "Cover_" + new string(Enumerable.Range(0, 10).Select(_ => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[new Random().Next(62)]).ToArray()) + ".png");
+        Directory.CreateDirectory(Path.GetDirectoryName(thumbnailFilePath));
+        byte[] imageData;
+        try
+        {
+            imageData = pictures?.Length > 0
+            ? pictures[0].Data.Data
+            : System.IO.File.ReadAllBytes("Assets/AppIcon.png");
+        }
+        catch (Exception)
+        {
+            imageData = System.IO.File.ReadAllBytes("Assets/AppIcon.png");
+        }
+
+        using var image = Image.Load(imageData);
+
+        image.Save(thumbnailFilePath, new PngEncoder());
 
         return thumbnailFilePath;
     }
@@ -43,5 +66,6 @@ public class ImageResizer
 }
 public enum ThumbnailFolder
 {
-    AllSongView
+    AllSongView,
+    MainPlayer
 }
