@@ -81,7 +81,7 @@ internal class GetMusicDataService
             {
                 if (!Directory.Exists(folder))
                 {
-                    throw new DirectoryNotFoundException($"Directory '{folder}' not found.");   //TODO add notification
+                    GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
                 }
                 else
                 {
@@ -130,7 +130,7 @@ internal class GetMusicDataService
                 }
                 catch (Exception)
                 {
-                    //TODO add notification
+                    GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
                 }
             }
 
@@ -141,16 +141,17 @@ internal class GetMusicDataService
             catch (Exception)
             {
                 LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = "No tracks could be added";
-                //TODO add notification
+                GlobalNotification.Error("No tracks could be added");
             }
 
             LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
             LibrarySettingsSaver.Instance.LibrarySaveSettings.totalTracks = songsContainer.Songs.Count;
+            GlobalNotification.Info("Library scan completed.\nLibraries: " + libraries.Count + "\nSongs: " + songsContainer.Songs.Count);
         }
         else
         {
             LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = "No libraries found";
-            //TODO add notification
+            GlobalNotification.Warning("No libraries found. Please add atleast one library.");
         }
         LibrarySettingsSaver.Instance.SaveSettings();
     }

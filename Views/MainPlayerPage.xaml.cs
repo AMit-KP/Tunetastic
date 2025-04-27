@@ -71,14 +71,17 @@ public sealed partial class MainPlayerPage : Page
 
                 CoverArtImage.Source = bitmapImage;
             }
+            //TODO: get settings
+            GlobalNotification.Info($"Now playing: {track?.Title} by {track?.Artists}");
             return Task.CompletedTask;
         }
 
-        BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));     //TODO get cover
+        BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
         CoverArt.Width = 500;
         CoverArt.Height = 500;
         CoverArt.CornerRadius = new CornerRadius(50);
-        CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));     //TODO get cover
+        CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+        Title.Text = "Please select a song";
         return Task.CompletedTask;
     }
 

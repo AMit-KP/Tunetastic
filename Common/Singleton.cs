@@ -73,7 +73,7 @@ public class MusicPlayer
 
     public async void LoadPlaylist(List<string> songPaths, string? startingSong = null)
     {
-        await LoadSong(startingSong ?? songPaths[0]);           //TODO load playlist at 1st
+        await LoadSong(startingSong ?? songPaths[0]);
         _ = Task.Run(() =>
         {
 
@@ -111,7 +111,7 @@ public class MusicPlayer
     {
         if (ActualPlaylist?.Count > 0)
         {
-            LoadSong(ActualPlaylist[currentIndex]);
+            await LoadSong(ActualPlaylist[currentIndex]);
     }
     }
 
@@ -129,7 +129,7 @@ public class MusicPlayer
         }
         catch (Exception)
         {
-            //TODO notification
+            GlobalNotification.Error("Could not load song:\n" + songPath);
         }
     }
 
@@ -159,7 +159,7 @@ public class MusicPlayer
     }
         catch (Exception)
         {
-            //TODO notification
+            GlobalNotification.Error("Could not load previous song");
         }
     }
 
@@ -208,7 +208,7 @@ public class MusicPlayer
     }
         catch (Exception)
         {
-            //TODO notification
+            GlobalNotification.Error("Could not load next song");
         }
     }
 

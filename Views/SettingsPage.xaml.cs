@@ -184,7 +184,12 @@ public sealed partial class SettingsPage : Page
         {
             var formatUpdate = AllFormats.FirstOrDefault(e => e.Extension == toggle.Name);
             if (formatUpdate != null) formatUpdate.Enabled = toggle.IsOn;
-            //TODO notification when all are off
+
+            if (AllFormats.All(e => e.Enabled == false))
+            {
+                GlobalNotification.Warning("At least one format must be enabled");
+            }
+
             ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { AllFormats } });
             var Description = "File exteniosns allowed for scanning tracks: ";
             foreach (var item in AllFormats)
