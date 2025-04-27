@@ -10,9 +10,23 @@
       "IsExpanded": false,
       "Items": [
         {
-          "UniqueId": "Tunetastic.Views.HomeLandingPage",
-          "Title": "Tunetastic",
-          "Subtitle": "Tunetastic",
+          "UniqueId": "Tunetastic.Views.MainPlayerPage",
+          "Title": "Player",
+          "Subtitle": "Player",
+          "ImagePath": "ms-appx:///Assets/AppIcon.png",
+          "HideItem": true
+        },
+        {
+          "UniqueId": "Tunetastic.Views.LibraryPage",
+          "Title": "LibraryPage",
+          "Subtitle": "Player",
+          "ImagePath": "ms-appx:///Assets/AppIcon.png",
+          "HideItem": true
+        },
+        {
+          "UniqueId": "Tunetastic.Views.PlayListPage",
+          "Title": "PlayListPage",
+          "Subtitle": "Player",
           "ImagePath": "ms-appx:///Assets/AppIcon.png",
           "HideItem": true
         }

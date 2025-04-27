@@ -12,3 +12,17 @@ public static partial class AppHelper
                                .LoadNow();
 }
 
+public class LibrarySettings : JsonSettings
+{
+    public override string FileName { get; set; } = Constants.LibrariesSettingsDataPath;
+
+    public virtual bool IgnoreDuplicateEnabled { get; set; }
+
+    public virtual bool ScanAtStartup { get; set; }
+
+    public virtual double ignoreTracksBelowDuration { get; set; }
+
+    public virtual string ScanResult { get; set; }
+
+    public virtual int totalTracks { get; set; }
+}

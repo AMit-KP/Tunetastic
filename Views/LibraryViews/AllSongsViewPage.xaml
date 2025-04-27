@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page x:Class="Tunetastic.Views.LibraryViews.AllSongsViewPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+      xmlns:common="using:Tunetastic.Common"
+      xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:dev="using:DevWinUI"
+      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+      xmlns:local="using:Tunetastic.Generated.Protos"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d">
+
+	<Page.Resources>
+		<common:DurationConverter x:Key="DurationConverter" />
+	</Page.Resources>
+	<Grid>
+		<ListView Margin="10,10,10,10"
+		          VerticalAlignment="Top"
+		          IsItemClickEnabled="True"
+		          ItemClick="ListView_ItemClick"
+		          ItemsSource="{x:Bind AllSongs}">
+
+			<ListView.Header>
+				<Border Height="40"
+				        Background="{ThemeResource AcrylicInAppFillColorBaseBrush}"
+				        CornerRadius="8">
+
+					<interactivity:Interaction.Behaviors>
+						<behaviors:QuickReturnHeaderBehavior />
+					</interactivity:Interaction.Behaviors>
+
+					<controls:DataTable Margin="12,0,0,0"
+					                    ColumnSpacing="10">
+						<controls:DataColumn DesiredWidth="40" />
+						<controls:DataColumn Content="Title"
+						                     DesiredWidth="300"
+						                     FontWeight="Bold" />
+						<controls:DataColumn CanResize="True"
+						                     Content="Artists"
+						                     DesiredWidth="*"
+						                     FontWeight="Bold" />
+						<controls:DataColumn DesiredWidth="*">
+							<TextBlock FontWeight="Bold"
+							           Text="Album" />
+						</controls:DataColumn>
+						<controls:DataColumn Content="Duration"
+						                     DesiredWidth="125"
+						                     FontWeight="Bold" />
+					</controls:DataTable>
+				</Border>
+			</ListView.Header>
+
+			<ListView.ItemTemplate>
+				<DataTemplate x:DataType="local:Song">
+					<controls:DataRow HorizontalAlignment="Left">
+						<Grid Width="40"
+						      Height="60"
+						      CornerRadius="10">
+							<Image VerticalAlignment="Center"
+							       Source="{x:Bind Cover}" />
+						</Grid>
+						<dev:AutoScrollView VerticalAlignment="Center"
+						                    VerticalContentAlignment="Center"
+						                    IsPlaying="True">
+							<TextBlock HorizontalAlignment="Left"
+							           VerticalAlignment="Center"
+							           Text="{x:Bind Title}"
+							           ToolTipService.ToolTip="{x:Bind Title}" />
+						</dev:AutoScrollView>
+						<TextBlock HorizontalAlignment="Left"
+						           VerticalAlignment="Center"
+						           Text="{x:Bind Artists}"
+						           ToolTipService.ToolTip="{x:Bind Artists}" />
+						<TextBlock HorizontalAlignment="Left"
+						           VerticalAlignment="Center"
+						           Text="{x:Bind Album}"
+						           ToolTipService.ToolTip="{x:Bind Album}" />
+						<TextBlock HorizontalAlignment="Left"
+						           VerticalAlignment="Center"
+						           HorizontalTextAlignment="Left"
+						           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+					</controls:DataRow>
+				</DataTemplate>
+			</ListView.ItemTemplate>
+			<ListView.ItemContainerStyle>
+				<Style BasedOn="{StaticResource DefaultListViewItemStyle}"
+				       TargetType="ListViewItem">
+					<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+				</Style>
+			</ListView.ItemContainerStyle>
+		</ListView>
+	</Grid>
+</Page>

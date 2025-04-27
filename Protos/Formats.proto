@@ -1,0 +1,12 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Tunetastic.Generated.Protos";
+
+message Format {
+  string extension = 1;
+  bool enabled = 2;
+  string description = 3;
+}
+
+message FormatList {
+  repeated Format formatlist = 1;
+}

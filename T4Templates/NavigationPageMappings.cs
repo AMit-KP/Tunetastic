@@ -15,6 +15,8 @@ public partial class NavigationPageMappings
 {
     public static Dictionary<string, Type> PageDictionary { get; } = new Dictionary<string, Type>
     {
-        {"Tunetastic.Views.HomeLandingPage", typeof(Tunetastic.Views.HomeLandingPage)},
+        {"Tunetastic.Views.MainPlayerPage", typeof(Tunetastic.Views.MainPlayerPage)},
+        {"Tunetastic.Views.LibraryPage", typeof(Tunetastic.Views.LibraryPage)},
+        {"Tunetastic.Views.PlayListPage", typeof(Tunetastic.Views.PlayListPage)},
     };
 }

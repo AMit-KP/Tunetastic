@@ -14,9 +14,5 @@ public partial class BreadcrumbPageMappings
     public static Dictionary<Type, BreadcrumbPageConfig> PageDictionary = new()
     {
         {typeof(Tunetastic.Views.SettingsPage), new BreadcrumbPageConfig { PageTitle = null, IsHeaderVisible = true, ClearNavigation = false}},
-        {typeof(Tunetastic.Views.AboutUsSettingPage), new BreadcrumbPageConfig { PageTitle = null, IsHeaderVisible = true, ClearNavigation = false}},
-        {typeof(Tunetastic.Views.AppUpdateSettingPage), new BreadcrumbPageConfig { PageTitle = null, IsHeaderVisible = true, ClearNavigation = false}},
-        {typeof(Tunetastic.Views.GeneralSettingPage), new BreadcrumbPageConfig { PageTitle = null, IsHeaderVisible = true, ClearNavigation = false}},
-        {typeof(Tunetastic.Views.ThemeSettingPage), new BreadcrumbPageConfig { PageTitle = null, IsHeaderVisible = true, ClearNavigation = false}},
     };
 }

@@ -1,4 +1,6 @@
-﻿namespace Tunetastic;
+﻿using Tunetastic.Services;
+
+namespace Tunetastic;
 
 public partial class App : Application
 {
@@ -37,25 +39,26 @@ public partial class App : Application
 
         services.AddTransient<MainViewModel>();
         services.AddSingleton<ContextMenuService>();
-        services.AddTransient<GeneralSettingViewModel>();
-        services.AddTransient<AppUpdateSettingViewModel>();
-        services.AddTransient<AboutUsSettingViewModel>();
+        services.AddTransient<SettingViewModel>();
+        services.AddTransient<MusicControlViewModel>();
 
         return services.BuildServiceProvider();
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         MainWindow = new MainWindow();
 
-        MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductNameAndVersion;
+        MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
         MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
 
         ThemeService.AutoInitialize(MainWindow);
 
         MainWindow.Activate();
 
+        await new GetMusicDataService().UpdateMetaData();
         InitializeApp();
+        MainWindow.Closed += (s, e) => MusicPlayer.Instance.SavePlayBackPosition();
     }
 
     private async void InitializeApp()
