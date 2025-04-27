@@ -66,6 +66,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\Store\StoreLogo.scale-200.png" />
+    <None Remove="Assets\Store\StoreLogo.scale-400.png" />
     <None Remove="Views\PlayListPage.xaml" />
   </ItemGroup>
   <ItemGroup>
