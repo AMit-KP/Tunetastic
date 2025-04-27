@@ -35,7 +35,7 @@ public sealed partial class MainPlayerPage : Page
     private async Task<Task> UpdateUI()
     {
         var song = _musicPlayer.CurrentSong;
-        if (song != null)
+        if (song != null && song != string.Empty)
         {
             var track = AllSongs.FirstOrDefault(s => s.Path == song);
 
