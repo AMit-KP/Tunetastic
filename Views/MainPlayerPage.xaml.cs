@@ -28,57 +28,68 @@ public sealed partial class MainPlayerPage : Page
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
         {
             await Task.Delay(200);
-            await UpdateUI();
+            await UpdateUI(false);
+            BackgroundImage.UpdateLayout();
         });
     }
 
-    private async Task<Task> UpdateUI()
+    private async Task<Task> UpdateUI(bool notify = true)
     {
         var song = _musicPlayer.CurrentSong;
         if (song != null && song != string.Empty)
         {
             var track = AllSongs.FirstOrDefault(s => s.Path == song);
-
-            Title.Text = track?.Title;
-            Album.Text = track?.Album;
-            Artist.Text = track?.Artists;
-
-            var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
-            if (!File.Exists(thumbnailFilePath))
+            if (File.Exists(track?.Path))
             {
-                using var audioModel = TagLib.File.Create(track.Path);
-                ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
-            }
+                Title.Text = track?.Title;
+                Album.Text = track?.Album;
+                Artist.Text = track?.Artists;
+                Title.FontSize = Album.FontSize * 1.5;
+                Artist.FontSize = Album.FontSize * 1.1;
 
-            StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
-            using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+                var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
+                if (!File.Exists(thumbnailFilePath))
+                {
+                    using var audioModel = TagLib.File.Create(track.Path);
+                    ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+                }
+
+                StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
+                using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+                {
+                    BitmapImage bitmapImage = new BitmapImage();
+                    await bitmapImage.SetSourceAsync(stream);
+
+                    BackgroundImage.Source = bitmapImage;
+
+                    int width = bitmapImage.PixelWidth;
+                    int height = bitmapImage.PixelHeight;
+
+                    double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
+                    var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
+                    var targetWidth = aspectRatio * targetHeight;
+
+                    CoverArt.Width = targetWidth;
+                    CoverArt.Height = targetHeight;
+                    CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
+
+                    CoverArtImage.Source = bitmapImage;
+                }
+                return Task.CompletedTask;
+            }
+            else
             {
-                BitmapImage bitmapImage = new BitmapImage();
-                await bitmapImage.SetSourceAsync(stream);
-
-                BackgroundImage.Source = bitmapImage;
-
-                int width = bitmapImage.PixelWidth;
-                int height = bitmapImage.PixelHeight;
-
-                double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
-                var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
-                var targetWidth = aspectRatio * targetHeight;
-
-                CoverArt.Width = targetWidth;
-                CoverArt.Height = targetHeight;
-                CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
-
-                CoverArtImage.Source = bitmapImage;
+                if (notify)
+                    GlobalNotification.Error("Could not find song:\n" + song);
             }
-            return Task.CompletedTask;
         }
 
-        BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));     //TODO get cover
+        BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
         CoverArt.Width = 500;
         CoverArt.Height = 500;
         CoverArt.CornerRadius = new CornerRadius(50);
-        CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));     //TODO get cover
+        CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+        Title.Text = "Please select a song";
         return Task.CompletedTask;
     }
 
@@ -87,6 +98,7 @@ public sealed partial class MainPlayerPage : Page
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
         {
             await UpdateUI();
+            BackgroundImage.UpdateLayout();
         });
     }
 
@@ -95,7 +107,8 @@ public sealed partial class MainPlayerPage : Page
         pageHeight = e.NewSize.Height;
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
         {
-            await UpdateUI();
+            await UpdateUI(false);
+            BackgroundImage.UpdateLayout();
         });
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Google.Protobuf.Collections;
 using Tunetastic.Generated.Protos;
+using Windows.Media.Core;
+using Windows.Media.Playback;
 
 namespace Tunetastic.Services;
 
@@ -81,7 +83,7 @@ internal class GetMusicDataService
             {
                 if (!Directory.Exists(folder))
                 {
-                    throw new DirectoryNotFoundException($"Directory '{folder}' not found.");   //TODO add notification
+                    GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
                 }
                 else
                 {
@@ -114,7 +116,7 @@ internal class GetMusicDataService
                     {
                         var song = new Song
                         {
-                            Title = audioModel.Tag.Title ?? audioModel.Name.Substring(audioModel.Name.LastIndexOf('\\') + 1),
+                            Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
                             Album = audioModel.Tag.Album ?? "Unknown Album",
                             Artists = (audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
                             Duration = audioModel.Properties.Duration.TotalSeconds,
@@ -130,7 +132,34 @@ internal class GetMusicDataService
                 }
                 catch (Exception)
                 {
-                    //TODO add notification
+                    GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
+                    double duration = 0;
+                    try
+                    {
+                        var mediaPlayer = new MediaPlayer();
+                        mediaPlayer.AutoPlay = false;
+                        mediaPlayer.Source = MediaSource.CreateFromUri(new Uri(filePath));
+                        duration = mediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
+                        mediaPlayer = null;
+                    }
+                    catch (Exception)
+                    {
+                        duration = 0;
+                    }
+
+                    var song = new Song
+                    {
+                        Title = Path.GetFileNameWithoutExtension(filePath),
+                        Album = "Unknown Album",
+                        Artists = "Unknown Artist",
+                        Duration = duration,
+                        Path = filePath,
+                        Year = "Unknown Year",
+                        Genre = "Unknown Genre",
+                        Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 100)
+                    };
+                    if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
+                        songsContainer.Songs.Add(song);
                 }
             }
 
@@ -141,16 +170,17 @@ internal class GetMusicDataService
             catch (Exception)
             {
                 LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = "No tracks could be added";
-                //TODO add notification
+                GlobalNotification.Error("No tracks could be added");
             }
 
             LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
             LibrarySettingsSaver.Instance.LibrarySaveSettings.totalTracks = songsContainer.Songs.Count;
+            GlobalNotification.Info("Library scan completed.\nLibraries: " + libraries.Count + "\nSongs: " + songsContainer.Songs.Count);
         }
         else
         {
             LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = "No libraries found";
-            //TODO add notification
+            GlobalNotification.Warning("No libraries found. Please add atleast one library.");
         }
         LibrarySettingsSaver.Instance.SaveSettings();
     }

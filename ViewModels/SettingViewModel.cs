@@ -26,7 +26,7 @@ public partial class SettingViewModel : ObservableObject
 
     public SettingViewModel()
     {
-        CurrentVersion = $"Current Version {ProcessInfoHelper.VersionWithPrefix}";
+        CurrentVersion = $"Current Version {ProcessInfoHelper.Version}";
         LastUpdateCheck = Settings.LastUpdateCheck;
     }
 

@@ -17,11 +17,11 @@ public class ImageResizer
         {
             imageData = pictures?.Length > 0
             ? pictures[0].Data.Data
-            : System.IO.File.ReadAllBytes("Assets/AppIcon.png");
+            : System.IO.File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
         }
         catch (Exception)
         {
-            imageData = System.IO.File.ReadAllBytes("Assets/AppIcon.png");
+            imageData = System.IO.File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
         }
 
         using var image = Image.Load(imageData);
@@ -45,11 +45,11 @@ public class ImageResizer
         {
             imageData = pictures?.Length > 0
             ? pictures[0].Data.Data
-            : System.IO.File.ReadAllBytes("Assets/AppIcon.png");
+            : System.IO.File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
         }
         catch (Exception)
         {
-            imageData = System.IO.File.ReadAllBytes("Assets/AppIcon.png");
+            imageData = System.IO.File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
         }
 
         using var image = Image.Load(imageData);
