@@ -6,6 +6,7 @@
                   xmlns:local="using:Tunetastic"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:winuiex="using:WinUIEx"
+                  PersistenceId="Tunetastic"
                   mc:Ignorable="d">
 	<Grid>
 		<Grid.RowDefinitions>
