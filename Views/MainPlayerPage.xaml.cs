@@ -28,7 +28,8 @@ public sealed partial class MainPlayerPage : Page
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
         {
             await Task.Delay(200);
-            await UpdateUI();
+            await UpdateUI(false);
+            BackgroundImage.UpdateLayout();
         });
     }
 
@@ -40,42 +41,42 @@ public sealed partial class MainPlayerPage : Page
             var track = AllSongs.FirstOrDefault(s => s.Path == song);
             if (File.Exists(track?.Path))
             {
-            Title.Text = track?.Title;
-            Album.Text = track?.Album;
-            Artist.Text = track?.Artists;
+                Title.Text = track?.Title;
+                Album.Text = track?.Album;
+                Artist.Text = track?.Artists;
+                Title.FontSize = Album.FontSize * 1.5;
+                Artist.FontSize = Album.FontSize * 1.1;
 
-            var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
-            if (!File.Exists(thumbnailFilePath))
-            {
-                using var audioModel = TagLib.File.Create(track.Path);
-                ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+                var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
+                if (!File.Exists(thumbnailFilePath))
+                {
+                    using var audioModel = TagLib.File.Create(track.Path);
+                    ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+                }
+
+                StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
+                using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+                {
+                    BitmapImage bitmapImage = new BitmapImage();
+                    await bitmapImage.SetSourceAsync(stream);
+
+                    BackgroundImage.Source = bitmapImage;
+
+                    int width = bitmapImage.PixelWidth;
+                    int height = bitmapImage.PixelHeight;
+
+                    double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
+                    var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
+                    var targetWidth = aspectRatio * targetHeight;
+
+                    CoverArt.Width = targetWidth;
+                    CoverArt.Height = targetHeight;
+                    CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
+
+                    CoverArtImage.Source = bitmapImage;
+                }
+                return Task.CompletedTask;
             }
-
-            StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
-            using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
-            {
-                BitmapImage bitmapImage = new BitmapImage();
-                await bitmapImage.SetSourceAsync(stream);
-
-                BackgroundImage.Source = bitmapImage;
-
-                int width = bitmapImage.PixelWidth;
-                int height = bitmapImage.PixelHeight;
-
-                double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
-                var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
-                var targetWidth = aspectRatio * targetHeight;
-
-                CoverArt.Width = targetWidth;
-                CoverArt.Height = targetHeight;
-                CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
-
-                CoverArtImage.Source = bitmapImage;
-            }
-            //TODO: get settings
-                //GlobalNotification.Info($"Now playing: {track?.Title} by {track?.Artists}");
-            return Task.CompletedTask;
-        }
             else
             {
                 if (notify)
@@ -97,6 +98,7 @@ public sealed partial class MainPlayerPage : Page
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
         {
             await UpdateUI();
+            BackgroundImage.UpdateLayout();
         });
     }
 
@@ -105,7 +107,8 @@ public sealed partial class MainPlayerPage : Page
         pageHeight = e.NewSize.Height;
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
         {
-            await UpdateUI();
+            await UpdateUI(false);
+            BackgroundImage.UpdateLayout();
         });
     }
 }

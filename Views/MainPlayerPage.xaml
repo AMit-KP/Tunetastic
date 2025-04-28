@@ -22,7 +22,8 @@
 			        BorderBrush="Transparent"
 			        BorderThickness="0">
 				<Border.Background>
-					<media:BackdropBlurBrush Amount="50.0" />
+					<media:BackdropBlurBrush Amount="150.0" />
+					<!--  60 - 150  -->
 				</Border.Background>
 			</Border>
 		</Grid>
@@ -38,7 +39,8 @@
 		      HorizontalAlignment="Center"
 		      VerticalAlignment="Bottom">
 
-			<Border Height="Auto"
+			<Border Width="Auto"
+			        Height="Auto"
 			        Margin="140,-0,140,-0"
 			        Padding="20,10,20,10"
 			        VerticalAlignment="Bottom"
@@ -48,24 +50,21 @@
 					<TextBlock Name="Title"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
-					           FontSize="30"
-					           FontWeight="SemiBold"
+					           FontWeight="ExtraBold"
 					           HorizontalTextAlignment="Center"
 					           TextAlignment="Center"
 					           TextWrapping="WrapWholeWords" />
 					<TextBlock Name="Artist"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
-					           FontSize="20"
 					           FontStyle="Italic"
-					           FontWeight="SemiBold"
+					           FontWeight="Bold"
 					           HorizontalTextAlignment="Center"
 					           TextAlignment="Center"
 					           TextWrapping="WrapWholeWords" />
 					<TextBlock Name="Album"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
-					           FontSize="20"
 					           FontWeight="SemiBold"
 					           HorizontalTextAlignment="Center"
 					           TextAlignment="Center"
