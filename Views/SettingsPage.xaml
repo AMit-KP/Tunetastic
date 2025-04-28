@@ -17,7 +17,10 @@
 		<StackPanel Margin="20"
 		            Spacing="10">
 
-			<TextBlock FontSize="25"
+
+			<!--  Library  -->
+
+			<TextBlock Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="Library" />
 			<dev:SettingsExpander Description="Click to view all added libraries"
 			                      Header="All Libraries"
@@ -98,8 +101,9 @@
 
 
 
+			<!--  Appearance & behavior  -->
 
-			<TextBlock FontSize="25"
+			<TextBlock Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="Appearance &amp; behavior" />
 
 			<StackPanel dev:PanelAttach.ChildrenTransitions="Default"
@@ -184,9 +188,9 @@
                 </dev:SettingsExpander>-->
 			</StackPanel>
 
+			<!--  About  -->
 
-
-			<TextBlock FontSize="25"
+			<TextBlock Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="About" />
 
 			<dev:SettingsCard Header="{x:Bind ViewModel.CurrentVersion}"
@@ -235,8 +239,9 @@
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
+			<!--  Reset  -->
 
-			<TextBlock FontSize="25"
+			<TextBlock Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="Reset" />
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
