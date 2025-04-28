@@ -32,13 +32,14 @@ public sealed partial class MainPlayerPage : Page
         });
     }
 
-    private async Task<Task> UpdateUI()
+    private async Task<Task> UpdateUI(bool notify = true)
     {
         var song = _musicPlayer.CurrentSong;
         if (song != null && song != string.Empty)
         {
             var track = AllSongs.FirstOrDefault(s => s.Path == song);
-
+            if (File.Exists(track?.Path))
+            {
             Title.Text = track?.Title;
             Album.Text = track?.Album;
             Artist.Text = track?.Artists;
@@ -72,8 +73,14 @@ public sealed partial class MainPlayerPage : Page
                 CoverArtImage.Source = bitmapImage;
             }
             //TODO: get settings
-            GlobalNotification.Info($"Now playing: {track?.Title} by {track?.Artists}");
+                //GlobalNotification.Info($"Now playing: {track?.Title} by {track?.Artists}");
             return Task.CompletedTask;
+        }
+            else
+            {
+                if (notify)
+                    GlobalNotification.Error("Could not find song:\n" + song);
+            }
         }
 
         BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
