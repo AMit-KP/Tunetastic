@@ -113,8 +113,7 @@
 					                  Header="Fade Play/Pause/Stop">
 						<StackPanel>
 							<ToggleSwitch x:Name="PlayPauseStopFadeSwitch"
-							              HorizontalAlignment="Right"
-							              IsOn="False" />
+							              HorizontalAlignment="Right" />
 							<Slider x:Name="PlayPauseStopFadeSlider"
 							        HorizontalAlignment="Right"
 							        LargeChange="1000"
@@ -130,8 +129,7 @@
 					                  Header="Auto advance Crossfading">
 						<StackPanel>
 							<ToggleSwitch x:Name="AutoAdvanceSwitch"
-							              HorizontalAlignment="Right"
-							              IsOn="False" />
+							              HorizontalAlignment="Right" />
 							<Slider x:Name="AutoAdvanceSlider"
 							        HorizontalAlignment="Right"
 							        LargeChange="1000"
@@ -147,8 +145,7 @@
 					                  Header="Manual Track Change crossfading">
 						<StackPanel>
 							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
-							              HorizontalAlignment="Right"
-							              IsOn="False" />
+							              HorizontalAlignment="Right" />
 							<Slider x:Name="ManualTrackChangeSlider"
 							        HorizontalAlignment="Right"
 							        LargeChange="1000"
@@ -164,28 +161,23 @@
 			</dev:SettingsExpander>
 			<dev:SettingsCard Description="When enabled, the app will restart the track that is currently playing when previous button is pressed."
 			                  Header="Previous button resets the current track">
-				<ToggleSwitch x:Name="PreviousReset"
-				              IsOn="False" />
+				<ToggleSwitch x:Name="PreviousReset" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will restart the track that is currently playing when it is selected again."
 			                  Header="Restart Track on Selection">
-				<ToggleSwitch x:Name="RestartTrackOnSelection"
-				              IsOn="False" />
+				<ToggleSwitch x:Name="RestartTrackOnSelection" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will use the system volume control to control the volume of the track that is currently playing."
 			                  Header="Use System Volume Control">
-				<ToggleSwitch x:Name="UseSystemVolume"
-				              IsOn="False" />
+				<ToggleSwitch x:Name="UseSystemVolume" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will pause the track that is currently playing when the volume is muted."
 			                  Header="Pause on Mute">
-				<ToggleSwitch x:Name="PauseOnMute"
-				              IsOn="true" />
+				<ToggleSwitch x:Name="PauseOnMute" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will start playing the track that was last playing."
 			                  Header="Auto-Start playing track when app starts">
-				<ToggleSwitch x:Name="AutoStart"
-				              IsOn="False" />
+				<ToggleSwitch x:Name="AutoStart" />
 			</dev:SettingsCard>
 
 			<!--  Appearance & behavior  -->
@@ -234,7 +226,7 @@
 			<dev:SettingsCard Header="Main Player Background Blur Intensity">
 				<Slider x:Name="MainPlayerBlurSlider"
 				        Maximum="10"
-				        Minimum="0"
+				        Minimum="1"
 				        SmallChange="1" />
 			</dev:SettingsCard>
 			<!--<dev:SettingsExpander Description="Add tint to your window to make your experience more personalized."

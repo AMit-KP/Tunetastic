@@ -39,6 +39,57 @@ public sealed partial class SettingsPage : Page
         numberBox.Value = LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration;
         Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
 
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+        if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false"))
+        {
+            PlayPauseStopFadeSwitch.IsOn = true;
+            //PlayPauseStopFadeSlider.IsEnabled = true;
+            PlayPauseStopFadeSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)].ToString() ?? 1000.ToString());
+            PlayPauseStopFadeCard.Description = $"The music will fade in/out on Play/Pause/Stop. Fade Time: {PlayPauseStopFadeSlider.Value} ms";
+        }
+        else
+        {
+            PlayPauseStopFadeSwitch.IsOn = false;
+            PlayPauseStopFadeSlider.IsEnabled = false;
+            PlayPauseStopFadeCard.Description = "The music will not fade in/out on Play/Pause/Stop.";
+        }
+
+        if (bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false"))
+        {
+            AutoAdvanceSwitch.IsOn = true;
+            //AutoAdvanceSlider.IsEnabled = true;
+            AutoAdvanceSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceValue)].ToString() ?? 5000.ToString());
+            AutoAdvanceCard.Description = $"When the track ends and the next track starts automatically, the music will crossfade between tracks. Crossfade time: {AutoAdvanceSlider.Value} ms";
+        }
+        else
+        {
+            AutoAdvanceSwitch.IsOn = false;
+            AutoAdvanceSlider.IsEnabled = false;
+            AutoAdvanceCard.Description = "When the track ends and the next track starts automatically, the music will not crossfade between tracks.";
+        }
+
+        if (bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false"))
+        {
+            ManualTrackChangeSwitch.IsOn = true;
+            //ManualTrackChangeSlider.IsEnabled = true;
+            ManualTrackChangeSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeValue)].ToString() ?? 2000.ToString());
+            ManualTrackChangeCard.Description = $"When you change the track manually, the music will crossfade between tracks. Crossfade time: {ManualTrackChangeSlider.Value} ms";
+        }
+        else
+        {
+            ManualTrackChangeSwitch.IsOn = false;
+            ManualTrackChangeSlider.IsEnabled = false;
+            ManualTrackChangeCard.Description = "When you change the track manually, the music will not crossfade between tracks.";
+        }
+
+        PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
+        RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
+        UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
+        PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
+        AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
+        MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
+
         UpdateExtentionListOnUI();
     }
 
@@ -174,6 +225,7 @@ public sealed partial class SettingsPage : Page
         var Description = "File exteniosns allowed for scanning tracks: ";
         foreach (var item in AllFormats)
             if (item.Enabled) Description += $"{item.Extension.Replace(".", "")}, ";
+
         FileExt.Description = Description.Remove(Description.Length - 2);
     }
 
@@ -186,14 +238,14 @@ public sealed partial class SettingsPage : Page
             if (formatUpdate != null) formatUpdate.Enabled = toggle.IsOn;
 
             if (AllFormats.All(e => e.Enabled == false))
-            {
                 GlobalNotification.Warning("At least one format must be enabled");
-            }
 
             ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { AllFormats } });
+
             var Description = "File exteniosns allowed for scanning tracks: ";
             foreach (var item in AllFormats)
                 if (item.Enabled) Description += $"{item.Extension.Replace(".", "")}, ";
+
             FileExt.Description = Description.Remove(Description.Length - 2);
         }
     }
