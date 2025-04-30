@@ -26,3 +26,24 @@ public class LibrarySettings : JsonSettings
 
     public virtual int totalTracks { get; set; }
 }
+
+public enum LocalSave
+{
+    IgnoreDuplicateEnabled,
+    ScanAtStartup,
+    ignoreTracksBelowDuration,
+    ScanResult,
+    totalTracks,
+    PlayPauseStopFadeStatus,
+    PlayPauseStopFadeValue,
+    AutoAdvanceStatus,
+    AutoAdvanceValue,
+    ManualTrackChangeStatus,
+    ManualTrackChangeValue,
+    PreviousResetStatus,
+    RestartTrackOnSelectionStatus,
+    UseSystemVolumeStatus,
+    PauseOnMuteStatus,
+    AutoStartStatus,
+    MainPlayerBGBlurValue,
+}
