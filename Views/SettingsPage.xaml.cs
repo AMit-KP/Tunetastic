@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Tunetastic.Generated.Protos;
 using Tunetastic.Services;
 
@@ -32,7 +33,9 @@ public sealed partial class SettingsPage : Page
         }
         catch (Exception)
         {
+            // ignored
         }
+
         IgnoreDup.IsOn = LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled;
         ScanAtStart.IsOn = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup;
 
@@ -89,7 +92,7 @@ public sealed partial class SettingsPage : Page
     //        }
     //        TintBox.Fill = new SolidColorBrush(color.Color);
     //    }
-    //} 
+    //}
     #endregion
 
     private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
@@ -202,7 +205,7 @@ public sealed partial class SettingsPage : Page
         FileExt.Description = Description.Remove(Description.Length - 2);
     }
 
-    private void Ext_ToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+    private void Ext_ToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
     {
         var toggle = sender as ToggleSwitch;
         if (toggle != null)

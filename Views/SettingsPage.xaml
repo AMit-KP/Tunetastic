@@ -82,7 +82,7 @@
 			</dev:SettingsExpander>
 
 			<dev:SettingsExpander x:Name="FileExt"
-			                      Header="File Extentions"
+			                      Header="File Extensions"
 			                      ItemsSource="{x:Bind AllFormats, Mode=TwoWay}">
 				<dev:SettingsExpander.ItemTemplate>
 					<DataTemplate x:DataType="model:Format">
@@ -90,7 +90,7 @@
 						                  Header="{x:Bind Extension}">
 							<ToggleSwitch Name="{x:Bind Extension}"
 							              IsOn="{x:Bind Enabled, Mode=TwoWay}"
-							              Toggled="Ext_ToggleSwitch_Toggled" />
+							              Toggled="Ext_ToggleSwitch_OnToggled" />
 						</dev:SettingsCard>
 					</DataTemplate>
 				</dev:SettingsExpander.ItemTemplate>
@@ -148,7 +148,7 @@
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="ManualTrackChangeCard"
-					                  Header="Manual Track Change crossfading">
+					                  Header="Manual Track Change Crossfading">
 						<StackPanel>
 							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
 							              HorizontalAlignment="Right"
@@ -241,7 +241,10 @@
 				<Slider x:Name="MainPlayerBlurSlider"
 				        Maximum="10"
 				        Minimum="1"
-				        SmallChange="1" />
+				        SmallChange="1"
+				        SnapsTo="StepValues"
+				        TickFrequency="1"
+				        TickPlacement="Inline" />
 			</dev:SettingsCard>
 			<!--<dev:SettingsExpander Description="Add tint to your window to make your experience more personalized."
                           Header="Tint Color">
