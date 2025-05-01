@@ -36,14 +36,17 @@ public sealed partial class SettingsPage : Page
             // ignored
         }
 
-        IgnoreDup.IsOn = LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled;
-        ScanAtStart.IsOn = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup;
-
-        IgnoreTrack.Description = $"Tracks are ignored if they are less than {LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration} seconds";
-        numberBox.Value = LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration;
-        Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
-
         var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+        IgnoreDup.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
+
+        ScanAtStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
+
+        IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
+
+        numberBox.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
+
+        Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
 
         PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
         PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
@@ -148,36 +151,31 @@ public sealed partial class SettingsPage : Page
         ProgressRing.IsActive = false;
         ProgressRing.Visibility = Visibility.Collapsed;
 
-        Scan.Description = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult;
+        Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
     }
 
     private void IgnoreDup_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch toggleSwitch)
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled = toggleSwitch.IsOn;
-        LibrarySettingsSaver.Instance.SaveSettings();
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)] = toggleSwitch.IsOn;
     }
 
     private void ScanAtStart_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch toggleSwitch)
-        {
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup = toggleSwitch.IsOn;
-        }
-        LibrarySettingsSaver.Instance.SaveSettings();
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanAtStartup)] = toggleSwitch.IsOn;
     }
 
     private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args) => DispatcherQueue.GetForCurrentThread().TryEnqueue(DispatcherQueuePriority.Normal, async () =>
     {
         var numberBox = sender as NumberBox;
-        if (numberBox == null || numberBox.Value < 0)
+        if (numberBox?.Value < 0)
         {
             numberBox.Value = 0;
         }
-        IgnoreTrack.Description = $"Tracks are ignored if they are less than {numberBox.Value} seconds";
+        IgnoreTrack.Description = $"Tracks are ignored if they are less than {numberBox?.Value} seconds";
 
-        LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration = numberBox.Value;
-        LibrarySettingsSaver.Instance.SaveSettings();
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)] = numberBox?.Value;
     });
 
     private void UpdateExtentionListOnUI()

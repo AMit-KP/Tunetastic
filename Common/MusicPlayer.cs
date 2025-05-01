@@ -1,28 +1,7 @@
-﻿using Nucs.JsonSettings;
-using Windows.Media.Core;
+﻿using Windows.Media.Core;
 using Windows.Media.Playback;
 
 namespace Tunetastic.Common;
-
-public sealed class LibrarySettingsSaver
-{
-    private static readonly Lazy<LibrarySettingsSaver> _instance =
-        new(() => new LibrarySettingsSaver());
-
-    public static LibrarySettingsSaver Instance => _instance.Value;
-
-    public LibrarySettings LibrarySaveSettings { get; }
-
-    private LibrarySettingsSaver()
-    {
-        LibrarySaveSettings = JsonSettings.Load<LibrarySettings>();
-    }
-
-    public void SaveSettings()
-    {
-        LibrarySaveSettings.Save();
-    }
-}
 
 public class MusicPlayer
 {
@@ -35,7 +14,7 @@ public class MusicPlayer
     private int currentIndex = 0;
     private bool alreadyPlayed = false;
 
-    public event EventHandler<string> CurrentSongChanged;
+    public event EventHandler<string>? CurrentSongChanged;
 
     private string _currentSong = "";
     public string CurrentSong
@@ -77,9 +56,9 @@ public class MusicPlayer
         _ = Task.Run(() =>
         {
 
-        OriginalPlaylist = new List<string>(songPaths);
+            OriginalPlaylist = new List<string>(songPaths);
 
-        ShuffleSongs(startingSong);
+            ShuffleSongs(startingSong);
         });
     }
 
@@ -112,14 +91,14 @@ public class MusicPlayer
         if (ActualPlaylist?.Count > 0)
         {
             await LoadSong(ActualPlaylist[currentIndex]);
-    }
+        }
     }
 
     public async Task LoadSong(string songPath, bool play = true)
     {
         try
         {
-        //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
+            //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
 
             //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
             MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
@@ -154,9 +133,9 @@ public class MusicPlayer
         //TODO get settings for this restart or prev
         try
         {
-        currentIndex = currentIndex == 0 ? ActualPlaylist.Count - 1 : currentIndex - 1;
+            currentIndex = currentIndex == 0 ? ActualPlaylist.Count - 1 : currentIndex - 1;
             LoadSong();
-    }
+        }
         catch (Exception)
         {
             GlobalNotification.Error("Could not load previous song");
@@ -167,45 +146,45 @@ public class MusicPlayer
     {
         try
         {
-        if (SongQueue?.Count > 0)
-        {
-            await CrossfadeTransition(SongQueue.Dequeue());
-            return;
-        }
-
-        if (currentIndex < OriginalPlaylist?.Count - 1)
-        {
-            currentIndex++;
-        }
-        else
-        {
-            if (RepeatStatus == RepeatMode.One)
+            if (SongQueue?.Count > 0)
             {
+                await CrossfadeTransition(SongQueue.Dequeue());
+                return;
+            }
 
-                if (!alreadyPlayed)
+            if (currentIndex < OriginalPlaylist?.Count - 1)
+            {
+                currentIndex++;
+            }
+            else
+            {
+                if (RepeatStatus == RepeatMode.One)
                 {
-                    currentIndex = 0;
-                    alreadyPlayed = true;
-                }
-                else
-                {
+
+                    if (!alreadyPlayed)
+                    {
+                        currentIndex = 0;
+                        alreadyPlayed = true;
+                    }
+                    else
+                    {
                         await CrossfadePause();
+                        return;
+                    }
+                }
+                else if (RepeatStatus == RepeatMode.All)
+                {
+                    LoadPlaylist(OriginalPlaylist);
+                }
+                else if (RepeatStatus == RepeatMode.None)
+                {
+                    await CrossfadePause();
                     return;
                 }
             }
-            else if (RepeatStatus == RepeatMode.All)
-            {
-                LoadPlaylist(OriginalPlaylist);
-            }
-            else if (RepeatStatus == RepeatMode.None)
-            {
-                    await CrossfadePause();
-                return;
-            }
-        }
 
             LoadSong();
-    }
+        }
         catch (Exception)
         {
             GlobalNotification.Error("Could not load next song");
@@ -241,6 +220,32 @@ public class MusicPlayer
             ActualPlaylist = OriginalPlaylist;
         }
     }
+
+    private MediaPlayer MediaPlayerNext = new MediaPlayer(); // Second player for blending
+
+    private async Task CrossfadeTransition(string songPath, double fadeTime)
+    {
+        double initialVolume = MediaPlayer.Volume;
+
+        // Start next track on second player, but muted
+        MediaPlayerNext.Source = MediaSource.CreateFromUri(new Uri(songPath));
+        MediaPlayerNext.Volume = 0;
+        MediaPlayerNext.Play();
+
+        // Gradually lower the volume of the current track while raising the new one
+        for (double i = 0; i < fadeTime; i += 0.05)
+        {
+            MediaPlayer.Volume = initialVolume * (1 - (i / fadeTime));  // Fade out current song
+            MediaPlayerNext.Volume = initialVolume * (i / fadeTime);  // Fade in new song
+            await Task.Delay(50);
+        }
+
+        // Stop previous player and transfer control to the new one
+        MediaPlayer.Pause();
+        MediaPlayer = MediaPlayerNext;
+        MediaPlayerNext = new MediaPlayer(); // Reset second player
+    }
+
     private async Task CrossfadeTransition(string songPath)
     {
         //TODO get settings for time
@@ -255,8 +260,8 @@ public class MusicPlayer
 
         try
         {
-        MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
-        MediaPlayer.Play();
+            MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+            MediaPlayer.Play();
         }
         catch (Exception)
         {

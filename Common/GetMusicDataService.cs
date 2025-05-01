@@ -9,15 +9,7 @@ internal class GetMusicDataService
 {
     public async Task UpdateMetaData(bool onRequest = false)
     {
-        bool scanAtStartup;
-        try
-        {
-            scanAtStartup = LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup != null && LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanAtStartup;
-        }
-        catch (Exception)
-        {
-            scanAtStartup = false;
-        }
+        bool scanAtStartup = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
         if (onRequest || scanAtStartup)
         {
             await ScanLibraries();
@@ -49,18 +41,10 @@ internal class GetMusicDataService
             libraries.Add(library.Path);
         }
 
-        double ignoreTrackDuration;
-        bool ignoreDuplicates;
-        try
-        {
-            ignoreTrackDuration = LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration == null ? 0 : LibrarySettingsSaver.Instance.LibrarySaveSettings.ignoreTracksBelowDuration;
-            ignoreDuplicates = LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled == null ? false : LibrarySettingsSaver.Instance.LibrarySaveSettings.IgnoreDuplicateEnabled;
-        }
-        catch (Exception)
-        {
-            ignoreTrackDuration = 0;
-            ignoreDuplicates = false;
-        }
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.ScanResult)]?.ToString() ?? "0");
+        var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
+
 
         var formatList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
 
@@ -169,20 +153,18 @@ internal class GetMusicDataService
             }
             catch (Exception)
             {
-                LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = "No tracks could be added";
+                localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
                 GlobalNotification.Error("No tracks could be added");
             }
 
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.totalTracks = songsContainer.Songs.Count;
+            localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
             GlobalNotification.Info("Library scan completed.\nLibraries: " + libraries.Count + "\nSongs: " + songsContainer.Songs.Count);
         }
         else
         {
-            LibrarySettingsSaver.Instance.LibrarySaveSettings.ScanResult = "No libraries found";
+            localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
             GlobalNotification.Warning("No libraries found. Please add atleast one library.");
         }
-        LibrarySettingsSaver.Instance.SaveSettings();
     }
 
 }
