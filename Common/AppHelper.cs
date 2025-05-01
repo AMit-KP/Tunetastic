@@ -12,7 +12,10 @@ public static partial class AppHelper
                                .LoadNow();
 }
 
-
+/// <summary>
+/// Enum representing the keys for storing and retrieving local settings or preferences within the application.
+/// These values are utilized to save user-defined configurations and application data in persistent storage.
+/// </summary>
 public enum LocalSave
 {
     IgnoreDuplicateEnabled,

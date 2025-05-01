@@ -6,19 +6,59 @@ using Tunetastic.Services;
 
 namespace Tunetastic.Views;
 
+/// <summary>
+/// Represents the settings page in the application, allowing users to manage and modify various application settings.
+/// </summary>
+/// <remarks>
+/// The <c>SettingsPage</c> is a UI page that provides options to configure application behaviors such as track preferences,
+/// scanning options on startup, audio controls, and UI enhancements. It uses data binding and user interactions to reflect
+/// changes dynamically in the application settings.
+/// </remarks>
 public sealed partial class SettingsPage : Page
 {
+    /// <summary>
+    /// Represents a collection of music library directories stored as an ObservableCollection.
+    /// </summary>
+    /// <remarks>
+    /// The Libraries property is used to manage and store the list of music libraries within
+    /// the application. It allows binding to the UI for updates and manipulation of library data.
+    /// This property supports adding, removing, and saving directories representing user-selected
+    /// music folders. Folders are uniquely stored based on their Path property to avoid duplicates.
+    /// Data for Libraries is initially loaded from a binary file serialized as a LibraryList object.
+    /// Changes to the Libraries collection are also persisted back to the binary file.
+    /// </remarks>
     public ObservableCollection<Library> Libraries
     {
         get; set;
     } = new();
 
+    /// <summary>
+    /// Represents a collection of file format configurations stored as an ObservableCollection.
+    /// </summary>
+    /// <remarks>
+    /// The AllFormats property manages the list of supported file formats used for scanning tracks
+    /// in the application. Each format is represented as a `Format` object, which includes
+    /// properties such as file extension, enabled status, and description.
+    /// This property is used to bind the list of formats to the UI for display and interaction.
+    /// Updates to the formats, such as enabling or disabling specific formats, are reflected
+    /// through this collection. The enabled formats are used to generate a dynamic description
+    /// of allowed file extensions for file scanning tasks.
+    /// Initially, the AllFormats collection is populated from a binary file storing a serialized
+    /// `FormatList` object. Changes made to the collection are persisted back to the binary file
+    /// to ensure consistency across application sessions.
+    /// </remarks>
     public ObservableCollection<Format> AllFormats
     {
         get; set;
     } = new();
 
     public SettingViewModel ViewModel { get; }
+
+    /// <summary>
+    /// Represents a settings page in the application.
+    /// This class is responsible for managing and displaying user preferences,
+    /// application settings, and any configurable options available in the application.
+    /// </summary>
     public SettingsPage()
     {
         ViewModel = App.GetService<SettingViewModel>();
@@ -98,6 +138,13 @@ public sealed partial class SettingsPage : Page
     //}
     #endregion
 
+    /// <summary>
+    /// Handles the event when the "Add New Folder" button is clicked.
+    /// This method is responsible for initiating the process of creating a new folder
+    /// in the application's user interface or file system as applicable.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the "Add New Folder" button.</param>
+    /// <param name="e">An instance of EventArgs containing the event data.</param>
     private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
     {
         var Hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
@@ -127,6 +174,13 @@ public sealed partial class SettingsPage : Page
         ProtobufData.SaveToBin<LibraryList>(DataFile.AllLibraries, new LibraryList() { Libraries = { uniqueFolders } });
     }
 
+    /// <summary>
+    /// Removes a folder from the list of user-specified libraries.
+    /// This method is triggered when the "Remove Folder" button is clicked,
+    /// and it updates the list of libraries and saves the updated list to a binary file.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically a Button control.</param>
+    /// <param name="e">The event data associated with the button click event.</param>
     private void RemoveFolder_ButtonClick(object sender, RoutedEventArgs e)
     {
         var button = sender as Button;
@@ -137,6 +191,14 @@ public sealed partial class SettingsPage : Page
         ProtobufData.SaveToBin<LibraryList>(DataFile.AllLibraries, new LibraryList() { Libraries = { Libraries } });
     }
 
+    /// <summary>
+    /// Handles the click event for the Scan button.
+    /// This method initiates a scan process to update music metadata,
+    /// manages UI elements like the progress ring and button state,
+    /// and updates the scan result description based on the scan outcome.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the Scan button.</param>
+    /// <param name="e">Event data associated with the button click event.</param>
     private async void ScanButton_Click(object sender, RoutedEventArgs e)
     {
         ProgressRing.IsActive = true;
@@ -154,18 +216,38 @@ public sealed partial class SettingsPage : Page
         Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
     }
 
+    /// <summary>
+    /// Handles the toggled event for the "Ignore Duplicate Tracks" setting.
+    /// This method updates the application's settings to enable or disable
+    /// ignoring duplicate tracks based on the user's choice.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the ToggleSwitch instance.</param>
+    /// <param name="e">Event data containing information about the toggled event.</param>
     private void IgnoreDup_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch toggleSwitch)
             Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)] = toggleSwitch.IsOn;
     }
 
+    /// <summary>
+    /// Handles the toggling action of the "Scan At Startup" setting.
+    /// Updates the application's library settings to enable or disable
+    /// scanning for tracks in the library during application startup.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the ToggleSwitch control.</param>
+    /// <param name="e">Event data that provides information about the toggle action.</param>
     private void ScanAtStart_Toggled(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch toggleSwitch)
             Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanAtStartup)] = toggleSwitch.IsOn;
     }
 
+    /// <summary>
+    /// Handles the event triggered when the value of the NumberBox changes.
+    /// This method is used to process or respond to the updated value entered by the user.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the NumberBox control.</param>
+    /// <param name="e">An object containing the event data, which provides details about the value change.</param>
     private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args) => DispatcherQueue.GetForCurrentThread().TryEnqueue(DispatcherQueuePriority.Normal, async () =>
     {
         var numberBox = sender as NumberBox;
@@ -178,6 +260,14 @@ public sealed partial class SettingsPage : Page
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)] = numberBox?.Value;
     });
 
+    /// <summary>
+    /// Updates the list of file format extensions on the user interface.
+    /// This method loads the list of allowed file formats from a binary file,
+    /// updates the internal data structure, and refreshes the UI to reflect
+    /// the currently enabled file extension settings.
+    /// If no file extensions are enabled, an appropriate message is set
+    /// in the description.
+    /// </summary>
     private void UpdateExtentionListOnUI()
     {
         var foramtList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
@@ -193,16 +283,28 @@ public sealed partial class SettingsPage : Page
             foramtList.Add(new Format() { Extension = ".ogg", Enabled = false, Description = "Ogg Vorbis – An open-source digital multimedia container format designed to provide for efficient streaming and manipulation of digital multimedia." });
             foramtList.Add(new Format() { Extension = ".aiff", Enabled = false, Description = "Audio Interchange File Format – An uncompressed CD-quality audio format developed by Apple, commonly used in professional audio environments." });
         }
+        AllFormats.Clear();
         AllFormats.AddRange(foramtList);
         ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { foramtList } });
 
-        var Description = "File exteniosns allowed for scanning tracks: ";
-        foreach (var item in AllFormats)
-            if (item.Enabled) Description += $"{item.Extension.Replace(".", "")}, ";
+        var enabledExtensions = AllFormats
+            .Where(f => f.Enabled)
+            .Select(f => f.Extension.TrimStart('.')).ToList();
 
-        FileExt.Description = Description.Remove(Description.Length - 2);
+        var description = enabledExtensions.Any()
+            ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}"
+            : "No file extensions enabled for scanning tracks";
+
+        FileExt.Description = description;
     }
 
+    /// <summary>
+    /// Handles the toggled event for the file extension toggle switches on the settings page.
+    /// This method updates the enabled state of the corresponding file format, ensures at least one format is enabled,
+    /// updates the global description, and saves the updated list of enabled file formats to the binary data file.
+    /// </summary>
+    /// <param name="sender">The toggle switch that triggered the event.</param>
+    /// <param name="e">Event data providing context for the toggled event.</param>
     private void Ext_ToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
     {
         var toggle = sender as ToggleSwitch;
@@ -216,14 +318,25 @@ public sealed partial class SettingsPage : Page
 
             ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { AllFormats } });
 
-            var Description = "File exteniosns allowed for scanning tracks: ";
-            foreach (var item in AllFormats)
-                if (item.Enabled) Description += $"{item.Extension.Replace(".", "")}, ";
+            var enabledExtensions = AllFormats
+                .Where(f => f.Enabled)
+                .Select(f => f.Extension.TrimStart('.')).ToList();
 
-            FileExt.Description = Description.Remove(Description.Length - 2);
+            var description = enabledExtensions.Any()
+                ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}"
+                : "No file extensions enabled for scanning tracks";
+
+            FileExt.Description = description;
         }
     }
 
+    /// <summary>
+    /// Handles the toggled event for the Play/Pause/Stop Fade switch.
+    /// This method updates the enabled state of the related fade slider
+    /// and persists the toggle switch's state in the application settings.
+    /// </summary>
+    /// <param name="sender">The control that triggered the toggled event, typically a ToggleSwitch.</param>
+    /// <param name="e">The event data for the toggled event, which may be null in some cases.</param>
     private void PlayPauseStopFadeSwitch_OnToggled(object sender, RoutedEventArgs? e)
     {
         var toggle = sender as ToggleSwitch;
@@ -236,6 +349,12 @@ public sealed partial class SettingsPage : Page
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)] = PlayPauseStopFadeSwitch.IsOn;
     }
 
+    /// <summary>
+    /// Handles the event when the IsEnabled property of the PlayPauseStopFadeSlider control changes.
+    /// Updates the slider value based on the persisted application settings and triggers the value changed event for further processing.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the PlayPauseStopFadeSlider control.</param>
+    /// <param name="e">Event arguments containing details of the IsEnabled property change.</param>
     private void PlayPauseStopFadeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
     {
 
@@ -243,12 +362,30 @@ public sealed partial class SettingsPage : Page
         PlayPauseStopFadeSlider_OnValueChanged(PlayPauseStopFadeSlider, null);
     }
 
+    /// <summary>
+    /// Handles the ValueChanged event for the PlayPauseStopFadeSlider.
+    /// Saves the current slider value to local settings and updates the description of the
+    /// PlayPauseStopFadeCard to reflect the fade time and its enablement status.
+    /// </summary>
+    /// <param name="sender">The slider control that triggered the event.</param>
+    /// <param name="e">The event data containing the old and new values of the slider.</param>
     private void PlayPauseStopFadeSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)] = PlayPauseStopFadeSlider.Value;
         PlayPauseStopFadeCard.Description = PlayPauseStopFadeSlider.IsEnabled ? $"The music will fade in/out on Play/Pause/Stop. Fade Time: {PlayPauseStopFadeSlider.Value} ms" : "The music will not fade in/out on Play/Pause/Stop.";
     }
 
+    /// <summary>
+    /// Handles the toggled event for the AutoAdvanceSwitch ToggleSwitch control.
+    /// Adjusts the IsEnabled state of the associated AutoAdvanceSlider and updates
+    /// the application's local settings to preserve the AutoAdvance status.
+    /// </summary>
+    /// <param name="sender">
+    /// The source of the event, typically the AutoAdvanceSwitch ToggleSwitch control.
+    /// </param>
+    /// <param name="e">
+    /// Event data that can provide additional information about the toggle action.
+    /// </param>
     private void AutoAdvanceSwitch_OnToggled(object sender, RoutedEventArgs? e)
     {
         var toggle = sender as ToggleSwitch;
@@ -261,18 +398,42 @@ public sealed partial class SettingsPage : Page
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceStatus)] = AutoAdvanceSwitch.IsOn;
     }
 
+    /// <summary>
+    /// Handles the event triggered when the <see cref="AutoAdvanceSlider"/> control's IsEnabled state changes.
+    /// Updates the slider value to reflect the currently saved value for auto-advance timing and triggers the value change handling logic.
+    /// </summary>
+    /// <param name="sender">
+    /// The source object of the event, generally the <see cref="AutoAdvanceSlider"/> control.
+    /// </param>
+    /// <param name="e">
+    /// Contains the event data associated with the change in the IsEnabled property. Can be null if not provided.
+    /// </param>
     private void AutoAdvanceSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
     {
         AutoAdvanceSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceValue)]?.ToString() ?? 5000.ToString());
         AutoAdvanceSlider_OnValueChanged(AutoAdvanceSlider, null);
     }
 
+    /// <summary>
+    /// Handles the ValueChanged event for the AutoAdvanceSlider control.
+    /// Updates the application's local settings with the new crossfade duration
+    /// and sets the description text of the AutoAdvanceCard accordingly.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the AutoAdvanceSlider control.</param>
+    /// <param name="e">The event data that provides information about the old and new values of the slider.</param>
     private void AutoAdvanceSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceValue)] = AutoAdvanceSlider.Value;
         AutoAdvanceCard.Description = AutoAdvanceSlider.IsEnabled ? $"When the track ends and the next track starts automatically, the music will crossfade between tracks. Crossfade Time: {AutoAdvanceSlider.Value} ms" : "When the track ends and the next track starts automatically, the music will not crossfade between tracks.";
     }
 
+    /// <summary>
+    /// Handles the Toggled event for the ManualTrackChangeSwitch toggle switch.
+    /// This method updates the enabled state of the ManualTrackChangeSlider
+    /// based on the toggle switch's state and persists the new state in the application's local settings.
+    /// </summary>
+    /// <param name="sender">The object that raised the event.</param>
+    /// <param name="e">The event data associated with the Toggled event. Can be null.</param>
     private void ManualTrackChangeSwitch_OnToggled(object sender, RoutedEventArgs? e)
     {
         var toggle = sender as ToggleSwitch;
@@ -285,43 +446,100 @@ public sealed partial class SettingsPage : Page
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)] = ManualTrackChangeSwitch.IsOn;
     }
 
+    /// <summary>
+    /// Handles the event when the <see cref="ManualTrackChangeSlider"/>'s IsEnabled property changes.
+    /// This method updates the value of the slider and triggers the appropriate value change logic.
+    /// </summary>
+    /// <param name="sender">The source object of the event, typically the <see cref="ManualTrackChangeSlider"/>.</param>
+    /// <param name="e">Event data that contains information about the dependency property change, or null if not provided.</param>
     private void ManualTrackChangeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
     {
         ManualTrackChangeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeValue)]?.ToString() ?? 2000.ToString());
         ManualTrackChangeSlider_OnValueChanged(ManualTrackChangeSlider, null);
     }
 
+    /// <summary>
+    /// Handles the event when the value of the Manual Track Change slider changes.
+    /// Updates the stored application settings to reflect the new slider value and
+    /// adjusts the description of the associated settings card to indicate the effect
+    /// of the selected crossfade time or the disabled state.
+    /// </summary>
+    /// <param name="sender">The slider control that raised the ValueChanged event.</param>
+    /// <param name="e">The event data associated with the value change, or null if unavailable.</param>
     private void ManualTrackChangeSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeValue)] = ManualTrackChangeSlider.Value;
         ManualTrackChangeCard.Description = ManualTrackChangeSlider.IsEnabled ? $"When you change the track manually, the music will crossfade between tracks. Crossfade Time: {ManualTrackChangeSlider.Value} ms" : "When you change the track manually, the music will not crossfade between tracks.";
     }
 
+    /// <summary>
+    /// Handles the toggled event for the "Previous button resets the current track" setting.
+    /// Updates the application's local settings to reflect the user's preference for whether
+    /// the previous button resets the track or not.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically a ToggleSwitch.</param>
+    /// <param name="e">Event data associated with the toggled event.</param>
     private void PreviousReset_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PreviousResetStatus)] = PreviousReset.IsOn;
     }
 
+    /// <summary>
+    /// Handles the toggled event for the "Restart Track on Selection" setting.
+    /// Updates the local settings to reflect the current state of the toggle switch,
+    /// which determines whether the current track restarts when selected again.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the ToggleSwitch.</param>
+    /// <param name="e">Event data that provides additional context for the toggle action.</param>
     private void RestartTrackOnSelection_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)] = RestartTrackOnSelection.IsOn;
     }
 
+    /// <summary>
+    /// Handles the toggled event for the `Use System Volume` toggle switch.
+    /// Updates the local settings to reflect the current status of the `Use System Volume` option,
+    /// allowing the application to either use or bypass the system's volume control for playback management.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the `ToggleSwitch` that was toggled.</param>
+    /// <param name="e">Event data that provides information about the toggle event.</param>
     private void UseSystemVolume_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)] = UseSystemVolume.IsOn;
     }
 
+    /// <summary>
+    /// Handles the toggled event for the "Pause on Mute" setting.
+    /// Updates the application's local settings to reflect whether the track should
+    /// be paused when the system volume is muted.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the ToggleSwitch control.</param>
+    /// <param name="e">The event data associated with the toggle action.</param>
     private void PauseOnMute_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)] = PauseOnMute.IsOn;
     }
 
+    /// <summary>
+    /// Handles the toggled event for the AutoStart toggle switch.
+    /// Updates the local settings to reflect the current state of the AutoStart toggle,
+    /// determining whether the application should automatically start playing the last track
+    /// when the app is launched.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the control that triggered the event.</param>
+    /// <param name="e">Contains event data specific to the toggled action.</param>
     private void AutoStart_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoStartStatus)] = AutoStart.IsOn;
     }
 
+    /// <summary>
+    /// Handles the event triggered when the value of the MainPlayerBlurSlider changes.
+    /// Updates the main player's background blur value in the application's local settings
+    /// with the new slider value.
+    /// </summary>
+    /// <param name="sender">The object that raised the event, typically the slider control.</param>
+    /// <param name="e">The event data containing information about the old and new values of the slider.</param>
     private void MainPlayerBlurSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)] = MainPlayerBlurSlider.Value;
