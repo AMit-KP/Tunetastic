@@ -24,6 +24,7 @@ public sealed partial class SettingsPage : Page
         this.InitializeComponent();
 
         numberBox.ValueChanged += NumberBox_ValueChanged;
+        MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
 
         try
         {
@@ -41,53 +42,25 @@ public sealed partial class SettingsPage : Page
 
         var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-        if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false"))
-        {
-            PlayPauseStopFadeSwitch.IsOn = true;
-            //PlayPauseStopFadeSlider.IsEnabled = true;
-            PlayPauseStopFadeSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)].ToString() ?? 1000.ToString());
-            PlayPauseStopFadeCard.Description = $"The music will fade in/out on Play/Pause/Stop. Fade Time: {PlayPauseStopFadeSlider.Value} ms";
-        }
-        else
-        {
-            PlayPauseStopFadeSwitch.IsOn = false;
-            PlayPauseStopFadeSlider.IsEnabled = false;
-            PlayPauseStopFadeCard.Description = "The music will not fade in/out on Play/Pause/Stop.";
-        }
+        PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
+        PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
 
-        if (bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false"))
-        {
-            AutoAdvanceSwitch.IsOn = true;
-            //AutoAdvanceSlider.IsEnabled = true;
-            AutoAdvanceSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceValue)].ToString() ?? 5000.ToString());
-            AutoAdvanceCard.Description = $"When the track ends and the next track starts automatically, the music will crossfade between tracks. Crossfade time: {AutoAdvanceSlider.Value} ms";
-        }
-        else
-        {
-            AutoAdvanceSwitch.IsOn = false;
-            AutoAdvanceSlider.IsEnabled = false;
-            AutoAdvanceCard.Description = "When the track ends and the next track starts automatically, the music will not crossfade between tracks.";
-        }
+        AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
+        AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
 
-        if (bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false"))
-        {
-            ManualTrackChangeSwitch.IsOn = true;
-            //ManualTrackChangeSlider.IsEnabled = true;
-            ManualTrackChangeSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeValue)].ToString() ?? 2000.ToString());
-            ManualTrackChangeCard.Description = $"When you change the track manually, the music will crossfade between tracks. Crossfade time: {ManualTrackChangeSlider.Value} ms";
-        }
-        else
-        {
-            ManualTrackChangeSwitch.IsOn = false;
-            ManualTrackChangeSlider.IsEnabled = false;
-            ManualTrackChangeCard.Description = "When you change the track manually, the music will not crossfade between tracks.";
-        }
+        ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
+        ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);
 
         PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
+
         RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
+
         UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
+
         PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
+
         AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
+
         MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
 
         UpdateExtentionListOnUI();
@@ -248,6 +221,109 @@ public sealed partial class SettingsPage : Page
 
             FileExt.Description = Description.Remove(Description.Length - 2);
         }
+    }
+
+    private void PlayPauseStopFadeSwitch_OnToggled(object sender, RoutedEventArgs? e)
+    {
+        var toggle = sender as ToggleSwitch;
+        if (toggle != null)
+            PlayPauseStopFadeSlider.IsEnabled = toggle.IsOn;
+        else
+            PlayPauseStopFadeSlider.IsEnabled = false;
+
+        PlayPauseStopFadeSlider_OnIsEnabledChanged(PlayPauseStopFadeSwitch, null);
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)] = PlayPauseStopFadeSwitch.IsOn;
+    }
+
+    private void PlayPauseStopFadeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
+    {
+
+        PlayPauseStopFadeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? 1000.ToString());
+        PlayPauseStopFadeSlider_OnValueChanged(PlayPauseStopFadeSlider, null);
+    }
+
+    private void PlayPauseStopFadeSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)] = PlayPauseStopFadeSlider.Value;
+        PlayPauseStopFadeCard.Description = PlayPauseStopFadeSlider.IsEnabled ? $"The music will fade in/out on Play/Pause/Stop. Fade Time: {PlayPauseStopFadeSlider.Value} ms" : "The music will not fade in/out on Play/Pause/Stop.";
+    }
+
+    private void AutoAdvanceSwitch_OnToggled(object sender, RoutedEventArgs? e)
+    {
+        var toggle = sender as ToggleSwitch;
+        if (toggle != null)
+            AutoAdvanceSlider.IsEnabled = toggle.IsOn;
+        else
+            AutoAdvanceSlider.IsEnabled = false;
+
+        AutoAdvanceSlider_OnIsEnabledChanged(AutoAdvanceSwitch, null);
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceStatus)] = AutoAdvanceSwitch.IsOn;
+    }
+
+    private void AutoAdvanceSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
+    {
+        AutoAdvanceSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceValue)]?.ToString() ?? 5000.ToString());
+        AutoAdvanceSlider_OnValueChanged(AutoAdvanceSlider, null);
+    }
+
+    private void AutoAdvanceSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceValue)] = AutoAdvanceSlider.Value;
+        AutoAdvanceCard.Description = AutoAdvanceSlider.IsEnabled ? $"When the track ends and the next track starts automatically, the music will crossfade between tracks. Crossfade Time: {AutoAdvanceSlider.Value} ms" : "When the track ends and the next track starts automatically, the music will not crossfade between tracks.";
+    }
+
+    private void ManualTrackChangeSwitch_OnToggled(object sender, RoutedEventArgs? e)
+    {
+        var toggle = sender as ToggleSwitch;
+        if (toggle != null)
+            ManualTrackChangeSlider.IsEnabled = toggle.IsOn;
+        else
+            ManualTrackChangeSlider.IsEnabled = false;
+
+        ManualTrackChangeSlider_OnIsEnabledChanged(ManualTrackChangeSwitch, null);
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)] = ManualTrackChangeSwitch.IsOn;
+    }
+
+    private void ManualTrackChangeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
+    {
+        ManualTrackChangeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeValue)]?.ToString() ?? 2000.ToString());
+        ManualTrackChangeSlider_OnValueChanged(ManualTrackChangeSlider, null);
+    }
+
+    private void ManualTrackChangeSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeValue)] = ManualTrackChangeSlider.Value;
+        ManualTrackChangeCard.Description = ManualTrackChangeSlider.IsEnabled ? $"When you change the track manually, the music will crossfade between tracks. Crossfade Time: {ManualTrackChangeSlider.Value} ms" : "When you change the track manually, the music will not crossfade between tracks.";
+    }
+
+    private void PreviousReset_OnToggled(object sender, RoutedEventArgs e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PreviousResetStatus)] = PreviousReset.IsOn;
+    }
+
+    private void RestartTrackOnSelection_OnToggled(object sender, RoutedEventArgs e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)] = RestartTrackOnSelection.IsOn;
+    }
+
+    private void UseSystemVolume_OnToggled(object sender, RoutedEventArgs e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)] = UseSystemVolume.IsOn;
+    }
+
+    private void PauseOnMute_OnToggled(object sender, RoutedEventArgs e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)] = PauseOnMute.IsOn;
+    }
+
+    private void AutoStart_OnToggled(object sender, RoutedEventArgs e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoStartStatus)] = AutoStart.IsOn;
+    }
+
+    private void MainPlayerBlurSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)] = MainPlayerBlurSlider.Value;
     }
 }
 

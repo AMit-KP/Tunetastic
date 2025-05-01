@@ -113,71 +113,85 @@
 					                  Header="Fade Play/Pause/Stop">
 						<StackPanel>
 							<ToggleSwitch x:Name="PlayPauseStopFadeSwitch"
-							              HorizontalAlignment="Right" />
+							              HorizontalAlignment="Right"
+							              Toggled="PlayPauseStopFadeSwitch_OnToggled" />
 							<Slider x:Name="PlayPauseStopFadeSlider"
 							        HorizontalAlignment="Right"
+							        IsEnabledChanged="PlayPauseStopFadeSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="3000"
 							        Minimum="0"
 							        SmallChange="1"
 							        SnapsTo="Ticks"
 							        TickFrequency="100"
-							        TickPlacement="None" />
+							        TickPlacement="None"
+							        ValueChanged="PlayPauseStopFadeSlider_OnValueChanged" />
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="AutoAdvanceCard"
 					                  Header="Auto advance Crossfading">
 						<StackPanel>
 							<ToggleSwitch x:Name="AutoAdvanceSwitch"
-							              HorizontalAlignment="Right" />
+							              HorizontalAlignment="Right"
+							              Toggled="AutoAdvanceSwitch_OnToggled" />
 							<Slider x:Name="AutoAdvanceSlider"
 							        HorizontalAlignment="Right"
+							        IsEnabledChanged="AutoAdvanceSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="5000"
 							        Minimum="0"
 							        SmallChange="1"
 							        SnapsTo="Ticks"
 							        TickFrequency="100"
-							        TickPlacement="None" />
+							        TickPlacement="None"
+							        ValueChanged="AutoAdvanceSlider_OnValueChanged" />
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="ManualTrackChangeCard"
 					                  Header="Manual Track Change crossfading">
 						<StackPanel>
 							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
-							              HorizontalAlignment="Right" />
+							              HorizontalAlignment="Right"
+							              Toggled="ManualTrackChangeSwitch_OnToggled" />
 							<Slider x:Name="ManualTrackChangeSlider"
 							        HorizontalAlignment="Right"
+							        IsEnabledChanged="ManualTrackChangeSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="5000"
 							        Minimum="0"
 							        SmallChange="1"
 							        SnapsTo="Ticks"
 							        TickFrequency="100"
-							        TickPlacement="None" />
+							        TickPlacement="None"
+							        ValueChanged="ManualTrackChangeSlider_OnValueChanged" />
 						</StackPanel>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 			<dev:SettingsCard Description="When enabled, the app will restart the track that is currently playing when previous button is pressed."
 			                  Header="Previous button resets the current track">
-				<ToggleSwitch x:Name="PreviousReset" />
+				<ToggleSwitch x:Name="PreviousReset"
+				              Toggled="PreviousReset_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will restart the track that is currently playing when it is selected again."
 			                  Header="Restart Track on Selection">
-				<ToggleSwitch x:Name="RestartTrackOnSelection" />
+				<ToggleSwitch x:Name="RestartTrackOnSelection"
+				              Toggled="RestartTrackOnSelection_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will use the system volume control to control the volume of the track that is currently playing."
 			                  Header="Use System Volume Control">
-				<ToggleSwitch x:Name="UseSystemVolume" />
+				<ToggleSwitch x:Name="UseSystemVolume"
+				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will pause the track that is currently playing when the volume is muted."
 			                  Header="Pause on Mute">
-				<ToggleSwitch x:Name="PauseOnMute" />
+				<ToggleSwitch x:Name="PauseOnMute"
+				              Toggled="PauseOnMute_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When enabled, the app will start playing the track that was last playing."
 			                  Header="Auto-Start playing track when app starts">
-				<ToggleSwitch x:Name="AutoStart" />
+				<ToggleSwitch x:Name="AutoStart"
+				              Toggled="AutoStart_OnToggled" />
 			</dev:SettingsCard>
 
 			<!--  Appearance & behavior  -->
