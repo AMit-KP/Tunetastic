@@ -44,7 +44,6 @@ public sealed partial class MainPlayerPage : Page
         {
             await Task.Delay(200);
             await UpdateUI(false);
-            BackgroundImage.UpdateLayout();
         });
     }
 
@@ -96,6 +95,7 @@ public sealed partial class MainPlayerPage : Page
 
                     CoverArtImage.Source = bitmapImage;
                 }
+                BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
                 return Task.CompletedTask;
             }
             else
@@ -111,6 +111,7 @@ public sealed partial class MainPlayerPage : Page
         CoverArt.CornerRadius = new CornerRadius(50);
         CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
         Title.Text = "Please select a song";
+        BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
         return Task.CompletedTask;
     }
 
@@ -125,7 +126,6 @@ public sealed partial class MainPlayerPage : Page
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
         {
             await UpdateUI();
-            BackgroundImage.UpdateLayout();
         });
     }
 
@@ -141,7 +141,6 @@ public sealed partial class MainPlayerPage : Page
         _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
         {
             await UpdateUI(false);
-            BackgroundImage.UpdateLayout();
         });
     }
 }
