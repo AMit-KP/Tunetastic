@@ -506,6 +506,7 @@ public sealed partial class SettingsPage : Page
     private void UseSystemVolume_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)] = UseSystemVolume.IsOn;
+        //TODO: Add logic to handle the use system volume setting
     }
 
     /// <summary>
@@ -518,6 +519,7 @@ public sealed partial class SettingsPage : Page
     private void PauseOnMute_OnToggled(object sender, RoutedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)] = PauseOnMute.IsOn;
+        //TODO: Add logic to handle the pause on mute setting
     }
 
     /// <summary>

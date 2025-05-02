@@ -226,13 +226,16 @@ public class MusicPlayer
         try
         {
             if (songPath == null || songPath == "") return;
-            //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
 
-            //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
-            MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
-            if (play) MediaPlayer.Play();
-            CurrentSong = songPath;
-            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
+
+            if (!(songPath == CurrentSong) || bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "false"))
+            {
+                //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
+                MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+                if (play) MediaPlayer.Play();
+                CurrentSong = songPath;
+                Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
+            }
         }
         catch (Exception)
         {
