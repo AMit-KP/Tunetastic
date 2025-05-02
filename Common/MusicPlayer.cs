@@ -280,7 +280,9 @@ public class MusicPlayer
         //TODO get settings for this restart or prev
         try
         {
-            currentIndex = currentIndex == 0 ? ActualPlaylist.Count - 1 : currentIndex - 1;
+            if (OriginalPlaylist?.Count > 0)
+                currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
+            else return;
             LoadSong();
         }
         catch (Exception)
@@ -308,36 +310,40 @@ public class MusicPlayer
                 return;
             }
 
-            if (currentIndex < OriginalPlaylist?.Count - 1)
+            if (OriginalPlaylist != null)
             {
-                currentIndex++;
-            }
-            else
-            {
-                if (RepeatStatus == RepeatMode.One)
+                if (currentIndex < OriginalPlaylist.Count - 1)
                 {
-
-                    if (!alreadyPlayed)
+                    currentIndex++;
+                }
+                else
+                {
+                    if (RepeatStatus == RepeatMode.One)
                     {
-                        currentIndex = 0;
-                        alreadyPlayed = true;
+
+                        if (!alreadyPlayed)
+                        {
+                            currentIndex = 0;
+                            alreadyPlayed = true;
+                        }
+                        else
+                        {
+                            await CrossfadePause();
+                            return;
+                        }
                     }
-                    else
+                    else if (RepeatStatus == RepeatMode.All)
+                    {
+                        LoadPlaylist(OriginalPlaylist);
+                    }
+                    else if (RepeatStatus == RepeatMode.None)
                     {
                         await CrossfadePause();
                         return;
                     }
                 }
-                else if (RepeatStatus == RepeatMode.All)
-                {
-                    LoadPlaylist(OriginalPlaylist);
-                }
-                else if (RepeatStatus == RepeatMode.None)
-                {
-                    await CrossfadePause();
-                    return;
-                }
             }
+            else return;
 
             LoadSong();
         }
