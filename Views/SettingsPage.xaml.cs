@@ -110,6 +110,8 @@ public sealed partial class SettingsPage : Page
         MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
 
         UpdateExtentionListOnUI();
+
+        LoadThemeAndBackdropSettings();
     }
 
 
@@ -545,6 +547,31 @@ public sealed partial class SettingsPage : Page
     private void MainPlayerBlurSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs e)
     {
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)] = MainPlayerBlurSlider.Value;
+    }
+
+    private void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        App.Current.ThemeService.OnThemeComboBoxSelectionChanged(sender);
+        if (Theme.SelectedItem is ComboBoxItem ThemeItem)
+        {
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)] = ThemeItem.Tag?.ToString();
+        }
+        App.Current.ThemeService.UpdateCaptionButtons();
+    }
+
+    private void Backdrop_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        App.Current.ThemeService.OnBackdropComboBoxSelectionChanged(sender);
+        if (Backdrop.SelectedItem is ComboBoxItem BackdropItem)
+        {
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Backdrop)] = BackdropItem.Tag?.ToString();
+        }
+    }
+
+    private void LoadThemeAndBackdropSettings()
+    {
+        App.Current.ThemeService.SetThemeComboBoxDefaultItem(Theme);
+        App.Current.ThemeService.SetBackdropComboBoxDefaultItem(Backdrop);
     }
 }
 

@@ -52,8 +52,10 @@ public partial class App : Application
         MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
         MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
 
-        ThemeService.AutoInitialize(MainWindow);
-
+        ThemeService.Initialize(MainWindow, false);
+        ThemeService.SetElementTheme(Enum.Parse<ElementTheme>(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
+        ThemeService.SetBackdropType(Enum.Parse<BackdropType>(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Mica"));
+        ThemeService.UpdateCaptionButtons();
         MainWindow.Activate();
 
         await new GetMusicDataService().UpdateMetaData();

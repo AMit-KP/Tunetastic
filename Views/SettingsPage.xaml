@@ -202,11 +202,12 @@
 				          Glyph="&#xE790;" />
 				<TextBlock x:Name="AppearanceTextBlock"
 				           Style="{ThemeResource TitleTextBlockStyle}"
-				           Text="Appearance &amp; behavior" />
+				           Text="Appearance &amp; Behavior" />
 			</StackPanel>
 			<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
 			                  Header="App theme">
-				<ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
+				<ComboBox x:Name="Theme"
+				          SelectionChanged="Theme_SelectionChanged">
 					<ComboBoxItem Content="Light"
 					              Tag="Light" />
 					<ComboBoxItem Content="Dark"
@@ -217,7 +218,8 @@
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
 			                  Header="Material">
-				<ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
+				<ComboBox x:Name="Backdrop"
+				          SelectionChanged="Backdrop_SelectionChanged">
 					<ComboBoxItem Content="Mica"
 					              Tag="Mica" />
 					<ComboBoxItem Content="Mica Alt"

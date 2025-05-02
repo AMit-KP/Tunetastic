@@ -19,7 +19,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.4.48</Version>
+    <Version>1.4.61</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.4.48.182</AssemblyVersion>
-    <FileVersion>1.4.48.182</FileVersion>
+    <AssemblyVersion>1.4.61.195</AssemblyVersion>
+    <FileVersion>1.4.61.195</FileVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Update="README.md">

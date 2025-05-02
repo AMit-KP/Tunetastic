@@ -39,5 +39,7 @@ public enum LocalSave
     CurrentIndex,
     CurrentPlaylist,
     ShuffleStatus,
-    RepeatStatus
+    RepeatStatus,
+    Backdrop,
+    Theme
 }
