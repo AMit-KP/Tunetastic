@@ -207,17 +207,38 @@ public partial class MusicControlViewModel : ObservableRecipient
         _musicPlayer.MediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
 
         _musicPlayer.MediaPlayer.MediaOpened += PlaybackSession_MediaOpenedAsync;
+
         //_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
 
+        SetToggleAndRepeat();
+
+        LoadLastPlayedTrack();
+    }
+
+    /// <summary>
+    /// Initializes the shuffle and repeat button states based on the saved application settings.
+    /// Retrieves the saved shuffle and repeat statuses from local settings and updates the respective toggle and button states accordingly.
+    /// </summary>
+    private void SetToggleAndRepeat()
+    {
         var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
         ShuffleToggle(bool.Parse(localSettings.Values[nameof(LocalSave.ShuffleStatus)]?.ToString() ?? "false"));
 
         RepeatButtonToggle(Enum.Parse<RepeatMode>(localSettings.Values[nameof(LocalSave.RepeatStatus)]?.ToString() ?? "All"));
+    }
 
+    /// <summary>
+    /// Loads the last played track from the saved application data and resumes playback state.
+    /// Retrieves the last played track information, playback position, and other related details
+    /// from local settings to restore the media player's state and playlist upon application startup.
+    /// </summary>
+    private void LoadLastPlayedTrack()
+    {
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
         if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
         {
-            _musicPlayer.LoadSong(localSettings.Values[nameof(LocalSave.LastPlayedTrack)].ToString(), play: false);          //TODO get settings
+            using var _ = _musicPlayer.LoadSong(localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString(), play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
 
             ProgressBarValue = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 

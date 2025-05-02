@@ -203,7 +203,7 @@ public class MusicPlayer
     /// Loads and prepares the current song in the playlist for playback.
     /// If a playlist is available, this method selects the song at the current index and loads it.
     /// </summary>
-    public async void LoadSong()
+    private async void LoadSong()
     {
         if (ActualPlaylist?.Count > 0)
         {
@@ -221,10 +221,11 @@ public class MusicPlayer
     /// Defaults to true if not specified.
     /// </param>
     /// <returns>An asynchronous task that represents the operation of loading the song.</returns>
-    public async Task LoadSong(string songPath, bool play = true)
+    public async Task LoadSong(string? songPath, bool play = true)
     {
         try
         {
+            if (songPath == null || songPath == "") return;
             //if (MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing) return; // Prevent restarting      //TODO add settings for this
 
             //await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
