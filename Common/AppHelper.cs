@@ -34,4 +34,10 @@ public enum LocalSave
     PauseOnMuteStatus,
     AutoStartStatus,
     MainPlayerBGBlurValue,
+    LastPlayedTrack,
+    PlayBackPosition,
+    CurrentIndex,
+    CurrentPlaylist,
+    ShuffleStatus,
+    RepeatStatus
 }

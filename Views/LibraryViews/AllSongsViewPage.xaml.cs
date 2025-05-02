@@ -55,7 +55,7 @@ public sealed partial class AllSongsViewPage : Page
     {
         var track = e.ClickedItem as Song;
         List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values["CurrentPlaylist"] = "AllSongsViewPage";
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
         MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
     }
 

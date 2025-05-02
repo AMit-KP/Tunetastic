@@ -210,28 +210,28 @@ public partial class MusicControlViewModel : ObservableRecipient
         //_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
 
         var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-        if (localSettings.Values.ContainsKey("ShuffleStatus"))
-            ShuffleToggle((bool)localSettings.Values["ShuffleStatus"]);
 
-        if (localSettings.Values.ContainsKey("RepeatStatus"))
-            RepeatButtonToggle(Enum.Parse<RepeatMode>(localSettings.Values["RepeatStatus"]?.ToString()));
+        ShuffleToggle(bool.Parse(localSettings.Values[nameof(LocalSave.ShuffleStatus)]?.ToString() ?? "false"));
 
-        if (localSettings.Values.ContainsKey("LastPlayed"))
+        RepeatButtonToggle(Enum.Parse<RepeatMode>(localSettings.Values[nameof(LocalSave.RepeatStatus)]?.ToString() ?? "All"));
+
+        if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
         {
-            _musicPlayer.LoadSong(localSettings.Values["LastPlayed"].ToString(), play: false);          //TODO get settings
+            _musicPlayer.LoadSong(localSettings.Values[nameof(LocalSave.LastPlayedTrack)].ToString(), play: false);          //TODO get settings
 
-            if (localSettings.Values.ContainsKey("PlayBackPosition"))
-                ProgressBarValue = double.Parse(localSettings.Values["PlayBackPosition"].ToString());
+            ProgressBarValue = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 
-            if (localSettings.Values.ContainsKey("CurrentPlaylist") && localSettings.Values.ContainsKey("CurrentIndex"))
+
+            switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
             {
-                switch (localSettings.Values["CurrentPlaylist"].ToString())
-                {
-                    case "AllSongsViewPage":
-                        new AllSongsViewPage().LoadAsPlayList(int.Parse(localSettings.Values["CurrentIndex"].ToString()));
-                        break;
-                }
+                case "AllSongsViewPage":
+                    new AllSongsViewPage().LoadAsPlayList(int.Parse(localSettings.Values[nameof(LocalSave.CurrentIndex)]?.ToString() ?? "0"));
+                    break;
+
+                default:
+                    break;
             }
+
         }
     }
 
@@ -324,7 +324,7 @@ public partial class MusicControlViewModel : ObservableRecipient
         IsShuffleToggled = shuffleSaved ?? IsShuffleToggled;
         _musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
         ToolTipTextShuffleButton = IsShuffleToggled ? "Shuffle On" : "Shuffle Off";
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values["ShuffleStatus"] = IsShuffleToggled;
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShuffleStatus)] = IsShuffleToggled;
     }
 
     /// <summary>
@@ -380,7 +380,7 @@ public partial class MusicControlViewModel : ObservableRecipient
                 RepeatButtonStyle = (Style)Application.Current.Resources["DefaultButtonStyle"];
                 break;
         }
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values["RepeatStatus"] = _musicPlayer.RepeatStatus.ToString();
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RepeatStatus)] = _musicPlayer.RepeatStatus.ToString();
     }
 
     /// <summary>

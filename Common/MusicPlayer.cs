@@ -231,7 +231,7 @@ public class MusicPlayer
             MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
             if (play) MediaPlayer.Play();
             CurrentSong = songPath;
-            Windows.Storage.ApplicationData.Current.LocalSettings.Values["LastPlayed"] = CurrentSong;
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
         }
         catch (Exception)
         {
@@ -477,8 +477,8 @@ public class MusicPlayer
     /// </summary>
     public void SavePlayBackPosition()
     {
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values["PlayBackPosition"] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values["CurrentIndex"] = currentIndex.ToString();
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayBackPosition)] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentIndex)] = currentIndex.ToString();
     }
 }
 
