@@ -10,6 +10,7 @@ public partial class App : Application
     public IServiceProvider Services { get; }
     public IJsonNavigationService NavService => GetService<IJsonNavigationService>();
     public IThemeService ThemeService => GetService<IThemeService>();
+    public IRainbowFrame RainbowFrame => GetService<IRainbowFrame>();
 
     public static T GetService<T>() where T : class
     {
@@ -41,6 +42,7 @@ public partial class App : Application
         services.AddSingleton<ContextMenuService>();
         services.AddTransient<SettingViewModel>();
         services.AddTransient<MusicControlViewModel>();
+        services.AddSingleton<IRainbowFrame, RainbowFrame>();
 
         return services.BuildServiceProvider();
     }
@@ -74,7 +76,14 @@ public partial class App : Application
         MainWindow.Activate();
 
         await new GetMusicDataService().UpdateMetaData();
+
+        RainbowFrame.Initialize(App.MainWindow);
         InitializeApp();
+        if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && !bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
+        {
+            RainbowFrame.StartRainbowFrame();
+            RainbowFrame.UpdateEffectSpeed(51 - int.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31"));
+        }
         MainWindow.Closed += (s, e) => MusicPlayer.Instance.SavePlayBackPosition();
     }
 

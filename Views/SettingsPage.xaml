@@ -168,27 +168,27 @@
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
-			<dev:SettingsCard Description="When enabled, the app will restart the track that is currently playing when previous button is pressed."
+			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when previous button is pressed."
 			                  Header="Previous button resets the current track">
 				<ToggleSwitch x:Name="PreviousReset"
 				              Toggled="PreviousReset_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When enabled, the app will restart the track that is currently playing when it is selected again."
+			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when it is selected again."
 			                  Header="Restart Track on Selection">
 				<ToggleSwitch x:Name="RestartTrackOnSelection"
 				              Toggled="RestartTrackOnSelection_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When enabled, the app will use the system volume control to control the volume of the track that is currently playing."
+			<dev:SettingsCard Description="When turned on, the app will use the system volume control to control the volume of the track that is currently playing."
 			                  Header="Use System Volume Control">
 				<ToggleSwitch x:Name="UseSystemVolume"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When enabled, the app will pause the track that is currently playing when the volume is muted."
+			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
 			                  Header="Pause on Mute">
 				<ToggleSwitch x:Name="PauseOnMute"
 				              Toggled="PauseOnMute_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When enabled, the app will start playing the track that was last playing."
+			<dev:SettingsCard Description="When turned on, the app will start playing the track that was last playing."
 			                  Header="Auto-Start playing track when app starts">
 				<ToggleSwitch x:Name="AutoStart"
 				              Toggled="AutoStart_OnToggled" />
@@ -288,6 +288,29 @@
 				        TickFrequency="1"
 				        TickPlacement="Inline" />
 			</dev:SettingsCard>
+			<dev:SettingsExpander Description="When turned on, starts a rainbow frame border around the app window."
+			                      Header="Rainbow Frame Border">
+				<ToggleSwitch x:Name="RainbowToggle"
+				              Toggled="RainbowToggle_OnToggled" />
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard x:Name="RainbowSpeed"
+					                  Header="Rainbow Speed">
+						<Slider x:Name="RainbowSpeedSlider"
+						        IsEnabledChanged="RainbowSpeedSlider_OnIsEnabledChanged"
+						        Maximum="50"
+						        Minimum="1"
+						        SmallChange="1"
+						        SnapsTo="StepValues"
+						        TickFrequency="1"
+						        TickPlacement="Inline" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Description="When turned on, The rainbow frame border will be applied only when there's a track in playing"
+					                  Header="Only during playback">
+						<ToggleSwitch x:Name="RainbowOnlyDuringPlayback"
+						              Toggled="RainbowOnlyDuringPlayback_OnToggled" />
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
 
 			<!--  About  -->
 

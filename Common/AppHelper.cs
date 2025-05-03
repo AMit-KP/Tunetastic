@@ -47,4 +47,7 @@ public enum LocalSave
     BackdropTintColorR,
     BackdropTintColorG,
     BackdropTintColorB,
+    RainbowFrameStatus,
+    RainbowFrameSpeed,
+    RainbowOnlyDuringPlayback,
 }

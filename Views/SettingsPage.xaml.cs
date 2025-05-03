@@ -67,6 +67,7 @@ public sealed partial class SettingsPage : Page
         Backdrop.SelectionChanged += Backdrop_SelectionChanged;
         numberBox.ValueChanged += NumberBox_ValueChanged;
         MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
+        RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
 
         LoadLibrarySettings();
 
@@ -294,7 +295,6 @@ public sealed partial class SettingsPage : Page
     /// <param name="e">Event arguments containing details of the IsEnabled property change.</param>
     private void PlayPauseStopFadeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
     {
-
         PlayPauseStopFadeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? 1000.ToString());
         PlayPauseStopFadeSlider_OnValueChanged(PlayPauseStopFadeSlider, null);
     }
@@ -500,7 +500,7 @@ public sealed partial class SettingsPage : Page
         }
         App.Current.ThemeService.UpdateCaptionButtons();
 
-        if (TintBox.Visibility == Visibility.Visible)
+        if (TintSettings.Visibility == Visibility.Visible)
         {
             var actualTheme = App.Current.ThemeService.GetActualTheme();
             Color color = Color.FromArgb(0, 0, 0, 0);
@@ -529,14 +529,17 @@ public sealed partial class SettingsPage : Page
 
             TintSettings.Visibility = BackdropItem.Tag?.ToString() == "Mica" ? Visibility.Visible : Visibility.Collapsed;
 
-            var actualTheme = App.Current.ThemeService.GetActualTheme();
-            Color color = Color.FromArgb(0, 0, 0, 0);
-            if (actualTheme == ElementTheme.Light)
-                color = Color.FromArgb(255, 223, 223, 223);
-            else if (actualTheme == ElementTheme.Dark)
-                color = Color.FromArgb(255, 32, 32, 32);
+            if (TintSettings.Visibility == Visibility.Visible)
+            {
+                var actualTheme = App.Current.ThemeService.GetActualTheme();
+                Color color = Color.FromArgb(0, 0, 0, 0);
+                if (actualTheme == ElementTheme.Light)
+                    color = Color.FromArgb(255, 223, 223, 223);
+                else if (actualTheme == ElementTheme.Dark)
+                    color = Color.FromArgb(255, 32, 32, 32);
 
-            TintBox.Fill = new SolidColorBrush(color);
+                TintBox.Fill = new SolidColorBrush(color);
+            }
 
             localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)] = false.ToString();
             localSettings.Values.Remove(nameof(LocalSave.BackdropTintColorA));
@@ -605,6 +608,7 @@ public sealed partial class SettingsPage : Page
 
         if (backdrop == "Mica")
         {
+            TintSettings.Visibility = Visibility.Visible;
             Color color = Color.FromArgb(0, 0, 0, 0);
             if (bool.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)]?.ToString() ?? "false"))
             {
@@ -624,8 +628,12 @@ public sealed partial class SettingsPage : Page
             }
             TintBox.Fill = new SolidColorBrush(color);
         }
+        else
+            TintSettings.Visibility = Visibility.Collapsed;
 
         MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
+        RainbowToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false");
+        RainbowToggle_OnToggled(RainbowToggle, null);
     }
 
     /// <summary>
@@ -686,6 +694,93 @@ public sealed partial class SettingsPage : Page
         PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
 
         AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
+    }
+
+    /// <summary>
+    /// Handles the event triggered when the "RainbowToggle" is toggled.
+    /// Manages the enabling or disabling of the rainbow frame feature in the application and updates UI components
+    /// accordingly. Also persists the toggle state in application settings.
+    /// </summary>
+    /// <param name="sender">The source of the event, expected to be the "RainbowToggle" control.</param>
+    /// <param name="e">An instance of RoutedEventArgs containing the event data, can be null.</param>
+    private void RainbowToggle_OnToggled(object sender, RoutedEventArgs? e)
+    {
+        var toggle = sender as ToggleSwitch;
+        if (toggle != null)
+        {
+            if (toggle.IsOn)
+            {
+                App.Current.RainbowFrame.StartRainbowFrame();
+                RainbowOnlyDuringPlayback.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false");
+                RainbowOnlyDuringPlayback_OnToggled(RainbowOnlyDuringPlayback, null);
+                RainbowSpeedSlider.IsEnabled = true;
+                RainbowOnlyDuringPlayback.IsEnabled = true;
+            }
+            else
+            {
+                App.Current.RainbowFrame.StopRainbowFrame();
+                App.Current.RainbowFrame.ResetFrameColorToDefault();
+                RainbowSpeedSlider.IsEnabled = false;
+                RainbowOnlyDuringPlayback.IsEnabled = false;
+            }
+            RainbowSpeedSlider_OnIsEnabledChanged(RainbowSpeedSlider, null);
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RainbowFrameStatus)] = toggle.IsOn.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Handles the toggle event for the "Rainbow Only During Playback" feature.
+    /// This method manages the activation or deactivation of the rainbow frame effect
+    /// based on the toggle state and updates the corresponding application settings.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically a toggle switch control.</param>
+    /// <param name="e">An instance of <see cref="RoutedEventArgs"/> containing the event data, can be null.</param>
+    private void RainbowOnlyDuringPlayback_OnToggled(object sender, RoutedEventArgs? e)
+    {
+        var toggle = sender as ToggleSwitch;
+        if (toggle != null)
+        {
+            if (toggle.IsOn)
+            {
+                App.Current.RainbowFrame.StopRainbowFrame();
+                App.Current.RainbowFrame.ResetFrameColorToDefault();
+            }
+            else App.Current.RainbowFrame.StartRainbowFrame();
+
+            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)] = toggle.IsOn.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Handles the event when the "IsEnabled" property of the RainbowSpeedSlider changes.
+    /// This method ensures the slider's value is updated based on the saved application settings
+    /// and triggers further updates to reflect the change.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the RainbowSpeedSlider.</param>
+    /// <param name="e">An instance of DependencyPropertyChangedEventArgs containing details about the property change, or null if not provided.</param>
+    private void RainbowSpeedSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
+    {
+        RainbowSpeedSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31");
+        RainbowSpeedSlider_OnValueChanged(RainbowSpeedSlider, null);
+    }
+
+    /// <summary>
+    /// Handles the ValueChanged event for the RainbowSpeedSlider slider control.
+    /// Updates the application settings with the new slider value and modifies the description
+    /// text and visual effect speed accordingly.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the RainbowSpeedSlider control.</param>
+    /// <param name="e">An instance of RangeBaseValueChangedEventArgs containing the event data, including the old and new values of the slider.</param>
+    private void RainbowSpeedSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
+    {
+        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RainbowFrameSpeed)] = RainbowSpeedSlider.Value.ToString();
+        RainbowSpeed.Description = RainbowSpeedSlider.IsEnabled ? $"Current Rainbow frame border Speed: {RainbowSpeedSlider.Value}" : "Rainbow frame border is disabled";
+        if (RainbowSpeedSlider.IsEnabled)
+        {
+            var effectSpeed = int.Parse(RainbowSpeedSlider.Value.ToString());
+
+            App.Current.RainbowFrame.UpdateEffectSpeed(51 - effectSpeed);
+        }
     }
 }
 

@@ -19,6 +19,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 
     private bool isUpdatingProgressBar = false;
 
+    private bool _isRainbowActive = false;
+
     private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 
     private string _fontIconPlayPause = "\uE768";
@@ -275,30 +277,76 @@ public partial class MusicControlViewModel : ObservableRecipient
     }
 
     /// <summary>
-    /// Handles the event triggered when the playback state of the media session changes.
-    /// This method ensures that any user interface updates resulting from changes in the playback state
-    /// are dispatched to the appropriate thread for execution.
+    /// Handles changes in the playback state of the media session and updates the user interface accordingly.
+    /// This method ensures UI updates are dispatched to the UI thread and adjusts the play/pause icon
+    /// and tooltip text based on the current playback state.
     /// </summary>
-    /// <param name="sender">The media playback session that raised the event.</param>
-    /// <param name="args">Additional data relevant to the event.</param>
-    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
+    /// <param name="sender">The media playback session that raised the playback state changed event.</param>
+    /// <param name="args">Additional event data, if any, provided by the event source.</param>
+    private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
     {
-        switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
+        _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
         {
-            case MediaPlaybackState.Paused:
-            case MediaPlaybackState.None:
-                FontIconPlayPause = "\uE768";
-                ToolTipTextPlayPause = "Play";
-                break;
+            switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
+            {
+                case MediaPlaybackState.Paused:
+                case MediaPlaybackState.None:
+                    FontIconPlayPause = "\uE768";
+                    ToolTipTextPlayPause = "Play";
 
-            case MediaPlaybackState.Playing:
-            case MediaPlaybackState.Buffering:
-            case MediaPlaybackState.Opening:
-                FontIconPlayPause = "\uE769";
-                ToolTipTextPlayPause = "Pause";
-                break;
+                    await Task.Delay(500);
+
+                    if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing)
+                    {
+                        StopRainbow();
+                        _isRainbowActive = false;
+                    }
+                    break;
+
+                case MediaPlaybackState.Playing:
+                    FontIconPlayPause = "\uE769";
+                    ToolTipTextPlayPause = "Pause";
+
+                    if (!_isRainbowActive)
+                    {
+                        StartRainbow();
+                        _isRainbowActive = true;
+                    }
+                    break;
+            }
+        });
+    }
+
+    /// <summary>
+    /// Activates the rainbow frame effect based on user preferences and saved application settings.
+    /// Checks if the rainbow frame feature and playback-dependent activation are enabled in local settings.
+    /// If enabled, starts the rainbow frame effect and applies the user-defined speed configuration.
+    /// </summary>
+    private void StartRainbow()
+    {
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
+        {
+            App.Current.RainbowFrame.StartRainbowFrame();
+
+            App.Current.RainbowFrame.UpdateEffectSpeed(51 - int.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31"));
         }
-    });
+    }
+
+    /// <summary>
+    /// Stops the rainbow frame effect and resets the frame color to its default state if certain conditions are met.
+    /// Checks the saved application settings to determine whether the rainbow frame is active and if it should only operate during playback.
+    /// If both conditions are true, it stops the rainbow frame and resets the frame color.
+    /// </summary>
+    private void StopRainbow()
+    {
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
+        {
+            App.Current.RainbowFrame.StopRainbowFrame();
+            App.Current.RainbowFrame.ResetFrameColorToDefault();
+        }
+    }
 
 
     /// <summary>
