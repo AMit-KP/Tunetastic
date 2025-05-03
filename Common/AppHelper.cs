@@ -41,5 +41,10 @@ public enum LocalSave
     ShuffleStatus,
     RepeatStatus,
     Backdrop,
-    Theme
+    Theme,
+    BackdropTintColorStatus,
+    BackdropTintColorA,
+    BackdropTintColorR,
+    BackdropTintColorG,
+    BackdropTintColorB,
 }

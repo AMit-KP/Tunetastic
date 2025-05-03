@@ -1,8 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
 using Tunetastic.Generated.Protos;
 using Tunetastic.Services;
+using Windows.UI;
 
 namespace Tunetastic.Views;
 
@@ -54,91 +56,24 @@ public sealed partial class SettingsPage : Page
 
     public SettingViewModel ViewModel { get; }
 
-    /// <summary>
-    /// Represents a settings page in the application.
-    /// This class is responsible for managing and displaying user preferences,
-    /// application settings, and any configurable options available in the application.
-    /// </summary>
     public SettingsPage()
     {
         ViewModel = App.GetService<SettingViewModel>();
         this.InitializeComponent();
 
+        LoadAppearanceAndBehaviourSettings();
+
+        Theme.SelectionChanged += Theme_SelectionChanged;
+        Backdrop.SelectionChanged += Backdrop_SelectionChanged;
         numberBox.ValueChanged += NumberBox_ValueChanged;
         MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
 
-        try
-        {
-            Libraries.AddRange(ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries);
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
+        LoadLibrarySettings();
 
-        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-
-        IgnoreDup.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
-
-        ScanAtStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
-
-        IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
-
-        numberBox.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
-
-        Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
-
-        PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
-        PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
-
-        AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
-        AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
-
-        ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
-        ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);
-
-        PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
-
-        RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
-
-        UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
-
-        PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
-
-        AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
-
-        MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
+        LoadAudioAndPlayBackSettings();
 
         UpdateExtentionListOnUI();
-
-        LoadThemeAndBackdropSettings();
     }
-
-
-    #region Check Later
-    //private void OnColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-    //{
-    //    TintBox.Fill = new SolidColorBrush(args.NewColor);
-    //    App.Current.ThemeService.SetBackdropTintColor(args.NewColor);
-    //}
-
-    //private void OnColorPaletteItemClick(object sender, ItemClickEventArgs e)
-    //{
-    //    var color = e.ClickedItem as ColorPaletteItem;
-    //    if (color != null)
-    //    {
-    //        if (color.Hex.Contains("#000000"))
-    //        {
-    //            App.Current.ThemeService.ResetBackdropProperties();
-    //        }
-    //        else
-    //        {
-    //            App.Current.ThemeService.SetBackdropTintColor(color.Color);
-    //        }
-    //        TintBox.Fill = new SolidColorBrush(color.Color);
-    //    }
-    //}
-    #endregion
 
     /// <summary>
     /// Handles the event when the "Add New Folder" button is clicked.
@@ -549,6 +484,13 @@ public sealed partial class SettingsPage : Page
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)] = MainPlayerBlurSlider.Value;
     }
 
+    /// <summary>
+    /// Handles the event triggered when the selection in the Theme ComboBox changes.
+    /// Updates the application's theme based on the selected option and persists the
+    /// chosen theme to local settings for future sessions.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the ComboBox object.</param>
+    /// <param name="e">The event arguments containing details about the selection change.</param>
     private void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         App.Current.ThemeService.OnThemeComboBoxSelectionChanged(sender);
@@ -557,21 +499,193 @@ public sealed partial class SettingsPage : Page
             Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)] = ThemeItem.Tag?.ToString();
         }
         App.Current.ThemeService.UpdateCaptionButtons();
+
+        if (TintBox.Visibility == Visibility.Visible)
+        {
+            var actualTheme = App.Current.ThemeService.GetActualTheme();
+            Color color = Color.FromArgb(0, 0, 0, 0);
+            if (actualTheme == ElementTheme.Light)
+                color = Color.FromArgb(255, 223, 223, 223);
+            else if (actualTheme == ElementTheme.Dark)
+                color = Color.FromArgb(255, 32, 32, 32);
+
+            TintBox.Fill = new SolidColorBrush(color);
+        }
     }
 
+    /// <summary>
+    /// Handles the event triggered when the backdrop selection is changed in the settings page.
+    /// Updates the application's theme service and saves the selected backdrop option to local settings.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the ComboBox control.</param>
+    /// <param name="e">The event data containing information about the selection change.</param>
     private void Backdrop_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         App.Current.ThemeService.OnBackdropComboBoxSelectionChanged(sender);
         if (Backdrop.SelectedItem is ComboBoxItem BackdropItem)
         {
-            Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Backdrop)] = BackdropItem.Tag?.ToString();
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            localSettings.Values[nameof(LocalSave.Backdrop)] = BackdropItem.Tag?.ToString();
+
+            TintSettings.Visibility = BackdropItem.Tag?.ToString() == "Mica" ? Visibility.Visible : Visibility.Collapsed;
+
+            var actualTheme = App.Current.ThemeService.GetActualTheme();
+            Color color = Color.FromArgb(0, 0, 0, 0);
+            if (actualTheme == ElementTheme.Light)
+                color = Color.FromArgb(255, 223, 223, 223);
+            else if (actualTheme == ElementTheme.Dark)
+                color = Color.FromArgb(255, 32, 32, 32);
+
+            TintBox.Fill = new SolidColorBrush(color);
+
+            localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)] = false.ToString();
+            localSettings.Values.Remove(nameof(LocalSave.BackdropTintColorA));
+            localSettings.Values.Remove(nameof(LocalSave.BackdropTintColorR));
+            localSettings.Values.Remove(nameof(LocalSave.BackdropTintColorG));
+            localSettings.Values.Remove(nameof(LocalSave.BackdropTintColorB));
         }
     }
 
-    private void LoadThemeAndBackdropSettings()
+    /// <summary>
+    /// Handles the event when the color is changed on the ColorPicker.
+    /// Updates the application UI tint, persists the selected color to local settings,
+    /// and integrates the new color into the application's theme service.
+    /// </summary>
+    /// <param name="sender">The ColorPicker control triggering the event.</param>
+    /// <param name="args">An instance of ColorChangedEventArgs containing the new color information.</param>
+    private void OnColorChanged(ColorPicker sender, ColorChangedEventArgs args)
     {
-        App.Current.ThemeService.SetThemeComboBoxDefaultItem(Theme);
-        App.Current.ThemeService.SetBackdropComboBoxDefaultItem(Backdrop);
+        ApplyAndSaveTint(args.NewColor);
+    }
+
+    /// <summary>
+    /// Handles the event when a color palette item is clicked.
+    /// This method updates the application's theme and tint settings based on the selected color
+    /// and modifies the UI accordingly.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the color palette control.</param>
+    /// <param name="e">An instance of ItemClickEventArgs containing information about the clicked item, including the selected color.</param>
+    private void OnColorPaletteItemClick(object sender, ItemClickEventArgs e)
+    {
+        var color = e.ClickedItem as ColorPaletteItem;
+        if (color != null)
+            ApplyAndSaveTint(color.Color);
+    }
+
+    /// <summary>
+    /// Applies the specified tint color to the application's background and updates the UI reflecting the new color.
+    /// Additionally, the tint color values are saved into the application's local settings for persistence across sessions.
+    /// </summary>
+    /// <param name="color">The color to be applied as the background tint.</param>
+    private void ApplyAndSaveTint(Color color)
+    {
+        App.Current.ThemeService.SetBackdropTintColor(color);
+        TintBox.Fill = new SolidColorBrush(color);
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)] = true.ToString();
+        localSettings.Values[nameof(LocalSave.BackdropTintColorA)] = color.A.ToString();
+        localSettings.Values[nameof(LocalSave.BackdropTintColorR)] = color.R.ToString();
+        localSettings.Values[nameof(LocalSave.BackdropTintColorG)] = color.G.ToString();
+        localSettings.Values[nameof(LocalSave.BackdropTintColorB)] = color.B.ToString();
+    }
+
+    /// <summary>
+    /// Loads and applies the appearance and behavior settings for the application.
+    /// This includes configuring the theme, backdrop, tint color, and additional visual
+    /// elements such as background blur values. The method retrieves these settings
+    /// from local storage and applies them to the user interface elements accordingly.
+    /// </summary>
+    private void LoadAppearanceAndBehaviourSettings()
+    {
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+        Theme.SelectedItem = Theme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
+        var backdrop = (localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Mica");
+        Backdrop.SelectedItem = Backdrop.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == backdrop);
+
+        if (backdrop == "Mica")
+        {
+            Color color = Color.FromArgb(0, 0, 0, 0);
+            if (bool.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)]?.ToString() ?? "false"))
+            {
+                color = Color.FromArgb(a: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorA)]?.ToString() ?? "255"),
+                                           r: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorR)]?.ToString() ?? "32"),
+                                           g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
+                                           b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
+                App.Current.ThemeService.SetBackdropTintColor(color);
+            }
+            else
+            {
+                var actualTheme = App.Current.ThemeService.GetActualTheme();
+                if (actualTheme == ElementTheme.Light)
+                    color = Color.FromArgb(255, 223, 223, 223);
+                else if (actualTheme == ElementTheme.Dark)
+                    color = Color.FromArgb(255, 32, 32, 32);
+            }
+            TintBox.Fill = new SolidColorBrush(color);
+        }
+
+        MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
+    }
+
+    /// <summary>
+    /// Loads and applies the library-related settings for the application.
+    /// This includes retrieving the list of libraries, loading toggle states and values
+    /// for options such as ignoring duplicate tracks and scanning libraries at startup,
+    /// and updating UI components to reflect these settings.
+    /// </summary>
+    private void LoadLibrarySettings()
+    {
+        try
+        {
+            Libraries.AddRange(ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries);
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+        IgnoreDup.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
+
+        ScanAtStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
+
+        IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
+
+        numberBox.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
+
+        Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
+    }
+
+    /// <summary>
+    /// Loads the current audio and playback settings from the application's local storage
+    /// and updates the corresponding UI elements with the retrieved values.
+    /// This method initializes settings such as play/pause fade behavior, auto-advance playback,
+    /// manual track change, resetting previous track, and other related preferences.
+    /// </summary>
+    private void LoadAudioAndPlayBackSettings()
+    {
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+        PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
+        PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
+
+        AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
+        AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
+
+        ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
+        ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);
+
+        PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
+
+        RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
+
+        UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
+
+        PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
+
+        AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
     }
 }
 

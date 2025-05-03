@@ -52,10 +52,25 @@ public partial class App : Application
         MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
         MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
 
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
         ThemeService.Initialize(MainWindow, false);
-        ThemeService.SetElementTheme(Enum.Parse<ElementTheme>(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
-        ThemeService.SetBackdropType(Enum.Parse<BackdropType>(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Mica"));
+        ThemeService.SetElementTheme(Enum.Parse<ElementTheme>(localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
+        var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Mica";
+        ThemeService.SetBackdropType(Enum.Parse<BackdropType>(backdrop));
         ThemeService.UpdateCaptionButtons();
+
+        if (backdrop == "Mica" && bool.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)]?.ToString() ?? "false"))
+        {
+            var color = Windows.UI.Color.FromArgb(a: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorA)]?.ToString() ?? "255"),
+                                                  r: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorR)]?.ToString() ?? "32"),
+                                                  g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
+                                                  b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
+
+            App.Current.ThemeService.SetBackdropTintColor(color);
+        }
+
+
         MainWindow.Activate();
 
         await new GetMusicDataService().UpdateMetaData();
