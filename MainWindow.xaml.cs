@@ -1,8 +1,6 @@
 ﻿using System.Runtime.InteropServices;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
-using Windows.UI.ViewManagement;
 using WinRT.Interop;
 using WinUIEx;
 
@@ -10,8 +8,16 @@ namespace Tunetastic.Views;
 public sealed partial class MainWindow : WindowEx
 {
     public MainViewModel ViewModel { get; }
-    private DispatcherQueue dispatcherQueue;
     private OverlappedPresenter overlappedPresenter;
+
+    /// <summary>
+    /// Represents the main window of the application.
+    /// </summary>
+    /// <remarks>
+    /// The MainWindow class serves as the entry point and primary interface for the user. It initializes
+    /// the application view model and various navigation and UI components. This includes setting up the title bar,
+    /// applying theme settings, and configuring navigation services for seamless user interaction.
+    /// </remarks>
     public MainWindow()
     {
         ViewModel = App.GetService<MainViewModel>();
@@ -34,17 +40,22 @@ public sealed partial class MainWindow : WindowEx
         }
         MusicControlsArea.Navigate(typeof(MusicControl));
 
-        // Theme change code picked from https://github.com/microsoft/WinUI-Gallery/pull/1239
-        dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-        settings = new UISettings();
-        //settings.ColorValuesChanged += Settings_ColorValuesChanged;// cannot use FrameworkElement.ActualThemeChanged event
-
         Activated += MainWindow_Activated;
     }
 
+    /// <summary>
+    /// Handles the click event for the theme toggle button.
+    /// </summary>
+    /// <remarks>
+    /// This method changes the application's theme dynamically without saving the selected theme preference.
+    /// It interacts with the ThemeService to apply the theme change to the main application window.
+    /// </remarks>
+    /// <param name="sender">The source of the event, typically the ThemeButton.</param>
+    /// <param name="e">The event data associated with the button click.</param>
     private void ThemeButton_Click(object sender, RoutedEventArgs e)
     {
         ThemeService.ChangeThemeWithoutSave(App.MainWindow);
+        App.Current.ThemeService.UpdateCaptionButtons();
     }
 
     private void OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -57,33 +68,45 @@ public sealed partial class MainWindow : WindowEx
         AutoSuggestBoxHelper.OnITitleBarAutoSuggestBoxQuerySubmittedEvent(sender, args, NavFrame);
     }
 
-    private readonly UISettings settings;
-
-
-    // this handles updating the caption button colors correctly when indows system theme is changed
-    // while the app is open
-    //private void Settings_ColorValuesChanged(UISettings sender, object args) =>
-    // This calls comes off-thread, hence we will need to dispatch it to current app's thread
-    //dispatcherQueue.TryEnqueue(() =>
-    //{
-    //    //TitleBarHelper.ApplySystemThemeToCaptionButtons();
-    //});
-
     private bool centered;
+
+    /// <summary>
+    /// Handles the event triggered when the main window is activated.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the main window instance.</param>
+    /// <param name="args">Event data that provides information about the window activation state.</param>
+    /// <remarks>
+    /// Ensures that the main window is centered on the screen and its minimum size is set when the window is activated for the first time.
+    /// </remarks>
     private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
     {
         if (this.centered is false)
         {
-            Center(this);
+            SetWindowMinimumSizeAndToCenter(this);
             centered = true;
         }
     }
 
+    /// <summary>
+    /// Retrieves the DPI (Dots Per Inch) value for a specific window handle.
+    /// </summary>
+    /// <param name="hwnd">The handle to the window for which the DPI is being retrieved.</param>
+    /// <returns>The DPI value for the given window handle.</returns>
     [DllImport("User32.dll")]
     public static extern int GetDpiForWindow(IntPtr hwnd);
 
 
-    private void Center(Window window)
+    /// <summary>
+    /// Sets the minimum size of the specified window and centers it on the screen.
+    /// </summary>
+    /// <param name="window">The window instance to adjust and center.</param>
+    /// <remarks>
+    /// This method calculates the appropriate minimum size for the given window based on the display area
+    /// and ensures that the window is positioned at the center of the screen. It takes into account
+    /// factors such as the DPI scaling and the screen's working area dimensions to determine
+    /// the optimal positioning and size constraints.
+    /// </remarks>
+    private void SetWindowMinimumSizeAndToCenter(Window window)
     {
         IntPtr hWnd = WindowNative.GetWindowHandle(window);
         WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
@@ -111,6 +134,13 @@ public sealed partial class MainWindow : WindowEx
     }
 
     #region App Window Size Calculation
+
+    /// <summary>
+    /// Calculates the minimum window height based on the given zoom factor and screen height.
+    /// </summary>
+    /// <param name="zoomFactor">The scaling factor, typically determined by DPI settings or display settings.</param>
+    /// <param name="screenHeight">The height of the screen's work area in pixels.</param>
+    /// <returns>The calculated minimum window height in pixels.</returns>
     private static int GetMinimumHeight(double zoomFactor, double screenHeight)
     {
         double baseFactor;
@@ -146,6 +176,12 @@ public sealed partial class MainWindow : WindowEx
         return minHeight;
     }
 
+    /// <summary>
+    /// Calculates the minimum width for the window based on the provided zoom factor and screen width.
+    /// </summary>
+    /// <param name="zoomFactor">The scaling factor applied to the screen resolution (DPI scaling).</param>
+    /// <param name="screenWidth">The width of the screen in pixels.</param>
+    /// <returns>The calculated minimum width for the window in pixels.</returns>
     private static int GetMinimumWidth(double zoomFactor, double screenWidth)
     {
         double effectiveFactor;

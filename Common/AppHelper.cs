@@ -12,17 +12,42 @@ public static partial class AppHelper
                                .LoadNow();
 }
 
-public class LibrarySettings : JsonSettings
+/// <summary>
+/// Enum representing the keys for storing and retrieving local settings or preferences within the application.
+/// These values are utilized to save user-defined configurations and application data in persistent storage.
+/// </summary>
+public enum LocalSave
 {
-    public override string FileName { get; set; } = Constants.LibrariesSettingsDataPath;
-
-    public virtual bool IgnoreDuplicateEnabled { get; set; }
-
-    public virtual bool ScanAtStartup { get; set; }
-
-    public virtual double ignoreTracksBelowDuration { get; set; }
-
-    public virtual string ScanResult { get; set; }
-
-    public virtual int totalTracks { get; set; }
+    IgnoreDuplicateEnabled,
+    ScanAtStartup,
+    IgnoreTracksBelowDuration,
+    ScanResult,
+    PlayPauseStopFadeStatus,
+    PlayPauseStopFadeValue,
+    AutoAdvanceStatus,
+    AutoAdvanceValue,
+    ManualTrackChangeStatus,
+    ManualTrackChangeValue,
+    PreviousResetStatus,
+    RestartTrackOnSelectionStatus,
+    UseSystemVolumeStatus,
+    PauseOnMuteStatus,
+    AutoStartStatus,
+    MainPlayerBGBlurValue,
+    LastPlayedTrack,
+    PlayBackPosition,
+    CurrentIndex,
+    CurrentPlaylist,
+    ShuffleStatus,
+    RepeatStatus,
+    Backdrop,
+    Theme,
+    BackdropTintColorStatus,
+    BackdropTintColorA,
+    BackdropTintColorR,
+    BackdropTintColorG,
+    BackdropTintColorB,
+    RainbowFrameStatus,
+    RainbowFrameSpeed,
+    RainbowOnlyDuringPlayback,
 }

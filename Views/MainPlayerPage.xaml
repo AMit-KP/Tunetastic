@@ -22,8 +22,7 @@
 			        BorderBrush="Transparent"
 			        BorderThickness="0">
 				<Border.Background>
-					<media:BackdropBlurBrush Amount="150.0" />
-					<!--  60 - 150  -->
+					<media:BackdropBlurBrush x:Name="BlurEffect" />
 				</Border.Background>
 			</Border>
 		</Grid>
@@ -65,8 +64,8 @@
 					<TextBlock Name="Album"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
-					           FontWeight="SemiBold"
 					           HorizontalTextAlignment="Center"
+					           Style="{ThemeResource SubtitleTextBlockStyle}"
 					           TextAlignment="Center"
 					           TextWrapping="WrapWholeWords" />
 				</StackPanel>

@@ -17,14 +17,20 @@
 		<StackPanel Margin="20"
 		            Spacing="10">
 
-			<TextBlock FontSize="25"
-			           Text="Library" />
-			<dev:SettingsExpander Description="Click to view all added libraries"
+
+			<!--  Library  -->
+			<StackPanel Orientation="Horizontal"
+			            Spacing="10">
+				<FontIcon FontSize="{Binding ElementName=LibraryTextBlock, Path=FontSize}"
+				          Glyph="&#xE8F7;" />
+				<TextBlock x:Name="LibraryTextBlock"
+				           Style="{ThemeResource TitleTextBlockStyle}"
+				           Text="Library" />
+			</StackPanel>
+
+			<dev:SettingsExpander Description="Click to view libraries added"
 			                      Header="All Libraries"
 			                      ItemsSource="{x:Bind Libraries}">
-				<dev:SettingsExpander.HeaderIcon>
-					<FontIcon Glyph="&#xE8F4;" />
-				</dev:SettingsExpander.HeaderIcon>
 				<Button Click="AddNewFolder_ButtonClick"
 				        Content="Add New Folder" />
 
@@ -42,9 +48,6 @@
 
 			<dev:SettingsExpander x:Name="Scan"
 			                      Header="Scan Libraries for Songs">
-				<dev:SettingsExpander.HeaderIcon>
-					<FontIcon Glyph="&#xE895;" />
-				</dev:SettingsExpander.HeaderIcon>
 
 				<StackPanel Orientation="Horizontal"
 				            Spacing="10">
@@ -79,115 +82,246 @@
 			</dev:SettingsExpander>
 
 			<dev:SettingsExpander x:Name="FileExt"
-			                      Header="File Extentions"
+			                      Header="File Extensions"
 			                      ItemsSource="{x:Bind AllFormats, Mode=TwoWay}">
-				<dev:SettingsExpander.Resources>
-					<x:Double x:Key="SettingsCardLeftIndention">40</x:Double>
-				</dev:SettingsExpander.Resources>
 				<dev:SettingsExpander.ItemTemplate>
 					<DataTemplate x:DataType="model:Format">
 						<dev:SettingsCard Description="{x:Bind Description}"
 						                  Header="{x:Bind Extension}">
 							<ToggleSwitch Name="{x:Bind Extension}"
 							              IsOn="{x:Bind Enabled, Mode=TwoWay}"
-							              Toggled="Ext_ToggleSwitch_Toggled" />
+							              Toggled="Ext_ToggleSwitch_OnToggled" />
 						</dev:SettingsCard>
 					</DataTemplate>
 				</dev:SettingsExpander.ItemTemplate>
 			</dev:SettingsExpander>
 
+			<!--  Audio & Playback  -->
 
-
-
-			<TextBlock FontSize="25"
-			           Text="Appearance &amp; behavior" />
-
-			<StackPanel dev:PanelAttach.ChildrenTransitions="Default"
-			            Spacing="5">
-				<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
-				                  Header="App theme"
-				                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Theme.png}">
-					<ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
-						<ComboBoxItem Content="Light"
-						              Tag="Light" />
-						<ComboBoxItem Content="Dark"
-						              Tag="Dark" />
-						<ComboBoxItem Content="Default"
-						              Tag="Default" />
-					</ComboBox>
-				</dev:SettingsCard>
-				<dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
-				                  Header="Material"
-				                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Backdrop.png}">
-					<ComboBox dev:ThemeServiceAttach.ThemeService="{x:Bind local:App.Current.ThemeService}">
-						<ComboBoxItem Content="Mica"
-						              Tag="Mica" />
-						<ComboBoxItem Content="Mica Alt"
-						              Tag="MicaAlt" />
-						<ComboBoxItem Content="Desktop Acrylic"
-						              Tag="DesktopAcrylic" />
-						<ComboBoxItem Content="Acrylic Base"
-						              Tag="AcrylicBase" />
-						<ComboBoxItem Content="Acrylic Thin"
-						              Tag="AcrylicThin" />
-						<ComboBoxItem Content="Transparent"
-						              Tag="Transparent" />
-					</ComboBox>
-				</dev:SettingsCard>
-				<dev:SettingsCard ActionIcon="{dev:BitmapIcon Source=Assets/Fluent/External.png}"
-				                  Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
-				                  Header="Accent color"
-				                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Color.png}"
-				                  IsClickEnabled="True"
-				                  LaunchUri="ms-settings:colors" />
-				<!--<dev:SettingsExpander Description="Add tint to your window to make your experience more personalized."
-                          Header="Tint Color"
-                          HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Tint.png}">
-                    <Button Padding="0">
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="24"
-                        Height="24"
-                        Margin="4"
-                        Background="Gray"
-                        CornerRadius="4">
-                                <Grid>
-                                    <PathIcon Data="M0 6 L0 0 L6 0 L6 6 L12 6 L12 0 L18 0 L18 6 L12 6 L12 12 L18 12 L18 6 L24 6 L24 12 L18 12 L18 18 L24 18 L24 24 L6 24 L6 18 L0 18 L0 12 L6 12 L6 18 L12 18 L12 24 L18 24 L18 18 L12 18 L12 12 L6 12 L6 6 Z"
-                                  Foreground="LightGray" />
-                                    <Rectangle x:Name="TintBox" />
-                                </Grid>
-                            </Border>
-                            <FontIcon Margin="8,4,10,4"
-                          FontSize="12"
-                          Glyph="&#xE70D;" />
-                        </StackPanel>
-                        <Button.Flyout>
-                            <Flyout>
-                                <ColorPicker ColorChanged="OnColorChanged"
-                                 IsAlphaEnabled="True"
-                                 IsMoreButtonVisible="True" />
-                            </Flyout>
-                        </Button.Flyout>
-                    </Button>
-                    <dev:SettingsExpander.ItemsHeader>
-                        <dev:SettingsCard>
-                            <dev:SettingsCard.Description>
-                                <dev:ColorPalette Margin="5,5,0,0"
-                                      HorizontalAlignment="Left"
-                                      ItemClick="OnColorPaletteItemClick"
-                                      ItemWidth="32"
-                                      Palette="Rectangle"
-                                      ShowHeader="False"
-                                      Color="NormalLarge" />
-                            </dev:SettingsCard.Description>
-                        </dev:SettingsCard>
-                    </dev:SettingsExpander.ItemsHeader>
-                </dev:SettingsExpander>-->
+			<StackPanel Orientation="Horizontal"
+			            Spacing="10">
+				<FontIcon FontSize="{Binding ElementName=AudioTextBlock, Path=FontSize}"
+				          Glyph="&#xE8D6;" />
+				<TextBlock x:Name="AudioTextBlock"
+				           Style="{ThemeResource TitleTextBlockStyle}"
+				           Text="Audio &amp; Playback" />
 			</StackPanel>
+			<dev:SettingsExpander Description="Click to view all crossfade/fade settings."
+			                      Header="Crossfade/Fade">
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard x:Name="PlayPauseStopFadeCard"
+					                  Header="Fade Play/Pause/Stop">
+						<StackPanel>
+							<ToggleSwitch x:Name="PlayPauseStopFadeSwitch"
+							              HorizontalAlignment="Right"
+							              Toggled="PlayPauseStopFadeSwitch_OnToggled" />
+							<Slider x:Name="PlayPauseStopFadeSlider"
+							        HorizontalAlignment="Right"
+							        IsEnabledChanged="PlayPauseStopFadeSlider_OnIsEnabledChanged"
+							        LargeChange="1000"
+							        Maximum="3000"
+							        Minimum="0"
+							        SmallChange="1"
+							        SnapsTo="Ticks"
+							        TickFrequency="100"
+							        TickPlacement="None"
+							        ValueChanged="PlayPauseStopFadeSlider_OnValueChanged" />
+						</StackPanel>
+					</dev:SettingsCard>
+					<dev:SettingsCard x:Name="AutoAdvanceCard"
+					                  Header="Auto advance Crossfading">
+						<StackPanel>
+							<ToggleSwitch x:Name="AutoAdvanceSwitch"
+							              HorizontalAlignment="Right"
+							              Toggled="AutoAdvanceSwitch_OnToggled" />
+							<Slider x:Name="AutoAdvanceSlider"
+							        HorizontalAlignment="Right"
+							        IsEnabledChanged="AutoAdvanceSlider_OnIsEnabledChanged"
+							        LargeChange="1000"
+							        Maximum="5000"
+							        Minimum="0"
+							        SmallChange="1"
+							        SnapsTo="Ticks"
+							        TickFrequency="100"
+							        TickPlacement="None"
+							        ValueChanged="AutoAdvanceSlider_OnValueChanged" />
+						</StackPanel>
+					</dev:SettingsCard>
+					<dev:SettingsCard x:Name="ManualTrackChangeCard"
+					                  Header="Manual Track Change Crossfading">
+						<StackPanel>
+							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
+							              HorizontalAlignment="Right"
+							              Toggled="ManualTrackChangeSwitch_OnToggled" />
+							<Slider x:Name="ManualTrackChangeSlider"
+							        HorizontalAlignment="Right"
+							        IsEnabledChanged="ManualTrackChangeSlider_OnIsEnabledChanged"
+							        LargeChange="1000"
+							        Maximum="5000"
+							        Minimum="0"
+							        SmallChange="1"
+							        SnapsTo="Ticks"
+							        TickFrequency="100"
+							        TickPlacement="None"
+							        ValueChanged="ManualTrackChangeSlider_OnValueChanged" />
+						</StackPanel>
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
+			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when previous button is pressed."
+			                  Header="Previous button restarts the current track">
+				<ToggleSwitch x:Name="PreviousReset"
+				              Toggled="PreviousReset_OnToggled" />
+			</dev:SettingsCard>
+			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when it is selected again."
+			                  Header="Restart Track on Selection">
+				<ToggleSwitch x:Name="RestartTrackOnSelection"
+				              Toggled="RestartTrackOnSelection_OnToggled" />
+			</dev:SettingsCard>
+			<dev:SettingsCard Description="When turned on, the app will use the system volume control to control the volume of the track that is currently playing."
+			                  Header="Use System Volume Control">
+				<ToggleSwitch x:Name="UseSystemVolume"
+				              Toggled="UseSystemVolume_OnToggled" />
+			</dev:SettingsCard>
+			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
+			                  Header="Pause on Mute">
+				<ToggleSwitch x:Name="PauseOnMute"
+				              Toggled="PauseOnMute_OnToggled" />
+			</dev:SettingsCard>
+			<dev:SettingsCard Description="When turned on, the app will start playing the track that was last playing."
+			                  Header="Auto-Start playing track when app starts">
+				<ToggleSwitch x:Name="AutoStart"
+				              Toggled="AutoStart_OnToggled" />
+			</dev:SettingsCard>
 
+			<!--  Appearance & behavior  -->
 
+			<StackPanel Orientation="Horizontal"
+			            Spacing="10">
+				<FontIcon FontSize="{Binding ElementName=AppearanceTextBlock, Path=FontSize}"
+				          Glyph="&#xE790;" />
+				<TextBlock x:Name="AppearanceTextBlock"
+				           Style="{ThemeResource TitleTextBlockStyle}"
+				           Text="Appearance &amp; Behavior" />
+			</StackPanel>
+			<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
+			                  Header="App theme">
+				<ComboBox x:Name="Theme">
+					<ComboBoxItem Content="Light"
+					              Tag="Light" />
+					<ComboBoxItem Content="Dark"
+					              Tag="Dark" />
+					<ComboBoxItem Content="Default"
+					              Tag="Default" />
+				</ComboBox>
+			</dev:SettingsCard>
+			<dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
+			                  Header="Material">
+				<ComboBox x:Name="Backdrop">
+					<ComboBoxItem Content="Mica"
+					              Tag="Mica" />
+					<ComboBoxItem Content="Mica Alt"
+					              Tag="MicaAlt" />
+					<ComboBoxItem Content="Desktop Acrylic"
+					              Tag="DesktopAcrylic" />
+					<ComboBoxItem Content="Acrylic Base"
+					              Tag="AcrylicBase" />
+					<ComboBoxItem Content="Acrylic Thin"
+					              Tag="AcrylicThin" />
+					<ComboBoxItem Content="Transparent"
+					              Tag="Transparent" />
+				</ComboBox>
+			</dev:SettingsCard>
+			<dev:SettingsExpander x:Name="TintSettings"
+			                      Description="Add tint to your window to make your experience more personalized."
+			                      Header="Tint Color">
+				<Button Padding="0">
+					<StackPanel Orientation="Horizontal">
+						<Border Width="24"
+						        Height="24"
+						        Margin="4"
+						        Background="Gray"
+						        CornerRadius="4">
+							<Grid>
+								<PathIcon Data="M0 6 L0 0 L6 0 L6 6 L12 6 L12 0 L18 0 L18 6 L12 6 L12 12 L18 12 L18 6 L24 6 L24 12 L18 12 L18 18 L24 18 L24 24 L6 24 L6 18 L0 18 L0 12 L6 12 L6 18 L12 18 L12 24 L18 24 L18 18 L12 18 L12 12 L6 12 L6 6 Z"
+								          Foreground="LightGray" />
+								<Rectangle x:Name="TintBox" />
+							</Grid>
+						</Border>
+						<FontIcon Margin="8,4,10,4"
+						          FontSize="12"
+						          Glyph="&#xE70D;" />
+					</StackPanel>
+					<Button.Flyout>
+						<Flyout>
+							<ColorPicker ColorChanged="OnColorChanged"
+							             IsAlphaEnabled="True"
+							             IsMoreButtonVisible="True" />
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+				<dev:SettingsExpander.ItemsHeader>
+					<dev:SettingsCard>
+						<dev:SettingsCard.Description>
+							<dev:ColorPalette Margin="5,5,0,0"
+							                  HorizontalAlignment="Left"
+							                  ItemClick="OnColorPaletteItemClick"
+							                  ItemWidth="32"
+							                  Palette="Rectangle"
+							                  ShowHeader="False"
+							                  Color="NormalLarge" />
+						</dev:SettingsCard.Description>
+					</dev:SettingsCard>
+				</dev:SettingsExpander.ItemsHeader>
+			</dev:SettingsExpander>
+			<dev:SettingsCard ActionIcon="{dev:BitmapIcon Source=Assets/Fluent/External.png}"
+			                  Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
+			                  Header="Accent color"
+			                  IsClickEnabled="True"
+			                  LaunchUri="ms-settings:colors" />
+			<dev:SettingsCard Header="Main Player Background Blur Intensity">
+				<Slider x:Name="MainPlayerBlurSlider"
+				        Maximum="10"
+				        Minimum="1"
+				        SmallChange="1"
+				        SnapsTo="StepValues"
+				        TickFrequency="1"
+				        TickPlacement="Inline" />
+			</dev:SettingsCard>
+			<dev:SettingsExpander Description="When turned on, starts a rainbow frame border around the app window."
+			                      Header="Rainbow Frame Border">
+				<ToggleSwitch x:Name="RainbowToggle"
+				              Toggled="RainbowToggle_OnToggled" />
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard x:Name="RainbowSpeed"
+					                  Header="Rainbow Speed">
+						<Slider x:Name="RainbowSpeedSlider"
+						        IsEnabledChanged="RainbowSpeedSlider_OnIsEnabledChanged"
+						        Maximum="50"
+						        Minimum="1"
+						        SmallChange="1"
+						        SnapsTo="StepValues"
+						        TickFrequency="1"
+						        TickPlacement="Inline" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Description="When turned on, The rainbow frame border will be applied only when there's a track in playing"
+					                  Header="Only during playback">
+						<ToggleSwitch x:Name="RainbowOnlyDuringPlayback"
+						              Toggled="RainbowOnlyDuringPlayback_OnToggled" />
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
 
-			<TextBlock FontSize="25"
-			           Text="About" />
+			<!--  About  -->
+
+			<StackPanel Orientation="Horizontal"
+			            Spacing="10">
+				<FontIcon FontSize="{Binding ElementName=AboutTextBlock, Path=FontSize}"
+				          Glyph="&#xE946;" />
+				<TextBlock x:Name="AboutTextBlock"
+				           Style="{ThemeResource TitleTextBlockStyle}"
+				           Text="About" />
+			</StackPanel>
 
 			<dev:SettingsCard Header="{x:Bind ViewModel.CurrentVersion}"
 			                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Update.png}">
@@ -235,25 +369,28 @@
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
+			<!--  Reset  -->
 
-			<TextBlock FontSize="25"
-			           Text="Reset" />
+			<StackPanel Orientation="Horizontal"
+			            Spacing="10">
+				<FontIcon FontSize="{Binding ElementName=ResetTextBlock, Path=FontSize}"
+				          Glyph="&#xE777;" />
+				<TextBlock x:Name="ResetTextBlock"
+				           Style="{ThemeResource TitleTextBlockStyle}"
+				           Text="Reset" />
+			</StackPanel>
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
-				<dev:SettingsCard.HeaderIcon>
-					<FontIcon Glyph="&#xE777;" />
-				</dev:SettingsCard.HeaderIcon>
-
 				<Button Content="Reset">
 					<Button.Flyout>
 						<Flyout>
 							<Flyout.FlyoutPresenterStyle>
 								<Style TargetType="FlyoutPresenter">
-									<Setter Property="Background" Value="Transparent" />
+									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
 								</Style>
 							</Flyout.FlyoutPresenterStyle>
 							<StackPanel>
-								<TextBlock Style="{ThemeResource BodyTextBlockStyle}"
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Are you sure?" />
 								<Button Command="{x:Bind ViewModel.ResetCommand}"
 								        Content="Yes" />
