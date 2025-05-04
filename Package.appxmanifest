@@ -18,7 +18,7 @@
 	<Identity
 	  Name="Tunetastic"
 	  Publisher="CN=amitkp"
-	  Version="1.4.121.0"/>
+	  Version="1.4.124.0"/>
 
 	<mp:PhoneIdentity PhoneProductId="00030270-7a9c-4963-87f4-7b9361cb17a0" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

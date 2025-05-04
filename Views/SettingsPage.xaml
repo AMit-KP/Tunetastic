@@ -169,7 +169,7 @@
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when previous button is pressed."
-			                  Header="Previous button resets the current track">
+			                  Header="Previous button restarts the current track">
 				<ToggleSwitch x:Name="PreviousReset"
 				              Toggled="PreviousReset_OnToggled" />
 			</dev:SettingsCard>

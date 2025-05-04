@@ -268,21 +268,28 @@ public class MusicPlayer
 
 
     /// <summary>
-    /// Moves to the previous song in the current playlist.
-    /// If the current song is the first in the playlist, the last song is loaded.
-    /// This method ensures continuous looping through the playlist when navigating backwards.
+    /// Moves to the previous song in the current playlist based on saved user settings.
+    /// If settings allow restarting the current song and the playback position is below a threshold,
+    /// the current song restarts. Otherwise, the player navigates to the previous song.
+    /// If the current song is the first song in the playlist, the playback jumps to the last song.
     /// </summary>
     /// <remarks>
-    /// If an error occurs while loading the previous song, an appropriate error notification is displayed.
+    /// Ensures playlist continuity when moving backwards, either by restarting the current song or moving to the previous one.
+    /// Displays an error notification if the previous song cannot be loaded.
     /// </remarks>
     public async void Previous()
     {
         //TODO get settings for this restart or prev
         try
         {
-            if (OriginalPlaylist?.Count > 0)
-                currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
-            else return;
+            var restart = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
+            if (!restart || (restart && MediaPlayer.PlaybackSession.Position.TotalSeconds < 5))
+            {
+                if (OriginalPlaylist?.Count > 0)
+                    currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
+                else return;
+            }
+
             LoadSong();
         }
         catch (Exception)
