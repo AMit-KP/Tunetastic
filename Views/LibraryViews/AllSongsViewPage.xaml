@@ -29,8 +29,9 @@
 
 			<StackPanel HorizontalAlignment="Right"
 			            Orientation="Horizontal"
-			            Spacing="10">
-				<dev:ElementGroup>
+			            Spacing="15">
+				<StackPanel Orientation="Horizontal"
+				            Spacing="5">
 					<Button x:Name="ShuffleAndPlay"
 					        HorizontalAlignment="Right"
 					        Click="ShuffleAndPlayButton_OnClick"
@@ -43,21 +44,51 @@
 					        ToolTipService.ToolTip="Play All">
 						<FontIcon Glyph="&#xF5B0;" />
 					</Button>
-				</dev:ElementGroup>
-				<dev:ElementGroup>
-					<DropDownButton x:Name="SortButton"
-					                HorizontalAlignment="Right"
-					                Click="SortButton_OnClick"
-					                Content="Sort" />
-					<DropDownButton x:Name="GroupButton"
-					                HorizontalAlignment="Right"
-					                Click="GroupButton_OnClick"
-					                Content="Group" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal"
+				            Spacing="5">
+					<DropDownButton x:Name="SortDropDown"
+					                HorizontalAlignment="Right">
+						<DropDownButton.Flyout>
+							<MenuFlyout x:Name="Sort"
+							            Placement="Bottom">
+								<RadioMenuFlyoutItem x:Name="Title"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Title" />
+								<RadioMenuFlyoutItem x:Name="Artists"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Artists" />
+								<RadioMenuFlyoutItem x:Name="Album"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Album" />
+								<RadioMenuFlyoutItem x:Name="Duration"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Duration" />
+								<MenuFlyoutSeparator />
+								<RadioMenuFlyoutItem x:Name="Ascending"
+								                     Click="SortButton_OnClick"
+								                     GroupName="Order"
+								                     Text="Ascending" />
+								<RadioMenuFlyoutItem x:Name="Descending"
+								                     Click="SortButton_OnClick"
+								                     GroupName="Order"
+								                     Text="Descending" />
+							</MenuFlyout>
+						</DropDownButton.Flyout>
+					</DropDownButton>
+					<ToggleButton x:Name="GroupButton"
+					              HorizontalAlignment="Right"
+					              Click="GroupButton_OnClick"
+					              Content="Group Tracks" />
 					<DropDownButton x:Name="ViewButton"
 					                HorizontalAlignment="Right"
 					                Click="ViewButton_OnClick"
 					                Content="View" />
-				</dev:ElementGroup>
+				</StackPanel>
 			</StackPanel>
 		</Grid>
 		<Grid Grid.Row="1">

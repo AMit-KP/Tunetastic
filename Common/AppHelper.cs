@@ -50,4 +50,6 @@ public enum LocalSave
     RainbowFrameStatus,
     RainbowFrameSpeed,
     RainbowOnlyDuringPlayback,
+    AllSongViewSortBy,
+    AllSongViewSortOrder,
 }
