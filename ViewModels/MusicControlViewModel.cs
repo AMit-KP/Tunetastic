@@ -212,6 +212,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 
         //_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
 
+        _musicPlayer.ShuffleStatusChanged += _musicPlayer_ShuffleStatusChanged;
+
         SetToggleAndRepeat();
 
         LoadLastPlayedTrack();
@@ -248,7 +250,7 @@ public partial class MusicControlViewModel : ObservableRecipient
             switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
             {
                 case "AllSongsViewPage":
-                    new AllSongsViewPage().LoadAsPlayList(int.Parse(localSettings.Values[nameof(LocalSave.CurrentIndex)]?.ToString() ?? "0"));
+                    new AllSongsViewPage().LoadAsPlayList();
                     break;
 
                 default:
@@ -388,7 +390,7 @@ public partial class MusicControlViewModel : ObservableRecipient
     /// Optional parameter indicating the desired shuffle state. If null, the current shuffle state is toggled.
     /// </param>
     [RelayCommand]
-    private void ShuffleToggle(bool? shuffleSaved = null)
+    public void ShuffleToggle(bool? shuffleSaved = null)
     {
         IsShuffleToggled = shuffleSaved ?? IsShuffleToggled;
         _musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
@@ -498,6 +500,15 @@ public partial class MusicControlViewModel : ObservableRecipient
         });
     }
 
-
+    /// <summary>
+    /// Handles the event when the shuffle status of the music player changes.
+    /// Updates the shuffle toggle state based on the provided shuffle mode.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the music player.</param>
+    /// <param name="e">The new shuffle mode, indicating whether shuffle is turned on or off.</param>
+    private void _musicPlayer_ShuffleStatusChanged(object? sender, ShuffleMode e)
+    {
+        ShuffleToggle(e == ShuffleMode.On);
+    }
 }
 

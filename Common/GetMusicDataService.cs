@@ -72,7 +72,7 @@ internal class GetMusicDataService
         }
 
         var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-        var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.ScanResult)]?.ToString() ?? "0");
+        var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
         var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
 
 

@@ -93,11 +93,35 @@ public class MusicPlayer
     }
 
     /// <summary>
-    /// Represents the current shuffle mode status of the music player.
-    /// Determines whether shuffle is enabled (on) or disabled (off).
-    /// Modifying this property dynamically adjusts the playlist song order according to the shuffle setting.
+    /// An event triggered whenever the shuffle status of the music player changes.
+    /// Subscribers can listen to this event to respond to changes in the shuffle mode,
+    /// such as updating the UI or internal logic related to playback.
+    /// The event provides the updated <see cref="ShuffleMode"/> as an argument.
     /// </summary>
-    public ShuffleMode ShuffleStatus { get; private set; } = ShuffleMode.Off;
+    public event EventHandler<ShuffleMode>? ShuffleStatusChanged;
+
+    private ShuffleMode _shuffleStatus = ShuffleMode.Off;
+
+    /// <summary>
+    /// Represents the current shuffle status of the music player.
+    /// This property determines whether shuffle mode is enabled or disabled
+    /// by holding a value from the <see cref="ShuffleMode"/> enumeration.
+    /// A change to this property triggers the <see cref="ShuffleStatusChanged"/> event,
+    /// allowing subscribers to track updates to the shuffle mode.
+    /// </summary>
+    public ShuffleMode ShuffleStatus
+    {
+        get => _shuffleStatus;
+        set
+        {
+            if (_shuffleStatus != value)
+            {
+                _shuffleStatus = value;
+                ShuffleStatusChanged?.Invoke(this, _shuffleStatus); // Fire event
+            }
+        }
+    }
+
 
     /// <summary>
     /// A property representing the current repeat mode for the music player.
@@ -150,14 +174,14 @@ public class MusicPlayer
     /// </summary>
     /// <param name="songPaths">A list of song file paths representing the previously played playlist.</param>
     /// <param name="index">The zero-based index of the song that should be set as the current song.</param>
-    public async void LoadLastPlayed(List<string> songPaths, int index)
+    public void LoadLastPlayed(List<string> songPaths)
     {
         _ = Task.Run(() =>
         {
             OriginalPlaylist = new List<string>(songPaths);
 
             ShuffleSongs();
-            currentIndex = index;
+            currentIndex = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentIndex)]?.ToString() ?? "0");
         });
     }
 

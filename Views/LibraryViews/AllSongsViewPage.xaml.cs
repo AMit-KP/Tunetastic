@@ -52,27 +52,25 @@ public sealed partial class AllSongsViewPage : Page
     /// generates a playlist from the current collection of songs, and loads the clicked song into the music player for playback.
     /// The playlist is also saved as the current playlist in the application's local settings.
     /// </remarks>
-    private async void ListView_ItemClick(object sender, ItemClickEventArgs e)
+    private void ListView_ItemClick(object sender, ItemClickEventArgs e)
     {
         var track = e.ClickedItem as Song;
         List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
         MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-        await ScrollToSong(track);
     }
 
     /// <summary>
-    /// Loads the collection of all available songs as a playlist and sets the active song at the specified index.
+    /// Loads the collection of all available songs as a playlist and starts preparing them for playback.
     /// </summary>
-    /// <param name="index">The index of the song to be set as the currently active track in the playlist.</param>
     /// <remarks>
-    /// This method retrieves the paths of all songs currently available in the collection
-    /// and initializes the playback with the specified active song index.
+    /// This method retrieves the file paths of all songs in the collection and initializes a playlist within the music player.
+    /// It ensures that the songs are ready for playback and begins with the specified track as the currently active item.
     /// </remarks>
-    public void LoadAsPlayList(int index)
+    public void LoadAsPlayList()
     {
         List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-        MusicPlayer.Instance.LoadLastPlayed(songPaths, index);
+        MusicPlayer.Instance.LoadLastPlayed(songPaths);
     }
 
     /// <summary>
@@ -96,15 +94,84 @@ public sealed partial class AllSongsViewPage : Page
     /// <param name="sender">The source of the event, typically the page itself.</param>
     /// <param name="e">The event data associated with the Loaded event.</param>
     /// <remarks>
-    /// This method checks if the current playlist is set to "AllSongsViewPage" and attempts to scroll to the last played song
-    /// saved in the application's local settings. The scroll operation is initiated with a slight delay.
+    /// This method verifies if the current playlist corresponds to "AllSongsViewPage" by accessing the application's
+    /// local settings. If the last played song is found in the local settings, it attempts to scroll to that song
+    /// within the songs list. The scrolling operation is performed asynchronously with a slight delay.
     /// </remarks>
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
-        if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
         {
-            var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+            var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
             _ = ScrollToSong(SelectedSong);
         }
+    }
+
+    private void SortButton_OnClick(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void GroupButton_OnClick(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    private void ViewButton_OnClick(object sender, RoutedEventArgs e)
+    {
+
+    }
+
+    /// <summary>
+    /// Handles the click event of the "Shuffle and Play" button to shuffle the song list
+    /// and begin playback from a randomly selected song.
+    /// </summary>
+    /// <param name="sender">The source of the click event, typically the "Shuffle and Play" button.</param>
+    /// <param name="e">Provides data about the click event.</param>
+    /// <remarks>
+    /// This method disables the button to prevent repeated triggers, enables shuffle mode on the music player,
+    /// and retrieves the list of song paths to shuffle and load as a playlist. It then randomly selects a starting song
+    /// from the playlist and scrolls to that song in the user interface. After a brief delay, it ensures that the song
+    /// is properly scrolled into view and re-enables the button.
+    /// </remarks>
+    private async void ShuffleAndPlayButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        ShuffleAndPlay.IsEnabled = false;
+        MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
+        List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+
+        var startingSong = songPaths[new Random().Next(songPaths.Count)];
+        MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
+        var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+        await ScrollToSong(SelectedSong);       //somehow this doesn't work
+        await Task.Delay(500);
+        await ScrollToSong(SelectedSong);
+        ShuffleAndPlay.IsEnabled = true;
+    }
+
+    /// <summary>
+    /// Handles the click event for the "Play All" button and initiates playback of all songs in the current view.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the "Play All" button.</param>
+    /// <param name="e">Provides data for the routed event that triggered the method.</param>
+    /// <remarks>
+    /// This method disables shuffle mode, creates a playlist from all songs in the current view,
+    /// stores the name of the current playlist in application settings, and starts playing the songs in order.
+    /// It also scrolls to the first song in the playlist after initiating playback.
+    /// </remarks>
+    private async void PlayAllButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        ShuffleAndPlay.IsEnabled = false;
+        MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
+        List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+        MusicPlayer.Instance.LoadPlaylist(songPaths);
+        await ScrollToSong(AllSongs[0]);
+        ShuffleAndPlay.IsEnabled = true;
     }
 }
