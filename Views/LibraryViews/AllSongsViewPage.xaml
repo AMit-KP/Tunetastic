@@ -10,6 +10,7 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      Loaded="Page_Loaded"
       mc:Ignorable="d">
 
 	<Page.Resources>
@@ -17,11 +18,13 @@
 	</Page.Resources>
 	<Grid>
 		<ListView Margin="10,10,10,10"
+			<ListView x:Name="AllSongsListView"
 		          VerticalAlignment="Top"
 		          IsItemClickEnabled="True"
 		          ItemClick="ListView_ItemClick"
-		          ItemsSource="{x:Bind AllSongs}">
-
+			          ItemsSource="{x:Bind AllSongs}"
+			          ScrollViewer.VerticalScrollBarVisibility="Visible"
+			          ScrollViewer.VerticalScrollMode="Enabled">
 			<ListView.Header>
 				<Border Height="40"
 				        Background="{ThemeResource AcrylicInAppFillColorBaseBrush}"

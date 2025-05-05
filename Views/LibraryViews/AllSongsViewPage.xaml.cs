@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using CommunityToolkit.WinUI;
 using Tunetastic.Generated.Protos;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -51,12 +52,13 @@ public sealed partial class AllSongsViewPage : Page
     /// generates a playlist from the current collection of songs, and loads the clicked song into the music player for playback.
     /// The playlist is also saved as the current playlist in the application's local settings.
     /// </remarks>
-    private void ListView_ItemClick(object sender, ItemClickEventArgs e)
+    private async void ListView_ItemClick(object sender, ItemClickEventArgs e)
     {
         var track = e.ClickedItem as Song;
         List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
         Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
         MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
+        await ScrollToSong(track);
     }
 
     /// <summary>
@@ -71,5 +73,38 @@ public sealed partial class AllSongsViewPage : Page
     {
         List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
         MusicPlayer.Instance.LoadLastPlayed(songPaths, index);
+    }
+
+    /// <summary>
+    /// Scrolls to a specific song in the `AllSongsListView`.
+    /// </summary>
+    /// <param name="song">The song object to scroll to. If null, no action is performed.</param>
+    /// <returns>A task representing the asynchronous operation of scrolling to the specified song.</returns>
+    private async Task ScrollToSong(Song? song)
+    {
+        if (song != null)
+        {
+            await AllSongsListView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+            AllSongsListView.SelectedItem = song;
+        }
+
+    }
+
+    /// <summary>
+    /// Handles the Loaded event for the AllSongsViewPage.
+    /// </summary>
+    /// <param name="sender">The source of the event, typically the page itself.</param>
+    /// <param name="e">The event data associated with the Loaded event.</param>
+    /// <remarks>
+    /// This method checks if the current playlist is set to "AllSongsViewPage" and attempts to scroll to the last played song
+    /// saved in the application's local settings. The scroll operation is initiated with a slight delay.
+    /// </remarks>
+    private void Page_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+        {
+            var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+            _ = ScrollToSong(SelectedSong);
+        }
     }
 }
