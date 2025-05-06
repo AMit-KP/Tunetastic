@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Media;
 using Tunetastic.Generated.Protos;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -29,6 +31,8 @@ public sealed partial class AllSongsViewPage : Page
 		get; set;
 	} = new();
 
+	private readonly DispatcherQueue _dispatcherQueue;
+
 	/// <summary>
 	/// Represents a page for displaying and managing all available songs in the application.
 	/// </summary>
@@ -39,6 +43,7 @@ public sealed partial class AllSongsViewPage : Page
 	public AllSongsViewPage()
 	{
 		this.InitializeComponent();
+		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
 		UpdateSorting();
 	}
@@ -90,29 +95,46 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Updates the song list based on the currently selected sorting criteria and order.
+	/// Updates the list of songs based on the selected sorting criteria and order.
 	/// </summary>
 	/// <remarks>
-	/// This method refreshes the song list displayed in the view by reordering the items according to the selected sorting criteria (e.g., Title, Artists, Album, Duration) and the sorting order (ascending or descending).
-	/// It also updates the sort menu label to reflect the applied sorting criteria and persists the user's sorting preferences in local storage.
+	/// This method processes the current sorting preferences, such as the column to sort by (e.g., Title, Artists, Album, or Duration)
+	/// and the order (Ascending or Descending). It modifies the displayed song list accordingly and ensures the current selection remains intact.
+	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
+	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
 	/// </remarks>
 	private void UpdateListBasedOnSorting()
 	{
 		var selectedSong = AllSongsListView.SelectedItem;
-		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
-		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>()
+						 .Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text)
+						 .FirstOrDefault() ??
+					 "Title";
+		var orderBy =
+			Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked)
+				.Select(item => item.Text).FirstOrDefault() ?? "Ascending";
 		bool order = orderBy == "Ascending";
+
 		List<Song> newList = new();
+		IOrderedEnumerable<string>? availableLetters = null;
+		bool hasSpecialCharacters = false;
 		switch (sortBy)
 		{
 			case "Title":
 				newList = order ? AllSongs.OrderBy(s => s.Title).ToList() : AllSongs.OrderByDescending(s => s.Title).ToList();
+				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = (AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
+
 				break;
 			case "Artists":
 				newList = order ? AllSongs.OrderBy(s => s.Artists).ToList() : AllSongs.OrderByDescending(s => s.Artists).ToList();
+				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = (AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
 				break;
 			case "Album":
 				newList = order ? AllSongs.OrderBy(s => s.Album).ToList() : AllSongs.OrderByDescending(s => s.Album).ToList();
+				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = (AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
 				break;
 			case "Duration":
 				newList = order ? AllSongs.OrderBy(s => s.Duration).ToList() : AllSongs.OrderByDescending(s => s.Duration).ToList();
@@ -126,6 +148,8 @@ public sealed partial class AllSongsViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
+
+		PopulateAlphabetNavigation(availableLetters, order, sortBy, hasSpecialCharacters);
 	}
 
 
@@ -196,24 +220,19 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the click event of the sort button and updates the song list based on the selected sorting option.
+	/// Handles the Sort button click event to update the song list based on the selected sorting criteria.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically a UI element.</param>
-	/// <param name="e">The event data associated with the button click.</param>
+	/// <param name="sender">The control that triggered the event, typically a UI element like a menu flyout item.</param>
+	/// <param name="e">Event data associated with the Sort button click.</param>
 	private void SortButton_OnClick(object sender, RoutedEventArgs e)
 	{
 		UpdateListBasedOnSorting();
+		AdjustAlphabetSize();
 		//TODO resort current playlist
-	}
-
-	private void GroupButton_OnClick(object sender, RoutedEventArgs e)
-	{
-
 	}
 
 	private void ViewButton_OnClick(object sender, RoutedEventArgs e)
 	{
-
 	}
 
 	/// <summary>
@@ -266,5 +285,157 @@ public sealed partial class AllSongsViewPage : Page
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(AllSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
+	}
+
+	/// <summary>
+	/// Populates the alphabet navigation panel with letters and optionally a special character marker for sections of songs.
+	/// </summary>
+	/// <param name="availableLetters">
+	/// A collection of available letters representing sections that contain songs. If null, all letters are displayed as unavailable.
+	/// </param>
+	/// <param name="order">
+	/// A boolean value indicating whether the letters should be displayed in ascending or descending order.
+	/// </param>
+	/// <param name="sortBy">
+	/// Specifies the sorting criteria used for navigating to a letter section within the song collection.
+	/// </param>
+	/// <param name="hasSpecialCharacters">
+	/// A boolean value indicating whether special characters (e.g., "#", "1", "2"...) should be included in the navigation panel.
+	/// </param>
+	/// <remarks>
+	/// Clears the existing children of the alphabet navigation panel before dynamically generating and adding new letter elements. Each letter is styled
+	/// and configured based on its availability within the provided letter collection. Interactive behaviors such as tapping and pointer events are implemented
+	/// for letters available for navigation.
+	/// </remarks>
+	private void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
+	{
+		AlphabetNavigationPanel.Children.Clear();
+
+		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
+		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
+		if (!order) fullAlphabet = fullAlphabet.Reverse();
+
+		foreach (var letter in fullAlphabet)
+		{
+			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
+
+			var textElement = new TextBlock
+			{
+				Text = letter,
+				Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+				Foreground = new SolidColorBrush(hasSongs ? Colors.White : Colors.Gray),
+				Opacity = hasSongs ? 1 : 0.5,
+				IsHitTestVisible = hasSongs,
+				Margin = new Thickness(0, 2, 0, 2),
+				TextAlignment = TextAlignment.Right
+			};
+
+			if (hasSongs)
+			{
+				textElement.Tapped += (s, e) => ScrollToSection(letter, sortBy);
+
+				textElement.PointerEntered += (s, e) =>
+				((TextBlock)s).FontSize *= 1.5;
+
+				textElement.PointerExited += (s, e) =>
+					((TextBlock)s).FontSize *= 0.666;
+			}
+
+			AlphabetNavigationPanel.Children.Add(textElement);
+		}
+	}
+
+	/// <summary>
+	/// Scrolls the view to a specific section of the song list based on the specified letter and sorting criteria.
+	/// </summary>
+	/// <param name="letter">The starting letter of the section to scroll to, or "#" to scroll to non-alphabetic entries.</param>
+	/// <param name="sortBy">The property by which the song list is currently sorted. Valid values include "Title", "Artists", and "Album".</param>
+	/// <remarks>
+	/// This method locates the first song in the collection that matches the specified starting letter and sorting property.
+	/// If a matching song is found, the view scrolls to bring the song into focus.
+	/// </remarks>
+	private async void ScrollToSection(string letter, string sortBy)
+	{
+		Song? targetSong = null;
+		switch (sortBy)
+		{
+			case "Title":
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				break;
+
+			case "Artists":
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				break;
+
+			case "Album":
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				break;
+		}
+		if (targetSong != null)
+		{
+			await AllSongsListView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: -40);
+			AllSongsListView.SelectedItem = targetSong;
+			await Task.Delay(500);
+			await AllSongsListView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: -40);
+		}
+	}
+
+	/// <summary>
+	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
+	/// </summary>
+	/// <remarks>
+	/// This method calculates the height for each element in the alphabet navigation panel dynamically, ensuring
+	/// that the elements are evenly spaced and fit within the available vertical space.
+	/// </remarks>
+	/// <returns>
+	/// A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.
+	/// </returns>
+	private Task<Task> AdjustAlphabetSize()
+	{
+		double availableSpace = AllSongsListView.ActualHeight - 40;
+		double totalLetters = AlphabetNavigationPanel.Children.Count;
+
+		// 🔹 Auto-fit button height dynamically
+		double autoHeight = availableSpace / totalLetters;
+
+		foreach (var textElement in AlphabetNavigationPanel.Children.OfType<TextBlock>())
+		{
+			textElement.Height = autoHeight;
+			textElement.Margin = new Thickness(0);
+		}
+		return Task.FromResult(Task.CompletedTask);
+	}
+
+	/// <summary>
+	/// Handles the event triggered when the page's size changes.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the page.</param>
+	/// <param name="e">The event data containing information about the new size of the page.</param>
+	/// <remarks>
+	/// This method adjusts the layout or size of elements on the page whenever the size of the page changes.
+	/// It enqueues a task on the dispatcher queue to perform required layout updates asynchronously.
+	/// </remarks>
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+	{
+		var pageHeight = e.NewSize.Height;
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		{
+			await AdjustAlphabetSize();
+		});
+	}
+
+	/// <summary>
+	/// Handles the theme change event for the page.
+	/// </summary>
+	/// <param name="sender">The <see cref="FrameworkElement"/> that triggered the theme change event.</param>
+	/// <param name="args">The event data associated with the theme change event.</param>
+	/// <remarks>
+	/// This method updates the foreground color of visible text elements in the AlphabetNavigationPanel
+	/// based on the current theme of the page. If the theme is dark, white color is applied; otherwise, black color is applied.
+	/// </remarks>
+	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
+	{
+		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
+		AlphabetNavigationPanel.Children.OfType<TextBlock>().Where(textElement => textElement.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
 }

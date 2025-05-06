@@ -10,7 +10,9 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      ActualThemeChanged="Page_ActualThemeChanged"
       Loaded="Page_Loaded"
+      SizeChanged="Page_SizeChanged"
       mc:Ignorable="d">
 
 	<Page.Resources>
@@ -22,7 +24,7 @@
 			<RowDefinition />
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0"
-		      Margin="10">
+		      Margin="10,10,45,10">
 			<TextBlock HorizontalAlignment="Left"
 			           Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="All Songs" />
@@ -80,10 +82,6 @@
 							</MenuFlyout>
 						</DropDownButton.Flyout>
 					</DropDownButton>
-					<ToggleButton x:Name="GroupButton"
-					              HorizontalAlignment="Right"
-					              Click="GroupButton_OnClick"
-					              Content="Group Tracks" />
 					<DropDownButton x:Name="ViewButton"
 					                HorizontalAlignment="Right"
 					                Click="ViewButton_OnClick"
@@ -94,10 +92,12 @@
 		<Grid Grid.Row="1">
 			<ListView x:Name="AllSongsListView"
 			          Margin="10,10,10,10"
+			          Padding="0,0,35,0"
 			          VerticalAlignment="Top"
 			          IsItemClickEnabled="True"
 			          ItemClick="ListView_ItemClick"
 			          ItemsSource="{x:Bind AllSongs}"
+			          ScrollViewer.CanContentRenderOutsideBounds="False"
 			          ScrollViewer.VerticalScrollBarVisibility="Visible"
 			          ScrollViewer.VerticalScrollMode="Enabled">
 				<ListView.Header>
@@ -171,6 +171,13 @@
 					</Style>
 				</ListView.ItemContainerStyle>
 			</ListView>
+			<StackPanel x:Name="AlphabetNavigationPanel"
+			            Margin="0,50,30,10"
+			            HorizontalAlignment="Right"
+			            VerticalAlignment="Stretch"
+			            Orientation="Vertical">
+			</StackPanel>
+
 		</Grid>
 	</Grid>
 </Page>
