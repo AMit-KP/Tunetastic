@@ -4,12 +4,15 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
-      xmlns:local="using:Tunetastic"
+      xmlns:local="using:Tunetastic.Common"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:model="using:Tunetastic.Generated.Protos"
       xmlns:views="using:Tunetastic.Views"
       dev:BreadcrumbNavigator.IsHeaderVisible="True"
       mc:Ignorable="d">
+	<Page.Resources>
+		<local:DurationConverter x:Key="ProgressToWidthConverter" />
+	</Page.Resources>
 	<ScrollView Margin="{ThemeResource ContentPageMargin}"
 	            Padding="{ThemeResource ContentPagePadding}"
 	            HorizontalAlignment="Stretch"
@@ -50,10 +53,26 @@
 			                      Header="Scan Libraries for Songs">
 
 				<StackPanel Orientation="Horizontal"
-				            Spacing="10">
-					<ProgressRing Name="ProgressRing"
-					              IsActive="False"
-					              Visibility="Collapsed" />
+				            Spacing="15">
+					<Grid x:Name="CustomProgressBar"
+					      Width="200"
+					      Height="30"
+					      Background="{ThemeResource AccentAAFillColorDisabled}"
+					      BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+					      BorderThickness="2"
+					      CornerRadius="5"
+					      Visibility="Collapsed">
+						<Rectangle x:Name="ProgressFill"
+						           Height="40"
+						           HorizontalAlignment="Left"
+						           Fill="{ThemeResource AccentAAFillColorDefaultBrush}" />
+						<Grid>
+							<TextBlock x:Name="ProgressFillText"
+							           HorizontalAlignment="Center"
+							           VerticalAlignment="Center"
+							           Style="{ThemeResource BodyStrongTextBlockStyle}" />
+						</Grid>
+					</Grid>
 					<Button Click="ScanButton_Click"
 					        Content="Scan" />
 				</StackPanel>

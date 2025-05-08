@@ -3,7 +3,6 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Tunetastic.Generated.Protos;
-using Tunetastic.Services;
 using Windows.UI;
 
 namespace Tunetastic.Views;
@@ -133,41 +132,67 @@ public sealed partial class SettingsPage : Page
 
 	/// <summary>
 	/// Handles the click event for the Scan button.
-	/// This method initiates a scan process to update music metadata,
-	/// manages UI elements like the progress ring and button state,
-	/// and updates the scan result description based on the scan outcome.
+	/// Triggers the process of scanning the music library, updates scan progress visuals
+	/// in the UI, and ensures the button's state reflects the scanning activity.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the Scan button.</param>
+	/// <param name="sender">The source of the event, generally the Scan button.</param>
 	/// <param name="e">Event data associated with the button click event.</param>
 	private async void ScanButton_Click(object? sender, RoutedEventArgs? e)
 	{
-		if (GetMusicDataService.IsScanning) // Prevent restarting while scan is active
+		if (GetMusicDataService.IsScanning)
 		{
-			ProgressRing.IsActive = true;
-			ProgressRing.Visibility = Visibility.Visible;
+			CustomProgressBar.Visibility = Visibility.Visible;
 			Scan.IsEnabled = false;
 
-			// Keep checking every second until scanning ends
 			while (GetMusicDataService.IsScanning)
 			{
-				await Task.Delay(1000);
+				ProgressFill.Width = GetMusicDataService.ScanProgress * 2;
+				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+				await Task.Delay(1);
 			}
 
-			ProgressRing.IsActive = false;
-			ProgressRing.Visibility = Visibility.Collapsed;
+			for (double i = 1; i >= 0; i -= 0.02)
+			{
+				CustomProgressBar.Opacity = i;
+				ProgressFillText.Opacity = i;
+				await Task.Delay(1);
+			}
+			CustomProgressBar.Visibility = Visibility.Collapsed;
 			Scan.IsEnabled = true;
 			return;
 		}
 
-		ProgressRing.IsActive = true;
-		ProgressRing.Visibility = Visibility.Visible;
 		Scan.IsEnabled = false;
+		ProgressFill.Width = 0;
+		CustomProgressBar.Opacity = 0;
+		ProgressFillText.Opacity = 0;
+		ProgressFillText.Text = "0%";
+		CustomProgressBar.Visibility = Visibility.Visible;
 
-		await new GetMusicDataService().UpdateMetaData(true);
+		_ = new GetMusicDataService().UpdateMetaData(true);
 
+		for (double i = 0; i <= 1; i += 0.1)
+		{
+			CustomProgressBar.Opacity = i;
+			ProgressFillText.Opacity = i;
+			await Task.Delay(1);
+		}
+
+		while (GetMusicDataService.IsScanning)
+		{
+			ProgressFill.Width = GetMusicDataService.ScanProgress * 2;
+			ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+			await Task.Delay(1);
+		}
+
+		for (double i = 1; i >= 0; i -= 0.02)
+		{
+			CustomProgressBar.Opacity = i;
+			ProgressFillText.Opacity = i;
+			await Task.Delay(1);
+		}
+		CustomProgressBar.Visibility = Visibility.Collapsed;
 		Scan.IsEnabled = true;
-		ProgressRing.IsActive = false;
-		ProgressRing.Visibility = Visibility.Collapsed;
 	}
 
 	/// <summary>

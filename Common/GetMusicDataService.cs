@@ -3,12 +3,12 @@ using Tunetastic.Generated.Protos;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
-namespace Tunetastic.Services;
+namespace Tunetastic.Common;
 
 /// <summary>
 /// Provides services for managing and updating metadata related to music libraries in the application.
 /// </summary>
-internal class GetMusicDataService
+public class GetMusicDataService
 {
 	/// <summary>
 	/// Represents the asynchronous task that is responsible for scanning and updating the music libraries.
@@ -31,6 +31,17 @@ internal class GetMusicDataService
 	public static bool IsScanning => _isScanning;
 
 	/// <summary>
+	/// Represents the progress of the library scanning operation as a percentage.
+	/// </summary>
+	/// <remarks>
+	/// This property indicates the current state of the scan process, ranging from 0 to 100,
+	/// where 0 represents the beginning and 100 signifies completion. It is updated dynamically
+	/// during the scanning of music libraries and can be used to provide feedback to the user
+	/// about the scan's progress.
+	/// </remarks>
+	public static double ScanProgress { get; private set; } = 0;
+
+	/// <summary>
 	/// Updates the metadata for the music libraries. If a scan request is triggered,
 	/// the process scans and updates the libraries accordingly. Notifications are displayed
 	/// to indicate operation status, including success, warnings, or errors.
@@ -48,7 +59,7 @@ internal class GetMusicDataService
 		if (IsScanning) return;
 
 		_isScanning = true;
-		string type = "Info"; string message = "";
+		string type = ""; string message = "";
 		_scanTask = Task.Run(async () =>
 		{
 			bool scanAtStartup = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
@@ -70,6 +81,8 @@ internal class GetMusicDataService
 				break;
 			case "Error":
 				GlobalNotification.Error(message);
+				break;
+			default:
 				break;
 		}
 		_isScanning = false;
@@ -109,6 +122,7 @@ internal class GetMusicDataService
 	/// </returns>
 	private async Task<(string, string)> ScanLibraries()
 	{
+		ScanProgress = 0;
 		var audioFiles = new HashSet<string>();
 
 		var libraries = new List<string>();
@@ -132,7 +146,7 @@ internal class GetMusicDataService
 
 		if (extensions.Count == 0) extensions.Add(".mp3");
 
-		var path = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.AllSongView.ToString());
+		var path = Path.Combine(Constants.ThumbnailsFolder);
 		if (Directory.Exists(path)) Directory.Delete(path, true);
 
 		if (libraries?.Count > 0)
@@ -168,6 +182,9 @@ internal class GetMusicDataService
 
 			SongList songsContainer = new SongList();
 			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
+
+			ScanProgress = 1;
+			int processedFiles = 0;
 
 			foreach (var filePath in audioFiles)
 			{
@@ -222,6 +239,10 @@ internal class GetMusicDataService
 					if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
 						songsContainer.Songs.Add(song);
 				}
+
+				processedFiles++;
+				ScanProgress = Math.Round((2 + ((double)(processedFiles * 97) / audioFiles.Count)), 2);
+				await Task.Delay(10);
 			}
 
 			try
@@ -235,6 +256,8 @@ internal class GetMusicDataService
 			}
 
 			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
+			ScanProgress = 100;
+			await Task.Delay(10);
 			return ("Info", "Library scan completed.\nLibraries: " + libraries.Count + "\nSongs: " + songsContainer.Songs.Count);
 		}
 		else
