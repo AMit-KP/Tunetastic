@@ -159,6 +159,7 @@ public sealed partial class SettingsPage : Page
 			}
 			CustomProgressBar.Visibility = Visibility.Collapsed;
 			Scan.IsEnabled = true;
+			Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 			return;
 		}
 
@@ -193,6 +194,7 @@ public sealed partial class SettingsPage : Page
 		}
 		CustomProgressBar.Visibility = Visibility.Collapsed;
 		Scan.IsEnabled = true;
+		Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 	}
 
 	/// <summary>

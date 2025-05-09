@@ -255,10 +255,10 @@ public class GetMusicDataService
 				return ("Error", "No tracks could be added");
 			}
 
-			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
+			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs/Tracks: {songsContainer.Songs.Count}";
 			ScanProgress = 100;
 			await Task.Delay(10);
-			return ("Info", "Library scan completed.\nLibraries: " + libraries.Count + "\nSongs: " + songsContainer.Songs.Count);
+			return ("Info", "Library scan completed.\nLibraries: " + libraries.Count + "\nSongs/Tracks: " + songsContainer.Songs.Count);
 		}
 		else
 		{

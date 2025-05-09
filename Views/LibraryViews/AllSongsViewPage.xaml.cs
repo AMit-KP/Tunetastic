@@ -64,6 +64,8 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		if (GetMusicDataService.IsScanning)
 		{
+			GoToSettings.Visibility = Visibility.Collapsed;
+			AllSongsListViewGrid.Visibility = Visibility.Collapsed;
 			LoadingProgress.Opacity = 0;
 			LoadingProgress.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
@@ -90,8 +92,16 @@ public sealed partial class AllSongsViewPage : Page
 			});
 			return;
 		}
+		GoToSettings.Visibility = Visibility.Visible;
+		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+
 		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
-		UpdateSorting();
+		if (AllSongs.Count > 0)
+		{
+			GoToSettings.Visibility = Visibility.Collapsed;
+			AllSongsListViewGrid.Visibility = Visibility.Visible;
+			UpdateSorting();
+		}
 	}
 
 	/// <summary>
@@ -483,5 +493,10 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
 		AlphabetNavigationPanel.Children.OfType<TextBlock>().Where(textElement => textElement.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
+	}
+
+	private void GotoSettigsButton_Click(object sender, RoutedEventArgs e)
+	{
+		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 }
