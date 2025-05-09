@@ -29,7 +29,8 @@
 			           Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="All Songs" />
 
-			<StackPanel HorizontalAlignment="Right"
+			<StackPanel x:Name="PageButtons"
+			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
 				<StackPanel Orientation="Horizontal"
@@ -90,6 +91,32 @@
 			</StackPanel>
 		</Grid>
 		<Grid Grid.Row="1">
+			<StackPanel x:Name="LoadingProgress"
+			            HorizontalAlignment="Center"
+			            VerticalAlignment="Center"
+			            Orientation="Vertical"
+			            Spacing="30"
+			            Visibility="Collapsed">
+				<dev:LoadingIndicator Mode="Arcs" />
+				<Grid x:Name="CustomProgressBar"
+				      Width="400"
+				      Height="50"
+				      Background="{ThemeResource AccentAAFillColorDisabled}"
+				      BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+				      BorderThickness="2"
+				      CornerRadius="5">
+					<Rectangle x:Name="ProgressFill"
+					           Height="50"
+					           HorizontalAlignment="Left"
+					           Fill="{ThemeResource AccentAAFillColorDefaultBrush}" />
+					<Grid>
+						<TextBlock x:Name="ProgressFillText"
+						           HorizontalAlignment="Center"
+						           VerticalAlignment="Center"
+						           Style="{ThemeResource BodyStrongTextBlockStyle}" />
+					</Grid>
+				</Grid>
+			</StackPanel>
 			<ListView x:Name="AllSongsListView"
 			          Margin="10,10,10,10"
 			          Padding="0,0,35,0"
@@ -116,18 +143,22 @@
 							<controls:DataColumn DesiredWidth="40" />
 							<controls:DataColumn Content="Title"
 							                     DesiredWidth="300"
-							                     FontWeight="Bold" />
+							                     FontWeight="Bold"
+							                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 							<controls:DataColumn CanResize="True"
 							                     Content="Artists"
 							                     DesiredWidth="*"
-							                     FontWeight="Bold" />
+							                     FontWeight="Bold"
+							                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 							<controls:DataColumn DesiredWidth="*">
 								<TextBlock FontWeight="Bold"
+								           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
 								           Text="Album" />
 							</controls:DataColumn>
 							<controls:DataColumn Content="Duration"
 							                     DesiredWidth="125"
-							                     FontWeight="Bold" />
+							                     FontWeight="Bold"
+							                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 						</controls:DataTable>
 					</Border>
 				</ListView.Header>

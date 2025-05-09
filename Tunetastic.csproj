@@ -19,7 +19,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.5.129</Version>
+    <Version>1.5.146</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.5.129.387</AssemblyVersion>
-    <FileVersion>1.5.129.387</FileVersion>
+    <AssemblyVersion>1.5.146.404</AssemblyVersion>
+    <FileVersion>1.5.146.404</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -142,13 +142,13 @@
     <PackageReference Include="DevWinUI.Controls" Version="8.2.0" />
     <PackageReference Include="Downloader" Version="3.3.4" />
     <PackageReference Include="Google.Protobuf" Version="3.30.2" />
-    <PackageReference Include="Grpc.Tools" Version="2.71.0">
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.3916" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250401001" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -159,7 +159,7 @@
     <PackageReference Include="System.Management" Version="9.0.4" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
-    <PackageReference Include="WinUI.Dock" Version="1.1.0" />
+    <PackageReference Include="WinUI.Dock" Version="1.2.0" />
     <PackageReference Include="WinUI.TableView" Version="1.3.0" />
     <PackageReference Include="WinUIEx" Version="2.5.1" />
   </ItemGroup>

@@ -37,13 +37,59 @@ public sealed partial class AllSongsViewPage : Page
 	/// Represents a page for displaying and managing all available songs in the application.
 	/// </summary>
 	/// <remarks>
-	/// This page initializes a list of all available songs by reading metadata from a binary data file.
-	/// It provides features to interact with the song collection, such as loading the songs as a playlist for playback.
+	/// This class is responsible for initializing and displaying a collection of songs. It provides functionalities
+	/// such as managing the song list and integrating it as a playlist for playback. The page's content is dynamically
+	/// updated through asynchronous operations.
 	/// </remarks>
 	public AllSongsViewPage()
 	{
 		this.InitializeComponent();
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+		_ = CheckScanning();
+	}
+
+	/// <summary>
+	/// Asynchronously checks whether the application is currently scanning for music data and handles UI updates accordingly.
+	/// </summary>
+	/// <remarks>
+	/// This method monitors the scanning process managed by the music data service. It updates the user interface elements,
+	/// such as progress indicators, during the scanning operation and reloads the content when scanning completes.
+	/// If no scanning is in progress, it initializes the song collection by loading metadata from a binary data file
+	/// and applies sorting to the collection.
+	/// </remarks>
+	/// <returns>
+	/// A task that represents the asynchronous operation for checking and handling music data scanning and subsequent UI updates.
+	/// </returns>
+	private async Task CheckScanning()
+	{
+		if (GetMusicDataService.IsScanning)
+		{
+			LoadingProgress.Opacity = 0;
+			LoadingProgress.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Collapsed;
+			for (double i = 0; i <= 1; i += 0.05)
+			{
+				LoadingProgress.Opacity = i;
+				await Task.Delay(1);
+			}
+			while (GetMusicDataService.IsScanning)
+			{
+				ProgressFill.Width = GetMusicDataService.ScanProgress * 4;
+				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+				await Task.Delay(1);
+			}
+			for (double i = 1; i >= 0; i -= 0.05)
+			{
+				LoadingProgress.Opacity = i;
+				await Task.Delay(1);
+			}
+			LoadingProgress.Visibility = Visibility.Collapsed;
+			await _dispatcherQueue.EnqueueAsync(() =>
+			{
+				this.Content = new AllSongsViewPage();
+			});
+			return;
+		}
 		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
 		UpdateSorting();
 	}
