@@ -52,4 +52,5 @@ public enum LocalSave
     RainbowOnlyDuringPlayback,
     AllSongViewSortBy,
     AllSongViewSortOrder,
+	AllSongViewStyle,
 }

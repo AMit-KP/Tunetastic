@@ -31,6 +31,7 @@ public sealed partial class AllSongsViewPage : Page
 		get; set;
 	} = new();
 
+	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
 
 	/// <summary>
@@ -49,16 +50,16 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Asynchronously checks whether the application is currently scanning for music data and handles UI updates accordingly.
+	/// Asynchronously checks the status of the ongoing music data scanning process and interacts with the user interface based on the status.
 	/// </summary>
 	/// <remarks>
-	/// This method monitors the scanning process managed by the music data service. It updates the user interface elements,
-	/// such as progress indicators, during the scanning operation and reloads the content when scanning completes.
-	/// If no scanning is in progress, it initializes the song collection by loading metadata from a binary data file
-	/// and applies sorting to the collection.
+	/// This method verifies whether a music scanning operation is in progress through the data service. If scanning is active,
+	/// it modifies the application's UI by displaying loading indicators and hiding specific content elements until the process completes.
+	/// Once scanning finishes or no scanning is detected, it populates the song collection with metadata, applies sorting and view style updates,
+	/// and adjusts the visibility of various UI components.
 	/// </remarks>
 	/// <returns>
-	/// A task that represents the asynchronous operation for checking and handling music data scanning and subsequent UI updates.
+	/// A task representing the asynchronous operation of scanning status monitoring, UI adjustments, and song collection management.
 	/// </returns>
 	private async Task CheckScanning()
 	{
@@ -66,20 +67,24 @@ public sealed partial class AllSongsViewPage : Page
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
 			AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+			AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
 			LoadingProgress.Opacity = 0;
 			LoadingProgress.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
+
 			for (double i = 0; i <= 1; i += 0.05)
 			{
 				LoadingProgress.Opacity = i;
 				await Task.Delay(1);
 			}
+
 			while (GetMusicDataService.IsScanning)
 			{
 				ProgressFill.Width = GetMusicDataService.ScanProgress * 4;
 				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
 				await Task.Delay(1);
 			}
+
 			for (double i = 1; i >= 0; i -= 0.05)
 			{
 				LoadingProgress.Opacity = i;
@@ -94,13 +99,14 @@ public sealed partial class AllSongsViewPage : Page
 		}
 		GoToSettings.Visibility = Visibility.Visible;
 		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
 
 		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
 		if (AllSongs.Count > 0)
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
-			AllSongsListViewGrid.Visibility = Visibility.Visible;
-			UpdateSorting();
+			UpdateAsPerLastViewStyle();
+			UpdateAsPerLastSorting();
 		}
 	}
 
@@ -112,7 +118,7 @@ public sealed partial class AllSongsViewPage : Page
 	/// based on the user's saved preferences in local settings. It also updates the selection status
 	/// of the UI elements corresponding to the sorting options and triggers the list update.
 	/// </remarks>
-	private void UpdateSorting()
+	private void UpdateAsPerLastSorting()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var sortBy = localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title";
@@ -151,6 +157,71 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
+	/// Updates the current view style of the song collection display using the last saved preference.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the previously saved view style setting from the application's local settings and
+	/// applies it to the song collection display. Supported view styles include "List View", "Compact View", and "Card View".
+	/// If no preference is found, the default view style is set to "Compact View".
+	/// </remarks>
+	private void UpdateAsPerLastViewStyle()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var viewStyle = localSettings.Values[nameof(LocalSave.AllSongViewStyle)]?.ToString() ?? "Compact View";
+		switch (viewStyle)
+		{
+			case "List View":
+				ListViewStyle.IsChecked = true;
+				break;
+			case "Compact View":
+				CompactViewStyle.IsChecked = true;
+				break;
+			default:
+				CompactViewStyle.IsChecked = true;
+				break;
+		}
+		_ = UpdateListBasedOnViewStyle();
+	}
+
+	/// <summary>
+	/// Updates the UI elements and layout to match the current view style selected for displaying songs.
+	/// </summary>
+	/// <remarks>
+	/// This method dynamically adjusts the visibility of UI components depending on the selected view style,
+	/// such as "List View" or "Compact View". It also persists the user's selection in local settings for future sessions.
+	/// Additionally, it attempts to scroll to a previously selected song after applying the view style changes.
+	/// </remarks>
+	/// <returns>
+	/// A Task representing the asynchronous operation of updating the view style and scrolling to a specific song.
+	/// </returns>
+	private async Task UpdateListBasedOnViewStyle()
+	{
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		switch (viewStyle)
+		{
+			case "List View":
+				AllSongsListViewGrid.Visibility = Visibility.Visible;
+				AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+				break;
+
+			case "Compact View":
+				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				break;
+
+			default:
+				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				break;
+		}
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AllSongViewStyle)] = viewStyle;
+		ViewButton.Content = viewStyle;
+		await ScrollToSong(selectedSong);       //somehow this doesn't work
+		await Task.Delay(500);
+		await ScrollToSong(selectedSong);
+	}
+
+	/// <summary>
 	/// Updates the list of songs based on the selected sorting criteria and order.
 	/// </summary>
 	/// <remarks>
@@ -159,19 +230,14 @@ public sealed partial class AllSongsViewPage : Page
 	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
 	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
 	/// </remarks>
-	private void UpdateListBasedOnSorting()
+	private async void UpdateListBasedOnSorting()
 	{
-		var selectedSong = AllSongsListView.SelectedItem;
-		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>()
-						 .Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text)
-						 .FirstOrDefault() ??
-					 "Title";
-		var orderBy =
-			Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked)
-				.Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		var song = selectedSong;
+		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
+		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
 		bool order = orderBy == "Ascending";
 
-		List<Song> newList = new();
+		List<Song>? newList = new();
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
 		switch (sortBy)
@@ -198,14 +264,39 @@ public sealed partial class AllSongsViewPage : Page
 		}
 		AllSongs.Clear();
 		AllSongs.AddRange(newList);
+		newList = null;
 		SortDropDown.Content = $"Sort By: {sortBy} {(order ? "⬆️" : "⬇️")}";
-		ToolTipService.SetToolTip(SortDropDown, $"The list is sorted by {sortBy} column in {orderBy} order.");
-		AllSongsListView.SelectedItem = selectedSong;
+		ToolTipService.SetToolTip(SortDropDown, $"The list is sorted by \"{sortBy}\" column in {orderBy} order.");
+		await ScrollToSong(song);       //somehow this doesn't work
+		await Task.Delay(1000);
+		await ScrollToSong(song);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
 
 		PopulateAlphabetNavigation(availableLetters, order, sortBy, hasSpecialCharacters);
+	}
+
+	/// <summary>
+	/// Determines the currently selected view style for the song collection display.
+	/// </summary>
+	/// <remarks>
+	/// This method identifies the active view style based on the selection in the view style menu
+	/// and returns the corresponding ListView instance. The supported view styles include
+	/// "List View" and "Compact View", with "Compact View" being the default.
+	/// </remarks>
+	/// <returns>
+	/// The <see cref="ListView"/> instance corresponding to the currently selected view style.
+	/// </returns>
+	private ListView GetCurrentViewStyle()
+	{
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		return viewStyle switch
+		{
+			"List View" => AllSongsListView,
+			"Compact View" => AllSongCompactView,
+			_ => AllSongCompactView
+		};
 	}
 
 
@@ -241,16 +332,17 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Scrolls to a specific song in the `AllSongsListView`.
+	/// Scrolls to a specific song in the View.
 	/// </summary>
 	/// <param name="song">The song object to scroll to. If null, no action is performed.</param>
 	/// <returns>A task representing the asynchronous operation of scrolling to the specified song.</returns>
 	private async Task ScrollToSong(Song? song)
 	{
+		var listView = GetCurrentViewStyle();
 		if (song != null)
 		{
-			await AllSongsListView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
-			AllSongsListView.SelectedItem = song;
+			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			listView.SelectedItem = song;
 		}
 
 	}
@@ -261,11 +353,22 @@ public sealed partial class AllSongsViewPage : Page
 	/// <param name="sender">The source of the event, typically the page itself.</param>
 	/// <param name="e">The event data associated with the Loaded event.</param>
 	/// <remarks>
-	/// This method verifies if the current playlist corresponds to "AllSongsViewPage" by accessing the application's
-	/// local settings. If the last played song is found in the local settings, it attempts to scroll to that song
-	/// within the songs list. The scrolling operation is performed asynchronously with a slight delay.
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AllSongsViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
 	private void Page_Loaded(object sender, RoutedEventArgs e)
+	{
+		ScrollToCurrentPlayingTrack();
+	}
+
+	/// <summary>
+	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "AllSongsViewPage".
+	/// </summary>
+	/// <remarks>
+	/// This method checks the local application settings to determine if the "AllSongsViewPage" is the active playlist.
+	/// If it is, the method retrieves the last played track based on its path from the saved settings and attempts to scroll
+	/// the page to that specific song within the song collection.
+	/// </remarks>
+	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
@@ -287,8 +390,21 @@ public sealed partial class AllSongsViewPage : Page
 		//TODO resort current playlist
 	}
 
-	private void ViewButton_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event triggered by a view style button in the UI, updating the display style
+	/// of the song collection based on the selected view style.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the view style button that was clicked.</param>
+	/// <param name="e">The event data associated with the click event.</param>
+	/// <remarks>
+	/// This method is responsible for determining the selected view style (e.g., List View, Compact View, Card View),
+	/// updating the visibility of UI elements accordingly, and persisting the selected view style for future use.
+	/// It also performs additional UI adjustments such as resizing the alphabet display.
+	/// </remarks>
+	private async void ViewButton_OnClick(object sender, RoutedEventArgs e)
 	{
+		await UpdateListBasedOnViewStyle();
+		await AdjustAlphabetSize();
 	}
 
 	/// <summary>
@@ -344,24 +460,27 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Populates the alphabet navigation panel with letters and optionally a special character marker for sections of songs.
+	/// Populates the alphabet navigation panel with letters and optionally a special character marker
+	/// for navigating sections of songs.
 	/// </summary>
 	/// <param name="availableLetters">
-	/// A collection of available letters representing sections that contain songs. If null, all letters are displayed as unavailable.
+	/// A collection of letters representing song sections to be included in navigation. Null indicates
+	/// all letters are marked as unavailable.
 	/// </param>
 	/// <param name="order">
-	/// A boolean value indicating whether the letters should be displayed in ascending or descending order.
+	/// A flag indicating whether the letters are ordered in ascending or descending order.
 	/// </param>
 	/// <param name="sortBy">
-	/// Specifies the sorting criteria used for navigating to a letter section within the song collection.
+	/// The sorting criterion to define navigation to specific column in the song collection.
 	/// </param>
 	/// <param name="hasSpecialCharacters">
-	/// A boolean value indicating whether special characters (e.g., "#", "1", "2"...) should be included in the navigation panel.
+	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
 	/// </param>
 	/// <remarks>
-	/// Clears the existing children of the alphabet navigation panel before dynamically generating and adding new letter elements. Each letter is styled
-	/// and configured based on its availability within the provided letter collection. Interactive behaviors such as tapping and pointer events are implemented
-	/// for letters available for navigation.
+	/// This method clears all existing child elements in the alphabet navigation panel before creating
+	/// and adding dynamically generated navigation elements. Each letter element is configured based on
+	/// its validity from the provided collection. Additionally, it defines interaction behavior for
+	/// navigable elements to handle user input.
 	/// </remarks>
 	private void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
 	{
@@ -375,30 +494,34 @@ public sealed partial class AllSongsViewPage : Page
 		{
 			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
 
-			var textElement = new TextBlock
+			var Button = new Button
 			{
-				Text = letter,
-				Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+				Content = letter,
 				Foreground = new SolidColorBrush(hasSongs ? Colors.White : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
+				Background = new SolidColorBrush(Colors.Transparent),
+				BorderBrush = new SolidColorBrush(Colors.Transparent),
+				BorderThickness = new Thickness(0),
 				IsHitTestVisible = hasSongs,
-				Margin = new Thickness(0, 2, 0, 2),
-				TextAlignment = TextAlignment.Right
+				Margin = new Thickness(0),
+				HorizontalContentAlignment = HorizontalAlignment.Right,
+				VerticalContentAlignment = VerticalAlignment.Stretch,
+				Padding = new Thickness(0),
+				HorizontalAlignment = HorizontalAlignment.Right,
+				VerticalAlignment = VerticalAlignment.Stretch,
 			};
 
 			if (hasSongs)
 			{
-				textElement.Tapped += (s, e) => ScrollToSection(letter, sortBy);
-
-				textElement.PointerEntered += (s, e) =>
-				((TextBlock)s).FontSize *= 1.5;
-
-				textElement.PointerExited += (s, e) =>
-					((TextBlock)s).FontSize *= 0.666;
+				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
+				ToolTipService.SetToolTip(Button, letter);
+				Button.Tapped += (s, e) => ScrollToSection(letter, sortBy);
 			}
 
-			AlphabetNavigationPanel.Children.Add(textElement);
+			AlphabetNavigationPanel.Children.Add(Button);
 		}
+		_ = AdjustAlphabetSize();
+		availableLetters = null;
 	}
 
 	/// <summary>
@@ -429,10 +552,11 @@ public sealed partial class AllSongsViewPage : Page
 		}
 		if (targetSong != null)
 		{
-			await AllSongsListView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: -40);
-			AllSongsListView.SelectedItem = targetSong;
+			var listView = GetCurrentViewStyle();
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AllSongsListView ? -40 : 0);
+			listView.SelectedItem = targetSong;
 			await Task.Delay(500);
-			await AllSongsListView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: -40);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AllSongsListView ? -40 : 0);
 		}
 	}
 
@@ -448,16 +572,30 @@ public sealed partial class AllSongsViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = AllSongsListView.ActualHeight - 40;
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		double availableSpace = viewStyle switch
+		{
+			"List View" => AllSongsListView.ActualHeight - 40,
+			"Compact View" => AllSongCompactView.ActualHeight,
+			_ => AllSongCompactView.ActualHeight
+		};
+
+		AlphabetNavigationPanel.Margin = viewStyle switch
+		{
+			"List View" => new Thickness(0, 50, 30, 10),
+			"Compact View" => new Thickness(0, 10, 30, 10),
+			_ => new Thickness(0, 10, 30, 10)
+		};
+
+		if (availableSpace <= 0) return Task.FromResult(Task.CompletedTask);
+
 		double totalLetters = AlphabetNavigationPanel.Children.Count;
 
-		// 🔹 Auto-fit button height dynamically
 		double autoHeight = availableSpace / totalLetters;
 
-		foreach (var textElement in AlphabetNavigationPanel.Children.OfType<TextBlock>())
+		foreach (var button in AlphabetNavigationPanel.Children.OfType<Button>())
 		{
-			textElement.Height = autoHeight;
-			textElement.Margin = new Thickness(0);
+			button.Height = autoHeight;
 		}
 		return Task.FromResult(Task.CompletedTask);
 	}
@@ -492,11 +630,34 @@ public sealed partial class AllSongsViewPage : Page
 	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
 	{
 		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
-		AlphabetNavigationPanel.Children.OfType<TextBlock>().Where(textElement => textElement.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
+		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
 
+	/// <summary>
+	/// Handles the event when the "Go to Settings" button is clicked.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the button being clicked.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	/// <remarks>
+	/// This method navigates the application to the SettingsPage. It utilizes the application's navigation service (IJsonNavigationService)
+	/// to redirect the user to the appropriate page.
+	/// </remarks>
 	private void GotoSettigsButton_Click(object sender, RoutedEventArgs e)
 	{
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
+	}
+
+	/// <summary>
+	/// Handles the selection change event for a ListView within the AllSongsViewPage.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the ListView.</param>
+	/// <param name="e">Provides data for the SelectionChanged event, including information about added or removed items.</param>
+	/// <remarks>
+	/// This method updates the currently selected song by retrieving it from the currently active ListView.
+	/// The selected song can then be used for subsequent operations such as playback or details display.
+	/// </remarks>
+	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		selectedSong = GetCurrentViewStyle().SelectedItem as Song;
 	}
 }
