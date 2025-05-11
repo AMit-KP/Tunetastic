@@ -42,31 +42,25 @@ public class GetMusicDataService
 	public static double ScanProgress { get; private set; } = 0;
 
 	/// <summary>
-	/// Updates the metadata for the music libraries. If a scan request is triggered,
-	/// the process scans and updates the libraries accordingly. Notifications are displayed
-	/// to indicate operation status, including success, warnings, or errors.
+	/// Performs an asynchronous metadata update operation on the music libraries stored in the system.
+	/// Ensures that simultaneous scanning operations are avoided and updates the global notifications
+	/// based on the outcome of the scanning process.
 	/// </summary>
-	/// <param name="onRequest">
-	/// A boolean value indicating whether the process is triggered manually via a user request.
-	/// If true, metadata is scanned and updated regardless of automatic settings.
-	/// The default is false.
-	/// </param>
 	/// <returns>
-	/// A <see cref="Task"/> representing the asynchronous operation of updating metadata.
+	/// A <see cref="Task"/> that represents the asynchronous operation of updating metadata.
+	/// The operation updates notification messages such as "Info," "Warning," or "Error" and resets
+	/// the music player state upon completion.
 	/// </returns>
-	public async Task UpdateMetaData(bool onRequest = false)
+	public async Task UpdateMetaData()
 	{
 		if (IsScanning) return;
 
 		_isScanning = true;
-		string type = ""; string message = "";
+		string type = "";
+		string message = "";
 		_scanTask = Task.Run(async () =>
 		{
-			bool scanAtStartup = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
-			if (onRequest || scanAtStartup)
-			{
-				(type, message) = await ScanLibraries();
-			}
+			(type, message) = await ScanLibraries();
 		});
 
 		await _scanTask;
@@ -85,6 +79,7 @@ public class GetMusicDataService
 			default:
 				break;
 		}
+
 		_isScanning = false;
 		MusicPlayer.Instance.ResetAfterScan();
 	}

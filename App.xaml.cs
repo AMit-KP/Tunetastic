@@ -45,18 +45,28 @@ public partial class App : Application
 		return services.BuildServiceProvider();
 	}
 
+	/// <summary>
+	/// Handles the launch of the application, initializing window properties, navigation,
+	/// theme settings, and system services.
+	/// </summary>
+	/// <param name="args">Event arguments related to the application's launch event.</param>
 	protected override async void OnLaunched(LaunchActivatedEventArgs args)
 	{
 		MainWindow = new MainWindow();
-
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
 		MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
+
+		var rootFrame = new Frame();
+		MainWindow.Content = rootFrame;
+		rootFrame.Navigate(typeof(SplashScreen));
+
+		MainWindow.Activate();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
 		ThemeService.Initialize(MainWindow, false);
 		ThemeService.SetElementTheme(Enum.Parse<ElementTheme>(localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
-		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Mica";
+		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "DesktopAcrylic";
 		ThemeService.SetBackdropType(Enum.Parse<BackdropType>(backdrop));
 		ThemeService.UpdateCaptionButtons();
 
@@ -70,10 +80,13 @@ public partial class App : Application
 			App.Current.ThemeService.SetBackdropTintColor(color);
 		}
 
+		bool scanAtStartup = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
+		if (scanAtStartup)
+			await new GetMusicDataService().UpdateMetaData();
+		else
+			await Task.Delay(500);
 
-		MainWindow.Activate();
-
-		await new GetMusicDataService().UpdateMetaData();
+		rootFrame.Navigate(typeof(MainPage));
 
 		RainbowFrame.Initialize(App.MainWindow);
 		InitializeApp();
@@ -85,6 +98,11 @@ public partial class App : Application
 		MainWindow.Closed += (s, e) => MusicPlayer.Instance.SavePlayBackPosition();
 	}
 
+	/// <summary>
+	/// Configures and initializes application-specific settings and services,
+	/// such as context menu customization, enabling additional functionalities
+	/// for better user experience.
+	/// </summary>
 	private async void InitializeApp()
 	{
 		var menuService = GetService<ContextMenuService>();

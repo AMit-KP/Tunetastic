@@ -19,7 +19,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.5.179</Version>
+    <Version>1.5.222</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.5.179.437</AssemblyVersion>
-    <FileVersion>1.5.179.437</FileVersion>
+    <AssemblyVersion>1.5.222.480</AssemblyVersion>
+    <FileVersion>1.5.222.480</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -63,6 +63,12 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>BreadcrumbPageMappings.cs</LastGenOutput>
     </None>
+    <Page Update="Views\MainPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\SplashScreen.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Views\LibraryViews\AllSongsViewPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -84,9 +90,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\Store\SplashScreen.scale-100.png" />
+    <None Remove="Assets\Store\SplashScreen.scale-125.png" />
+    <None Remove="Assets\Store\SplashScreen.scale-150.png" />
+    <None Remove="Assets\Store\SplashScreen.scale-400.png" />
     <None Remove="Assets\Store\StoreLogo.scale-200.png" />
     <None Remove="Assets\Store\StoreLogo.scale-400.png" />
+    <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\PlayListPage.xaml" />
+    <None Remove="Views\SplashScreen.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
