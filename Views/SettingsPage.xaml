@@ -10,9 +10,6 @@
       xmlns:views="using:Tunetastic.Views"
       dev:BreadcrumbNavigator.IsHeaderVisible="True"
       mc:Ignorable="d">
-	<Page.Resources>
-		<local:DurationConverter x:Key="ProgressToWidthConverter" />
-	</Page.Resources>
 	<ScrollView Margin="{ThemeResource ContentPageMargin}"
 	            Padding="{ThemeResource ContentPagePadding}"
 	            HorizontalAlignment="Stretch"

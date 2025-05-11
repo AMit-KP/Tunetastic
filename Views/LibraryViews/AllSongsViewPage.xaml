@@ -15,16 +15,13 @@
       SizeChanged="Page_SizeChanged"
       mc:Ignorable="d">
 
-	<Page.Resources>
-		<common:DurationConverter x:Key="DurationConverter" />
-	</Page.Resources>
 	<Grid Margin="10">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition />
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0"
-		      Margin="10,10,45,10">
+		      Margin="15,10,45,10">
 			<TextBlock HorizontalAlignment="Left"
 			           Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="All Songs" />
