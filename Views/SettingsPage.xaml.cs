@@ -677,6 +677,7 @@ public sealed partial class SettingsPage : Page
 		MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
 		RainbowToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false");
 		RainbowToggle_OnToggled(RainbowToggle, null);
+		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
 	}
 
 	/// <summary>
@@ -825,5 +826,16 @@ public sealed partial class SettingsPage : Page
 			App.Current.RainbowFrame.UpdateEffectSpeed(51 - effectSpeed);
 		}
 	}
-}
 
+	/// <summary>
+	/// Handles the event triggered when the toggle switch for "Minimize to Tray" is toggled on the settings page.
+	/// Updates the corresponding application setting and configures the minimize behavior of the main application window.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the toggle switch control named "MinimizeToTray".</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private void MinimizeToTray_OnToggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)] = MinimizeToTray.IsOn;
+		MainWindow.SetMinimizeBehaviourStatic(MinimizeToTray.IsOn);
+	}
+}

@@ -9,6 +9,12 @@ public partial class App : Application
 	public IJsonNavigationService NavService => GetService<IJsonNavigationService>();
 	public IThemeService ThemeService => GetService<IThemeService>();
 	public IRainbowFrame RainbowFrame => GetService<IRainbowFrame>();
+	public static System.Windows.Forms.NotifyIcon TrayIcon { get; private set; } = new System.Windows.Forms.NotifyIcon
+	{
+		Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico")),
+		Visible = true,
+		Text = "Tunetastic",
+	};
 
 	public static T GetService<T>() where T : class
 	{

@@ -201,6 +201,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _toolTipTextRepeatButton, value);
 	}
 
+	/// <summary>
+	/// Represents the ViewModel for music control functionality of the application.
+	/// Maintains the state and behavior of media playback, including play/pause, shuffle, repeat, and progress bar controls.
+	/// Interacts with the MusicPlayer instance to handle playback events and exposes properties for UI binding to reflect current playback state.
+	/// </summary>
 	public MusicControlViewModel()
 	{
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -218,6 +223,14 @@ public partial class MusicControlViewModel : ObservableRecipient
 		SetToggleAndRepeat();
 
 		LoadLastPlayedTrack();
+
+		App.TrayIcon.MouseClick += (s, e) =>
+		{
+			if (e.Button == System.Windows.Forms.MouseButtons.Left)
+			{
+				TogglePlayPause();
+			}
+		};
 	}
 
 	/// <summary>

@@ -53,4 +53,5 @@ public enum LocalSave
     AllSongViewSortBy,
     AllSongViewSortOrder,
 	AllSongViewStyle,
+	MinimizeToTray,
 }

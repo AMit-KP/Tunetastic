@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
 using WinRT.Interop;
@@ -10,24 +12,109 @@ public sealed partial class MainWindow : WindowEx
 	public MainViewModel ViewModel { get; }
 	private OverlappedPresenter overlappedPresenter;
 	public AppWindow CurrentAppWindow { get; }
+	private static MainWindow _instance;
+
 
 	/// <summary>
-	/// Represents the main application window for the Tunetastic application.
+	/// Represents the primary window of the application and initializes its components and settings.
 	/// </summary>
 	/// <remarks>
-	/// This class serves as the entry point for the application's UI. It initializes necessary components,
-	/// sets up the application's main view model, and configures application window settings such as title and presenter.
+	/// This class serves as the main interface for the application, providing access to the <see cref="MainViewModel"/> instance,
+	/// configuring the application window's behavior (such as extending content to the title bar), and interacting with system tray settings.
 	/// </remarks>
 	public MainWindow()
 	{
 		ViewModel = App.GetService<MainViewModel>();
 		this.InitializeComponent();
+		_instance = this;
 
 		CurrentAppWindow = this.AppWindow;
 		ExtendsContentIntoTitleBar = true;
 		overlappedPresenter = ((OverlappedPresenter)AppWindow.Presenter);
 
 		Activated += MainWindow_Activated;
+
+		System.Windows.Forms.ContextMenuStrip _trayMenu = new();
+		_trayMenu.Items.Add("Open Tunetastic", null, (s, e) => RestoreFromTray());
+		_trayMenu.Items.Add("Exit", null, (s, e) => ExitApp());
+		_trayMenu.Renderer = new ModernMenuRenderer();
+
+		App.TrayIcon.ContextMenuStrip = _trayMenu;
+		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
+	}
+
+	/// <summary>
+	/// Configures the behavior of the application when it is minimized, determining whether the application minimizes to the system tray or behaves normally.
+	/// </summary>
+	/// <param name="minimizeToTray">A boolean value indicating whether the application should minimize to the system tray. If set to true, the application minimizes to the tray; otherwise, it minimizes normally.</param>
+	private void SetMinimizeBehaviour(bool minimizeToTray)
+	{
+		if (minimizeToTray)
+			Closed += MainWindowClose;
+		else
+			Closed -= MainWindowClose;
+	}
+
+	/// <summary>
+	/// Sets the minimize behavior for the application, determining whether it minimizes to the system tray or behaves normally, using a static context.
+	/// </summary>
+	/// <param name="minimizeToTray">A boolean value indicating whether the application should minimize to the system tray. If true, the application minimizes to the tray; otherwise, it minimizes normally.</param>
+	public static void SetMinimizeBehaviourStatic(bool minimizeToTray)
+	{
+		_instance?.SetMinimizeBehaviour(minimizeToTray);
+	}
+
+	/// <summary>
+	/// Handles the close event for the main application window.
+	/// </summary>
+	/// <param name="sender">The source of the close event, typically the main window instance.</param>
+	/// <param name="args">Event data that provides information about the window close event.</param>
+	/// <remarks>
+	/// This method is invoked when the main application window is being closed. Instead of fully closing the application, it minimizes the window to the system tray by calling the <see cref="MinimizeToTray"/> method and marks the event as handled.
+	/// </remarks>
+	private void MainWindowClose(object sender, WindowEventArgs args)
+	{
+		args.Handled = true;
+		MinimizeToTray();
+	}
+
+	/// <summary>
+	/// Minimizes the main application window to the system tray.
+	/// </summary>
+	/// <remarks>
+	/// When this method is invoked, the main application window is hidden from view and a notification is displayed
+	/// to inform the user that the application has been minimized to the system tray. The application remains active
+	/// and accessible through the system tray icon.
+	/// </remarks>
+	private void MinimizeToTray()
+	{
+		this.Hide();
+		GlobalNotification.Info("Minimized to system tray");
+	}
+
+	/// <summary>
+	/// Restores the main application window from the system tray and brings it to the foreground.
+	/// </summary>
+	/// <remarks>
+	/// This method ensures that the application window is made visible and activated when it's restored from the system tray. It is typically invoked through the system tray context menu to allow the user to reopen the main window after minimizing it to the tray.
+	/// </remarks>
+	private void RestoreFromTray()
+	{
+		this.Show();
+		this.Activate();
+	}
+
+	/// <summary>
+	/// Exits the Tunetastic application entirely, removing the system tray icon and closing the main window.
+	/// </summary>
+	/// <remarks>
+	/// This method is invoked to terminate the application. It detaches the handler for the window close event, makes the system tray icon invisible, and closes the main application window. After calling this method, the application process will end.
+	/// </remarks>
+	private void ExitApp()
+	{
+		this.Closed -= MainWindowClose;
+		App.TrayIcon.Visible = false;
+		this.Close();
 	}
 
 	private bool centered;
@@ -178,3 +265,32 @@ public sealed partial class MainWindow : WindowEx
 	#endregion
 }
 
+/// <summary>
+/// Provides a custom renderer for the context menu in the application, incorporating support for light and dark themes.
+/// </summary>
+/// <remarks>
+/// This class customizes the appearance of the context menu's background, menu items, and text to match the current application theme.
+/// It extends <see cref="ToolStripRenderer"/> to override default rendering behavior and apply a modern visual style.
+/// </remarks>
+public class ModernMenuRenderer : ToolStripRenderer
+{
+	private bool IsDarkMode => App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark;
+
+	protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+	{
+		Color backgroundColor = IsDarkMode ? Color.Black : Color.White;
+		e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Item.Bounds);
+	}
+
+	protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+	{
+		Color backgroundColor = IsDarkMode ? Color.Black : Color.White;
+		e.Graphics.Clear(backgroundColor);
+	}
+
+	protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+	{
+		e.TextColor = IsDarkMode ? Color.White : Color.Black;
+		base.OnRenderItemText(e);
+	}
+}
