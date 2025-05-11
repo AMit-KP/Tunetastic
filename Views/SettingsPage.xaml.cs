@@ -170,7 +170,7 @@ public sealed partial class SettingsPage : Page
 		ProgressFillText.Text = "0%";
 		CustomProgressBar.Visibility = Visibility.Visible;
 
-		_ = new GetMusicDataService().UpdateMetaData(true);
+		_ = new GetMusicDataService().UpdateMetaData();
 
 		for (double i = 0; i <= 1; i += 0.1)
 		{
@@ -646,7 +646,7 @@ public sealed partial class SettingsPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
 		Theme.SelectedItem = Theme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
-		var backdrop = (localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Mica");
+		var backdrop = (localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "DesktopAcrylic");
 		Backdrop.SelectedItem = Backdrop.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == backdrop);
 
 		if (backdrop == "Mica")
