@@ -1,4 +1,5 @@
-﻿using Windows.Media.Core;
+﻿using Windows.Media;
+using Windows.Media.Core;
 using Windows.Media.Playback;
 
 namespace Tunetastic.Common;
@@ -130,14 +131,29 @@ public class MusicPlayer
 	/// </summary>
 	public RepeatMode RepeatStatus { get; private set; } = RepeatMode.All;
 
+	/// <summary>
+	/// Represents the System Media Transport Controls (SMTC) associated with the MediaPlayer instance.
+	/// SMTC provides integration with system-level media controls, allowing users to interact with the
+	/// music player using hardware or software controls such as play, pause, next, and previous buttons.
+	/// It is configured to handle button press events and update playback status.
+	/// </summary>
+	public SystemMediaTransportControls SMTC;
+
 	private MusicPlayer()
 	{
 		MediaPlayer = new MediaPlayer();
 		MediaPlayer.AutoPlay = false;
+		MediaPlayer.AudioCategory = MediaPlayerAudioCategory.Media;
 		SongQueue = new Queue<string>();
 		MediaPlayer.MediaEnded += (s, e) => HandleTrackEnd();
+		SMTCSetup();
 	}
 
+	/// <summary>
+	/// Gets the single instance of the <see cref="MusicPlayer"/> class, adhering to the singleton design pattern.
+	/// This property ensures a globally accessible and consistent instance of the MusicPlayer is available within the application.
+	/// The instance is lazily instantiated upon first access.
+	/// </summary>
 	public static MusicPlayer Instance
 	{
 		get
@@ -145,6 +161,40 @@ public class MusicPlayer
 			_instance ??= new MusicPlayer();
 			return _instance;
 		}
+	}
+
+	/// <summary>
+	/// Configures the System Media Transport Controls (SMTC) for the music player to enable integration with system media controls.
+	/// This setup includes enabling play, pause, next, and previous buttons and attaching handlers for button press events.
+	/// </summary>
+	private void SMTCSetup()
+	{
+		MediaPlayer.CommandManager.IsEnabled = false;
+		SMTC = MediaPlayer.SystemMediaTransportControls;
+		SMTC.IsPlayEnabled = true;
+		SMTC.IsPauseEnabled = true;
+		SMTC.IsNextEnabled = true;
+		SMTC.IsPreviousEnabled = true;
+		SMTC.IsEnabled = true;
+
+		SMTC.ButtonPressed += (s, e) =>
+		{
+			switch (e.Button)
+			{
+				case SystemMediaTransportControlsButton.Play:
+					Play();
+					break;
+				case SystemMediaTransportControlsButton.Pause:
+					Pause();
+					break;
+				case SystemMediaTransportControlsButton.Next:
+					Next();
+					break;
+				case SystemMediaTransportControlsButton.Previous:
+					Previous();
+					break;
+			}
+		};
 	}
 
 	/// <summary>
@@ -156,32 +206,14 @@ public class MusicPlayer
 	/// An optional parameter specifying the path of the song to start playing.
 	/// If null, the first song in the playlist is used.
 	/// </param>
-	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null)
+	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true)
 	{
-		await LoadSong(startingSong ?? songPaths[0]);
+		await LoadSong(startingSong ?? songPaths[0], play);
 		_ = Task.Run(() =>
 		{
-
 			OriginalPlaylist = new List<string>(songPaths);
 
 			ShuffleSongs(startingSong);
-		});
-	}
-
-	/// <summary>
-	/// Loads the last played playlist into the music player and sets the starting index for playback.
-	/// This method updates the internal playlist and prepares the player for resumed playback.
-	/// </summary>
-	/// <param name="songPaths">A list of song file paths representing the previously played playlist.</param>
-	/// <param name="index">The zero-based index of the song that should be set as the current song.</param>
-	public void LoadLastPlayed(List<string> songPaths)
-	{
-		_ = Task.Run(() =>
-		{
-			OriginalPlaylist = new List<string>(songPaths);
-
-			ShuffleSongs();
-			currentIndex = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentIndex)]?.ToString() ?? "0");
 		});
 	}
 
@@ -223,15 +255,17 @@ public class MusicPlayer
 	/// </param>
 	public void AddToQueue(string songPath) => SongQueue?.Enqueue(songPath);        //TODO queue system
 
+
 	/// <summary>
-	/// Loads and prepares the current song in the playlist for playback.
-	/// If a playlist is available, this method selects the song at the current index and loads it.
+	/// Loads the current song from the active playlist based on the current index.
+	/// If a playlist exists, it retrieves the song at the specified index and sets the playback state
+	/// depending on whether the media player is actively playing.
 	/// </summary>
 	private async void LoadSong()
 	{
 		if (ActualPlaylist?.Count > 0)
 		{
-			await LoadSong(ActualPlaylist[currentIndex]);
+			await LoadSong(ActualPlaylist[currentIndex], MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
 		}
 	}
 
@@ -251,7 +285,6 @@ public class MusicPlayer
 		{
 			if (songPath == null || songPath == "") return;
 
-
 			if (!(songPath == CurrentSong) || bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "false"))
 			{
 				//await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
@@ -259,6 +292,11 @@ public class MusicPlayer
 				if (play) MediaPlayer.Play();
 				CurrentSong = songPath;
 				Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
+			}
+			else
+			{
+				if (MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing)
+					Play();
 			}
 		}
 		catch (Exception)
@@ -299,11 +337,10 @@ public class MusicPlayer
 	/// </summary>
 	/// <remarks>
 	/// Ensures playlist continuity when moving backwards, either by restarting the current song or moving to the previous one.
-	/// Displays an error notification if the previous song cannot be loaded.
+	/// Displays an error notification and moves to next song if the previous song cannot be loaded.
 	/// </remarks>
 	public async void Previous()
 	{
-		//TODO get settings for this restart or prev
 		try
 		{
 			var restart = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
@@ -313,12 +350,12 @@ public class MusicPlayer
 					currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
 				else return;
 			}
-
 			LoadSong();
 		}
 		catch (Exception)
 		{
 			GlobalNotification.Error("Could not load previous song");
+			Next();
 		}
 	}
 
@@ -329,7 +366,7 @@ public class MusicPlayer
 	/// </summary>
 	/// <exception cref="Exception">
 	/// Throws an exception if there is an error loading the next song.
-	/// A global error notification is displayed when this occurs.
+	/// A global error notification is displayed and moves to next song when this occurs.
 	/// </exception>
 	public async void Next()
 	{
@@ -381,6 +418,7 @@ public class MusicPlayer
 		catch (Exception)
 		{
 			GlobalNotification.Error("Could not load next song");
+			Next();
 		}
 	}
 

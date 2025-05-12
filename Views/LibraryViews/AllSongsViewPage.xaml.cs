@@ -325,10 +325,10 @@ public sealed partial class AllSongsViewPage : Page
 	/// This method retrieves the file paths of all songs in the collection and initializes a playlist within the music player.
 	/// It ensures that the songs are ready for playback and begins with the specified track as the currently active item.
 	/// </remarks>
-	public void LoadAsPlayList()
+	public void LoadAsPlayList(string? startingSong, bool play)
 	{
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-		MusicPlayer.Instance.LoadLastPlayed(songPaths);
+		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong, play);
 	}
 
 	/// <summary>

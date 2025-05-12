@@ -2,6 +2,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Generated.Protos;
+using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
 
@@ -49,7 +50,7 @@ public sealed partial class MainPlayerPage : Page
 
 	/// <summary>
 	/// Updates the UI elements of the main player page to reflect the current song and player state.
-	/// This method modifies various UI components such as the background image, cover art, and the title based on the current song.
+	/// This method modifies <see cref="SystemMediaTransportControls"/> and various UI components such as the background image, cover art, and the title based on the current song.
 	/// </summary>
 	/// <param name="notify">A boolean value indicating whether a notification should be displayed after updating the UI. Default is true.</param>
 	/// <returns>A <see cref="Task"/> that represents the asynchronous operation of updating the UI.</returns>
@@ -96,7 +97,21 @@ public sealed partial class MainPlayerPage : Page
 					CoverArtImage.Source = bitmapImage;
 				}
 				BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
-				App.TrayIcon.Text = Title.Text + "\n" + Artist.Text + "\n" + Album.Text;
+				if ((Title.Text + "\n" + Artist.Text).Length > 128)
+					App.TrayIcon.Text = Title.Text;
+				else
+					App.TrayIcon.Text = Title.Text + "\n" + Artist.Text;
+
+				var updater = MusicPlayer.Instance.SMTC.DisplayUpdater;
+				updater.Type = MediaPlaybackType.Music;
+				updater.Thumbnail = RandomAccessStreamReference.CreateFromFile(await StorageFile.GetFileFromPathAsync(track?.Cover));
+				updater.MusicProperties.Title = Title.Text;
+				updater.MusicProperties.Artist = Artist.Text;
+				updater.MusicProperties.AlbumTitle = Album.Text;
+				updater.MusicProperties.AlbumArtist = Artist.Text;
+				updater.MusicProperties.AlbumTrackCount = 1;
+				updater.Update();
+
 				return Task.CompletedTask;
 			}
 			else
@@ -106,6 +121,7 @@ public sealed partial class MainPlayerPage : Page
 			}
 		}
 
+		MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
 		BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		CoverArt.Width = 500;
 		CoverArt.Height = 500;

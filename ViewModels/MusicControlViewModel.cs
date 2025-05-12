@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Dispatching;
 using Tunetastic.Generated.Protos;
 using Tunetastic.Views.LibraryViews;
+using Windows.Media;
 using Windows.Media.Playback;
 
 
@@ -222,7 +223,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 		SetToggleAndRepeat();
 
-		LoadLastPlayedTrack();
+		_ = LoadLastPlayedTrack();
 
 		App.TrayIcon.MouseClick += (s, e) =>
 		{
@@ -251,7 +252,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// Retrieves the last played track information, playback position, and other related details
 	/// from local settings to restore the media player's state and playlist upon application startup.
 	/// </summary>
-	private void LoadLastPlayedTrack()
+	private async Task LoadLastPlayedTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
@@ -259,6 +260,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			var AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
 			var song = localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
 			var track = AllSongs.FirstOrDefault(s => s.Path == song);
+
 			if (track == null)
 			{
 				localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
@@ -266,22 +268,23 @@ public partial class MusicControlViewModel : ObservableRecipient
 				localSettings.Values.Remove(nameof(LocalSave.CurrentPlaylist));
 				return;
 			}
-			AllSongs = null;
-			using var _ = _musicPlayer.LoadSong(localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString(), play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
 
-			ProgressBarValue = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
+			AllSongs = null;
+
 
 
 			switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
 			{
 				case "AllSongsViewPage":
-					new AllSongsViewPage().LoadAsPlayList();
+					new AllSongsViewPage().LoadAsPlayList(localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString(), bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
 					break;
 
 				default:
+					await _musicPlayer.LoadSong(localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString(), play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
 					break;
 			}
 
+			ProgressBarValue = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 		}
 	}
 
@@ -320,6 +323,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				case MediaPlaybackState.None:
 					FontIconPlayPause = "\uE768";
 					ToolTipTextPlayPause = "Play";
+					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 
 					await Task.Delay(500);
 
@@ -333,6 +337,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 				case MediaPlaybackState.Playing:
 					FontIconPlayPause = "\uE769";
 					ToolTipTextPlayPause = "Pause";
+
+					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 
 					if (!_isRainbowActive)
 					{
@@ -377,19 +383,27 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 
 	/// <summary>
-	/// Advances playback to the next song in the playlist or queue.
+	/// Advances playback to the next song in the playlist or queue. And reset the playback position.
 	/// If the current song is the last in the queue, behavior depends on the playback settings
 	/// (e.g., loop or stop after the last song).
 	/// </summary>
 	[RelayCommand]
-	private void NextSong() => _musicPlayer.Next();
+	private void NextSong()
+	{
+		ProgressBarValue = 0;
+		_musicPlayer.Next();
+	}
 
 	/// <summary>
-	/// Switches the currently playing track to the previous song in the playlist.
+	/// Switches the currently playing track to the previous song in the playlist. And reset the playback position.
 	/// If the player is at the beginning of the playlist, it may either stop playback or loop based on player settings.
 	/// </summary>
 	[RelayCommand]
-	private void PreviousSong() => _musicPlayer.Previous();
+	private void PreviousSong()
+	{
+		ProgressBarValue = 0;
+		_musicPlayer.Previous();
+	}
 
 	/// <summary>
 	/// Moves the playback position of the currently playing song forward by increasing the progress value.
