@@ -331,7 +331,7 @@
 			<dev:SettingsCard Description="When turned on, the app will minimize to system tray when the window is closed."
 			                  Header="Minimize the app to system tray">
 				<ToggleSwitch x:Name="MinimizeToTray"
-				              Toggled="MinimizeToTray_OnToggled"/>
+				              Toggled="MinimizeToTray_OnToggled" />
 			</dev:SettingsCard>
 
 			<!--  About  -->

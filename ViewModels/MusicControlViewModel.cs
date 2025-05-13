@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Input;
 using Tunetastic.Generated.Protos;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
@@ -232,6 +233,48 @@ public partial class MusicControlViewModel : ObservableRecipient
 				TogglePlayPause();
 			}
 		};
+
+		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
+		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
+	}
+
+	/// <summary>
+	/// Handles keyboard input events for processing global keyboard shortcuts in the application,
+	/// such as navigating between tracks or executing playback-related commands.
+	/// </summary>
+	/// <param name="sender">The UI element that is the source of the event.</param>
+	/// <param name="args">The event arguments containing details about the keyboard input,
+	/// such as the key pressed and modifier keys.</param>
+	private void keyboardInput(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
+	{
+		if (args.Modifiers == Windows.System.VirtualKeyModifiers.Control && args.Key == Windows.System.VirtualKey.N)
+		{
+			NextSong();
+		}
+		else if (args.Modifiers == Windows.System.VirtualKeyModifiers.Control && args.Key == Windows.System.VirtualKey.P)
+		{
+			PreviousSong();
+		}
+	}
+
+	/// <summary>
+	/// Handles the PreviewKeyDown event for the music control functionality.
+	/// Intercepts specific key inputs such as the Space key to toggle play/pause functionality
+	/// or the Tab key to prevent unintended default behavior in the application.
+	/// </summary>
+	/// <param name="sender">The source of the event.</param>
+	/// <param name="e">The event data containing information about the key event.</param>
+	private void PreviewKeyDownMusicControl(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+	{
+		if (!MainPage._instance.searchBoxFocused && e.Key == Windows.System.VirtualKey.Space)
+		{
+			e.Handled = true;
+			TogglePlayPause();
+		}
+		else if (e.Key == Windows.System.VirtualKey.Tab)
+		{
+			e.Handled = true;
+		}
 	}
 
 	/// <summary>
