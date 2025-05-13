@@ -234,6 +234,23 @@ public partial class MusicControlViewModel : ObservableRecipient
 			}
 		};
 
+		_musicPlayer.SMTC.ButtonPressed += (s, e) =>
+		{
+			switch (e.Button)
+			{
+				case SystemMediaTransportControlsButton.Play:
+				case SystemMediaTransportControlsButton.Pause:
+					TogglePlayPause();
+					break;
+				case SystemMediaTransportControlsButton.Next:
+					NextSong();
+					break;
+				case SystemMediaTransportControlsButton.Previous:
+					PreviousSong();
+					break;
+			}
+		};
+
 		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
 		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
 	}
@@ -341,10 +358,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
 		{
+			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 			_musicPlayer.Pause();
 		}
 		else if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Paused)
 		{
+			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 			_musicPlayer.Play();
 		}
 	}
@@ -358,17 +377,16 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// <param name="args">Additional event data, if any, provided by the event source.</param>
 	private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
 			{
 				case MediaPlaybackState.Paused:
-				case MediaPlaybackState.None:
 					FontIconPlayPause = "\uE768";
 					ToolTipTextPlayPause = "Play";
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 
-					await Task.Delay(500);
+					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+					//await Task.Delay(500);
 
 					if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing)
 					{

@@ -176,25 +176,6 @@ public class MusicPlayer
 		SMTC.IsNextEnabled = true;
 		SMTC.IsPreviousEnabled = true;
 		SMTC.IsEnabled = true;
-
-		SMTC.ButtonPressed += (s, e) =>
-		{
-			switch (e.Button)
-			{
-				case SystemMediaTransportControlsButton.Play:
-					Play();
-					break;
-				case SystemMediaTransportControlsButton.Pause:
-					Pause();
-					break;
-				case SystemMediaTransportControlsButton.Next:
-					Next();
-					break;
-				case SystemMediaTransportControlsButton.Previous:
-					Previous();
-					break;
-			}
-		};
 	}
 
 	/// <summary>
@@ -261,11 +242,11 @@ public class MusicPlayer
 	/// If a playlist exists, it retrieves the song at the specified index and sets the playback state
 	/// depending on whether the media player is actively playing.
 	/// </summary>
-	private async void LoadSong()
+	private async void LoadSong(bool? nextTrack = null)
 	{
 		if (ActualPlaylist?.Count > 0)
 		{
-			await LoadSong(ActualPlaylist[currentIndex], MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
+			await LoadSong(ActualPlaylist[currentIndex], nextTrack ?? MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
 		}
 	}
 
@@ -289,7 +270,7 @@ public class MusicPlayer
 			{
 				//await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
 				MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
-				if (play) MediaPlayer.Play();
+				if (play) Play();
 				CurrentSong = songPath;
 				Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
 			}
@@ -302,30 +283,89 @@ public class MusicPlayer
 		catch (Exception)
 		{
 			GlobalNotification.Error("Could not load song:\n" + songPath);
+			Next(play);
 		}
 	}
 
+	private bool isFading = false;
+	private const double initialVolume = 1.0;
 
 	/// <summary>
-	/// Pauses playback of the currently playing media track.
-	/// This method halts the MediaPlayer's active playback session.
+	/// Pauses the playback of the current song and optionally performs a fade-out effect by gradually reducing the volume if enabled in settings.
+	/// If the fade-out effect is enabled, the volume decreases smoothly over a configured duration before pausing the MediaPlayer.
 	/// </summary>
 	public async void Pause()
 	{
-		//TODO get settings for this
-		//await CrossfadePause();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false") && !isFading)
+		{
+			isFading = true;
+			try
+			{
+				var fadeTime = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? "700");
+				int steps = fadeTime / 10;
+
+				for (int i = 0; i <= steps; i++)
+				{
+					double progress = (double)i / steps;
+					MediaPlayer.Volume = initialVolume * Math.Pow((1 - progress), 2);
+					await Task.Delay(10);
+				}
+			}
+			catch (Exception)
+			{
+				//ignored
+			}
+			finally
+			{
+				isFading = false;
+			}
+		}
 		MediaPlayer.Pause();
 	}
 
 	/// <summary>
-	/// Starts audio playback of the currently loaded song in the music player.
-	/// If no song is loaded, this method has no effect.
+	/// Initiates playback of the current song in the music player.
+	/// If fade-in is enabled in the application settings, the volume is gradually increased to the configured level.
+	/// Otherwise, playback begins immediately at the default volume.
 	/// </summary>
 	public async void Play()
 	{
-		//TODO get settings for this
-		//await CrossfadePause();
-		MediaPlayer.Play();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false") && !isFading)
+		{
+			isFading = true;
+			try
+			{
+				MediaPlayer.Volume = 0;
+				MediaPlayer.Play();
+
+				var fadeTime = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? "700");
+				int steps = fadeTime / 10;
+
+				for (int i = 0; i <= steps; i++)
+				{
+					double progress = (double)i / steps;
+					MediaPlayer.Volume = initialVolume * Math.Pow(progress, 2);
+					await Task.Delay(10);
+				}
+			}
+			catch (Exception)
+			{
+			}
+			finally
+			{
+				MediaPlayer.Volume = initialVolume;
+				isFading = false;
+			}
+		}
+		else
+		{
+			MediaPlayer.Volume = initialVolume;
+			MediaPlayer.Play();
+		}
 	}
 
 
@@ -368,7 +408,7 @@ public class MusicPlayer
 	/// Throws an exception if there is an error loading the next song.
 	/// A global error notification is displayed and moves to next song when this occurs.
 	/// </exception>
-	public async void Next()
+	public async void Next(bool? nextTrackAutoChange = null)
 	{
 		try
 		{
@@ -396,7 +436,7 @@ public class MusicPlayer
 						}
 						else
 						{
-							await CrossfadePause();
+							Pause();
 							return;
 						}
 					}
@@ -406,19 +446,19 @@ public class MusicPlayer
 					}
 					else if (RepeatStatus == RepeatMode.None)
 					{
-						await CrossfadePause();
+						Pause();
 						return;
 					}
 				}
 			}
 			else return;
 
-			LoadSong();
+			LoadSong(nextTrackAutoChange);
 		}
 		catch (Exception)
 		{
 			GlobalNotification.Error("Could not load next song");
-			Next();
+			Next(nextTrackAutoChange);
 		}
 	}
 
@@ -525,19 +565,6 @@ public class MusicPlayer
 			await Task.Delay(50);
 		}
 	}
-	private async Task CrossfadePause()
-	{
-		//TODO get settings for time
-		double volume = MediaPlayer.Volume;
-		for (double i = volume; i > 0; i -= 0.05)
-		{
-			MediaPlayer.Volume = i;
-			await Task.Delay(50);
-		}
-
-		MediaPlayer.Pause();
-		MediaPlayer.Volume = volume;
-	}
 
 	/// <summary>
 	/// Handles the end of the currently playing track by initiating playback of the next song in the queue or playlist.
@@ -546,7 +573,7 @@ public class MusicPlayer
 	/// </summary>
 	private void HandleTrackEnd()
 	{
-		Next();
+		Next(true);
 	}
 
 	/// <summary>

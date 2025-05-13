@@ -76,7 +76,7 @@
 				<dev:SettingsExpander.Items>
 					<dev:SettingsCard x:Name="IgnoreTrack"
 					                  Header="Ignore Short Tracks">
-						<NumberBox Name="numberBox"
+						<NumberBox x:Name="IgnoretracksDuration"
 						           Header="Duration"
 						           SmallChange="1"
 						           SpinButtonPlacementMode="Inline" />
@@ -135,13 +135,12 @@
 							        HorizontalAlignment="Right"
 							        IsEnabledChanged="PlayPauseStopFadeSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
-							        Maximum="3000"
-							        Minimum="0"
-							        SmallChange="1"
+							        Maximum="1000"
+							        Minimum="100"
+							        SmallChange="10"
 							        SnapsTo="Ticks"
-							        TickFrequency="100"
-							        TickPlacement="None"
-							        ValueChanged="PlayPauseStopFadeSlider_OnValueChanged" />
+							        TickFrequency="10"
+							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="AutoAdvanceCard"
@@ -155,12 +154,11 @@
 							        IsEnabledChanged="AutoAdvanceSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="5000"
-							        Minimum="0"
-							        SmallChange="1"
+							        Minimum="100"
+							        SmallChange="10"
 							        SnapsTo="Ticks"
-							        TickFrequency="100"
-							        TickPlacement="None"
-							        ValueChanged="AutoAdvanceSlider_OnValueChanged" />
+							        TickFrequency="10"
+							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="ManualTrackChangeCard"
@@ -174,12 +172,11 @@
 							        IsEnabledChanged="ManualTrackChangeSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="5000"
-							        Minimum="0"
-							        SmallChange="1"
+							        Minimum="100"
+							        SmallChange="10"
 							        SnapsTo="Ticks"
-							        TickFrequency="100"
-							        TickPlacement="None"
-							        ValueChanged="ManualTrackChangeSlider_OnValueChanged" />
+							        TickFrequency="10"
+							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>

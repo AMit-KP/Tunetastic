@@ -62,17 +62,20 @@ public sealed partial class SettingsPage : Page
 
 		LoadAppearanceAndBehaviourSettings();
 
-		Theme.SelectionChanged += Theme_SelectionChanged;
-		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
-		numberBox.ValueChanged += NumberBox_ValueChanged;
-		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
-		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
-
 		LoadLibrarySettings();
 
 		LoadAudioAndPlayBackSettings();
 
 		UpdateExtentionListOnUI();
+
+		Theme.SelectionChanged += Theme_SelectionChanged;
+		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
+		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
+		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
+		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
+		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
+		AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
+		ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
 
 		if (GetMusicDataService.IsScanning) ScanButton_Click(null, null);
 	}
@@ -338,7 +341,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">Event arguments containing details of the IsEnabled property change.</param>
 	private void PlayPauseStopFadeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
 	{
-		PlayPauseStopFadeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? 1000.ToString());
+		PlayPauseStopFadeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? 700.ToString());
 		PlayPauseStopFadeSlider_OnValueChanged(PlayPauseStopFadeSlider, null);
 	}
 
@@ -705,7 +708,7 @@ public sealed partial class SettingsPage : Page
 
 		IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
 
-		numberBox.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
+		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 
 		Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
 	}
