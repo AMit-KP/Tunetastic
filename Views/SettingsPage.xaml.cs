@@ -74,8 +74,10 @@ public sealed partial class SettingsPage : Page
 		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
 		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
 		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
-		AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
-		ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
+		#region Uncomment when crossfade is implemented properly
+		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
+		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged; 
+		#endregion
 
 		if (GetMusicDataService.IsScanning) ScanButton_Click(null, null);
 	}
@@ -726,19 +728,23 @@ public sealed partial class SettingsPage : Page
 		PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
 		PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
 
-		AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
+		#region Uncomment when crossfade is implemented properly
+		/*AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
 		AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
 
 		ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
-		ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);
+		ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);*/
+		#endregion
 
 		PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
 		RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
 
-		UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
+		#region Uncomment this is implemented
+		//UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
 
-		PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
+		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"); 
+		#endregion
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
 	}

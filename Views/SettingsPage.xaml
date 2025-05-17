@@ -144,7 +144,8 @@
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="AutoAdvanceCard"
-					                  Header="Auto advance Crossfading">
+					                  Header="Auto advance Crossfading"
+					                  Visibility="Collapsed">
 						<StackPanel>
 							<ToggleSwitch x:Name="AutoAdvanceSwitch"
 							              HorizontalAlignment="Right"
@@ -162,7 +163,8 @@
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="ManualTrackChangeCard"
-					                  Header="Manual Track Change Crossfading">
+					                  Header="Manual Track Change Crossfading"
+					                  Visibility="Collapsed">
 						<StackPanel>
 							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
 							              HorizontalAlignment="Right"
@@ -192,12 +194,14 @@
 				              Toggled="RestartTrackOnSelection_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will use the system volume control to control the volume of the track that is currently playing."
-			                  Header="Use System Volume Control">
+			                  Header="Use System Volume Control"
+			                  Visibility="Collapsed">
 				<ToggleSwitch x:Name="UseSystemVolume"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
-			                  Header="Pause on Mute">
+			                  Header="Pause on Mute"
+			                  Visibility="Collapsed">
 				<ToggleSwitch x:Name="PauseOnMute"
 				              Toggled="PauseOnMute_OnToggled" />
 			</dev:SettingsCard>
