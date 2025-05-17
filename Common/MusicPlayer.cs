@@ -1,4 +1,5 @@
-﻿using Windows.Media.Core;
+﻿using Windows.Media;
+using Windows.Media.Core;
 using Windows.Media.Playback;
 
 namespace Tunetastic.Common;
@@ -122,7 +123,6 @@ public class MusicPlayer
 		}
 	}
 
-
 	/// <summary>
 	/// A property representing the current repeat mode for the music player.
 	/// Determines the playback loop behavior, such as repeating a single song,
@@ -130,14 +130,43 @@ public class MusicPlayer
 	/// </summary>
 	public RepeatMode RepeatStatus { get; private set; } = RepeatMode.All;
 
+	/// <summary>
+	/// Represents the System Media Transport Controls (SMTC) associated with the MediaPlayer instance.
+	/// SMTC provides integration with system-level media controls, allowing users to interact with the
+	/// music player using hardware or software controls such as play, pause, next, and previous buttons.
+	/// It is configured to handle button press events and update playback status.
+	/// </summary>
+	public SystemMediaTransportControls SMTC;
+
+	/// <summary>
+	/// A private field indicating whether the music player is currently performing a fade operation
+	/// (e.g., volume fade during play/pause or stop transitions).
+	/// This field is used to prevent simultaneous fade processes and manage transitions smoothly.
+	/// </summary>
+	private bool isFading = false;
+
+	/// <summary>
+	/// A private constant field representing the initial default volume for the media player.
+	/// This value is used as the base volume level when fading in or out during playback transitions.
+	/// It ensures a consistent starting point for audio volume across various playback scenarios.
+	/// </summary>
+	private const double initialVolume = 1.0;
+
 	private MusicPlayer()
 	{
 		MediaPlayer = new MediaPlayer();
 		MediaPlayer.AutoPlay = false;
+		MediaPlayer.AudioCategory = MediaPlayerAudioCategory.Media;
 		SongQueue = new Queue<string>();
 		MediaPlayer.MediaEnded += (s, e) => HandleTrackEnd();
+		SMTCSetup();
 	}
 
+	/// <summary>
+	/// Gets the single instance of the <see cref="MusicPlayer"/> class, adhering to the singleton design pattern.
+	/// This property ensures a globally accessible and consistent instance of the MusicPlayer is available within the application.
+	/// The instance is lazily instantiated upon first access.
+	/// </summary>
 	public static MusicPlayer Instance
 	{
 		get
@@ -145,6 +174,21 @@ public class MusicPlayer
 			_instance ??= new MusicPlayer();
 			return _instance;
 		}
+	}
+
+	/// <summary>
+	/// Configures the System Media Transport Controls (SMTC) for the music player to enable integration with system media controls.
+	/// This setup includes enabling play, pause, next, and previous buttons and attaching handlers for button press events.
+	/// </summary>
+	private void SMTCSetup()
+	{
+		MediaPlayer.CommandManager.IsEnabled = false;
+		SMTC = MediaPlayer.SystemMediaTransportControls;
+		SMTC.IsPlayEnabled = true;
+		SMTC.IsPauseEnabled = true;
+		SMTC.IsNextEnabled = true;
+		SMTC.IsPreviousEnabled = true;
+		SMTC.IsEnabled = true;
 	}
 
 	/// <summary>
@@ -156,32 +200,14 @@ public class MusicPlayer
 	/// An optional parameter specifying the path of the song to start playing.
 	/// If null, the first song in the playlist is used.
 	/// </param>
-	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null)
+	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true)
 	{
-		await LoadSong(startingSong ?? songPaths[0]);
+		await LoadSong(startingSong ?? songPaths[0], play);
 		_ = Task.Run(() =>
 		{
-
 			OriginalPlaylist = new List<string>(songPaths);
 
 			ShuffleSongs(startingSong);
-		});
-	}
-
-	/// <summary>
-	/// Loads the last played playlist into the music player and sets the starting index for playback.
-	/// This method updates the internal playlist and prepares the player for resumed playback.
-	/// </summary>
-	/// <param name="songPaths">A list of song file paths representing the previously played playlist.</param>
-	/// <param name="index">The zero-based index of the song that should be set as the current song.</param>
-	public void LoadLastPlayed(List<string> songPaths)
-	{
-		_ = Task.Run(() =>
-		{
-			OriginalPlaylist = new List<string>(songPaths);
-
-			ShuffleSongs();
-			currentIndex = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentIndex)]?.ToString() ?? "0");
 		});
 	}
 
@@ -224,124 +250,200 @@ public class MusicPlayer
 	public void AddToQueue(string songPath) => SongQueue?.Enqueue(songPath);        //TODO queue system
 
 	/// <summary>
-	/// Loads and prepares the current song in the playlist for playback.
-	/// If a playlist is available, this method selects the song at the current index and loads it.
+	/// Loads a specified song into the media player and optionally starts playback. Supports fading transitions based on the specified fade type.
 	/// </summary>
-	private async void LoadSong()
-	{
-		if (ActualPlaylist?.Count > 0)
-		{
-			await LoadSong(ActualPlaylist[currentIndex]);
-		}
-	}
-
-	/// <summary>
-	/// Loads and prepares the specified song for playback, updating the music player's state and optionally starting playback.
-	/// This method also updates the track to be marked as the current song.
-	/// </summary>
-	/// <param name="songPath">The file path of the song to be loaded into the music player.</param>
-	/// <param name="play">
-	/// Optional parameter indicating whether playback should automatically start after loading the song.
-	/// Defaults to true if not specified.
-	/// </param>
-	/// <returns>An asynchronous task that represents the operation of loading the song.</returns>
-	public async Task LoadSong(string? songPath, bool play = true)
+	/// <param name="songPath">The file path or URL of the song to be loaded. If null or empty, the method exits without performing any action.</param>
+	/// <param name="play">Determines whether playback starts after loading. Defaults to true.</param>
+	/// <param name="fadeType">Specifies the type of fade transition to apply during song change. Options include none, manual, or automatic advance. Defaults to null.</param>
+	/// <returns>A task representing the asynchronous operation of loading the song.</returns>
+	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null)
 	{
 		try
 		{
-			if (songPath == null || songPath == "") return;
+			if (string.IsNullOrWhiteSpace(songPath)) return;
 
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-			if (!(songPath == CurrentSong) || bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "false"))
+			bool isPlaying = MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
+
+			if (songPath == CurrentSong)
 			{
-				//await CrossfadeTransition(ActualPlaylist[currentIndex]);          //TODO get settings
-				MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
-				if (play) MediaPlayer.Play();
-				CurrentSong = songPath;
-				Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
+				if (bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "false"))
+				{
+					//fadeType = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false") ? FadeType.Manual : FadeType.None;
+				}
+				else
+				{
+					if (!isPlaying) Play();
+					return;
+				}
 			}
+
+			#region When crossfade works then use this
+			/*double selectedFadeTime = fadeType switch
+				{
+					FadeType.Manual => double.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeValue)]?.ToString() ?? "1000"),
+					FadeType.AutoAdvance => double.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceValue)]?.ToString() ?? "1000"),
+					_ => 0
+				};
+
+				if (!play)
+				{
+					MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+				}
+				else if (fadeType == FadeType.None)
+				{
+					MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+					MediaPlayer.Play();
+				}
+				else
+				{
+					await (fadeType == null && !isPlaying
+						? Task.Run(() => { MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath)); Play(); })
+						: CrossfadeTransition(songPath, selectedFadeTime));
+				}*/
+			#endregion
+
+			MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+			if (play) Play();
+
+			CurrentSong = songPath;
+			localSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Could not load song:\n" + songPath);
+			GlobalNotification.Error($"Could not load song:\n{songPath}");
+			Next(autoChange: play);
+			//TODO handle when folder renamed/removed
 		}
 	}
 
-
 	/// <summary>
-	/// Pauses playback of the currently playing media track.
-	/// This method halts the MediaPlayer's active playback session.
+	/// Pauses the playback of the current song and optionally performs a fade-out effect by gradually reducing the volume if enabled in settings.
+	/// If the fade-out effect is enabled, the volume decreases smoothly over a configured duration before pausing the MediaPlayer.
 	/// </summary>
 	public async void Pause()
 	{
-		//TODO get settings for this
-		//await CrossfadePause();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false") && !isFading)
+		{
+			isFading = true;
+			try
+			{
+				var fadeTime = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? "700");
+				int steps = fadeTime / 10;
+
+				for (int i = 0; i <= steps; i++)
+				{
+					double progress = (double)i / steps;
+					MediaPlayer.Volume = initialVolume * Math.Pow((1 - progress), 2);
+					await Task.Delay(10);
+				}
+			}
+			catch (Exception)
+			{
+				//ignored
+			}
+			finally
+			{
+				isFading = false;
+			}
+		}
 		MediaPlayer.Pause();
 	}
 
 	/// <summary>
-	/// Starts audio playback of the currently loaded song in the music player.
-	/// If no song is loaded, this method has no effect.
+	/// Initiates playback of the current song in the music player.
+	/// If fade-in is enabled in the application settings, the volume is gradually increased to the configured level.
+	/// Otherwise, playback begins immediately at the default volume.
 	/// </summary>
 	public async void Play()
 	{
-		//TODO get settings for this
-		//await CrossfadePause();
-		MediaPlayer.Play();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false") && !isFading)
+		{
+			isFading = true;
+			try
+			{
+				MediaPlayer.Volume = 0;
+				MediaPlayer.Play();
+
+				var fadeTime = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? "700");
+				int steps = fadeTime / 10;
+
+				for (int i = 0; i <= steps; i++)
+				{
+					double progress = (double)i / steps;
+					MediaPlayer.Volume = initialVolume * Math.Pow(progress, 2);
+					await Task.Delay(10);
+				}
+			}
+			catch (Exception)
+			{
+			}
+			finally
+			{
+				MediaPlayer.Volume = initialVolume;
+				isFading = false;
+			}
+		}
+		else
+		{
+			MediaPlayer.Volume = initialVolume;
+			MediaPlayer.Play();
+		}
 	}
 
-
 	/// <summary>
-	/// Moves to the previous song in the current playlist based on saved user settings.
-	/// If settings allow restarting the current song and the playback position is below a threshold,
-	/// the current song restarts. Otherwise, the player navigates to the previous song.
-	/// If the current song is the first song in the playlist, the playback jumps to the last song.
+	/// Switches to the previous track in the playlist.
+	/// If PreviousResetStatus is true and the current track's playback position is more than 5 sec predefined threshold,
+	/// the player restarts the track. Otherwise, it moves to the previous track
+	/// in the playlist order, or to the last track if the current track is the first one.
+	/// This method handles manual crossfade settings and playback state preservation.
+	/// If an error occurs during the operation, the player attempts to shift to the next track.
 	/// </summary>
-	/// <remarks>
-	/// Ensures playlist continuity when moving backwards, either by restarting the current song or moving to the previous one.
-	/// Displays an error notification if the previous song cannot be loaded.
-	/// </remarks>
 	public async void Previous()
 	{
-		//TODO get settings for this restart or prev
 		try
 		{
-			var restart = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
-			if (!restart || (restart && MediaPlayer.PlaybackSession.Position.TotalSeconds < 5))
+			if (ActualPlaylist?.Count > 0)
 			{
-				if (OriginalPlaylist?.Count > 0)
-					currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
-				else return;
-			}
+				var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+				bool restartOnPrevious = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
-			LoadSong();
+				if (!restartOnPrevious || MediaPlayer.PlaybackSession.Position.TotalSeconds < 5)
+				{
+					currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
+				}
+
+				bool isPlaying = MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
+				bool manualCrossfadeEnabled = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
+
+				await LoadSong(ActualPlaylist[currentIndex], isPlaying, isPlaying && manualCrossfadeEnabled ? FadeType.Manual : FadeType.None);
+			}
+			else return;
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Could not load previous song");
+			GlobalNotification.Error("Could not load previous song.");
+			Next();
 		}
 	}
 
 	/// <summary>
-	/// Skips to the next song in the playback queue or playlist, following the current shuffle and repeat modes.
-	/// If the queue has songs, the next song is dequeued and played. Otherwise, the next song in the playlist is loaded.
-	/// Handles transitions and repeat behaviors, such as restarting the playlist or pausing playback when the end is reached.
+	/// Advances the current song index to the next song in the playlist.
+	/// Depending on the repeat mode, it will either loop the playlist, play the same song,
+	/// or stop playback if there is no further song to play.
 	/// </summary>
-	/// <exception cref="Exception">
-	/// Throws an exception if there is an error loading the next song.
-	/// A global error notification is displayed when this occurs.
-	/// </exception>
-	public async void Next()
+	/// <param name="autoChange">If set to true, the playback will automatically advance to the next song; otherwise, playback state will be maintained based on user action.</param>
+	public async void Next(bool autoChange = false)
 	{
 		try
 		{
-			if (SongQueue?.Count > 0)
-			{
-				await CrossfadeTransition(SongQueue.Dequeue());
-				return;
-			}
-
-			if (OriginalPlaylist != null)
+			//TODO handle queue
+			if (OriginalPlaylist?.Count > 0)
 			{
 				if (currentIndex < OriginalPlaylist.Count - 1)
 				{
@@ -349,39 +451,54 @@ public class MusicPlayer
 				}
 				else
 				{
-					if (RepeatStatus == RepeatMode.One)
+					switch (RepeatStatus)
 					{
+						case RepeatMode.One:
+							if (!alreadyPlayed)
+							{
+								currentIndex = 0;
+								alreadyPlayed = true;
+							}
+							else
+							{
+								if (autoChange) Pause();
+								return;
+							}
+							break;
 
-						if (!alreadyPlayed)
-						{
-							currentIndex = 0;
-							alreadyPlayed = true;
-						}
-						else
-						{
-							await CrossfadePause();
+						case RepeatMode.All:
+							LoadPlaylist(OriginalPlaylist, ActualPlaylist[0]);
 							return;
-						}
-					}
-					else if (RepeatStatus == RepeatMode.All)
-					{
-						LoadPlaylist(OriginalPlaylist);
-					}
-					else if (RepeatStatus == RepeatMode.None)
-					{
-						await CrossfadePause();
-						return;
+
+						case RepeatMode.None:
+							if (autoChange) Pause();
+							return;
 					}
 				}
+
+				bool isPlaying = autoChange ? autoChange : MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
+
+				var fadeType = isPlaying ? bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[autoChange ? nameof(LocalSave.AutoAdvanceStatus) : nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false") ? (autoChange ? FadeType.AutoAdvance : FadeType.Manual) : FadeType.None : FadeType.None;
+
+				await LoadSong(ActualPlaylist[currentIndex], isPlaying, fadeType);
 			}
 			else return;
-
-			LoadSong();
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Could not load next song");
+			GlobalNotification.Error("Could not load next song.");
+			Next(autoChange);
 		}
+	}
+
+	/// <summary>
+	/// Handles the end of the current track playback by advancing to the next track in the queue.
+	/// This method is triggered when the MediaPlayer's MediaEnded event occurs,
+	/// ensuring a seamless transition to the next song when auto-change is enabled.
+	/// </summary>
+	private void HandleTrackEnd()
+	{
+		Next(autoChange: true);
 	}
 
 	/// <summary>
@@ -430,85 +547,30 @@ public class MusicPlayer
 		}
 	}
 
-	private MediaPlayer MediaPlayerNext = new MediaPlayer(); // Second player for blending
-
+	//Do not use for now as it causes other issues
 	private async Task CrossfadeTransition(string songPath, double fadeTime)
 	{
-		double initialVolume = MediaPlayer.Volume;
-
-		// Start next track on second player, but muted
+		MediaPlayer MediaPlayerNext = new();
 		MediaPlayerNext.Source = MediaSource.CreateFromUri(new Uri(songPath));
 		MediaPlayerNext.Volume = 0;
 		MediaPlayerNext.Play();
 
-		// Gradually lower the volume of the current track while raising the new one
-		for (double i = 0; i < fadeTime; i += 0.05)
+		var steps = fadeTime / 10;
+		for (int i = 0; i <= steps; i++)
 		{
-			MediaPlayer.Volume = initialVolume * (1 - (i / fadeTime));  // Fade out current song
-			MediaPlayerNext.Volume = initialVolume * (i / fadeTime);  // Fade in new song
-			await Task.Delay(50);
-		}
-
-		// Stop previous player and transfer control to the new one
-		MediaPlayer.Pause();
-		MediaPlayer = MediaPlayerNext;
-		MediaPlayerNext = new MediaPlayer(); // Reset second player
-	}
-
-	private async Task CrossfadeTransition(string songPath)
-	{
-		//TODO get settings for time
-		double volume = MediaPlayer.Volume;
-
-		// Fade out current track
-		for (double i = volume; i > 0; i -= 0.05)
-		{
-			MediaPlayer.Volume = i;
-			await Task.Delay(50);
-		}
-
-		try
-		{
-			MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
-			MediaPlayer.Play();
-		}
-		catch (Exception)
-		{
-			//TODO error notification
-			MediaPlayer.Volume = volume;
-			Next();
-
-		}
-
-		// Fade in new track
-		for (double i = 0; i <= volume; i += 0.05)
-		{
-			MediaPlayer.Volume = i;
-			await Task.Delay(50);
-		}
-	}
-	private async Task CrossfadePause()
-	{
-		//TODO get settings for time
-		double volume = MediaPlayer.Volume;
-		for (double i = volume; i > 0; i -= 0.05)
-		{
-			MediaPlayer.Volume = i;
-			await Task.Delay(50);
+			double progress = (double)i / steps;
+			MediaPlayerNext.Volume = initialVolume * Math.Pow(progress, 2);
+			MediaPlayer.Volume = initialVolume * Math.Pow((1 - progress), 2);
+			await Task.Delay(10);
 		}
 
 		MediaPlayer.Pause();
-		MediaPlayer.Volume = volume;
-	}
-
-	/// <summary>
-	/// Handles the end of the currently playing track by initiating playback of the next song in the queue or playlist.
-	/// This method respects the shuffle and repeat modes to determine the next track to play.
-	/// If no more tracks are available to play, it pauses playback or loops based on the repeat mode.
-	/// </summary>
-	private void HandleTrackEnd()
-	{
-		Next();
+		MediaPlayer.Volume = initialVolume;
+		MediaPlayer.Source = MediaSource.CreateFromUri(new Uri(songPath));
+		MediaPlayer.PlaybackSession.Position = MediaPlayerNext.PlaybackSession.Position;
+		MediaPlayer.Play();
+		MediaPlayerNext.Pause();
+		MediaPlayerNext.Dispose();
 	}
 
 	/// <summary>
@@ -564,4 +626,11 @@ public enum ShuffleMode
 {
 	Off,
 	On
+}
+
+public enum FadeType
+{
+	None,
+	Manual,
+	AutoAdvance
 }

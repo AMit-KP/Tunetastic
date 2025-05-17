@@ -1,5 +1,7 @@
 ﻿using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Input;
 using AutoSuggestBoxHelper = DevWinUI.AutoSuggestBoxHelper;
+using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
 
@@ -9,6 +11,8 @@ namespace Tunetastic.Views;
 /// </summary>
 public sealed partial class MainPage : Page
 {
+	public static MainPage? _instance;
+
 	/// <summary>
 	/// Initializes a new instance of the MainPage class.
 	/// </summary>
@@ -19,7 +23,7 @@ public sealed partial class MainPage : Page
 	public MainPage()
 	{
 		this.InitializeComponent();
-		this.InitializeComponent();
+		_instance = this;
 		App.MainWindow.ExtendsContentIntoTitleBar = true;
 		App.MainWindow.SetTitleBar(AppTitleBar);
 		var mainWin = App.MainWindow as MainWindow; // ✅ Get MainWindow instance
@@ -41,6 +45,25 @@ public sealed partial class MainPage : Page
 				.ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappings.PageDictionary);
 		}
 		MusicControlsArea.Navigate(typeof(MusicControl));
+	}
+
+	/// <summary>
+	/// Determines whether the search box in the main page is currently focused.
+	/// </summary>
+	/// <value>
+	/// A boolean value indicating the focus state of the search box.
+	/// Returns true if the currently focused element in the main page is a <see cref="Microsoft.UI.Xaml.Controls.TextBox"/>, otherwise false.
+	/// </value>
+	/// <remarks>
+	/// This property is used to identify whether the search box is actively focused, allowing conditional logic based on user interaction
+	/// with the search box. For instance, it is utilized to block specific key events, such as spacebar, when the search box is in focus.
+	/// </remarks>
+	public bool searchBoxFocused
+	{
+		get
+		{
+			return FocusManager.GetFocusedElement(XamlRoot) is TextBox;
+		}
 	}
 
 	/// <summary>

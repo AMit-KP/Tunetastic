@@ -20,7 +20,8 @@
 		          IsPaneToggleButtonVisible="True">
 			<!--  IconSource="{dev:BitmapIconSource Source=ms-appx:///Assets/AppIcon.png}"  -->
 			<!--  Issue with windows app sdk  -->
-			<AutoSuggestBox MinWidth="320"
+			<AutoSuggestBox x:Name="SearchBox"
+			                MinWidth="320"
 			                VerticalAlignment="Center"
 			                PlaceholderText="Search"
 			                QueryIcon="Find"

@@ -62,17 +62,22 @@ public sealed partial class SettingsPage : Page
 
 		LoadAppearanceAndBehaviourSettings();
 
-		Theme.SelectionChanged += Theme_SelectionChanged;
-		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
-		numberBox.ValueChanged += NumberBox_ValueChanged;
-		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
-		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
-
 		LoadLibrarySettings();
 
 		LoadAudioAndPlayBackSettings();
 
 		UpdateExtentionListOnUI();
+
+		Theme.SelectionChanged += Theme_SelectionChanged;
+		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
+		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
+		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
+		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
+		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
+		#region Uncomment when crossfade is implemented properly
+		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
+		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged; 
+		#endregion
 
 		if (GetMusicDataService.IsScanning) ScanButton_Click(null, null);
 	}
@@ -338,7 +343,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">Event arguments containing details of the IsEnabled property change.</param>
 	private void PlayPauseStopFadeSlider_OnIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs? e)
 	{
-		PlayPauseStopFadeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? 1000.ToString());
+		PlayPauseStopFadeSlider.Value = int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? 700.ToString());
 		PlayPauseStopFadeSlider_OnValueChanged(PlayPauseStopFadeSlider, null);
 	}
 
@@ -677,6 +682,7 @@ public sealed partial class SettingsPage : Page
 		MainPlayerBlurSlider.Value = int.Parse(localSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? 5.ToString());
 		RainbowToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false");
 		RainbowToggle_OnToggled(RainbowToggle, null);
+		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
 	}
 
 	/// <summary>
@@ -704,7 +710,7 @@ public sealed partial class SettingsPage : Page
 
 		IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
 
-		numberBox.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
+		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 
 		Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
 	}
@@ -722,19 +728,23 @@ public sealed partial class SettingsPage : Page
 		PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
 		PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
 
-		AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
+		#region Uncomment when crossfade is implemented properly
+		/*AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
 		AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
 
 		ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
-		ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);
+		ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);*/
+		#endregion
 
 		PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
 		RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
 
-		UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
+		#region Uncomment this is implemented
+		//UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
 
-		PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
+		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"); 
+		#endregion
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
 	}
@@ -825,5 +835,16 @@ public sealed partial class SettingsPage : Page
 			App.Current.RainbowFrame.UpdateEffectSpeed(51 - effectSpeed);
 		}
 	}
-}
 
+	/// <summary>
+	/// Handles the event triggered when the toggle switch for "Minimize to Tray" is toggled on the settings page.
+	/// Updates the corresponding application setting and configures the minimize behavior of the main application window.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the toggle switch control named "MinimizeToTray".</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private void MinimizeToTray_OnToggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)] = MinimizeToTray.IsOn;
+		MainWindow.SetMinimizeBehaviourStatic(MinimizeToTray.IsOn);
+	}
+}
