@@ -8,10 +8,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
 
-	<Page.Resources>
-		<helpers:DurationConverter x:Key="DurationConverter" />
-	</Page.Resources>
-
 	<Grid x:Name="MusicControls"
 	      Margin="0,0,0,0"
 	      VerticalAlignment="Bottom">

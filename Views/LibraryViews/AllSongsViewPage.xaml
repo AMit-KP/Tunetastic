@@ -10,86 +10,339 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      ActualThemeChanged="Page_ActualThemeChanged"
+      Loaded="Page_Loaded"
+      SizeChanged="Page_SizeChanged"
       mc:Ignorable="d">
 
-	<Page.Resources>
-		<common:DurationConverter x:Key="DurationConverter" />
-	</Page.Resources>
-	<Grid>
-		<ListView Margin="10,10,10,10"
-		          VerticalAlignment="Top"
-		          IsItemClickEnabled="True"
-		          ItemClick="ListView_ItemClick"
-		          ItemsSource="{x:Bind AllSongs}">
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<Grid Grid.Row="0"
+		      Margin="15,10,45,10">
+			<TextBlock HorizontalAlignment="Left"
+			           Style="{ThemeResource TitleTextBlockStyle}"
+			           Text="All Songs" />
 
-			<ListView.Header>
-				<Border Height="40"
-				        Background="{ThemeResource AcrylicInAppFillColorBaseBrush}"
-				        CornerRadius="8">
-
-					<interactivity:Interaction.Behaviors>
-						<behaviors:QuickReturnHeaderBehavior />
-					</interactivity:Interaction.Behaviors>
-
-					<controls:DataTable Margin="12,0,0,0"
-					                    ColumnSpacing="10">
-						<controls:DataColumn DesiredWidth="40" />
-						<controls:DataColumn Content="Title"
-						                     DesiredWidth="300"
-						                     FontWeight="Bold" />
-						<controls:DataColumn CanResize="True"
-						                     Content="Artists"
-						                     DesiredWidth="*"
-						                     FontWeight="Bold" />
-						<controls:DataColumn DesiredWidth="*">
-							<TextBlock FontWeight="Bold"
-							           Text="Album" />
-						</controls:DataColumn>
-						<controls:DataColumn Content="Duration"
-						                     DesiredWidth="125"
-						                     FontWeight="Bold" />
-					</controls:DataTable>
-				</Border>
-			</ListView.Header>
-
-			<ListView.ItemTemplate>
-				<DataTemplate x:DataType="local:Song">
-					<controls:DataRow HorizontalAlignment="Left">
-						<Grid Width="40"
-						      Height="60"
-						      CornerRadius="10">
-							<Image VerticalAlignment="Center"
-							       Source="{x:Bind Cover}" />
-						</Grid>
-						<dev:AutoScrollView VerticalAlignment="Center"
-						                    VerticalContentAlignment="Center"
-						                    IsPlaying="True">
-							<TextBlock HorizontalAlignment="Left"
-							           VerticalAlignment="Center"
-							           Text="{x:Bind Title}"
-							           ToolTipService.ToolTip="{x:Bind Title}" />
-						</dev:AutoScrollView>
-						<TextBlock HorizontalAlignment="Left"
+			<StackPanel x:Name="PageButtons"
+			            HorizontalAlignment="Right"
+			            Orientation="Horizontal"
+			            Spacing="15">
+				<StackPanel Orientation="Horizontal"
+				            Spacing="5">
+					<Button x:Name="ShuffleAndPlay"
+					        HorizontalAlignment="Right"
+					        Click="ShuffleAndPlayButton_OnClick"
+					        ToolTipService.ToolTip="Shuffle And Play All">
+						<FontIcon Glyph="&#xE8B1;" />
+					</Button>
+					<Button x:Name="PlayAll"
+					        HorizontalAlignment="Right"
+					        Click="PlayAllButton_OnClick"
+					        ToolTipService.ToolTip="Play All">
+						<FontIcon Glyph="&#xF5B0;" />
+					</Button>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal"
+				            Spacing="5">
+					<DropDownButton x:Name="SortDropDown"
+					                HorizontalAlignment="Right">
+						<DropDownButton.Flyout>
+							<MenuFlyout x:Name="Sort"
+							            Placement="BottomEdgeAlignedRight">
+								<RadioMenuFlyoutItem x:Name="Title"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Title" />
+								<RadioMenuFlyoutItem x:Name="Artists"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Artists" />
+								<RadioMenuFlyoutItem x:Name="Album"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Album" />
+								<RadioMenuFlyoutItem x:Name="Duration"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Duration" />
+								<MenuFlyoutSeparator />
+								<RadioMenuFlyoutItem x:Name="Ascending"
+								                     Click="SortButton_OnClick"
+								                     GroupName="Order"
+								                     Text="Ascending" />
+								<RadioMenuFlyoutItem x:Name="Descending"
+								                     Click="SortButton_OnClick"
+								                     GroupName="Order"
+								                     Text="Descending" />
+							</MenuFlyout>
+						</DropDownButton.Flyout>
+					</DropDownButton>
+					<DropDownButton x:Name="ViewButton"
+					                HorizontalAlignment="Right"
+					                Content="View">
+						<DropDownButton.Flyout>
+							<MenuFlyout x:Name="ViewStyle"
+							            Placement="BottomEdgeAlignedRight">
+								<RadioMenuFlyoutItem x:Name="ListViewStyle"
+								                     Click="ViewButton_OnClick"
+								                     GroupName="View"
+								                     Text="List View" />
+								<RadioMenuFlyoutItem x:Name="CompactViewStyle"
+								                     Click="ViewButton_OnClick"
+								                     GroupName="View"
+								                     Text="Compact View" />
+							</MenuFlyout>
+						</DropDownButton.Flyout>
+					</DropDownButton>
+				</StackPanel>
+			</StackPanel>
+		</Grid>
+		<Grid Grid.Row="1">
+			<StackPanel x:Name="GoToSettings"
+			            HorizontalAlignment="Center"
+			            VerticalAlignment="Center"
+			            Orientation="Vertical"
+			            Spacing="30"
+			            Visibility="Visible">
+				<TextBlock HorizontalAlignment="Center"
+				           VerticalAlignment="Center"
+				           HorizontalTextAlignment="Center"
+				           Style="{ThemeResource SubtitleTextBlockStyle}"
+				           Text="No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned."
+				           TextAlignment="Center"
+				           TextWrapping="WrapWholeWords" />
+				<Button HorizontalAlignment="Center"
+				        VerticalAlignment="Center"
+				        Click="GotoSettigsButton_Click"
+				        Content="Open Settings" />
+			</StackPanel>
+			<StackPanel x:Name="LoadingProgress"
+			            HorizontalAlignment="Center"
+			            VerticalAlignment="Center"
+			            Orientation="Vertical"
+			            Spacing="30"
+			            Visibility="Collapsed">
+				<dev:LoadingIndicator Mode="Arcs" />
+				<Grid x:Name="CustomProgressBar"
+				      Width="400"
+				      Height="50"
+				      Background="{ThemeResource AccentAAFillColorDisabled}"
+				      BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+				      BorderThickness="2"
+				      CornerRadius="5">
+					<Rectangle x:Name="ProgressFill"
+					           Height="50"
+					           HorizontalAlignment="Left"
+					           Fill="{ThemeResource AccentAAFillColorDefaultBrush}" />
+					<Grid>
+						<TextBlock x:Name="ProgressFillText"
+						           HorizontalAlignment="Center"
 						           VerticalAlignment="Center"
-						           Text="{x:Bind Artists}"
-						           ToolTipService.ToolTip="{x:Bind Artists}" />
-						<TextBlock HorizontalAlignment="Left"
-						           VerticalAlignment="Center"
-						           Text="{x:Bind Album}"
-						           ToolTipService.ToolTip="{x:Bind Album}" />
-						<TextBlock HorizontalAlignment="Left"
-						           VerticalAlignment="Center"
-						           HorizontalTextAlignment="Left"
-						           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
-					</controls:DataRow>
-				</DataTemplate>
-			</ListView.ItemTemplate>
-			<ListView.ItemContainerStyle>
-				<Style BasedOn="{StaticResource DefaultListViewItemStyle}"
-				       TargetType="ListViewItem">
-					<Setter Property="HorizontalContentAlignment" Value="Stretch" />
-				</Style>
-			</ListView.ItemContainerStyle>
-		</ListView>
+						           Style="{ThemeResource BodyStrongTextBlockStyle}" />
+					</Grid>
+				</Grid>
+			</StackPanel>
+			<Grid x:Name="AllSongsListViewGrid">
+				<ListView x:Name="AllSongsListView"
+				          Margin="10,10,10,10"
+				          Padding="0,0,35,0"
+				          VerticalAlignment="Top"
+				          IsItemClickEnabled="True"
+				          ItemClick="ListView_ItemClick"
+				          ItemsSource="{x:Bind AllSongs}"
+				          ScrollViewer.CanContentRenderOutsideBounds="False"
+				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollMode="Enabled"
+				          SelectionChanged="ListView_SelectionChanged">
+
+					<ListView.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsStackPanel Orientation="Vertical" />
+						</ItemsPanelTemplate>
+					</ListView.ItemsPanel>
+
+					<ListView.Header>
+						<Border Height="40"
+						        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+						        BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+						        BorderThickness="0,0,0,2"
+						        CornerRadius="8">
+
+							<interactivity:Interaction.Behaviors>
+								<behaviors:StickyHeaderBehavior />
+							</interactivity:Interaction.Behaviors>
+
+							<controls:DataTable Margin="12,0,0,0"
+							                    ColumnSpacing="10">
+								<controls:DataColumn DesiredWidth="40" />
+								<controls:DataColumn Content="Title"
+								                     DesiredWidth="300"
+								                     FontWeight="Bold"
+								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+								<controls:DataColumn CanResize="True"
+								                     Content="Artists"
+								                     DesiredWidth="*"
+								                     FontWeight="Bold"
+								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+								<controls:DataColumn DesiredWidth="*">
+									<TextBlock FontWeight="Bold"
+									           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+									           Text="Album" />
+								</controls:DataColumn>
+								<controls:DataColumn Content="Duration"
+								                     DesiredWidth="125"
+								                     FontWeight="Bold"
+								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+							</controls:DataTable>
+						</Border>
+					</ListView.Header>
+
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="local:Song">
+							<controls:DataRow HorizontalAlignment="Left">
+								<Grid Width="40"
+								      Height="60"
+								      Margin="0,2,0,2"
+								      CornerRadius="10">
+									<Image VerticalAlignment="Center"
+									       Source="{x:Bind Cover}" />
+								</Grid>
+								<dev:AutoScrollView VerticalAlignment="Center"
+								                    VerticalContentAlignment="Center"
+								                    IsPlaying="True">
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           Text="{x:Bind Title}"
+									           ToolTipService.ToolTip="{x:Bind Title}" />
+								</dev:AutoScrollView>
+								<TextBlock HorizontalAlignment="Left"
+								           VerticalAlignment="Center"
+								           Text="{x:Bind Artists}"
+								           ToolTipService.ToolTip="{x:Bind Artists}" />
+								<TextBlock HorizontalAlignment="Left"
+								           VerticalAlignment="Center"
+								           Text="{x:Bind Album}"
+								           ToolTipService.ToolTip="{x:Bind Album}" />
+								<TextBlock HorizontalAlignment="Left"
+								           VerticalAlignment="Center"
+								           HorizontalTextAlignment="Left"
+								           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+							</controls:DataRow>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+					<ListView.ItemContainerStyle>
+						<Style BasedOn="{StaticResource DefaultListViewItemStyle}"
+						       TargetType="ListViewItem">
+							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+						</Style>
+					</ListView.ItemContainerStyle>
+				</ListView>
+			</Grid>
+			<Grid x:Name="AllSongCompactViewGrid">
+				<ListView x:Name="AllSongCompactView"
+				          Margin="10,10,10,10"
+				          Padding="0,0,35,0"
+				          VerticalAlignment="Top"
+				          IsItemClickEnabled="True"
+				          ItemClick="ListView_ItemClick"
+				          ItemsSource="{x:Bind AllSongs}"
+				          ScrollViewer.CanContentRenderOutsideBounds="False"
+				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollMode="Enabled"
+				          SelectionChanged="ListView_SelectionChanged">
+
+					<ListView.ItemsPanel>
+						<ItemsPanelTemplate>
+							<ItemsStackPanel Orientation="Vertical" />
+						</ItemsPanelTemplate>
+					</ListView.ItemsPanel>
+
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="local:Song">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+								<Grid Grid.Column="0">
+									<StackPanel Orientation="Horizontal"
+									            Spacing="20">
+										<Grid Width="100"
+										      Height="120"
+										      Margin="0,5,0,5"
+										      HorizontalAlignment="Center"
+										      VerticalAlignment="Center"
+										      CornerRadius="10">
+											<Image VerticalAlignment="Center"
+											       Source="{x:Bind Cover}" />
+										</Grid>
+										<StackPanel Width="Auto"
+										            HorizontalAlignment="Center"
+										            VerticalAlignment="Center"
+										            Orientation="Vertical"
+										            Spacing="5">
+											<TextBlock HorizontalAlignment="Left"
+											           VerticalAlignment="Center"
+											           Style="{ThemeResource SubtitleTextBlockStyle}"
+											           Text="{x:Bind Title}"
+											           TextWrapping="WrapWholeWords" />
+											<TextBlock HorizontalAlignment="Left"
+											           VerticalAlignment="Center"
+											           Style="{ThemeResource BodyStrongTextBlockStyle}"
+											           Text="{x:Bind Artists}"
+											           TextWrapping="WrapWholeWords" />
+											<TextBlock HorizontalAlignment="Left"
+											           VerticalAlignment="Center"
+											           Style="{ThemeResource BodyStrongTextBlockStyle}"
+											           Text="{x:Bind Album}"
+											           TextWrapping="WrapWholeWords" />
+										</StackPanel>
+									</StackPanel>
+								</Grid>
+								<Grid Grid.Column="1"
+								      HorizontalAlignment="Right"
+								      VerticalAlignment="Center">
+									<Grid.RowDefinitions>
+										<RowDefinition Height="60" />
+										<RowDefinition Height="45" />
+									</Grid.RowDefinitions>
+									<Grid Grid.Row="1"
+									      VerticalAlignment="Center">
+										<TextBlock HorizontalAlignment="Right"
+										           VerticalAlignment="Bottom"
+										           HorizontalTextAlignment="Right"
+										           Style="{ThemeResource BodyStrongTextBlockStyle}"
+										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+									</Grid>
+									<Grid Grid.Row="0"
+									      VerticalAlignment="Center">
+										<TextBlock HorizontalAlignment="Right"
+										           VerticalAlignment="Top"
+										           Style="{ThemeResource BodyStrongTextBlockStyle}"
+										           Text="{x:Bind Year}" />
+									</Grid>
+								</Grid>
+							</Grid>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+					<ListView.ItemContainerStyle>
+						<Style BasedOn="{StaticResource DefaultListViewItemStyle}"
+						       TargetType="ListViewItem">
+							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+						</Style>
+					</ListView.ItemContainerStyle>
+				</ListView>
+			</Grid>
+			<StackPanel x:Name="AlphabetNavigationPanel"
+			            Margin="0,50,30,10"
+			            HorizontalAlignment="Right"
+			            VerticalAlignment="Stretch"
+			            Orientation="Vertical"
+			            Spacing="0">
+			</StackPanel>
+		</Grid>
 	</Grid>
 </Page>

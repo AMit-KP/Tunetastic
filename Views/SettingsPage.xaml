@@ -4,7 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
-      xmlns:local="using:Tunetastic"
+      xmlns:local="using:Tunetastic.Common"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:model="using:Tunetastic.Generated.Protos"
       xmlns:views="using:Tunetastic.Views"
@@ -15,7 +15,7 @@
 	            HorizontalAlignment="Stretch"
 	            VerticalScrollBarVisibility="Auto">
 		<StackPanel Margin="20"
-		            Spacing="10">
+		            Spacing="15">
 
 
 			<!--  Library  -->
@@ -50,17 +50,33 @@
 			                      Header="Scan Libraries for Songs">
 
 				<StackPanel Orientation="Horizontal"
-				            Spacing="10">
-					<ProgressRing Name="ProgressRing"
-					              IsActive="False"
-					              Visibility="Collapsed" />
+				            Spacing="15">
+					<Grid x:Name="CustomProgressBar"
+					      Width="200"
+					      Height="30"
+					      Background="{ThemeResource AccentAAFillColorDisabled}"
+					      BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+					      BorderThickness="2"
+					      CornerRadius="5"
+					      Visibility="Collapsed">
+						<Rectangle x:Name="ProgressFill"
+						           Height="40"
+						           HorizontalAlignment="Left"
+						           Fill="{ThemeResource AccentAAFillColorDefaultBrush}" />
+						<Grid>
+							<TextBlock x:Name="ProgressFillText"
+							           HorizontalAlignment="Center"
+							           VerticalAlignment="Center"
+							           Style="{ThemeResource BodyStrongTextBlockStyle}" />
+						</Grid>
+					</Grid>
 					<Button Click="ScanButton_Click"
 					        Content="Scan" />
 				</StackPanel>
 				<dev:SettingsExpander.Items>
 					<dev:SettingsCard x:Name="IgnoreTrack"
 					                  Header="Ignore Short Tracks">
-						<NumberBox Name="numberBox"
+						<NumberBox x:Name="IgnoretracksDuration"
 						           Header="Duration"
 						           SmallChange="1"
 						           SpinButtonPlacementMode="Inline" />
@@ -119,17 +135,17 @@
 							        HorizontalAlignment="Right"
 							        IsEnabledChanged="PlayPauseStopFadeSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
-							        Maximum="3000"
-							        Minimum="0"
-							        SmallChange="1"
+							        Maximum="1000"
+							        Minimum="100"
+							        SmallChange="10"
 							        SnapsTo="Ticks"
-							        TickFrequency="100"
-							        TickPlacement="None"
-							        ValueChanged="PlayPauseStopFadeSlider_OnValueChanged" />
+							        TickFrequency="10"
+							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="AutoAdvanceCard"
-					                  Header="Auto advance Crossfading">
+					                  Header="Auto advance Crossfading"
+					                  Visibility="Collapsed">
 						<StackPanel>
 							<ToggleSwitch x:Name="AutoAdvanceSwitch"
 							              HorizontalAlignment="Right"
@@ -139,16 +155,16 @@
 							        IsEnabledChanged="AutoAdvanceSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="5000"
-							        Minimum="0"
-							        SmallChange="1"
+							        Minimum="100"
+							        SmallChange="10"
 							        SnapsTo="Ticks"
-							        TickFrequency="100"
-							        TickPlacement="None"
-							        ValueChanged="AutoAdvanceSlider_OnValueChanged" />
+							        TickFrequency="10"
+							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
 					<dev:SettingsCard x:Name="ManualTrackChangeCard"
-					                  Header="Manual Track Change Crossfading">
+					                  Header="Manual Track Change Crossfading"
+					                  Visibility="Collapsed">
 						<StackPanel>
 							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
 							              HorizontalAlignment="Right"
@@ -158,12 +174,11 @@
 							        IsEnabledChanged="ManualTrackChangeSlider_OnIsEnabledChanged"
 							        LargeChange="1000"
 							        Maximum="5000"
-							        Minimum="0"
-							        SmallChange="1"
+							        Minimum="100"
+							        SmallChange="10"
 							        SnapsTo="Ticks"
-							        TickFrequency="100"
-							        TickPlacement="None"
-							        ValueChanged="ManualTrackChangeSlider_OnValueChanged" />
+							        TickFrequency="10"
+							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
@@ -179,12 +194,14 @@
 				              Toggled="RestartTrackOnSelection_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will use the system volume control to control the volume of the track that is currently playing."
-			                  Header="Use System Volume Control">
+			                  Header="Use System Volume Control"
+			                  Visibility="Collapsed">
 				<ToggleSwitch x:Name="UseSystemVolume"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
-			                  Header="Pause on Mute">
+			                  Header="Pause on Mute"
+			                  Visibility="Collapsed">
 				<ToggleSwitch x:Name="PauseOnMute"
 				              Toggled="PauseOnMute_OnToggled" />
 			</dev:SettingsCard>
@@ -311,6 +328,12 @@
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
+
+			<dev:SettingsCard Description="When turned on, the app will minimize to system tray when the window is closed."
+			                  Header="Minimize the app to system tray">
+				<ToggleSwitch x:Name="MinimizeToTray"
+				              Toggled="MinimizeToTray_OnToggled" />
+			</dev:SettingsCard>
 
 			<!--  About  -->
 

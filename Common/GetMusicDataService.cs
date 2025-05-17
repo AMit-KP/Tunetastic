@@ -3,198 +3,263 @@ using Tunetastic.Generated.Protos;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
-namespace Tunetastic.Services;
+namespace Tunetastic.Common;
 
 /// <summary>
 /// Provides services for managing and updating metadata related to music libraries in the application.
 /// </summary>
-internal class GetMusicDataService
+public class GetMusicDataService
 {
-    /// <summary>
-    /// Updates the metadata of the music libraries, optionally triggered by a user request.
-    /// </summary>
-    /// <param name="onRequest">
-    /// A boolean value indicating whether the update is manually triggered by a user request. If set to true,
-    /// the metadata update is executed regardless of other conditions. Defaults to false.
-    /// </param>
-    /// <returns>
-    /// A <see cref="Task"/> that represents the asynchronous operation of updating the metadata.
-    /// </returns>
-    public async Task UpdateMetaData(bool onRequest = false)
-    {
-        bool scanAtStartup = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
-        if (onRequest || scanAtStartup)
-        {
-            await ScanLibraries();
-            await Task.CompletedTask;
-        }
-    }
+	/// <summary>
+	/// Represents the asynchronous task that is responsible for scanning and updating the music libraries.
+	/// </summary>
+	/// <remarks>
+	/// This field is used to manage the lifecycle and execution state of the scan operation,
+	/// ensuring that the task can be awaited properly and no simultaneous scans occur.
+	/// </remarks>
+	private static Task? _scanTask;
+	private static bool _isScanning = false;
 
-    /// <summary>
-    /// Retrieves all music libraries stored in the system as a collection of <see cref="Library"/> objects.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="Task{TResult}"/> that represents the asynchronous operation and contains
-    /// a <see cref="RepeatedField{Library}"/> collection of all libraries.
-    /// If an exception occurs, an empty collection is returned.
-    /// </returns>
-    private Task<RepeatedField<Library>> GetAllLibrariesAsync()
-    {
-        try
-        {
-            var LibrariesData = ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries;
+	/// <summary>
+	/// Indicates whether a music library scan is currently in progress.
+	/// </summary>
+	/// <remarks>
+	/// This property returns a boolean value to check the scanning state of the music library.
+	/// Useful for preventing overlapping scan operations or triggering UI updates based
+	/// on the scanning state.
+	/// </remarks>
+	public static bool IsScanning => _isScanning;
 
-            return Task.FromResult(LibrariesData);
-        }
-        catch (Exception)
-        {
-            return Task.FromResult(new RepeatedField<Library>());
-        }
-    }
+	/// <summary>
+	/// Represents the progress of the library scanning operation as a percentage.
+	/// </summary>
+	/// <remarks>
+	/// This property indicates the current state of the scan process, ranging from 0 to 100,
+	/// where 0 represents the beginning and 100 signifies completion. It is updated dynamically
+	/// during the scanning of music libraries and can be used to provide feedback to the user
+	/// about the scan's progress.
+	/// </remarks>
+	public static double ScanProgress { get; private set; } = 0;
 
-    /// <summary>
-    /// Scans the music libraries to identify and process audio files, applying filters such as
-    /// file format and optional configurations for ignoring duplicates or tracks below a certain duration.
-    /// Updates the local settings and notifies the user with the scan results.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="Task"/> that represents the asynchronous operation of scanning the music libraries.
-    /// </returns>
-    private async Task ScanLibraries()
-    {
-        var audioFiles = new HashSet<string>();
+	/// <summary>
+	/// Performs an asynchronous metadata update operation on the music libraries stored in the system.
+	/// Ensures that simultaneous scanning operations are avoided and updates the global notifications
+	/// based on the outcome of the scanning process.
+	/// </summary>
+	/// <returns>
+	/// A <see cref="Task"/> that represents the asynchronous operation of updating metadata.
+	/// The operation updates notification messages such as "Info," "Warning," or "Error" and resets
+	/// the music player state upon completion.
+	/// </returns>
+	public async Task UpdateMetaData()
+	{
+		if (IsScanning) return;
 
-        var libraries = new List<string>();
+		_isScanning = true;
+		string type = "";
+		string message = "";
+		_scanTask = Task.Run(async () =>
+		{
+			(type, message) = await ScanLibraries();
+		});
 
-        foreach (var library in await GetAllLibrariesAsync())
-        {
-            libraries.Add(library.Path);
-        }
+		await _scanTask;
 
-        var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-        var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.ScanResult)]?.ToString() ?? "0");
-        var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
+		switch (type)
+		{
+			case "Info":
+				GlobalNotification.Info(message);
+				break;
+			case "Warning":
+				GlobalNotification.Warning(message);
+				break;
+			case "Error":
+				GlobalNotification.Error(message);
+				break;
+			default:
+				break;
+		}
+
+		_isScanning = false;
+		MusicPlayer.Instance.ResetAfterScan();
+	}
 
 
-        var formatList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
+	/// <summary>
+	/// Retrieves all music libraries stored in the system as a collection of <see cref="Library"/> objects.
+	/// </summary>
+	/// <returns>
+	/// A <see cref="Task{TResult}"/> that represents the asynchronous operation and contains
+	/// a <see cref="RepeatedField{Library}"/> collection of all libraries.
+	/// If an exception occurs, an empty collection is returned.
+	/// </returns>
+	private Task<RepeatedField<Library>> GetAllLibrariesAsync()
+	{
+		try
+		{
+			var LibrariesData = ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries;
 
-        List<string> extensions = new();
+			return Task.FromResult(LibrariesData);
+		}
+		catch (Exception)
+		{
+			return Task.FromResult(new RepeatedField<Library>());
+		}
+	}
 
-        foreach (var format in formatList)
-            if (format.Enabled) extensions.Add(format.Extension);
+	/// <summary>
+	/// Scans the music libraries to identify and process audio files, applying filters such as
+	/// file format and optional configurations for ignoring duplicates or tracks below a certain duration.
+	/// Updates the local settings and notifies the user with the scan results.
+	/// </summary>
+	/// <returns>
+	/// A <see cref="Task"/> that represents the asynchronous operation of scanning the music libraries.
+	/// </returns>
+	private async Task<(string, string)> ScanLibraries()
+	{
+		ScanProgress = 0;
+		var audioFiles = new HashSet<string>();
 
-        if (extensions.Count == 0) extensions.Add(".mp3");
+		var libraries = new List<string>();
 
-        var path = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.AllSongView.ToString());
-        if (Directory.Exists(path)) Directory.Delete(path, true);
+		foreach (var library in await GetAllLibrariesAsync())
+		{
+			libraries.Add(library.Path);
+		}
 
-        if (libraries?.Count > 0)
-        {
-            libraries = libraries.OrderBy(f => f.Length).ToList();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
+		var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
 
-            var uniqueFolders = new List<string>();
-            foreach (var folder in libraries)
-            {
-                if (!Directory.Exists(folder))
-                {
-                    GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
-                }
-                else
-                {
-                    if (!uniqueFolders.Any(parent => folder.StartsWith(parent, StringComparison.OrdinalIgnoreCase)))
-                        uniqueFolders.Add(folder);
-                }
-            }
 
-            var options = new EnumerationOptions { RecurseSubdirectories = true };
+		var formatList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
 
-            foreach (var folder in uniqueFolders)
-            {
-                var files = Directory.EnumerateFiles(folder, "*.*", options)
-                                     .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()));
+		List<string> extensions = new();
 
-                foreach (var file in files)
-                {
-                    audioFiles.Add(file);
-                }
-            }
+		foreach (var format in formatList)
+			if (format.Enabled) extensions.Add(format.Extension);
 
-            SongList songsContainer = new SongList();
-            HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
+		if (extensions.Count == 0) extensions.Add(".mp3");
 
-            foreach (var filePath in audioFiles)
-            {
-                try
-                {
-                    using (var audioModel = TagLib.File.Create(filePath))
-                    {
-                        var song = new Song
-                        {
-                            Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
-                            Album = audioModel.Tag.Album ?? "Unknown Album",
-                            Artists = (audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
-                            Duration = audioModel.Properties.Duration.TotalSeconds,
-                            Path = filePath,
-                            Year = audioModel.Tag.Year.ToString() ?? "Unknown Year",
-                            Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre",
-                            Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 100)
-                        };
+		var path = Path.Combine(Constants.ThumbnailsFolder);
+		if (Directory.Exists(path)) Directory.Delete(path, true);
 
-                        if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
-                            songsContainer.Songs.Add(song);
-                    }
-                }
-                catch (Exception)
-                {
-                    GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
-                    double duration = 0;
-                    try
-                    {
-                        var mediaPlayer = new MediaPlayer();
-                        mediaPlayer.AutoPlay = false;
-                        mediaPlayer.Source = MediaSource.CreateFromUri(new Uri(filePath));
-                        duration = mediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
-                        mediaPlayer = null;
-                    }
-                    catch (Exception)
-                    {
-                        duration = 0;
-                    }
+		if (libraries?.Count > 0)
+		{
+			libraries = libraries.OrderBy(f => f.Length).ToList();
 
-                    var song = new Song
-                    {
-                        Title = Path.GetFileNameWithoutExtension(filePath),
-                        Album = "Unknown Album",
-                        Artists = "Unknown Artist",
-                        Duration = duration,
-                        Path = filePath,
-                        Year = "Unknown Year",
-                        Genre = "Unknown Genre",
-                        Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 100)
-                    };
-                    if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
-                        songsContainer.Songs.Add(song);
-                }
-            }
+			var uniqueFolders = new List<string>();
+			foreach (var folder in libraries)
+			{
+				if (!Directory.Exists(folder))
+				{
+					GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
+				}
+				else
+				{
+					if (!uniqueFolders.Any(parent => folder.StartsWith(parent, StringComparison.OrdinalIgnoreCase)))
+						uniqueFolders.Add(folder);
+				}
+			}
 
-            try
-            {
-                ProtobufData.SaveToBin(DataFile.AllSongsMetaData, songsContainer);
-            }
-            catch (Exception)
-            {
-                localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
-                GlobalNotification.Error("No tracks could be added");
-            }
+			var options = new EnumerationOptions { RecurseSubdirectories = true };
 
-            localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs: {songsContainer.Songs.Count}";
-            GlobalNotification.Info("Library scan completed.\nLibraries: " + libraries.Count + "\nSongs: " + songsContainer.Songs.Count);
-        }
-        else
-        {
-            localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
-            GlobalNotification.Warning("No libraries found. Please add atleast one library.");
-        }
-    }
+			foreach (var folder in uniqueFolders)
+			{
+				var files = Directory.EnumerateFiles(folder, "*.*", options)
+									 .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()));
+
+				foreach (var file in files)
+				{
+					audioFiles.Add(file);
+				}
+			}
+
+			SongList songsContainer = new SongList();
+			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
+
+			ScanProgress = 1;
+			int processedFiles = 0;
+
+			foreach (var filePath in audioFiles)
+			{
+				try
+				{
+					using (var audioModel = TagLib.File.Create(filePath))
+					{
+						var song = new Song
+						{
+							Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
+							Album = audioModel.Tag.Album ?? "Unknown Album",
+							Artists = (audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
+							Duration = audioModel.Properties.Duration.TotalSeconds,
+							Path = filePath,
+							Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
+							Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre",
+							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
+						};
+
+						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
+							songsContainer.Songs.Add(song);
+					}
+				}
+				catch (Exception)
+				{
+					GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
+					double duration = 0;
+					try
+					{
+						var mediaPlayer = new MediaPlayer();
+						mediaPlayer.AutoPlay = false;
+						mediaPlayer.Source = MediaSource.CreateFromUri(new Uri(filePath));
+						duration = mediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
+						mediaPlayer = null;
+					}
+					catch (Exception)
+					{
+						duration = 0;
+					}
+
+					var song = new Song
+					{
+						Title = Path.GetFileNameWithoutExtension(filePath),
+						Album = "Unknown Album",
+						Artists = "Unknown Artist",
+						Duration = duration,
+						Path = filePath,
+						Year = "Unknown Year",
+						Genre = "Unknown Genre",
+						Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 100)
+					};
+					if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
+						songsContainer.Songs.Add(song);
+				}
+
+				processedFiles++;
+				ScanProgress = Math.Round((2 + ((double)(processedFiles * 97) / audioFiles.Count)), 2);
+				await Task.Delay(10);
+			}
+
+			try
+			{
+				ProtobufData.SaveToBin(DataFile.AllSongsMetaData, songsContainer);
+			}
+			catch (Exception)
+			{
+				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
+				return ("Error", "No tracks could be added");
+			}
+
+			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs/Tracks: {songsContainer.Songs.Count}";
+			ScanProgress = 100;
+			await Task.Delay(10);
+			return ("Info", "Library scan completed.\nLibraries: " + libraries.Count + "\nSongs/Tracks: " + songsContainer.Songs.Count);
+		}
+		else
+		{
+			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
+			return ("Warning", "No libraries found. Please add atleast one library.");
+		}
+	}
 
 }

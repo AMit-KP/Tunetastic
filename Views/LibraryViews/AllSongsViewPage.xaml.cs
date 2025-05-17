@@ -1,4 +1,7 @@
 ﻿using System.Collections.ObjectModel;
+using CommunityToolkit.WinUI;
+using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Media;
 using Tunetastic.Generated.Protos;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -12,64 +15,649 @@ namespace Tunetastic.Views.LibraryViews;
 /// </remarks>
 public sealed partial class AllSongsViewPage : Page
 {
-    /// <summary>
-    /// Gets or sets the collection of all songs available in the application.
-    /// </summary>
-    /// <remarks>
-    /// The <c>AllSongs</c> property holds an observable collection of <c>Song</c> objects, representing the full list
-    /// of songs loaded from the application's data source. This property is primarily used to populate the user interface
-    /// and manage interactions with the song list.
-    /// The collection is initialized and populated when the page instance is created. This property is also bound to
-    /// the <c>ListView</c> in the associated XAML to display the songs in the UI, allowing users to interact with
-    /// individual items.
-    /// </remarks>
-    public ObservableCollection<Song> AllSongs
-    {
-        get; set;
-    } = new();
+	/// <summary>
+	/// Gets or sets the collection of all songs available in the application.
+	/// </summary>
+	/// <remarks>
+	/// The <c>AllSongs</c> property holds an observable collection of <c>Song</c> objects, representing the full list
+	/// of songs loaded from the application's data source. This property is primarily used to populate the user interface
+	/// and manage interactions with the song list.
+	/// The collection is initialized and populated when the page instance is created. This property is also bound to
+	/// the <c>ListView</c> in the associated XAML to display the songs in the UI, allowing users to interact with
+	/// individual items.
+	/// </remarks>
+	public ObservableCollection<Song> AllSongs
+	{
+		get; set;
+	} = new();
 
-    /// <summary>
-    /// Represents a page for displaying and managing all available songs in the application.
-    /// </summary>
-    /// <remarks>
-    /// This page initializes a list of all available songs by reading metadata from a binary data file.
-    /// It provides features to interact with the song collection, such as loading the songs as a playlist for playback.
-    /// </remarks>
-    public AllSongsViewPage()
-    {
-        this.InitializeComponent();
-        AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
-    }
+	private Song? selectedSong;
+	private readonly DispatcherQueue _dispatcherQueue;
 
-    /// <summary>
-    /// Handles the ItemClick event for the ListView control in the AllSongsViewPage.
-    /// </summary>
-    /// <param name="sender">The source of the event, typically the ListView control.</param>
-    /// <param name="e">Provides data for the ItemClick event, including the clicked item.</param>
-    /// <remarks>
-    /// This method is triggered when a user clicks an item in the song list. It retrieves the clicked song,
-    /// generates a playlist from the current collection of songs, and loads the clicked song into the music player for playback.
-    /// The playlist is also saved as the current playlist in the application's local settings.
-    /// </remarks>
-    private void ListView_ItemClick(object sender, ItemClickEventArgs e)
-    {
-        var track = e.ClickedItem as Song;
-        List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-        Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
-        MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-    }
+	/// <summary>
+	/// Represents a page for displaying and managing all available songs in the application.
+	/// </summary>
+	/// <remarks>
+	/// This class is responsible for initializing and displaying a collection of songs. It provides functionalities
+	/// such as managing the song list and integrating it as a playlist for playback. The page's content is dynamically
+	/// updated through asynchronous operations.
+	/// </remarks>
+	public AllSongsViewPage()
+	{
+		this.InitializeComponent();
+		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+		_ = CheckScanning();
+	}
 
-    /// <summary>
-    /// Loads the collection of all available songs as a playlist and sets the active song at the specified index.
-    /// </summary>
-    /// <param name="index">The index of the song to be set as the currently active track in the playlist.</param>
-    /// <remarks>
-    /// This method retrieves the paths of all songs currently available in the collection
-    /// and initializes the playback with the specified active song index.
-    /// </remarks>
-    public void LoadAsPlayList(int index)
-    {
-        List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-        MusicPlayer.Instance.LoadLastPlayed(songPaths, index);
-    }
+	/// <summary>
+	/// Asynchronously checks the status of the ongoing music data scanning process and interacts with the user interface based on the status.
+	/// </summary>
+	/// <remarks>
+	/// This method verifies whether a music scanning operation is in progress through the data service. If scanning is active,
+	/// it modifies the application's UI by displaying loading indicators and hiding specific content elements until the process completes.
+	/// Once scanning finishes or no scanning is detected, it populates the song collection with metadata, applies sorting and view style updates,
+	/// and adjusts the visibility of various UI components.
+	/// </remarks>
+	/// <returns>
+	/// A task representing the asynchronous operation of scanning status monitoring, UI adjustments, and song collection management.
+	/// </returns>
+	private async Task CheckScanning()
+	{
+		if (GetMusicDataService.IsScanning)
+		{
+			GoToSettings.Visibility = Visibility.Collapsed;
+			AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+			AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+			LoadingProgress.Opacity = 0;
+			LoadingProgress.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Collapsed;
+
+			for (double i = 0; i <= 1; i += 0.05)
+			{
+				LoadingProgress.Opacity = i;
+				await Task.Delay(1);
+			}
+
+			while (GetMusicDataService.IsScanning)
+			{
+				ProgressFill.Width = GetMusicDataService.ScanProgress * 4;
+				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+				await Task.Delay(1);
+			}
+
+			for (double i = 1; i >= 0; i -= 0.05)
+			{
+				LoadingProgress.Opacity = i;
+				await Task.Delay(1);
+			}
+			LoadingProgress.Visibility = Visibility.Collapsed;
+			await _dispatcherQueue.EnqueueAsync(() =>
+			{
+				this.Content = new AllSongsViewPage();
+			});
+			return;
+		}
+		GoToSettings.Visibility = Visibility.Visible;
+		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+
+		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
+		if (AllSongs.Count > 0)
+		{
+			GoToSettings.Visibility = Visibility.Collapsed;
+			UpdateAsPerLastViewStyle();
+			UpdateAsPerLastSorting();
+		}
+	}
+
+	/// <summary>
+	/// Updates the sorting preferences for the song list displayed on the AllSongsViewPage.
+	/// </summary>
+	/// <remarks>
+	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
+	/// based on the user's saved preferences in local settings. It also updates the selection status
+	/// of the UI elements corresponding to the sorting options and triggers the list update.
+	/// </remarks>
+	private void UpdateAsPerLastSorting()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var sortBy = localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title";
+		var sortOrder = localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending";
+		switch (sortBy)
+		{
+			case "Title":
+				Title.IsChecked = true;
+				break;
+			case "Artists":
+				Artists.IsChecked = true;
+				break;
+			case "Album":
+				Album.IsChecked = true;
+				break;
+			case "Duration":
+				Duration.IsChecked = true;
+				break;
+			default:
+				Title.IsChecked = true;
+				break;
+		}
+		switch (sortOrder)
+		{
+			case "Ascending":
+				Ascending.IsChecked = true;
+				break;
+			case "Descending":
+				Descending.IsChecked = true;
+				break;
+			default:
+				Ascending.IsChecked = true;
+				break;
+		}
+		UpdateListBasedOnSorting();
+	}
+
+	/// <summary>
+	/// Updates the current view style of the song collection display using the last saved preference.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the previously saved view style setting from the application's local settings and
+	/// applies it to the song collection display. Supported view styles include "List View", "Compact View", and "Card View".
+	/// If no preference is found, the default view style is set to "Compact View".
+	/// </remarks>
+	private void UpdateAsPerLastViewStyle()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var viewStyle = localSettings.Values[nameof(LocalSave.AllSongViewStyle)]?.ToString() ?? "Compact View";
+		switch (viewStyle)
+		{
+			case "List View":
+				ListViewStyle.IsChecked = true;
+				break;
+			case "Compact View":
+				CompactViewStyle.IsChecked = true;
+				break;
+			default:
+				CompactViewStyle.IsChecked = true;
+				break;
+		}
+		_ = UpdateListBasedOnViewStyle();
+	}
+
+	/// <summary>
+	/// Updates the UI elements and layout to match the current view style selected for displaying songs.
+	/// </summary>
+	/// <remarks>
+	/// This method dynamically adjusts the visibility of UI components depending on the selected view style,
+	/// such as "List View" or "Compact View". It also persists the user's selection in local settings for future sessions.
+	/// Additionally, it attempts to scroll to a previously selected song after applying the view style changes.
+	/// </remarks>
+	/// <returns>
+	/// A Task representing the asynchronous operation of updating the view style and scrolling to a specific song.
+	/// </returns>
+	private async Task UpdateListBasedOnViewStyle()
+	{
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		switch (viewStyle)
+		{
+			case "List View":
+				AllSongsListViewGrid.Visibility = Visibility.Visible;
+				AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+				break;
+
+			case "Compact View":
+				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				break;
+
+			default:
+				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				break;
+		}
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AllSongViewStyle)] = viewStyle;
+		ViewButton.Content = viewStyle;
+		await ScrollToSong(selectedSong);       //somehow this doesn't work
+		await Task.Delay(500);
+		await ScrollToSong(selectedSong);
+	}
+
+	/// <summary>
+	/// Updates the list of songs based on the selected sorting criteria and order.
+	/// </summary>
+	/// <remarks>
+	/// This method processes the current sorting preferences, such as the column to sort by (e.g., Title, Artists, Album, or Duration)
+	/// and the order (Ascending or Descending). It modifies the displayed song list accordingly and ensures the current selection remains intact.
+	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
+	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
+	/// </remarks>
+	private async void UpdateListBasedOnSorting()
+	{
+		var song = selectedSong;
+		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
+		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		bool order = orderBy == "Ascending";
+
+		List<Song>? newList = new();
+		IOrderedEnumerable<string>? availableLetters = null;
+		bool hasSpecialCharacters = false;
+		switch (sortBy)
+		{
+			case "Title":
+				newList = order ? AllSongs.OrderBy(s => s.Title).ToList() : AllSongs.OrderByDescending(s => s.Title).ToList();
+				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = (AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
+
+				break;
+			case "Artists":
+				newList = order ? AllSongs.OrderBy(s => s.Artists).ToList() : AllSongs.OrderByDescending(s => s.Artists).ToList();
+				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = (AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
+				break;
+			case "Album":
+				newList = order ? AllSongs.OrderBy(s => s.Album).ToList() : AllSongs.OrderByDescending(s => s.Album).ToList();
+				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = (AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
+				break;
+			case "Duration":
+				newList = order ? AllSongs.OrderBy(s => s.Duration).ToList() : AllSongs.OrderByDescending(s => s.Duration).ToList();
+				break;
+		}
+		AllSongs.Clear();
+		AllSongs.AddRange(newList);
+		newList = null;
+		SortDropDown.Content = $"Sort By: {sortBy} {(order ? "⬆️" : "⬇️")}";
+		ToolTipService.SetToolTip(SortDropDown, $"The list is sorted by \"{sortBy}\" column in {orderBy} order.");
+		await ScrollToSong(song);       //somehow this doesn't work
+		await Task.Delay(1000);
+		await ScrollToSong(song);
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
+		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
+
+		PopulateAlphabetNavigation(availableLetters, order, sortBy, hasSpecialCharacters);
+	}
+
+	/// <summary>
+	/// Determines the currently selected view style for the song collection display.
+	/// </summary>
+	/// <remarks>
+	/// This method identifies the active view style based on the selection in the view style menu
+	/// and returns the corresponding ListView instance. The supported view styles include
+	/// "List View" and "Compact View", with "Compact View" being the default.
+	/// </remarks>
+	/// <returns>
+	/// The <see cref="ListView"/> instance corresponding to the currently selected view style.
+	/// </returns>
+	private ListView GetCurrentViewStyle()
+	{
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		return viewStyle switch
+		{
+			"List View" => AllSongsListView,
+			"Compact View" => AllSongCompactView,
+			_ => AllSongCompactView
+		};
+	}
+
+
+	/// <summary>
+	/// Handles the ItemClick event for the ListView control in the AllSongsViewPage.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the ListView control.</param>
+	/// <param name="e">Provides data for the ItemClick event, including the clicked item.</param>
+	/// <remarks>
+	/// This method is triggered when a user clicks an item in the song list. It retrieves the clicked song,
+	/// generates a playlist from the current collection of songs, and loads the clicked song into the music player for playback.
+	/// The playlist is also saved as the current playlist in the application's local settings.
+	/// </remarks>
+	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
+	{
+		var track = e.ClickedItem as Song;
+		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
+	}
+
+	/// <summary>
+	/// Loads the collection of all available songs as a playlist and starts preparing them for playback.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the file paths of all songs in the collection and initializes a playlist within the music player.
+	/// It ensures that the songs are ready for playback and begins with the specified track as the currently active item.
+	/// </remarks>
+	public void LoadAsPlayList(string? startingSong, bool play)
+	{
+		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong, play);
+	}
+
+	/// <summary>
+	/// Scrolls to a specific song in the View.
+	/// </summary>
+	/// <param name="song">The song object to scroll to. If null, no action is performed.</param>
+	/// <returns>A task representing the asynchronous operation of scrolling to the specified song.</returns>
+	private async Task ScrollToSong(Song? song)
+	{
+		var listView = GetCurrentViewStyle();
+		if (song != null)
+		{
+			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			listView.SelectedItem = song;
+		}
+
+	}
+
+	/// <summary>
+	/// Handles the Loaded event for the AllSongsViewPage.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the page itself.</param>
+	/// <param name="e">The event data associated with the Loaded event.</param>
+	/// <remarks>
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AllSongsViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// </remarks>
+	private void Page_Loaded(object sender, RoutedEventArgs e)
+	{
+		ScrollToCurrentPlayingTrack();
+	}
+
+	/// <summary>
+	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "AllSongsViewPage".
+	/// </summary>
+	/// <remarks>
+	/// This method checks the local application settings to determine if the "AllSongsViewPage" is the active playlist.
+	/// If it is, the method retrieves the last played track based on its path from the saved settings and attempts to scroll
+	/// the page to that specific song within the song collection.
+	/// </remarks>
+	private void ScrollToCurrentPlayingTrack()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+		{
+			var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+			_ = ScrollToSong(SelectedSong);
+		}
+	}
+
+	/// <summary>
+	/// Handles the Sort button click event to update the song list based on the selected sorting criteria.
+	/// </summary>
+	/// <param name="sender">The control that triggered the event, typically a UI element like a menu flyout item.</param>
+	/// <param name="e">Event data associated with the Sort button click.</param>
+	private void SortButton_OnClick(object sender, RoutedEventArgs e)
+	{
+		UpdateListBasedOnSorting();
+		AdjustAlphabetSize();
+		//TODO resort current playlist
+	}
+
+	/// <summary>
+	/// Handles the click event triggered by a view style button in the UI, updating the display style
+	/// of the song collection based on the selected view style.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the view style button that was clicked.</param>
+	/// <param name="e">The event data associated with the click event.</param>
+	/// <remarks>
+	/// This method is responsible for determining the selected view style (e.g., List View, Compact View, Card View),
+	/// updating the visibility of UI elements accordingly, and persisting the selected view style for future use.
+	/// It also performs additional UI adjustments such as resizing the alphabet display.
+	/// </remarks>
+	private async void ViewButton_OnClick(object sender, RoutedEventArgs e)
+	{
+		await UpdateListBasedOnViewStyle();
+		await AdjustAlphabetSize();
+	}
+
+	/// <summary>
+	/// Handles the click event of the "Shuffle and Play" button to shuffle the song list
+	/// and begin playback from a randomly selected song.
+	/// </summary>
+	/// <param name="sender">The source of the click event, typically the "Shuffle and Play" button.</param>
+	/// <param name="e">Provides data about the click event.</param>
+	/// <remarks>
+	/// This method disables the button to prevent repeated triggers, enables shuffle mode on the music player,
+	/// and retrieves the list of song paths to shuffle and load as a playlist. It then randomly selects a starting song
+	/// from the playlist and scrolls to that song in the user interface. After a brief delay, it ensures that the song
+	/// is properly scrolled into view and re-enables the button.
+	/// </remarks>
+	private async void ShuffleAndPlayButton_OnClick(object sender, RoutedEventArgs e)
+	{
+		ShuffleAndPlay.IsEnabled = false;
+		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
+		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+
+		var startingSong = songPaths[new Random().Next(songPaths.Count)];
+		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
+		var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		await ScrollToSong(SelectedSong);       //somehow this doesn't work
+		await Task.Delay(500);
+		await ScrollToSong(SelectedSong);
+		ShuffleAndPlay.IsEnabled = true;
+	}
+
+	/// <summary>
+	/// Handles the click event for the "Play All" button and initiates playback of all songs in the current view.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Play All" button.</param>
+	/// <param name="e">Provides data for the routed event that triggered the method.</param>
+	/// <remarks>
+	/// This method disables shuffle mode, creates a playlist from all songs in the current view,
+	/// stores the name of the current playlist in application settings, and starts playing the songs in order.
+	/// It also scrolls to the first song in the playlist after initiating playback.
+	/// </remarks>
+	private async void PlayAllButton_OnClick(object sender, RoutedEventArgs e)
+	{
+		ShuffleAndPlay.IsEnabled = false;
+		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
+		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		MusicPlayer.Instance.LoadPlaylist(songPaths);
+		await ScrollToSong(AllSongs[0]);
+		ShuffleAndPlay.IsEnabled = true;
+	}
+
+	/// <summary>
+	/// Populates the alphabet navigation panel with letters and optionally a special character marker
+	/// for navigating sections of songs.
+	/// </summary>
+	/// <param name="availableLetters">
+	/// A collection of letters representing song sections to be included in navigation. Null indicates
+	/// all letters are marked as unavailable.
+	/// </param>
+	/// <param name="order">
+	/// A flag indicating whether the letters are ordered in ascending or descending order.
+	/// </param>
+	/// <param name="sortBy">
+	/// The sorting criterion to define navigation to specific column in the song collection.
+	/// </param>
+	/// <param name="hasSpecialCharacters">
+	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
+	/// </param>
+	/// <remarks>
+	/// This method clears all existing child elements in the alphabet navigation panel before creating
+	/// and adding dynamically generated navigation elements. Each letter element is configured based on
+	/// its validity from the provided collection. Additionally, it defines interaction behavior for
+	/// navigable elements to handle user input.
+	/// </remarks>
+	private void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
+	{
+		AlphabetNavigationPanel.Children.Clear();
+
+		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
+		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
+		if (!order) fullAlphabet = fullAlphabet.Reverse();
+
+		foreach (var letter in fullAlphabet)
+		{
+			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
+
+			var Button = new Button
+			{
+				Content = letter,
+				Foreground = new SolidColorBrush(hasSongs ? Colors.White : Colors.Gray),
+				Opacity = hasSongs ? 1 : 0.5,
+				Background = new SolidColorBrush(Colors.Transparent),
+				BorderBrush = new SolidColorBrush(Colors.Transparent),
+				BorderThickness = new Thickness(0),
+				IsHitTestVisible = hasSongs,
+				Margin = new Thickness(0),
+				HorizontalContentAlignment = HorizontalAlignment.Right,
+				VerticalContentAlignment = VerticalAlignment.Stretch,
+				Padding = new Thickness(0),
+				HorizontalAlignment = HorizontalAlignment.Right,
+				VerticalAlignment = VerticalAlignment.Stretch,
+			};
+
+			if (hasSongs)
+			{
+				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
+				ToolTipService.SetToolTip(Button, letter);
+				Button.Tapped += (s, e) => ScrollToSection(letter, sortBy);
+			}
+
+			AlphabetNavigationPanel.Children.Add(Button);
+		}
+		_ = AdjustAlphabetSize();
+		availableLetters = null;
+	}
+
+	/// <summary>
+	/// Scrolls the view to a specific section of the song list based on the specified letter and sorting criteria.
+	/// </summary>
+	/// <param name="letter">The starting letter of the section to scroll to, or "#" to scroll to non-alphabetic entries.</param>
+	/// <param name="sortBy">The property by which the song list is currently sorted. Valid values include "Title", "Artists", and "Album".</param>
+	/// <remarks>
+	/// This method locates the first song in the collection that matches the specified starting letter and sorting property.
+	/// If a matching song is found, the view scrolls to bring the song into focus.
+	/// </remarks>
+	private async void ScrollToSection(string letter, string sortBy)
+	{
+		Song? targetSong = null;
+		switch (sortBy)
+		{
+			case "Title":
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				break;
+
+			case "Artists":
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				break;
+
+			case "Album":
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				break;
+		}
+		if (targetSong != null)
+		{
+			var listView = GetCurrentViewStyle();
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AllSongsListView ? -40 : 0);
+			listView.SelectedItem = targetSong;
+			await Task.Delay(500);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AllSongsListView ? -40 : 0);
+		}
+	}
+
+	/// <summary>
+	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
+	/// </summary>
+	/// <remarks>
+	/// This method calculates the height for each element in the alphabet navigation panel dynamically, ensuring
+	/// that the elements are evenly spaced and fit within the available vertical space.
+	/// </remarks>
+	/// <returns>
+	/// A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.
+	/// </returns>
+	private Task<Task> AdjustAlphabetSize()
+	{
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		double availableSpace = viewStyle switch
+		{
+			"List View" => AllSongsListView.ActualHeight - 40,
+			"Compact View" => AllSongCompactView.ActualHeight,
+			_ => AllSongCompactView.ActualHeight
+		};
+
+		AlphabetNavigationPanel.Margin = viewStyle switch
+		{
+			"List View" => new Thickness(0, 50, 30, 10),
+			"Compact View" => new Thickness(0, 10, 30, 10),
+			_ => new Thickness(0, 10, 30, 10)
+		};
+
+		if (availableSpace <= 0) return Task.FromResult(Task.CompletedTask);
+
+		double totalLetters = AlphabetNavigationPanel.Children.Count;
+
+		double autoHeight = availableSpace / totalLetters;
+
+		foreach (var button in AlphabetNavigationPanel.Children.OfType<Button>())
+		{
+			button.Height = autoHeight;
+		}
+		return Task.FromResult(Task.CompletedTask);
+	}
+
+	/// <summary>
+	/// Handles the event triggered when the page's size changes.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the page.</param>
+	/// <param name="e">The event data containing information about the new size of the page.</param>
+	/// <remarks>
+	/// This method adjusts the layout or size of elements on the page whenever the size of the page changes.
+	/// It enqueues a task on the dispatcher queue to perform required layout updates asynchronously.
+	/// </remarks>
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+	{
+		var pageHeight = e.NewSize.Height;
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		{
+			await AdjustAlphabetSize();
+		});
+	}
+
+	/// <summary>
+	/// Handles the theme change event for the page.
+	/// </summary>
+	/// <param name="sender">The <see cref="FrameworkElement"/> that triggered the theme change event.</param>
+	/// <param name="args">The event data associated with the theme change event.</param>
+	/// <remarks>
+	/// This method updates the foreground color of visible text elements in the AlphabetNavigationPanel
+	/// based on the current theme of the page. If the theme is dark, white color is applied; otherwise, black color is applied.
+	/// </remarks>
+	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
+	{
+		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
+		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
+	}
+
+	/// <summary>
+	/// Handles the event when the "Go to Settings" button is clicked.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the button being clicked.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	/// <remarks>
+	/// This method navigates the application to the SettingsPage. It utilizes the application's navigation service (IJsonNavigationService)
+	/// to redirect the user to the appropriate page.
+	/// </remarks>
+	private void GotoSettigsButton_Click(object sender, RoutedEventArgs e)
+	{
+		App.Current.NavService.NavigateTo(typeof(SettingsPage));
+	}
+
+	/// <summary>
+	/// Handles the selection change event for a ListView within the AllSongsViewPage.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the ListView.</param>
+	/// <param name="e">Provides data for the SelectionChanged event, including information about added or removed items.</param>
+	/// <remarks>
+	/// This method updates the currently selected song by retrieving it from the currently active ListView.
+	/// The selected song can then be used for subsequent operations such as playback or details display.
+	/// </remarks>
+	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		selectedSong = GetCurrentViewStyle().SelectedItem as Song;
+	}
 }
