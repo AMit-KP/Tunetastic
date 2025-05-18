@@ -8,151 +8,212 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
 
-	<Grid x:Name="MusicControls"
-	      Margin="0,0,0,0"
-	      VerticalAlignment="Bottom">
+	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="*" />
-			<RowDefinition Height="40" />
+			<RowDefinition Height="140" />
 		</Grid.RowDefinitions>
-		<Grid Grid.Row="1">
-			<Slider x:Name="BottomProgressBar"
-			        Margin="10,-25,10,0"
-			        VerticalAlignment="Center"
-			        Maximum="{x:Bind ViewModel.DurationOfSong, Mode=OneWay}"
-			        Minimum="0"
-			        SmallChange="1"
-			        StepFrequency="1"
-			        ThumbToolTipValueConverter="{StaticResource DurationConverter}"
-			        Visibility="Visible"
-			        Value="{x:Bind ViewModel.ProgressBarValue, Mode=TwoWay}" />
+		<Grid x:Name="MusicControls"
+		      Grid.Row="1"
+		      Margin="0,0,0,0"
+		      VerticalAlignment="Bottom">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="*" />
+				<RowDefinition Height="40" />
+			</Grid.RowDefinitions>
+			<Grid Grid.Row="1">
+				<Slider x:Name="BottomProgressBar"
+				        Margin="10,-25,10,0"
+				        VerticalAlignment="Center"
+				        Maximum="{x:Bind ViewModel.DurationOfSong, Mode=OneWay}"
+				        Minimum="0"
+				        SmallChange="1"
+				        StepFrequency="1"
+				        ThumbToolTipValueConverter="{StaticResource DurationConverter}"
+				        Visibility="Visible"
+				        Value="{x:Bind ViewModel.ProgressBarValue, Mode=TwoWay}" />
+			</Grid>
+			<Grid Grid.Row="0">
+				<Button x:Name="PlayPauseButton"
+				        Width="60"
+				        Height="60"
+				        Margin="0,0,0,20"
+				        HorizontalAlignment="Center"
+				        VerticalAlignment="Center"
+				        Command="{x:Bind ViewModel.TogglePlayPauseCommand}"
+				        CornerRadius="25"
+				        Style="{StaticResource AccentButtonStyle}"
+				        ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextPlayPause, Mode=OneWay}">
+					<Button.Content>
+						<Grid>
+							<FontIcon Glyph="{x:Bind ViewModel.FontIconPlayPause, Mode=OneWay}" />
+						</Grid>
+					</Button.Content>
+				</Button>
+
+				<Button x:Name="PrevButton"
+				        Width="55"
+				        Height="55"
+				        Margin="0,0,130,20"
+				        HorizontalAlignment="Center"
+				        VerticalAlignment="Center"
+				        Command="{x:Bind ViewModel.PreviousSongCommand}"
+				        CornerRadius="23"
+				        ToolTipService.ToolTip="Previos Track">
+					<Button.Content>
+						<SymbolIcon Symbol="Previous" />
+					</Button.Content>
+				</Button>
+
+				<RepeatButton x:Name="RewindButton"
+				              Width="55"
+				              Height="55"
+				              Margin="0,0,255,20"
+				              HorizontalAlignment="Center"
+				              VerticalAlignment="Center"
+				              ClickMode="Press"
+				              Command="{x:Bind ViewModel.RewindSongCommand}"
+				              CornerRadius="23"
+				              ToolTipService.ToolTip="1 sec Rewind">
+					<RepeatButton.Content>
+						<FontIcon Glyph="&#xEB9E;" />
+					</RepeatButton.Content>
+				</RepeatButton>
+
+				<ToggleButton x:Name="ShuffleButton"
+				              Width="55"
+				              Height="55"
+				              Margin="0,0,445,20"
+				              HorizontalAlignment="Center"
+				              VerticalAlignment="Center"
+				              Command="{x:Bind ViewModel.ShuffleToggleCommand}"
+				              CornerRadius="23"
+				              IsChecked="{x:Bind ViewModel.IsShuffleToggled, Mode=TwoWay}"
+				              ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextShuffleButton, Mode=OneWay}">
+					<ToggleButton.Content>
+						<FontIcon Glyph="&#xE8B1;" />
+					</ToggleButton.Content>
+				</ToggleButton>
+
+				<Button x:Name="NextButton"
+				        Width="55"
+				        Height="55"
+				        Margin="0,0,-130,20"
+				        HorizontalAlignment="Center"
+				        VerticalAlignment="Center"
+				        ClickMode="Press"
+				        Command="{x:Bind ViewModel.NextSongCommand}"
+				        CornerRadius="23"
+				        ToolTipService.ToolTip="Next Track">
+					<Button.Content>
+						<SymbolIcon Symbol="Next" />
+					</Button.Content>
+				</Button>
+
+				<RepeatButton x:Name="ForwardButton"
+				              Width="55"
+				              Height="55"
+				              Margin="0,0,-255,20"
+				              HorizontalAlignment="Center"
+				              VerticalAlignment="Center"
+				              Command="{x:Bind ViewModel.ForwardSongCommand}"
+				              CornerRadius="23"
+				              ToolTipService.ToolTip="1 sec Forward">
+					<RepeatButton.Content>
+						<FontIcon Glyph="&#xEB9D;" />
+					</RepeatButton.Content>
+				</RepeatButton>
+
+				<Button x:Name="RepeatButton"
+				        Width="55"
+				        Height="55"
+				        Margin="0,0,-445,20"
+				        HorizontalAlignment="Center"
+				        VerticalAlignment="Center"
+				        Command="{x:Bind ViewModel.RepeatButtonToggleCommand}"
+				        CornerRadius="23"
+				        Style="{x:Bind ViewModel.RepeatButtonStyle, Mode=OneWay}"
+				        ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextRepeatButton, Mode=OneWay}">
+					<Button.Content>
+						<Grid>
+							<FontIcon Glyph="{x:Bind ViewModel.RepeatButtonFontIcon, Mode=OneWay}" />
+						</Grid>
+					</Button.Content>
+				</Button>
+				<Grid Height="60"
+				      Margin="10,0,10,0"
+				      HorizontalAlignment="Stretch"
+				      VerticalAlignment="Top">
+					<Grid Width="70"
+					      HorizontalAlignment="Left">
+						<TextBlock VerticalAlignment="Center"
+						           FontSize="15"
+						           HorizontalTextAlignment="Center"
+						           Style="{ThemeResource BodyTextBlockStyle}"
+						           Text="{Binding ElementName=BottomProgressBar, Path=Value, Converter={StaticResource DurationConverter}}" />
+					</Grid>
+					<Grid Width="70"
+					      HorizontalAlignment="Right">
+						<TextBlock Name="CurrentDurationConverter"
+						           VerticalAlignment="Center"
+						           FontSize="15"
+						           HorizontalTextAlignment="Center"
+						           Style="{ThemeResource BodyTextBlockStyle}"
+						           Text="{x:Bind ViewModel.DurationOfSong, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
+					</Grid>
+				</Grid>
+			</Grid>
 		</Grid>
-		<Grid Grid.Row="0">
-			<Button x:Name="PlayPauseButton"
-			        Width="60"
-			        Height="60"
-			        Margin="0,0,0,20"
-			        HorizontalAlignment="Center"
-			        VerticalAlignment="Center"
-			        Command="{x:Bind ViewModel.TogglePlayPauseCommand}"
-			        CornerRadius="25"
-			        Style="{StaticResource AccentButtonStyle}"
-			        ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextPlayPause, Mode=OneWay}">
-				<Button.Content>
-					<Grid>
-						<FontIcon Glyph="{x:Bind ViewModel.FontIconPlayPause, Mode=OneWay}" />
-					</Grid>
-				</Button.Content>
-			</Button>
-
-			<Button x:Name="PrevButton"
-			        Width="55"
-			        Height="55"
-			        Margin="0,0,130,20"
-			        HorizontalAlignment="Center"
-			        VerticalAlignment="Center"
-			        Command="{x:Bind ViewModel.PreviousSongCommand}"
-			        CornerRadius="23"
-			        ToolTipService.ToolTip="Previos Track">
-				<Button.Content>
-					<SymbolIcon Symbol="Previous" />
-				</Button.Content>
-			</Button>
-
-			<RepeatButton x:Name="RewindButton"
-			              Width="55"
-			              Height="55"
-			              Margin="0,0,255,20"
-			              HorizontalAlignment="Center"
-			              VerticalAlignment="Center"
-			              ClickMode="Press"
-			              Command="{x:Bind ViewModel.RewindSongCommand}"
-			              CornerRadius="23"
-			              ToolTipService.ToolTip="1 sec Rewind">
-				<RepeatButton.Content>
-					<FontIcon Glyph="&#xEB9E;" />
-				</RepeatButton.Content>
-			</RepeatButton>
-
-			<ToggleButton x:Name="ShuffleButton"
-			              Width="55"
-			              Height="55"
-			              Margin="0,0,445,20"
-			              HorizontalAlignment="Center"
-			              VerticalAlignment="Center"
-			              Command="{x:Bind ViewModel.ShuffleToggleCommand}"
-			              CornerRadius="23"
-			              IsChecked="{x:Bind ViewModel.IsShuffleToggled, Mode=TwoWay}"
-			              ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextShuffleButton, Mode=OneWay}">
-				<ToggleButton.Content>
-					<FontIcon Glyph="&#xE8B1;" />
-				</ToggleButton.Content>
-			</ToggleButton>
-
-			<Button x:Name="NextButton"
-			        Width="55"
-			        Height="55"
-			        Margin="0,0,-130,20"
-			        HorizontalAlignment="Center"
-			        VerticalAlignment="Center"
-			        ClickMode="Press"
-			        Command="{x:Bind ViewModel.NextSongCommand}"
-			        CornerRadius="23"
-			        ToolTipService.ToolTip="Next Track">
-				<Button.Content>
-					<SymbolIcon Symbol="Next" />
-				</Button.Content>
-			</Button>
-
-			<RepeatButton x:Name="ForwardButton"
-			              Width="55"
-			              Height="55"
-			              Margin="0,0,-255,20"
-			              HorizontalAlignment="Center"
-			              VerticalAlignment="Center"
-			              Command="{x:Bind ViewModel.ForwardSongCommand}"
-			              CornerRadius="23"
-			              ToolTipService.ToolTip="1 sec Forward">
-				<RepeatButton.Content>
-					<FontIcon Glyph="&#xEB9D;" />
-				</RepeatButton.Content>
-			</RepeatButton>
-
-			<Button x:Name="RepeatButton"
-			        Width="55"
-			        Height="55"
-			        Margin="0,0,-445,20"
-			        HorizontalAlignment="Center"
-			        VerticalAlignment="Center"
-			        Command="{x:Bind ViewModel.RepeatButtonToggleCommand}"
-			        CornerRadius="23"
-			        Style="{x:Bind ViewModel.RepeatButtonStyle, Mode=OneWay}"
-			        ToolTipService.ToolTip="{x:Bind ViewModel.ToolTipTextRepeatButton, Mode=OneWay}">
-				<Button.Content>
-					<Grid>
-						<FontIcon Glyph="{x:Bind ViewModel.RepeatButtonFontIcon, Mode=OneWay}" />
-					</Grid>
-				</Button.Content>
-			</Button>
-			<Grid Height="60"
-			      Margin="10,0,10,0"
-			      HorizontalAlignment="Stretch"
+		<Grid Background="Transparent"
+		      IsHitTestVisible="False">
+			<Grid Width="Auto"
+			      Height="64"
+			      Margin="20,5,0,0"
+			      HorizontalAlignment="Left"
 			      VerticalAlignment="Top">
-				<Grid Width="70"
-				      HorizontalAlignment="Left">
-					<TextBlock VerticalAlignment="Center"
-					           FontSize="15"
-					           HorizontalTextAlignment="Center"
-					           Text="{Binding ElementName=BottomProgressBar, Path=Value, Converter={StaticResource DurationConverter}}" />
-				</Grid>
-				<Grid Width="70"
-				      HorizontalAlignment="Right">
-					<TextBlock Name="CurrentDurationConverter"
-					           VerticalAlignment="Center"
-					           FontSize="15"
-					           HorizontalTextAlignment="Center"
-					           Text="{x:Bind ViewModel.DurationOfSong, Converter={StaticResource DurationConverter}, Mode=OneWay}" />
-				</Grid>
+				<Border x:Name="TrackInfo"
+				        VerticalAlignment="Bottom"
+				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				        BorderThickness="1"
+				        CornerRadius="23"
+				        Opacity="1">
+					<StackPanel Padding="5,2,5,2"
+					            Orientation="Horizontal"
+					            Spacing="3">
+						<Grid>
+							<Border Width="50"
+							        Height="50"
+							        CornerRadius="50">
+								<Image x:Name="AlbumCover"
+								       Source="{x:Bind ViewModel.Cover, Mode=OneWay}"
+								       Stretch="Fill" />
+							</Border>
+						</Grid>
+
+						<StackPanel Width="auto"
+						            VerticalAlignment="Center"
+						            Orientation="Vertical">
+							<TextBlock HorizontalAlignment="Left"
+							           VerticalAlignment="Center"
+							           FontWeight="ExtraBold"
+							           HorizontalTextAlignment="Center"
+							           Text="{x:Bind ViewModel.Title, Mode=OneWay}"
+							           TextAlignment="Center"
+							           TextTrimming="CharacterEllipsis"
+							           TextWrapping="NoWrap" />
+							<TextBlock HorizontalAlignment="Left"
+							           VerticalAlignment="Center"
+							           FontStyle="Italic"
+							           FontWeight="SemiBold"
+							           HorizontalTextAlignment="Center"
+							           Text="{x:Bind ViewModel.Artist, Mode=OneWay}"
+							           TextAlignment="Center"
+							           TextTrimming="CharacterEllipsis"
+							           TextWrapping="NoWrap" />
+						</StackPanel>
+
+					</StackPanel>
+				</Border>
 			</Grid>
 		</Grid>
 	</Grid>

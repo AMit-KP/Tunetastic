@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Animation;
 using Tunetastic.Generated.Protos;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
@@ -203,6 +204,57 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _toolTipTextRepeatButton, value);
 	}
 
+	private string _title = "";
+
+	/// <summary>
+	/// Gets or sets the title of the currently playing track.
+	/// </summary>
+	/// <remarks>
+	/// This property reflects the name of the song that is being played in the media player.
+	/// It is automatically updated based on the media loaded into the playback session,
+	/// ensuring the displayed title in the user interface is always in sync with the current track.
+	/// </remarks>
+	public string Title
+	{
+		get => _title;
+		set => SetProperty(ref _title, value);
+	}
+
+	private string _artist = "";
+
+	/// <summary>
+	/// Gets or sets the artist information of the currently playing song.
+	/// </summary>
+	/// <remarks>
+	/// This property holds the name(s) of the artist(s) associated with the currently playing track.
+	/// It is automatically updated when the media player's playback session opens a new song.
+	/// The value is displayed in the user interface to provide context about the current track.
+	/// </remarks>
+	public string Artist
+	{
+		get => _artist;
+		set => SetProperty(ref _artist, value);
+	}
+
+	private string _cover = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png");
+
+	/// <summary>
+	/// Gets or sets the file path or URI of the album cover image.
+	/// </summary>
+	/// <remarks>
+	/// This property determines the visual representation of the album artwork displayed in the user interface.
+	/// The value can be a local file path or a URI. Updates to this property dynamically change the displayed
+	/// album cover to match the currently playing song. When no specific album cover is available, it defaults
+	/// to a predefined image path.
+	/// </remarks>
+	public string Cover
+	{
+		get => _cover;
+		set => SetProperty(ref _cover, value);
+	}
+
+	private Storyboard? _storyboard { get; set; }
+
 	/// <summary>
 	/// Represents the ViewModel for music control functionality of the application.
 	/// Maintains the state and behavior of media playback, including play/pause, shuffle, repeat, and progress bar controls.
@@ -331,8 +383,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 			AllSongs = null;
 
-
-
 			switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
 			{
 				case "AllSongsViewPage":
@@ -369,12 +419,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	/// <summary>
-	/// Handles changes in the playback state of the media session and updates the user interface accordingly.
-	/// This method ensures UI updates are dispatched to the UI thread and adjusts the play/pause icon
-	/// and tooltip text based on the current playback state.
+	/// Handles the playback state changes of the media playback session.
+	/// Updates relevant UI elements, like play/pause icon and tooltip, and synchronizes playback status with system media transport controls.
+	/// Also manages visual effects like rainbow animations based on the playback state.
 	/// </summary>
-	/// <param name="sender">The media playback session that raised the playback state changed event.</param>
-	/// <param name="args">Additional event data, if any, provided by the event source.</param>
+	/// <param name="sender">The MediaPlaybackSession that triggered the state change event.</param>
+	/// <param name="args">An object containing event data for the playback state change.</param>
 	private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
 	{
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
@@ -385,8 +435,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 					FontIconPlayPause = "\uE768";
 					ToolTipTextPlayPause = "Play";
 
+					_storyboard?.Pause();
+
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
-					//await Task.Delay(500);
+					await Task.Delay(500);
 
 					if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing)
 					{
@@ -398,6 +450,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 				case MediaPlaybackState.Playing:
 					FontIconPlayPause = "\uE769";
 					ToolTipTextPlayPause = "Pause";
+
+					_storyboard?.Resume();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 
@@ -586,17 +640,28 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	/// <summary>
-	/// Handles the event when a media file is opened in the playback session.
-	/// This method updates the duration of the currently playing media file.
+	/// Handles the MediaOpened event of the PlaybackSession.
+	/// Initializes the playback session by setting the duration of the song and updating song metadata,
+	/// including title, artist, and cover details, fetched from stored song metadata.
 	/// </summary>
 	/// <param name="sender">The MediaPlayer instance that triggered the event.</param>
-	/// <param name="args">Additional event data associated with the media opened event.</param>
+	/// <param name="args">Event data associated with the MediaOpened event.</param>
 	private async void PlaybackSession_MediaOpenedAsync(MediaPlayer sender, object args)
 	{
 		await Task.Delay(100);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
 		{
 			DurationOfSong = _musicPlayer.MediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
+			var AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
+			var track = AllSongs.FirstOrDefault(s => s.Path == _musicPlayer.CurrentSong);
+			if (track != null)
+			{
+				Title = track.Title;
+				Artist = track.Artists;
+				Cover = track.Cover;
+			}
+			track = null;
+			AllSongs = null;
 		});
 	}
 
@@ -609,6 +674,17 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private void _musicPlayer_ShuffleStatusChanged(object? sender, ShuffleMode e)
 	{
 		ShuffleToggle(e == ShuffleMode.On);
+	}
+
+	/// <summary>
+	/// Updates the storyboard instance used to animate UI elements related to music playback control.
+	/// </summary>
+	/// <param name="storyboard">
+	/// The storyboard instance to be set for managing animations, or null to reset it.
+	/// </param>
+	public void UpdateStoryBoard(Storyboard? storyboard)
+	{
+		_storyboard = storyboard;
 	}
 }
 

@@ -14,6 +14,43 @@ public sealed partial class MainPage : Page
 	public static MainPage? _instance;
 
 	/// <summary>
+	/// Event triggered when the main player page's visibility state changes.
+	/// </summary>
+	/// <remarks>
+	/// This event allows subscribers to be notified whenever the user navigates to or away from
+	/// the main player page, enabling components to adjust their behavior based on the navigation state.
+	/// The event passes a boolean value indicating the new state: true if the main player page is opened, false otherwise.
+	/// </remarks>
+	public event EventHandler<bool>? MainPlayerPageOpened;
+
+	private bool _isMainPlayerPageOpened = false;
+
+	/// <summary>
+	/// Indicates whether the main player page is currently opened.
+	/// </summary>
+	/// <value>
+	/// A boolean value representing the visibility state of the main player page.
+	/// Returns true if the main player page is currently active and visible, otherwise false.
+	/// </value>
+	/// <remarks>
+	/// This property is used to track and respond to the navigation state of the application, particularly
+	/// whether the user has navigated to the main player page. When the state changes, the
+	/// <see cref="MainPlayerPageOpened"/> event is triggered, enabling observers to respond to page changes.
+	/// </remarks>
+	private bool IsMainPlayerPageOpened
+	{
+		get => _isMainPlayerPageOpened;
+		set
+		{
+			if (_isMainPlayerPageOpened != value)
+			{
+				_isMainPlayerPageOpened = value;
+				MainPlayerPageOpened?.Invoke(this, _isMainPlayerPageOpened);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Initializes a new instance of the MainPage class.
 	/// </summary>
 	/// <remarks>
@@ -89,5 +126,23 @@ public sealed partial class MainPage : Page
 	private void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
 	{
 		AutoSuggestBoxHelper.OnITitleBarAutoSuggestBoxQuerySubmittedEvent(sender, args, NavFrame);
+	}
+
+	/// <summary>
+	/// Handles the selection changed event of the NavigationView component.
+	/// </summary>
+	/// <param name="sender">The NavigationView that raised the event.</param>
+	/// <param name="args">The event data containing details about the selection change, such as the selected item.</param>
+	/// <remarks>
+	/// This method determines the tag of the selected NavigationViewItem and updates the state of the IsMainPlayerPageOpened property accordingly.
+	/// It ensures that the application correctly tracks whether the MainPlayerPage is opened based on the selection.
+	/// </remarks>
+	private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+	{
+		if (args.SelectedItem is NavigationViewItem selectedItem)
+		{
+			string selectedTag = selectedItem.Tag.ToString();
+			IsMainPlayerPageOpened = selectedTag == "Tunetastic.Views.MainPlayerPage";
+		}
 	}
 }

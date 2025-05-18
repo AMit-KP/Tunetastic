@@ -15,7 +15,7 @@
       SizeChanged="Page_SizeChanged"
       mc:Ignorable="d">
 
-	<Grid Margin="10">
+	<Grid Margin="10,10,10,0">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition />
@@ -179,7 +179,7 @@
 							                    ColumnSpacing="10">
 								<controls:DataColumn DesiredWidth="40" />
 								<controls:DataColumn Content="Title"
-								                     DesiredWidth="300"
+								                     DesiredWidth="350"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 								<controls:DataColumn CanResize="True"
@@ -210,14 +210,11 @@
 									<Image VerticalAlignment="Center"
 									       Source="{x:Bind Cover}" />
 								</Grid>
-								<dev:AutoScrollView VerticalAlignment="Center"
-								                    VerticalContentAlignment="Center"
-								                    IsPlaying="True">
-									<TextBlock HorizontalAlignment="Left"
-									           VerticalAlignment="Center"
-									           Text="{x:Bind Title}"
-									           ToolTipService.ToolTip="{x:Bind Title}" />
-								</dev:AutoScrollView>
+								<TextBlock HorizontalAlignment="Left"
+								           VerticalAlignment="Center"
+								           Text="{x:Bind Title}"
+								           TextTrimming="CharacterEllipsis"
+								           ToolTipService.ToolTip="{x:Bind Title}" />
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Artists}"

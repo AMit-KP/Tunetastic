@@ -8,7 +8,8 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d">
 	<Grid>
-		<Frame Name="LibraryFrame" />
+		<Frame Name="LibraryFrame"
+			   Margin="0,0,0,-10"/>
 	</Grid>
 
 </Page>
