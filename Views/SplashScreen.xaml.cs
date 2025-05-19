@@ -29,13 +29,13 @@ public sealed partial class SplashScreen : Page
 	private async Task CheckScanning()
 	{
 		int time = 0;
-		while (!GetMusicDataService.IsScanning)
+		while (!GetMusicData.IsScanning)
 		{
 			time += 100;
 			await Task.Delay(100);
 			if (time > 3000) break;
 		}
-		if (GetMusicDataService.IsScanning)
+		if (GetMusicData.IsScanning)
 		{
 			CustomProgressBar.Visibility = Visibility.Visible;
 			for (double i = 0; i <= 1; i += 0.05)
@@ -44,10 +44,10 @@ public sealed partial class SplashScreen : Page
 				await Task.Delay(1);
 			}
 
-			while (GetMusicDataService.IsScanning)
+			while (GetMusicData.IsScanning)
 			{
-				ProgressFill.Width = GetMusicDataService.ScanProgress * 4;
-				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+				ProgressFill.Width = GetMusicData.ScanProgress * 4;
+				ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
 				await Task.Delay(1);
 			}
 

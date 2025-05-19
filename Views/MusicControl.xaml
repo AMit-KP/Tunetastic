@@ -176,7 +176,7 @@
 				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 				        BorderThickness="1"
 				        CornerRadius="23"
-				        Opacity="1">
+				        Opacity="0">
 					<StackPanel Padding="5,2,5,2"
 					            Orientation="Horizontal"
 					            Spacing="3">

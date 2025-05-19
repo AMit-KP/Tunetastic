@@ -37,7 +37,7 @@ public sealed partial class MainPage : Page
 	/// whether the user has navigated to the main player page. When the state changes, the
 	/// <see cref="MainPlayerPageOpened"/> event is triggered, enabling observers to respond to page changes.
 	/// </remarks>
-	private bool IsMainPlayerPageOpened
+	public bool IsMainPlayerPageOpened
 	{
 		get => _isMainPlayerPageOpened;
 		set
@@ -141,7 +141,7 @@ public sealed partial class MainPage : Page
 	{
 		if (args.SelectedItem is NavigationViewItem selectedItem)
 		{
-			string selectedTag = selectedItem.Tag.ToString();
+			string? selectedTag = selectedItem.Tag.ToString();
 			IsMainPlayerPageOpened = selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
 	}

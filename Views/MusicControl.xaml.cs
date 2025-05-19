@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using Windows.Media.Playback;
 
 namespace Tunetastic.Views;
 
@@ -9,15 +10,29 @@ namespace Tunetastic.Views;
 /// </summary>
 public sealed partial class MusicControl : Page
 {
+	public static MusicControl? _instance;
 	public MusicControl()
 	{
 		ViewModel = App.GetService<MusicControlViewModel>();
 		InitializeComponent();
 
-		MainPage._instance.MainPlayerPageOpened += MainPage_MainPlayerPageOpened;
+		_instance = this;
 
-		ViewModel.UpdateStoryBoard(CreateStoryBoard());
+		MainPage._instance.MainPlayerPageOpened += FloatingPlayer;
+		VinylEffectStoryBoard();
 	}
+
+	/// <summary>
+	/// Configures and starts the storyboard animation for spinning the vinyl record effect.
+	/// This method initializes the rotation animation and syncs its state with the playback status.
+	/// </summary>
+	private void VinylEffectStoryBoard()
+	{
+		var storyboard = CreateStoryBoard();
+		ViewModel.UpdateStoryBoard(storyboard);
+		if (MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing) storyboard?.Pause();
+	}
+
 	public MusicControlViewModel ViewModel
 	{
 		get;
@@ -69,9 +84,9 @@ public sealed partial class MusicControl : Page
 	/// <param name="e">
 	/// A boolean indicating whether the main player page is opened (<c>true</c>) or closed (<c>false</c>).
 	/// </param>
-	private void MainPage_MainPlayerPageOpened(object? sender, bool e)
+	public void FloatingPlayer(object? sender, bool e)
 	{
-		if (e)
+		if (e || ViewModel.Title == "Please select a song")
 			FadeOutMusicControl();
 		else
 			FadeInMusicControl();
@@ -97,7 +112,7 @@ public sealed partial class MusicControl : Page
 		Storyboard.SetTargetProperty(fadeIn, "Opacity");
 
 		storyboard.Children.Add(fadeIn);
-		storyboard.Begin();
+		if (TrackInfo.Opacity != 1) storyboard.Begin();
 	}
 
 	/// <summary>

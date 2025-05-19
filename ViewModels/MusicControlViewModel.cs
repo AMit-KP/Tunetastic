@@ -204,7 +204,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _toolTipTextRepeatButton, value);
 	}
 
-	private string _title = "";
+	private string _title = "Please select a song";
 
 	/// <summary>
 	/// Gets or sets the title of the currently playing track.
@@ -253,7 +253,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _cover, value);
 	}
 
-	private Storyboard? _storyboard { get; set; }
+	public Storyboard? _vinylEffect { get; set; }
 
 	/// <summary>
 	/// Represents the ViewModel for music control functionality of the application.
@@ -432,10 +432,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 			switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
 			{
 				case MediaPlaybackState.Paused:
+				case MediaPlaybackState.None:
 					FontIconPlayPause = "\uE768";
 					ToolTipTextPlayPause = "Play";
 
-					_storyboard?.Pause();
+					_vinylEffect?.Pause();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 					await Task.Delay(500);
@@ -451,7 +452,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					FontIconPlayPause = "\uE769";
 					ToolTipTextPlayPause = "Pause";
 
-					_storyboard?.Resume();
+					_vinylEffect?.Resume();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 
@@ -662,6 +663,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 			}
 			track = null;
 			AllSongs = null;
+			_vinylEffect?.Begin();
+			if (MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
+			MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);
 		});
 	}
 
@@ -684,7 +688,24 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </param>
 	public void UpdateStoryBoard(Storyboard? storyboard)
 	{
-		_storyboard = storyboard;
+		_vinylEffect = storyboard;
+	}
+
+	/// <summary>
+	/// Resets the properties of the floating music control window to their default state.
+	/// This includes updating the title, artist, and cover image to indicate no song is currently selected.
+	/// Primarily used to clear the current song display when no valid song is being played or after certain operations like playlist resets.
+	/// </summary>
+	public async void ResetCurrentSongFloatingWindow()
+	{
+		Title = "Please select a song";
+		Artist = string.Empty;
+		Cover = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png");
+		await Task.Delay(50);
+		_vinylEffect?.Stop();
+		await Task.Delay(50);
+		DurationOfSong = 0;
+		MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);
 	}
 }
 

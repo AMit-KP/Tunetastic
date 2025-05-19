@@ -34,12 +34,13 @@
 		<Grid x:Name="MusicDetails"
 		      Width="Auto"
 		      Height="Auto"
-		      Margin="0,0,0,5"
+		      Margin="-100,0,-100,5"
 		      HorizontalAlignment="Center"
 		      VerticalAlignment="Bottom">
 
 			<Border Width="Auto"
 			        Height="Auto"
+			        MaxHeight="160"
 			        Margin="140,-0,140,-0"
 			        Padding="20,10,20,10"
 			        VerticalAlignment="Bottom"

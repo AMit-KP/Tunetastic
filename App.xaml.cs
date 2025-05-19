@@ -45,7 +45,7 @@ public partial class App : Application
 		services.AddTransient<MainViewModel>();
 		services.AddSingleton<ContextMenuService>();
 		services.AddTransient<SettingViewModel>();
-		services.AddTransient<MusicControlViewModel>();
+		services.AddSingleton<MusicControlViewModel>();
 		services.AddSingleton<IRainbowFrame, RainbowFrame>();
 
 		return services.BuildServiceProvider();
@@ -88,7 +88,7 @@ public partial class App : Application
 
 		bool scanAtStartup = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
 		if (scanAtStartup)
-			await new GetMusicDataService().UpdateMetaData();
+			await new GetMusicData().UpdateMetaData();
 		else
 			await Task.Delay(500);
 

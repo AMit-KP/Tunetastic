@@ -56,69 +56,86 @@ public sealed partial class MainPlayerPage : Page
 	/// <returns>A <see cref="Task"/> that represents the asynchronous operation of updating the UI.</returns>
 	private async Task<Task> UpdateUI(bool notify = true)
 	{
-		var song = _musicPlayer.CurrentSong;
-		if (song != null && song != string.Empty)
+		try
 		{
-			var track = AllSongs.FirstOrDefault(s => s.Path == song);
-			if (File.Exists(track?.Path))
+			if (AllSongs.Count != 0)
 			{
-				Title.Text = track?.Title;
-				Album.Text = track?.Album;
-				Artist.Text = track?.Artists;
-				Title.FontSize = Album.FontSize * 1.5;
-				Artist.FontSize = Album.FontSize * 1.1;
 
-				var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
-				if (!File.Exists(thumbnailFilePath))
+				var song = _musicPlayer.CurrentSong;
+				if (song != null && song != string.Empty)
 				{
-					using var audioModel = TagLib.File.Create(track.Path);
-					ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+					var track = AllSongs.FirstOrDefault(s => s.Path == song);
+					if (File.Exists(track?.Path))
+					{
+						Title.Text = track?.Title;
+						Album.Text = track?.Album;
+						Artist.Text = track?.Artists;
+						Title.FontSize = Album.FontSize * 1.5;
+						Artist.FontSize = Album.FontSize * 1.1;
+
+						var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
+						if (!File.Exists(thumbnailFilePath))
+						{
+							using var audioModel = TagLib.File.Create(track.Path);
+							ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+						}
+
+						StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
+						using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+						{
+							BitmapImage bitmapImage = new BitmapImage();
+							await bitmapImage.SetSourceAsync(stream);
+
+							BackgroundImage.Source = bitmapImage;
+
+							int width = bitmapImage.PixelWidth;
+							int height = bitmapImage.PixelHeight;
+
+							double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
+							var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
+							var targetWidth = aspectRatio * targetHeight;
+
+							CoverArt.Width = targetWidth;
+							CoverArt.Height = targetHeight;
+							CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
+
+							CoverArtImage.Source = bitmapImage;
+						}
+						BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
+						if ((Title.Text + "\n" + Artist.Text).Length > 128)
+							App.TrayIcon.Text = Title.Text;
+						else
+							App.TrayIcon.Text = Title.Text + "\n" + Artist.Text;
+
+						var updater = MusicPlayer.Instance.SMTC.DisplayUpdater;
+						updater.Type = MediaPlaybackType.Music;
+						updater.Thumbnail = RandomAccessStreamReference.CreateFromFile(await StorageFile.GetFileFromPathAsync(track?.Cover));
+						updater.MusicProperties.Title = Title.Text;
+						updater.MusicProperties.Artist = Artist.Text;
+						updater.MusicProperties.AlbumTitle = Album.Text;
+						updater.MusicProperties.AlbumArtist = Artist.Text;
+						updater.MusicProperties.AlbumTrackCount = 1;
+						updater.Update();
+
+						return Task.CompletedTask;
+					}
+					else
+					{
+						if (notify)
+							GlobalNotification.Error("Could not find track/song:\n" + song);
+					}
 				}
-
-				StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
-				using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
-				{
-					BitmapImage bitmapImage = new BitmapImage();
-					await bitmapImage.SetSourceAsync(stream);
-
-					BackgroundImage.Source = bitmapImage;
-
-					int width = bitmapImage.PixelWidth;
-					int height = bitmapImage.PixelHeight;
-
-					double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
-					var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
-					var targetWidth = aspectRatio * targetHeight;
-
-					CoverArt.Width = targetWidth;
-					CoverArt.Height = targetHeight;
-					CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
-
-					CoverArtImage.Source = bitmapImage;
-				}
-				BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
-				if ((Title.Text + "\n" + Artist.Text).Length > 128)
-					App.TrayIcon.Text = Title.Text;
-				else
-					App.TrayIcon.Text = Title.Text + "\n" + Artist.Text;
-
-				var updater = MusicPlayer.Instance.SMTC.DisplayUpdater;
-				updater.Type = MediaPlaybackType.Music;
-				updater.Thumbnail = RandomAccessStreamReference.CreateFromFile(await StorageFile.GetFileFromPathAsync(track?.Cover));
-				updater.MusicProperties.Title = Title.Text;
-				updater.MusicProperties.Artist = Artist.Text;
-				updater.MusicProperties.AlbumTitle = Album.Text;
-				updater.MusicProperties.AlbumArtist = Artist.Text;
-				updater.MusicProperties.AlbumTrackCount = 1;
-				updater.Update();
-
-				return Task.CompletedTask;
 			}
 			else
 			{
 				if (notify)
-					GlobalNotification.Error("Could not find song:\n" + song);
+					GlobalNotification.Error("No tracks/songs found in library.");
 			}
+		}
+		catch (Exception)
+		{
+			if (notify)
+				GlobalNotification.Error("Could not load track/song.");
 		}
 
 		MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
