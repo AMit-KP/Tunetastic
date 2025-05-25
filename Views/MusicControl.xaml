@@ -171,6 +171,9 @@
 			      Margin="20,5,0,0"
 			      HorizontalAlignment="Left"
 			      VerticalAlignment="Top">
+				<Grid.RenderTransform>
+					<TranslateTransform x:Name="SongInfoTransform" Y="0" />
+				</Grid.RenderTransform>
 				<Border x:Name="TrackInfo"
 				        VerticalAlignment="Bottom"
 				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"

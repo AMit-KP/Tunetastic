@@ -666,6 +666,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_vinylEffect?.Begin();
 			if (MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
 			MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);
+			MusicControl._instance.SlideInDown();
 		});
 	}
 

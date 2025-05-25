@@ -127,7 +127,7 @@ public sealed partial class MusicControl : Page
 		{
 			From = 1,
 			To = 0,
-			Duration = TimeSpan.FromMilliseconds(300),
+			Duration = TimeSpan.FromMilliseconds(200),
 			EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
 		};
 
@@ -136,5 +136,43 @@ public sealed partial class MusicControl : Page
 
 		storyboard.Children.Add(fadeOut);
 		if (TrackInfo.Opacity != 0) storyboard.Begin();
+	}
+
+	/// <summary>
+	/// Initiates an animation that slides the song information panel into view
+	/// from the top and fades it in simultaneously. This method checks the
+	/// current opacity of the panel and applies appropriate storyboard animations
+	/// for both the vertical translation and opacity change.
+	/// </summary>
+	public async void SlideInDown()
+	{
+		if (TrackInfo.Opacity == 1)
+		{
+			SongInfoTransform.Y = -100;
+			TrackInfo.Opacity = 0;
+			Storyboard storyboard = new Storyboard();
+			DoubleAnimation slideRight = new DoubleAnimation
+			{
+				To = 0,
+				Duration = TimeSpan.FromMilliseconds(400),
+				EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+			};
+
+			DoubleAnimation fadeIn = new DoubleAnimation
+			{
+				From = 0,
+				To = 1,
+				Duration = TimeSpan.FromMilliseconds(400),
+				EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+			};
+
+			Storyboard.SetTarget(slideRight, SongInfoTransform);
+			Storyboard.SetTargetProperty(slideRight, "Y");
+			storyboard.Children.Add(slideRight);
+			Storyboard.SetTarget(fadeIn, TrackInfo);
+			Storyboard.SetTargetProperty(fadeIn, "Opacity");
+			storyboard.Children.Add(fadeIn);
+			storyboard.Begin();
+		}
 	}
 }
