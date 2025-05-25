@@ -1,4 +1,6 @@
-﻿using Windows.Media;
+﻿using Tunetastic.Generated.Protos;
+using Tunetastic.Views.LibraryViews;
+using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
@@ -274,7 +276,7 @@ public class MusicPlayer
 				}
 				else
 				{
-					if (!isPlaying) Play();
+					if (!isPlaying && play) Play();
 					return;
 				}
 			}
@@ -404,8 +406,12 @@ public class MusicPlayer
 	/// This method handles manual crossfade settings and playback state preservation.
 	/// If an error occurs during the operation, the player attempts to shift to the next track.
 	/// </summary>
+	/// <Remark>
+	/// If scanning is in progress, then the function doesn't work
+	/// </Remark>
 	public async void Previous()
 	{
+		if (GetMusicData.IsScanning) return;
 		try
 		{
 			if (ActualPlaylist?.Count > 0)
@@ -438,11 +444,17 @@ public class MusicPlayer
 	/// or stop playback if there is no further song to play.
 	/// </summary>
 	/// <param name="autoChange">If set to true, the playback will automatically advance to the next song; otherwise, playback state will be maintained based on user action.</param>
+	/// <Remark>
+	/// If scanning is in progress, then the function doesn't work
+	/// </Remark>
 	public async void Next(bool autoChange = false)
 	{
+		if (GetMusicData.IsScanning) return;
 		try
 		{
 			//TODO handle queue
+			bool isPlaying = autoChange ? autoChange : MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
+
 			if (OriginalPlaylist?.Count > 0)
 			{
 				if (currentIndex < OriginalPlaylist.Count - 1)
@@ -467,16 +479,15 @@ public class MusicPlayer
 							break;
 
 						case RepeatMode.All:
-							LoadPlaylist(OriginalPlaylist, ActualPlaylist[0]);
-							return;
+							LoadPlaylist(OriginalPlaylist, ActualPlaylist[0], false);
+							currentIndex = 0;
+							break;
 
 						case RepeatMode.None:
 							if (autoChange) Pause();
 							return;
 					}
 				}
-
-				bool isPlaying = autoChange ? autoChange : MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
 
 				var fadeType = isPlaying ? bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[autoChange ? nameof(LocalSave.AutoAdvanceStatus) : nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false") ? (autoChange ? FadeType.AutoAdvance : FadeType.Manual) : FadeType.None : FadeType.None;
 
@@ -580,27 +591,50 @@ public class MusicPlayer
 	/// </summary>
 	public void SavePlayBackPosition()
 	{
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayBackPosition)] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentIndex)] = currentIndex.ToString();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
+		localSettings.Values[nameof(LocalSave.CurrentIndex)] = currentIndex.ToString();
 	}
 
 	/// <summary>
-	/// Resets the playlists of the music player after a music file scan operation is completed.
-	/// This method clears the existing playlists and reinitializes them to ensure they reflect updates
-	/// or changes made during the scan.
-	/// If a song is currently playing, it is retained in both the actual and original playlists,
-	/// and the current song index is updated accordingly.
+	/// Resets the music player state after a library scan. This includes determining if the current song
+	/// is still valid, pausing playback if necessary, resetting playlists, and clearing playback-related
+	/// settings and data. If the current song is identified, it reloads the appropriate playlist or track
+	/// for continued playback.
 	/// </summary>
-	internal void ResetAfterScan()
+	public async void ResetAfterScan()
 	{
-		ActualPlaylist = null;
-		OriginalPlaylist = null;
-		ActualPlaylist = OriginalPlaylist = new List<string>();
-		if (CurrentSong != null && CurrentSong != "")
+		var AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
+		var track = AllSongs.FirstOrDefault(s => s.Path == CurrentSong);
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (track == null)
 		{
-			ActualPlaylist.Add(CurrentSong);
-			OriginalPlaylist.Add(CurrentSong);
+			Pause();
+			ActualPlaylist = null;
+			OriginalPlaylist = null;
+			ActualPlaylist = OriginalPlaylist = new List<string>();
+			CurrentSong = "";
+			MediaPlayer.Position = TimeSpan.Zero;
+			MediaPlayer.Source = null;
+			localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
+			localSettings.Values.Remove(nameof(LocalSave.PlayBackPosition));
+			localSettings.Values.Remove(nameof(LocalSave.CurrentPlaylist));
 			currentIndex = 0;
+
+			MusicControl._instance.ViewModel.ResetCurrentSongFloatingWindow();
+		}
+		else
+		{
+			switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
+			{
+				case "AllSongsViewPage":
+					new AllSongsViewPage().LoadAsPlayList(CurrentSong, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
+					break;
+
+				default:
+					await LoadSong(CurrentSong, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
+					break;
+			}
 		}
 	}
 }

@@ -48,6 +48,7 @@ public sealed partial class MainWindow : WindowEx
 	/// <param name="minimizeToTray">A boolean value indicating whether the application should minimize to the system tray. If set to true, the application minimizes to the tray; otherwise, it minimizes normally.</param>
 	private void SetMinimizeBehaviour(bool minimizeToTray)
 	{
+		Closed -= MainWindowClose;
 		if (minimizeToTray)
 			Closed += MainWindowClose;
 		else

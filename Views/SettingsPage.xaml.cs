@@ -79,7 +79,7 @@ public sealed partial class SettingsPage : Page
 		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged; 
 		#endregion
 
-		if (GetMusicDataService.IsScanning) ScanButton_Click(null, null);
+		if (GetMusicData.IsScanning) ScanButton_Click(null, null);
 	}
 
 	/// <summary>
@@ -144,15 +144,15 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">Event data associated with the button click event.</param>
 	private async void ScanButton_Click(object? sender, RoutedEventArgs? e)
 	{
-		if (GetMusicDataService.IsScanning)
+		if (GetMusicData.IsScanning)
 		{
 			CustomProgressBar.Visibility = Visibility.Visible;
 			Scan.IsEnabled = false;
 
-			while (GetMusicDataService.IsScanning)
+			while (GetMusicData.IsScanning)
 			{
-				ProgressFill.Width = GetMusicDataService.ScanProgress * 2;
-				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+				ProgressFill.Width = GetMusicData.ScanProgress * 2;
+				ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
 				await Task.Delay(1);
 			}
 
@@ -175,7 +175,7 @@ public sealed partial class SettingsPage : Page
 		ProgressFillText.Text = "0%";
 		CustomProgressBar.Visibility = Visibility.Visible;
 
-		_ = new GetMusicDataService().UpdateMetaData();
+		_ = new GetMusicData().UpdateMetaData();
 
 		for (double i = 0; i <= 1; i += 0.1)
 		{
@@ -184,10 +184,10 @@ public sealed partial class SettingsPage : Page
 			await Task.Delay(1);
 		}
 
-		while (GetMusicDataService.IsScanning)
+		while (GetMusicData.IsScanning)
 		{
-			ProgressFill.Width = GetMusicDataService.ScanProgress * 2;
-			ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+			ProgressFill.Width = GetMusicData.ScanProgress * 2;
+			ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
 			await Task.Delay(1);
 		}
 

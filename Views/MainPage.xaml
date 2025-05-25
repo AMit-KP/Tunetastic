@@ -43,17 +43,19 @@
 		                Grid.Row="1"
 		                IsBackButtonVisible="Collapsed"
 		                IsPaneOpen="False"
-		                IsPaneToggleButtonVisible="False">
+		                IsPaneToggleButtonVisible="False"
+		                SelectionChanged="NavView_SelectionChanged">
 			<NavigationView.Header>
 				<dev:BreadcrumbNavigator x:Name="BreadCrumbNav" />
 			</NavigationView.Header>
 			<Grid>
 				<Grid.RowDefinitions>
 					<RowDefinition Height="*" />
-					<RowDefinition Height="140" />
+					<RowDefinition Height="210" />
 				</Grid.RowDefinitions>
 				<Frame x:Name="NavFrame"
-				       Grid.Row="0" />
+				       Grid.Row="0"
+				       Margin="0,0,0,-75" />
 				<Frame x:Name="MusicControlsArea"
 				       Grid.Row="1" />
 			</Grid>

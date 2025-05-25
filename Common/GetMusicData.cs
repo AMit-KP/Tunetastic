@@ -8,7 +8,7 @@ namespace Tunetastic.Common;
 /// <summary>
 /// Provides services for managing and updating metadata related to music libraries in the application.
 /// </summary>
-public class GetMusicDataService
+public class GetMusicData
 {
 	/// <summary>
 	/// Represents the asynchronous task that is responsible for scanning and updating the music libraries.
@@ -131,15 +131,14 @@ public class GetMusicDataService
 		var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 		var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
 
-
 		var formatList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
 
-		List<string> extensions = new();
+		List<string>? extensions = new();
 
 		foreach (var format in formatList)
 			if (format.Enabled) extensions.Add(format.Extension);
 
-		if (extensions.Count == 0) extensions.Add(".mp3");
+		if (extensions?.Count == 0) extensions.Add(".mp3");
 
 		var path = Path.Combine(Constants.ThumbnailsFolder);
 		if (Directory.Exists(path)) Directory.Delete(path, true);
@@ -175,7 +174,7 @@ public class GetMusicDataService
 				}
 			}
 
-			SongList songsContainer = new SongList();
+			SongList? songsContainer = new SongList();
 			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
 
 			ScanProgress = 1;
@@ -247,16 +246,28 @@ public class GetMusicDataService
 			catch (Exception)
 			{
 				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
+				ProtobufData.DeleteBinFile(DataFile.AllSongsMetaData);
 				return ("Error", "No tracks could be added");
 			}
 
-			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {libraries.Count} Songs/Tracks: {songsContainer.Songs.Count}";
+
+			var librariesCount = libraries.Count;
+			var songsCount = songsContainer.Songs.Count;
+			extensions = null;
+			formatList = null;
+			uniqueFolders = null;
+			songsContainer = null;
+			uniqueMetadata = null;
+			libraries = null;
+
+			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {librariesCount} Songs/Tracks: {songsCount}";
 			ScanProgress = 100;
 			await Task.Delay(10);
-			return ("Info", "Library scan completed.\nLibraries: " + libraries.Count + "\nSongs/Tracks: " + songsContainer.Songs.Count);
+			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount);
 		}
 		else
 		{
+			ProtobufData.SaveToBin(DataFile.AllSongsMetaData, new SongList());
 			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
 			return ("Warning", "No libraries found. Please add atleast one library.");
 		}

@@ -63,7 +63,7 @@ public sealed partial class AllSongsViewPage : Page
 	/// </returns>
 	private async Task CheckScanning()
 	{
-		if (GetMusicDataService.IsScanning)
+		if (GetMusicData.IsScanning)
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
 			AllSongsListViewGrid.Visibility = Visibility.Collapsed;
@@ -78,10 +78,10 @@ public sealed partial class AllSongsViewPage : Page
 				await Task.Delay(1);
 			}
 
-			while (GetMusicDataService.IsScanning)
+			while (GetMusicData.IsScanning)
 			{
-				ProgressFill.Width = GetMusicDataService.ScanProgress * 4;
-				ProgressFillText.Text = $"{GetMusicDataService.ScanProgress.ToString()}%";
+				ProgressFill.Width = GetMusicData.ScanProgress * 4;
+				ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
 				await Task.Delay(1);
 			}
 
@@ -100,13 +100,21 @@ public sealed partial class AllSongsViewPage : Page
 		GoToSettings.Visibility = Visibility.Visible;
 		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
 		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+		ShuffleAndPlay.Visibility = Visibility.Collapsed;
+		PlayAll.Visibility = Visibility.Collapsed;
+		ViewButton.Visibility = Visibility.Collapsed;
+		SortDropDown.Visibility = Visibility.Collapsed;
 
 		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
 		if (AllSongs.Count > 0)
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
+			ViewButton.Visibility = Visibility.Visible;
+			SortDropDown.Visibility = Visibility.Visible;
 			UpdateAsPerLastViewStyle();
 			UpdateAsPerLastSorting();
+			ShuffleAndPlay.Visibility = Visibility.Visible;
+			PlayAll.Visibility = Visibility.Visible;
 		}
 	}
 
@@ -482,13 +490,23 @@ public sealed partial class AllSongsViewPage : Page
 	/// its validity from the provided collection. Additionally, it defines interaction behavior for
 	/// navigable elements to handle user input.
 	/// </remarks>
-	private void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
+	private async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
 	{
 		AlphabetNavigationPanel.Children.Clear();
 
 		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
 		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
 		if (!order) fullAlphabet = fullAlphabet.Reverse();
+
+		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		double availableSpace = viewStyle switch
+		{
+			"List View" => AllSongsListView.ActualHeight - 40,
+			"Compact View" => AllSongCompactView.ActualHeight,
+			_ => AllSongCompactView.ActualHeight
+		};
+
+		double autoHeight = availableSpace / fullAlphabet.Count();
 
 		foreach (var letter in fullAlphabet)
 		{
@@ -497,7 +515,7 @@ public sealed partial class AllSongsViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? Colors.White : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),
@@ -509,6 +527,7 @@ public sealed partial class AllSongsViewPage : Page
 				Padding = new Thickness(0),
 				HorizontalAlignment = HorizontalAlignment.Right,
 				VerticalAlignment = VerticalAlignment.Stretch,
+				Height = autoHeight
 			};
 
 			if (hasSongs)
@@ -519,6 +538,7 @@ public sealed partial class AllSongsViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
+			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;
