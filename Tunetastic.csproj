@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.8.38.760</AssemblyVersion>
-    <FileVersion>1.8.38.760</FileVersion>
+    <AssemblyVersion>1.8.80.802</AssemblyVersion>
+    <FileVersion>1.8.80.802</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -104,8 +104,11 @@
     <None Remove="Assets\Store\StoreLogo.scale-400.png" />
     <None Remove="Views\LibraryViews\AlbumsViewPage.xaml" />
     <None Remove="Views\LibraryViews\ArtistsViewPage.xaml" />
+    <None Remove="Views\LibraryViews\GenresViewPage.xaml" />
+    <None Remove="Views\LibraryViews\YearsViewPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\PlaylistViews\MostPlayed.xaml" />
+    <None Remove="Views\PlaylistViews\PlayListTemplate.xaml" />
     <None Remove="Views\PlaylistViews\QueuedList.xaml" />
     <None Remove="Views\PlaylistViews\RecentlyAdded.xaml" />
     <None Remove="Views\SplashScreen.xaml" />
@@ -114,6 +117,7 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
   <ItemGroup>
+    <Protobuf Include="Protos\CustomPlaylist.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\MusicAllData.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\LibraryPaths.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\Formats.proto" GrpcServices="None" OutputDir="Generated" />
@@ -190,6 +194,12 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Page Update="Views\LibraryViews\YearsViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\LibraryViews\GenresViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <!-- 
 	Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 

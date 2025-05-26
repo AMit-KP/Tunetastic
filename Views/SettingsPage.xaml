@@ -411,7 +411,7 @@
 									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
 								</Style>
 							</Flyout.FlyoutPresenterStyle>
-							<StackPanel>
+							<StackPanel Spacing="5">
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Are you sure?" />
 								<Button Command="{x:Bind ViewModel.ResetCommand}"

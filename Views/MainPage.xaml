@@ -6,59 +6,84 @@
       xmlns:dev="using:DevWinUI"
       xmlns:local="using:Tunetastic"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      Loaded="Page_Loaded"
       mc:Ignorable="d">
 
 	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto" />
-			<RowDefinition />
-		</Grid.RowDefinitions>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition />
+			</Grid.RowDefinitions>
 
-		<TitleBar x:Name="AppTitleBar"
-		          Title="{x:Bind dev:ProcessInfoHelper.ProductName}"
-		          IsBackButtonVisible="True"
-		          IsPaneToggleButtonVisible="True">
-			<!--  IconSource="{dev:BitmapIconSource Source=ms-appx:///Assets/AppIcon.png}"  -->
-			<!--  Issue with windows app sdk  -->
-			<AutoSuggestBox x:Name="SearchBox"
-			                MinWidth="320"
-			                VerticalAlignment="Center"
-			                PlaceholderText="Search"
-			                QueryIcon="Find"
-			                QuerySubmitted="OnQuerySubmitted"
-			                TextChanged="OnTextChanged" />
-			<TitleBar.RightHeader>
-				<Button x:Name="ThemeButton"
-				        Height="32"
-				        Margin="0,0,4,0"
-				        Click="ThemeButton_Click"
-				        Content="{dev:FontIcon GlyphCode=E793,
-				                               FontSize=16}"
-				        Style="{ThemeResource SubtleButtonStyle}"
-				        ToolTipService.ToolTip="Toggle Theme" />
-			</TitleBar.RightHeader>
-		</TitleBar>
+			<TitleBar x:Name="AppTitleBar"
+			          Title="{x:Bind dev:ProcessInfoHelper.ProductName}"
+			          IsBackButtonVisible="True"
+			          IsPaneToggleButtonVisible="True">
+				<!--  IconSource="{dev:BitmapIconSource Source=ms-appx:///Assets/AppIcon.png}"  -->
+				<!--  Issue with windows app sdk  -->
+				<AutoSuggestBox x:Name="SearchBox"
+				                MinWidth="320"
+				                VerticalAlignment="Center"
+				                PlaceholderText="Search"
+				                QueryIcon="Find"
+				                QuerySubmitted="OnQuerySubmitted"
+				                TextChanged="OnTextChanged" />
+				<TitleBar.RightHeader>
+					<Button x:Name="ThemeButton"
+					        Height="32"
+					        Margin="0,0,4,0"
+					        Click="ThemeButton_Click"
+					        Content="{dev:FontIcon GlyphCode=E793,
+					                               FontSize=16}"
+					        Style="{ThemeResource SubtleButtonStyle}"
+					        ToolTipService.ToolTip="Toggle Theme" />
+				</TitleBar.RightHeader>
+			</TitleBar>
 
-		<NavigationView x:Name="NavView"
-		                Grid.Row="1"
-		                IsBackButtonVisible="Collapsed"
-		                IsPaneOpen="False"
-		                IsPaneToggleButtonVisible="False"
-		                SelectionChanged="NavView_SelectionChanged">
-			<NavigationView.Header>
-				<dev:BreadcrumbNavigator x:Name="BreadCrumbNav" />
-			</NavigationView.Header>
-			<Grid>
-				<Grid.RowDefinitions>
-					<RowDefinition Height="*" />
-					<RowDefinition Height="210" />
-				</Grid.RowDefinitions>
-				<Frame x:Name="NavFrame"
-				       Grid.Row="0"
-				       Margin="0,0,0,-75" />
-				<Frame x:Name="MusicControlsArea"
-				       Grid.Row="1" />
-			</Grid>
-		</NavigationView>
+			<NavigationView x:Name="NavView"
+			                Grid.Row="1"
+			                IsBackButtonVisible="Collapsed"
+			                IsBackEnabled="False"
+			                IsPaneOpen="False"
+			                IsPaneToggleButtonVisible="False"
+			                ItemInvoked="NavView_ItemInvoked"
+			                SelectionChanged="NavView_SelectionChanged">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="*" />
+						<RowDefinition Height="210" />
+					</Grid.RowDefinitions>
+					<Frame x:Name="NavFrame"
+					       Grid.Row="0"
+					       Margin="0,0,0,-75" />
+					<Frame x:Name="MusicControlsArea"
+					       Grid.Row="1" />
+				</Grid>
+			</NavigationView>
+		</Grid>
+		<Grid Width="Auto"
+		      Height="Auto"
+		      HorizontalAlignment="Center"
+		      VerticalAlignment="Center">
+			<ContentDialog x:Name="AddPlaylistDialog"
+			               Title="Create New Playlist"
+			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+			               DefaultButton="Primary"
+			               IsPrimaryButtonEnabled="False"
+			               PrimaryButtonText="Add"
+			               SecondaryButtonText="Cancel"
+			               Visibility="Visible">
+				<StackPanel>
+					<TextBox x:Name="PlaylistNameBox"
+					         PlaceholderText="Enter playlist name"
+					         TextChanged="OnPlaylistNameChanged" />
+					<TextBlock x:Name="ErrorMessage"
+					           Foreground="Red"
+					           Text="Playlist name already exists"
+					           Visibility="Collapsed" />
+				</StackPanel>
+			</ContentDialog>
+		</Grid>
 	</Grid>
 </Page>

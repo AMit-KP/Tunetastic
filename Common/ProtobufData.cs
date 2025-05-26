@@ -69,5 +69,6 @@ public enum DataFile
 {
 	AllSongsMetaData,
 	AllLibraries,
-	FormatsAllowed
+	FormatsAllowed,
+	CustomPlayLists
 }
