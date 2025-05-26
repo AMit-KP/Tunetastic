@@ -55,7 +55,7 @@ public sealed partial class MainPage : Page
 	/// </summary>
 	/// <remarks>
 	/// This constructor initializes the MainPage, configures the title bar, sets up navigation services, and handles page-specific configurations.
-	/// It ensures integration with the application's window and navigation system, such as setting the title bar, configuring breadcrumbs, and initializing the music controls area.
+	/// It ensures integration with the application's window and navigation system, such as setting the title bar and initializing the music controls area.
 	/// </remarks>
 	public MainPage()
 	{
@@ -63,13 +63,12 @@ public sealed partial class MainPage : Page
 		_instance = this;
 		App.MainWindow.ExtendsContentIntoTitleBar = true;
 		App.MainWindow.SetTitleBar(AppTitleBar);
-		var mainWin = App.MainWindow as MainWindow; // ✅ Get MainWindow instance
+		var mainWin = App.MainWindow as MainWindow;
 
 		if (mainWin?.CurrentAppWindow != null)
 		{
-			mainWin.CurrentAppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall; // ✅ Apply preferred height from MainPage
+			mainWin.CurrentAppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 		}
-
 
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
 		if (navService != null)
@@ -78,8 +77,7 @@ public sealed partial class MainPage : Page
 				.ConfigureDefaultPage(typeof(MainPlayerPage))
 				.ConfigureSettingsPage(typeof(SettingsPage))
 				.ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
-				.ConfigureTitleBar(AppTitleBar)
-				.ConfigureBreadcrumbBar(BreadCrumbNav, BreadcrumbPageMappings.PageDictionary);
+				.ConfigureTitleBar(AppTitleBar);
 		}
 		MusicControlsArea.Navigate(typeof(MusicControl));
 	}

@@ -1,31 +1,96 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/Ghost1372/DevWinUI/refs/heads/main/AppData.Schema.json",
-  "Groups": [
+  "Groups":
+  [
     {
-      "UniqueId": "Tunetastic",
-      "Title": "Tunetastic",
-      "ImagePath": "ms-appx:///Assets/AppIcon.png",
-      "IsSpecialSection": false,
+      "UniqueId": "Tunetastic.Views.MainPlayerPage",
+      "IconGlyph": "E8D6",
       "ShowItemsWithoutGroup": true,
-      "IsExpanded": false,
-      "Items": [
+      "Items":
+      [
         {
           "UniqueId": "Tunetastic.Views.MainPlayerPage",
-          "Title": "MainPlayerPage",
-          "ImagePath": "ms-appx:///Assets/AppIcon.png",
+          "Title": "Player",
+          "IconGlyph": "E8D6",
           "HideItem": true
+        }
+      ]
+    },
+    {
+      "UniqueId": "Library",
+      "Title": "Library",
+      "IconGlyph": "E8F1",
+      "IsSpecialSection": false,
+      "ShowItemsWithoutGroup": false,
+      "IsExpanded": true,
+      "Order": false,
+      "Items":
+      [
+        {
+          "UniqueId": "Tunetastic.Views.LibraryViews.AllSongsViewPage",
+          "Title": "All Songs",
+          "IconGlyph": "E71d",
+          "HideItem": false
         },
         {
-          "UniqueId": "Tunetastic.Views.LibraryPage",
-          "Title": "LibraryPage",
-          "ImagePath": "ms-appx:///Assets/AppIcon.png",
-          "HideItem": true
+          "UniqueId": "Tunetastic.Views.LibraryViews.ArtistsViewPage",
+          "Title": "Artists",
+          "IconGlyph": "E716",
+          "HideItem": false
         },
         {
-          "UniqueId": "Tunetastic.Views.PlayListPage",
-          "Title": "PlayListPage",
-          "ImagePath": "ms-appx:///Assets/AppIcon.png",
-          "HideItem": true
+          "UniqueId": "Tunetastic.Views.LibraryViews.AlbumsViewPage",
+          "Title": "Albums",
+          "IconGlyph": "E93C",
+          "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.LibraryViews.GenresViewPage",
+          "Title": "Genres",
+          "IconGlyph": "E955",
+          "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.LibraryViews.YearsViewPage",
+          "Title": "Years",
+          "IconGlyph": "E787",
+          "HideItem": false
+        }
+      ]
+    },
+    {
+      "UniqueId": "Playlists",
+      "Title": "Playlists",
+      "IconGlyph": "EA41",
+      "IsSpecialSection": false,
+      "ShowItemsWithoutGroup": false,
+      "IsExpanded": true,
+      "Order": false,
+      "Items":
+      [
+        {
+          "UniqueId": "Tunetastic.Views.PlaylistViews.QueuedList",
+          "Title": "Queue",
+          "IconGlyph": "E84F",
+          "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.PlaylistViews.RecentlyAdded",
+          "Title": "Recently Added",
+          "IconGlyph": "E823",
+          "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.PlaylistViews.MostPlayed",
+          "Title": "Most Played",
+          "IconGlyph": "E96A",
+          "HideItem": false
+        },
+        {
+          "UniqueId": "AddNewPlaylist",
+          "Title": "Add New Playlist",
+          "IconGlyph": "F8AA",
+          "HideItem": false
         }
       ]
     }
