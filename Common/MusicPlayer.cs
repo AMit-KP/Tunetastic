@@ -1,5 +1,4 @@
-﻿using Tunetastic.Generated.Protos;
-using Tunetastic.Views.LibraryViews;
+﻿using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
@@ -604,8 +603,7 @@ public class MusicPlayer
 	/// </summary>
 	public async void ResetAfterScan()
 	{
-		var AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
-		var track = AllSongs.FirstOrDefault(s => s.Path == CurrentSong);
+		var track = DatabaseHelper.Instance.GetSongByPath(CurrentSong);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (track == null)
 		{

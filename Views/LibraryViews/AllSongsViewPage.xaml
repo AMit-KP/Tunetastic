@@ -201,7 +201,7 @@
 					</ListView.Header>
 
 					<ListView.ItemTemplate>
-						<DataTemplate x:DataType="local:Song">
+						<DataTemplate x:DataType="common:Song">
 							<controls:DataRow HorizontalAlignment="Left">
 								<Grid Width="40"
 								      Height="60"
@@ -258,7 +258,7 @@
 					</ListView.ItemsPanel>
 
 					<ListView.ItemTemplate>
-						<DataTemplate x:DataType="local:Song">
+						<DataTemplate x:DataType="common:Song">
 							<Grid>
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*" />

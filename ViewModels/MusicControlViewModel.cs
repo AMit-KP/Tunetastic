@@ -1,7 +1,6 @@
 ﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
-using Tunetastic.Generated.Protos;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Media.Playback;
@@ -369,9 +368,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
 		{
-			var AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
 			var song = localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
-			var track = AllSongs.FirstOrDefault(s => s.Path == song);
+			var track = await DatabaseHelper.Instance.GetSongByPath(song);
 
 			if (track == null)
 			{
@@ -380,8 +378,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 				localSettings.Values.Remove(nameof(LocalSave.CurrentPlaylist));
 				return;
 			}
-
-			AllSongs = null;
 
 			switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
 			{
@@ -649,12 +645,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// <param name="args">Event data associated with the MediaOpened event.</param>
 	private async void PlaybackSession_MediaOpenedAsync(MediaPlayer sender, object args)
 	{
-		await Task.Delay(100);
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+		await Task.Delay(10);
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			DurationOfSong = _musicPlayer.MediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
-			var AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
-			var track = AllSongs.FirstOrDefault(s => s.Path == _musicPlayer.CurrentSong);
+			var track = await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong);
 			if (track != null)
 			{
 				Title = track.Title;
@@ -662,7 +657,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				Cover = track.Cover;
 			}
 			track = null;
-			AllSongs = null;
+
 			_vinylEffect?.Begin();
 			if (MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
 			MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);

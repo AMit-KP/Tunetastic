@@ -1,6 +1,0 @@
-﻿syntax = "proto3";
-option csharp_namespace = "Tunetastic.Generated.Protos";
-
-message PlayListsList {
-  repeated string PlayListName = 1;
-}

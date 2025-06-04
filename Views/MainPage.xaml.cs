@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Input;
-using Tunetastic.Generated.Protos;
 using Tunetastic.Views.PlaylistViews;
 using AutoSuggestBoxHelper = DevWinUI.AutoSuggestBoxHelper;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
@@ -165,7 +164,7 @@ public sealed partial class MainPage : Page
 		}
 	}
 
-	private PlayListsList? playLists;
+	private List<string>? playLists;
 
 	/// <summary>
 	/// Displays the dialog for adding a new playlist.
@@ -180,7 +179,7 @@ public sealed partial class MainPage : Page
 		AddPlaylistDialog.Visibility = Visibility.Visible;
 		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
 		PlaylistNameBox.Text = string.Empty;
-		playLists = ProtobufData.LoadFromBin<PlayListsList>(DataFile.CustomPlayLists);
+		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
 
@@ -188,8 +187,7 @@ public sealed partial class MainPage : Page
 		{
 			if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
 			{
-				playLists.PlayListName.Add(PlaylistNameBox.Text.Trim());
-				ProtobufData.SaveToBin<PlayListsList>(DataFile.CustomPlayLists, playLists);
+				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
 			}
 		}
 		playLists = null;
@@ -207,7 +205,7 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private void OnPlaylistNameChanged(object sender, TextChangedEventArgs e)
 	{
-		if (playLists.PlayListName.Contains(PlaylistNameBox.Text.Trim()))
+		if (playLists != null && playLists.Contains(PlaylistNameBox.Text.Trim()))
 		{
 			ErrorMessage.Visibility = Visibility.Visible;
 			AddPlaylistDialog.IsPrimaryButtonEnabled = false;
@@ -264,18 +262,20 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
-	/// Dynamically generates and adds playlist navigation items to the user interface.
+	/// Dynamically generates and adds playlist navigation items to the navigation menu.
 	/// </summary>
 	/// <remarks>
-	/// This method retrieves a list of custom playlists through the `ProtobufData` loader, dynamically creates navigation view items for each playlist,
-	/// and associates them with corresponding navigation page mappings. It ensures that each playlist is properly displayed in the navigation menu
-	/// and can be accessed through its designated view. In case of an error, the method automatically retries the operation after a brief delay.
+	/// This method retrieves playlist names from the database using the `DatabaseHelper` class
+	/// and creates corresponding navigation view items for each playlist. It ensures that
+	/// navigation items are properly integrated with relevant page mappings through
+	/// the navigation system. If an exception occurs during execution, the method retries
+	/// after a brief delay to ensure stability.
 	/// </remarks>
 	public async void AddPlayLists()
 	{
 		try
 		{
-			var playLists = ProtobufData.LoadFromBin<PlayListsList>(DataFile.CustomPlayLists).PlayListName;
+			var playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
 			var lastItem = playlistsGroup.MenuItems[playlistsGroup.MenuItems.Count - 1];

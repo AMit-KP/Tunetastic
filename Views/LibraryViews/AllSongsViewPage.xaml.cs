@@ -2,7 +2,6 @@
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media;
-using Tunetastic.Generated.Protos;
 
 namespace Tunetastic.Views.LibraryViews;
 
@@ -105,8 +104,8 @@ public sealed partial class AllSongsViewPage : Page
 		ViewButton.Visibility = Visibility.Collapsed;
 		SortDropDown.Visibility = Visibility.Collapsed;
 
-		AllSongs.AddRange(ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs);
-		if (AllSongs.Count > 0)
+
+		if (await DatabaseHelper.Instance.GetSongsCount() > 0)
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Visible;
@@ -243,37 +242,33 @@ public sealed partial class AllSongsViewPage : Page
 		var song = selectedSong;
 		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
 		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
-		bool order = orderBy == "Ascending";
+		bool AscOrder = orderBy == "Ascending";
 
-		List<Song>? newList = new();
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
-		switch (sortBy)
-		{
-			case "Title":
-				newList = order ? AllSongs.OrderBy(s => s.Title).ToList() : AllSongs.OrderByDescending(s => s.Title).ToList();
-				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = (AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
 
-				break;
-			case "Artists":
-				newList = order ? AllSongs.OrderBy(s => s.Artists).ToList() : AllSongs.OrderByDescending(s => s.Artists).ToList();
-				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = (AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
-				break;
-			case "Album":
-				newList = order ? AllSongs.OrderBy(s => s.Album).ToList() : AllSongs.OrderByDescending(s => s.Album).ToList();
-				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = (AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList()).Any();
-				break;
-			case "Duration":
-				newList = order ? AllSongs.OrderBy(s => s.Duration).ToList() : AllSongs.OrderByDescending(s => s.Duration).ToList();
-				break;
-		}
+		var newList = await DatabaseHelper.Instance.LoadAllSongsFromDB(Enum.Parse<SongProperty>(sortBy), AscOrder);
 		AllSongs.Clear();
 		AllSongs.AddRange(newList);
 		newList = null;
-		SortDropDown.Content = $"Sort By: {sortBy} {(order ? "⬆️" : "⬇️")}";
+
+		switch (sortBy)
+		{
+			case "Title":
+				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+			case "Artists":
+				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+			case "Album":
+				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+		}
+
+		SortDropDown.Content = $"Sort By: {sortBy} {(AscOrder ? "⬆️" : "⬇️")}";
 		ToolTipService.SetToolTip(SortDropDown, $"The list is sorted by \"{sortBy}\" column in {orderBy} order.");
 		await ScrollToSong(song);       //somehow this doesn't work
 		await Task.Delay(1000);
@@ -282,7 +277,7 @@ public sealed partial class AllSongsViewPage : Page
 		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
 
-		PopulateAlphabetNavigation(availableLetters, order, sortBy, hasSpecialCharacters);
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -322,8 +317,8 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		var track = e.ClickedItem as Song;
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
 	}
 
 	/// <summary>
@@ -493,6 +488,7 @@ public sealed partial class AllSongsViewPage : Page
 	private async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
 	{
 		AlphabetNavigationPanel.Children.Clear();
+		if (availableLetters == null && !hasSpecialCharacters) return;
 
 		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
 		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();

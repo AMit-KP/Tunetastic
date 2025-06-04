@@ -92,6 +92,8 @@ public partial class App : Application
 		else
 			await Task.Delay(500);
 
+		await DatabaseHelper.Instance.InitializeDatabase();
+
 		rootFrame.Navigate(typeof(MainPage));
 
 		RainbowFrame.Initialize(App.MainWindow);
