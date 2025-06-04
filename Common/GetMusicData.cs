@@ -143,6 +143,8 @@ public class GetMusicData
 		var path = Path.Combine(Constants.ThumbnailsFolder);
 		if (Directory.Exists(path)) Directory.Delete(path, true);
 
+		ScanProgress = 0.5;
+
 		if (libraries?.Count > 0)
 		{
 			libraries = libraries.OrderBy(f => f.Length).ToList();
@@ -174,7 +176,7 @@ public class GetMusicData
 				}
 			}
 
-			SongList? songsContainer = new SongList();
+			List<Song>? songsContainer = new();
 			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
 
 			ScanProgress = 1;
@@ -186,6 +188,7 @@ public class GetMusicData
 				{
 					using (var audioModel = TagLib.File.Create(filePath))
 					{
+						var fileInfo = new FileInfo(filePath);
 						var song = new Song
 						{
 							Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
@@ -195,11 +198,13 @@ public class GetMusicData
 							Path = filePath,
 							Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 							Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre",
-							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
+							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
+							DateAdded = fileInfo.LastWriteTimeUtc,
+							Extension = fileInfo.Extension
 						};
 
 						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
-							songsContainer.Songs.Add(song);
+							songsContainer.Add(song);
 					}
 				}
 				catch (Exception)
@@ -218,7 +223,7 @@ public class GetMusicData
 					{
 						duration = 0;
 					}
-
+					var fileInfo = new FileInfo(filePath);
 					var song = new Song
 					{
 						Title = Path.GetFileNameWithoutExtension(filePath),
@@ -228,10 +233,12 @@ public class GetMusicData
 						Path = filePath,
 						Year = "Unknown Year",
 						Genre = "Unknown Genre",
-						Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 100)
+						Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
+						DateAdded = fileInfo.LastWriteTimeUtc,
+						Extension = fileInfo.Extension
 					};
 					if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
-						songsContainer.Songs.Add(song);
+						songsContainer.Add(song);
 				}
 
 				processedFiles++;
@@ -241,18 +248,18 @@ public class GetMusicData
 
 			try
 			{
-				ProtobufData.SaveToBin(DataFile.AllSongsMetaData, songsContainer);
+				await DatabaseHelper.Instance.UpdateSongsDatabase(songsContainer);
 			}
 			catch (Exception)
 			{
 				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
-				ProtobufData.DeleteBinFile(DataFile.AllSongsMetaData);
+				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 				return ("Error", "No tracks could be added");
 			}
 
 
 			var librariesCount = libraries.Count;
-			var songsCount = songsContainer.Songs.Count;
+			var songsCount = songsContainer.Count;
 			extensions = null;
 			formatList = null;
 			uniqueFolders = null;
@@ -267,7 +274,7 @@ public class GetMusicData
 		}
 		else
 		{
-			ProtobufData.SaveToBin(DataFile.AllSongsMetaData, new SongList());
+			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
 			return ("Warning", "No libraries found. Please add atleast one library.");
 		}

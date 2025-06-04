@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.8.80.802</AssemblyVersion>
-    <FileVersion>1.8.80.802</FileVersion>
+    <AssemblyVersion>1.8.96.818</AssemblyVersion>
+    <FileVersion>1.8.96.818</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -117,8 +117,6 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="Protos\CustomPlaylist.proto" GrpcServices="None" OutputDir="Generated" />
-    <Protobuf Include="Protos\MusicAllData.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\LibraryPaths.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\Formats.proto" GrpcServices="None" OutputDir="Generated" />
   </ItemGroup>
@@ -167,7 +165,7 @@
     <PackageReference Include="DevWinUI.ContextMenu" Version="8.3.0" />
     <PackageReference Include="DevWinUI.Controls" Version="8.3.0" />
     <PackageReference Include="Downloader" Version="3.3.4" />
-    <PackageReference Include="Google.Protobuf" Version="3.31.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -182,6 +180,8 @@
     <PackageReference Include="nucs.JsonSettings" Version="2.0.2" />
     <PackageReference Include="nucs.JsonSettings.AutosaveGenerator" Version="2.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageReference Include="System.Management" Version="9.0.5" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />

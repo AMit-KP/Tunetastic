@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using Tunetastic.Generated.Protos;
 
 namespace Tunetastic.Views.PlaylistViews;
 /// <summary>
@@ -30,14 +29,12 @@ public sealed partial class PlayListTemplate : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the button that was clicked.</param>
 	/// <param name="e">An object containing event data.</param>
-	private void DeletePlayList_Click(object sender, RoutedEventArgs e)
+	private async void DeletePlayList_Click(object sender, RoutedEventArgs e)
 	{
 		App.Current.NavService.GoBack();
 		var playListTag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
 
-		var playLists = ProtobufData.LoadFromBin<PlayListsList>(DataFile.CustomPlayLists);
-		playLists.PlayListName.Remove(PlaylistHeader.Text);
-		ProtobufData.SaveToBin<PlayListsList>(DataFile.CustomPlayLists, playLists);
+		await DatabaseHelper.Instance.RemovePlaylistAsync(PlaylistHeader.Text);
 
 		var a = NavigationPageMappings.PageDictionary.Remove(playListTag);
 
