@@ -70,6 +70,10 @@ public class DatabaseHelper
 										PRIMARY KEY (PlaylistId, SongPath),
 										FOREIGN KEY (PlaylistId) REFERENCES Playlists(Id) ON DELETE CASCADE,
 										FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
+
+		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
+										Path TEXT PRIMARY KEY, 
+										FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 	}
 
 	/// <summary>
@@ -284,6 +288,33 @@ public class DatabaseHelper
 	{
 		await _database.ExecuteAsync("DELETE FROM Playlists WHERE Name = ?", playlistName);
 		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
+	}
+
+	public async Task AddSongsToQueuedPlayingList(string songPath)
+	{
+		await _database.ExecuteAsync("INSERT OR REPLACE INTO QueuedPlayingList (Path) VALUES (?)", songPath);
+	}
+
+	public async Task AddSongsToQueuedPlayingList(List<string> songPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var songPath in songPaths)
+			{
+				conn.Execute("INSERT OR REPLACE INTO QueuedPlayingList (Path) VALUES (?)", songPath);
+			}
+		});
+	}
+
+	public async Task<List<string>> GetQueuedPlayingList()
+	{
+		var result = await _database.QueryAsync<Song>("SELECT Path FROM QueuedPlayingList ORDER BY rowid");
+		return result.Select(song => song.Path).ToList();
+	}
+
+	public async Task RemoveFromQueuedPlayingList(string songPath)
+	{
+		await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Path = ?", songPath);
 	}
 
 	public async Task AddSongToPlaylistAsync(int playlistId, string songPath)
