@@ -1,5 +1,4 @@
-﻿using Tunetastic.Views.LibraryViews;
-using Windows.Media;
+﻿using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
@@ -207,6 +206,27 @@ public class MusicPlayer
 		_ = Task.Run(() =>
 		{
 			OriginalPlaylist = new List<string>(songPaths);
+
+			ShuffleSongs(startingSong);
+		});
+	}
+
+	public async void LoadPlaylist(string? startingSong, bool play = true)
+	{
+		await LoadSong(startingSong, play);
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		List<string> list = new();
+		switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
+		{
+			case "AllSongsViewPage":
+				list = await DatabaseHelper.Instance.LoadSongPathsFromDB(Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title"), (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
+				break;
+
+		}
+		_ = Task.Run(() =>
+		{
+			OriginalPlaylist = new List<string>(list);
 
 			ShuffleSongs(startingSong);
 		});
@@ -592,7 +612,6 @@ public class MusicPlayer
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MediaPlayer.PlaybackSession.Position.TotalSeconds.ToString();
-		localSettings.Values[nameof(LocalSave.CurrentIndex)] = currentIndex.ToString();
 	}
 
 	/// <summary>
@@ -603,7 +622,7 @@ public class MusicPlayer
 	/// </summary>
 	public async void ResetAfterScan()
 	{
-		var track = DatabaseHelper.Instance.GetSongByPath(CurrentSong);
+		var track = await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (track == null)
 		{
@@ -623,16 +642,7 @@ public class MusicPlayer
 		}
 		else
 		{
-			switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
-			{
-				case "AllSongsViewPage":
-					new AllSongsViewPage().LoadAsPlayList(CurrentSong, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
-					break;
-
-				default:
-					await LoadSong(CurrentSong, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
-					break;
-			}
+			LoadPlaylist(CurrentSong, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
 		}
 	}
 }

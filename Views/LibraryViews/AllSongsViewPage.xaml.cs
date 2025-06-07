@@ -104,7 +104,6 @@ public sealed partial class AllSongsViewPage : Page
 		ViewButton.Visibility = Visibility.Collapsed;
 		SortDropDown.Visibility = Visibility.Collapsed;
 
-
 		if (await DatabaseHelper.Instance.GetSongsCount() > 0)
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
@@ -247,7 +246,7 @@ public sealed partial class AllSongsViewPage : Page
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
 
-		var newList = await DatabaseHelper.Instance.LoadAllSongsFromDB(Enum.Parse<SongProperty>(sortBy), AscOrder);
+		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(Enum.Parse<SongProperty>(sortBy), AscOrder);
 		AllSongs.Clear();
 		AllSongs.AddRange(newList);
 		newList = null;
@@ -322,19 +321,6 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Loads the collection of all available songs as a playlist and starts preparing them for playback.
-	/// </summary>
-	/// <remarks>
-	/// This method retrieves the file paths of all songs in the collection and initializes a playlist within the music player.
-	/// It ensures that the songs are ready for playback and begins with the specified track as the currently active item.
-	/// </remarks>
-	public void LoadAsPlayList(string? startingSong, bool play)
-	{
-		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong, play);
-	}
-
-	/// <summary>
 	/// Scrolls to a specific song in the View.
 	/// </summary>
 	/// <param name="song">The song object to scroll to. If null, no action is performed.</param>
@@ -347,7 +333,6 @@ public sealed partial class AllSongsViewPage : Page
 			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
 			listView.SelectedItem = song;
 		}
-
 	}
 
 	/// <summary>
@@ -358,8 +343,12 @@ public sealed partial class AllSongsViewPage : Page
 	/// <remarks>
 	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AllSongsViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
-	private void Page_Loaded(object sender, RoutedEventArgs e)
+	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
+		while (AllSongs == null || AllSongs.Count == 0)
+		{
+			await Task.Delay(100);
+		}
 		ScrollToCurrentPlayingTrack();
 	}
 

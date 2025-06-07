@@ -1,7 +1,6 @@
 ﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
-using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Media.Playback;
 
@@ -273,7 +272,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 		_musicPlayer.ShuffleStatusChanged += _musicPlayer_ShuffleStatusChanged;
 
-		SetToggleAndRepeat();
+		SetShuffleAndRepeat();
 
 		_ = LoadLastPlayedTrack();
 
@@ -349,7 +348,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// Initializes the shuffle and repeat button states based on the saved application settings.
 	/// Retrieves the saved shuffle and repeat statuses from local settings and updates the respective toggle and button states accordingly.
 	/// </summary>
-	private void SetToggleAndRepeat()
+	private void SetShuffleAndRepeat()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -379,16 +378,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				return;
 			}
 
-			switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
-			{
-				case "AllSongsViewPage":
-					new AllSongsViewPage().LoadAsPlayList(localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString(), bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
-					break;
-
-				default:
-					await _musicPlayer.LoadSong(localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString(), play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
-					break;
-			}
+			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
 
 			ProgressBarValue = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 		}

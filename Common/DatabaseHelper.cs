@@ -163,16 +163,27 @@ public class DatabaseHelper
 	/// <param name="ascending">A boolean indicating whether the songs should be sorted in ascending order. Defaults to true.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains a list of songs ordered by the specified property and order.
 	/// If an exception occurs, an empty list is returned.</returns>
-	public async Task<List<Song>> LoadAllSongsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true)
+	public async Task<List<Song>> LoadSongsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true)
 	{
 		try
 		{
-			var query = $"SELECT * FROM Songs ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}";
-			return await _database.QueryAsync<Song>(query);
+			return await _database.QueryAsync<Song>($"SELECT * FROM Songs ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}");
 		}
 		catch (Exception)
 		{
 			return new List<Song>();
+		}
+	}
+
+	public async Task<List<string>> LoadSongPathsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true)
+	{
+		try
+		{
+			return (await _database.QueryAsync<Song>($"SELECT Path FROM Songs ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}")).Select(s => s.Path).ToList();
+		}
+		catch (Exception)
+		{
+			return new List<string>();
 		}
 	}
 
@@ -210,7 +221,7 @@ public class DatabaseHelper
 		try
 		{
 			var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ?", path);
-			return result.FirstOrDefault();
+			return result.Count() > 0 ? result.FirstOrDefault() : null;
 		}
 		catch (Exception)
 		{
