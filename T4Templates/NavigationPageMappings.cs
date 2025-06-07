@@ -16,7 +16,13 @@ public partial class NavigationPageMappings
     public static Dictionary<string, Type> PageDictionary { get; } = new Dictionary<string, Type>
     {
         {"Tunetastic.Views.MainPlayerPage", typeof(Tunetastic.Views.MainPlayerPage)},
-        {"Tunetastic.Views.LibraryPage", typeof(Tunetastic.Views.LibraryPage)},
-        {"Tunetastic.Views.PlayListPage", typeof(Tunetastic.Views.PlayListPage)},
+        {"Tunetastic.Views.LibraryViews.AllSongsViewPage", typeof(Tunetastic.Views.LibraryViews.AllSongsViewPage)},
+        {"Tunetastic.Views.LibraryViews.ArtistsViewPage", typeof(Tunetastic.Views.LibraryViews.ArtistsViewPage)},
+        {"Tunetastic.Views.LibraryViews.AlbumsViewPage", typeof(Tunetastic.Views.LibraryViews.AlbumsViewPage)},
+        {"Tunetastic.Views.LibraryViews.GenresViewPage", typeof(Tunetastic.Views.LibraryViews.GenresViewPage)},
+        {"Tunetastic.Views.LibraryViews.YearsViewPage", typeof(Tunetastic.Views.LibraryViews.YearsViewPage)},
+        {"Tunetastic.Views.PlaylistViews.QueuedList", typeof(Tunetastic.Views.PlaylistViews.QueuedList)},
+        {"Tunetastic.Views.PlaylistViews.RecentlyAdded", typeof(Tunetastic.Views.PlaylistViews.RecentlyAdded)},
+        {"Tunetastic.Views.PlaylistViews.MostPlayed", typeof(Tunetastic.Views.PlaylistViews.MostPlayed)},
     };
 }

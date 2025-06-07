@@ -1,7 +1,5 @@
-﻿using Google.Protobuf.Collections;
-using Microsoft.UI.Dispatching;
+﻿using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Tunetastic.Generated.Protos;
 using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -21,7 +19,6 @@ public sealed partial class MainPlayerPage : Page
 {
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 	private readonly DispatcherQueue _dispatcherQueue;
-	private RepeatedField<Song> AllSongs = new();
 	private double pageHeight = 0;
 
 	public MainPlayerPage()
@@ -29,7 +26,6 @@ public sealed partial class MainPlayerPage : Page
 		this.InitializeComponent();
 
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-		AllSongs = ProtobufData.LoadFromBin<SongList>(DataFile.AllSongsMetaData).Songs;
 		_musicPlayer.CurrentSongChanged += OnCurrentSongChanged;
 	}
 
@@ -58,13 +54,12 @@ public sealed partial class MainPlayerPage : Page
 	{
 		try
 		{
-			if (AllSongs.Count != 0)
+			if (await DatabaseHelper.Instance.GetSongsCount() != 0)
 			{
-
 				var song = _musicPlayer.CurrentSong;
 				if (song != null && song != string.Empty)
 				{
-					var track = AllSongs.FirstOrDefault(s => s.Path == song);
+					var track = await DatabaseHelper.Instance.GetSongByPath(song);
 					if (File.Exists(track?.Path))
 					{
 						Title.Text = track?.Title;
@@ -176,5 +171,11 @@ public sealed partial class MainPlayerPage : Page
 		{
 			await UpdateUI(false);
 		});
+	}
+
+	private void MusicDetails_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+	{
+		//TODO switch based on playlist
+		App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 	}
 }

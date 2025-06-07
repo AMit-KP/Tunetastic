@@ -67,7 +67,6 @@ public class ProtobufData
 /// </summary>
 public enum DataFile
 {
-	AllSongsMetaData,
 	AllLibraries,
 	FormatsAllowed
 }

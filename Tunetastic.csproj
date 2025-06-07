@@ -19,7 +19,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.7.116.722</AssemblyVersion>
-    <FileVersion>1.7.116.722</FileVersion>
+    <AssemblyVersion>1.8.97.819</AssemblyVersion>
+    <FileVersion>1.8.97.819</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -59,10 +59,27 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>NavigationPageMappings.tt</DependentUpon>
     </Compile>
-    <None Update="T4Templates\BreadcrumbPageMappings.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>BreadcrumbPageMappings.cs</LastGenOutput>
-    </None>
+    <Page Update="Views\PlaylistViews\PlayListTemplate.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\PlaylistViews\QueuedList.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\PlaylistViews\MostPlayed.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\LibraryViews\ArtistsViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\LibraryViews\AlbumsViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\PlaylistViews\RecentlyAdded.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\Playlists\RecentlyAdded.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Views\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -72,17 +89,6 @@
     <Page Update="Views\LibraryViews\AllSongsViewPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Update="Views\PlayListPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Update="Views\LibraryPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Compile Update="T4Templates\BreadcrumbPageMappings.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>BreadcrumbPageMappings.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\**\*">
@@ -96,15 +102,21 @@
     <None Remove="Assets\Store\SplashScreen.scale-400.png" />
     <None Remove="Assets\Store\StoreLogo.scale-200.png" />
     <None Remove="Assets\Store\StoreLogo.scale-400.png" />
+    <None Remove="Views\LibraryViews\AlbumsViewPage.xaml" />
+    <None Remove="Views\LibraryViews\ArtistsViewPage.xaml" />
+    <None Remove="Views\LibraryViews\GenresViewPage.xaml" />
+    <None Remove="Views\LibraryViews\YearsViewPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
-    <None Remove="Views\PlayListPage.xaml" />
+    <None Remove="Views\PlaylistViews\MostPlayed.xaml" />
+    <None Remove="Views\PlaylistViews\PlayListTemplate.xaml" />
+    <None Remove="Views\PlaylistViews\QueuedList.xaml" />
+    <None Remove="Views\PlaylistViews\RecentlyAdded.xaml" />
     <None Remove="Views\SplashScreen.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="Protos\MusicAllData.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\LibraryPaths.proto" GrpcServices="None" OutputDir="Generated" />
     <Protobuf Include="Protos\Formats.proto" GrpcServices="None" OutputDir="Generated" />
   </ItemGroup>
@@ -149,26 +161,28 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Triggers" Version="8.2.250402" />
     <PackageReference Include="Config.Net" Version="5.2.1" />
-    <PackageReference Include="DevWinUI" Version="8.2.0" />
-    <PackageReference Include="DevWinUI.ContextMenu" Version="8.2.0" />
-    <PackageReference Include="DevWinUI.Controls" Version="8.2.0" />
+    <PackageReference Include="DevWinUI" Version="8.3.0" />
+    <PackageReference Include="DevWinUI.ContextMenu" Version="8.3.0" />
+    <PackageReference Include="DevWinUI.Controls" Version="8.3.0" />
     <PackageReference Include="Downloader" Version="3.3.4" />
-    <PackageReference Include="Google.Protobuf" Version="3.30.2" />
+    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.3916" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250401001" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4188" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250513003" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NotifyIconEx" Version="1.1.2" />
     <PackageReference Include="nucs.JsonSettings" Version="2.0.2" />
     <PackageReference Include="nucs.JsonSettings.AutosaveGenerator" Version="2.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
-    <PackageReference Include="System.Management" Version="9.0.4" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+    <PackageReference Include="System.Management" Version="9.0.5" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="WinUI.Dock" Version="1.2.0" />
@@ -180,6 +194,12 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Page Update="Views\LibraryViews\YearsViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\LibraryViews\GenresViewPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <!-- 
 	Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 

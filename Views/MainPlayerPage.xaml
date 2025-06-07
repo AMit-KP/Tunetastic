@@ -36,8 +36,8 @@
 		      Height="Auto"
 		      Margin="-100,0,-100,5"
 		      HorizontalAlignment="Center"
-		      VerticalAlignment="Bottom">
-
+		      VerticalAlignment="Bottom"
+		      Tapped="MusicDetails_Tapped">
 			<Border Width="Auto"
 			        Height="Auto"
 			        MaxHeight="160"

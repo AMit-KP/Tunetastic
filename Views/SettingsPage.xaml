@@ -8,7 +8,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:model="using:Tunetastic.Generated.Protos"
       xmlns:views="using:Tunetastic.Views"
-      dev:BreadcrumbNavigator.IsHeaderVisible="True"
       mc:Ignorable="d">
 	<ScrollView Margin="{ThemeResource ContentPageMargin}"
 	            Padding="{ThemeResource ContentPagePadding}"
@@ -412,7 +411,7 @@
 									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
 								</Style>
 							</Flyout.FlyoutPresenterStyle>
-							<StackPanel>
+							<StackPanel Spacing="5">
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Are you sure?" />
 								<Button Command="{x:Bind ViewModel.ResetCommand}"
