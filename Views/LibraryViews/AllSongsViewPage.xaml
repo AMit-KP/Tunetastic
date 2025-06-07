@@ -13,6 +13,7 @@
       ActualThemeChanged="Page_ActualThemeChanged"
       Loaded="Page_Loaded"
       SizeChanged="Page_SizeChanged"
+      Unloaded="Page_Unloaded"
       mc:Ignorable="d">
 
 	<Grid Margin="10,10,10,0">
