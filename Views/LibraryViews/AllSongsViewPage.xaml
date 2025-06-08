@@ -185,6 +185,28 @@
 					</Grid>
 				</Grid>
 			</StackPanel>
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
+				<ContentDialog x:Name="DeleteDialog"
+				               Title="Confirm Deletion"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Secondary"
+				               PrimaryButtonText="Delete"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Collapsed">
+					<StackPanel Spacing="10">
+						<TextBlock x:Name="DeleteDialogText"
+						           Style="{ThemeResource BodyTextBlockStyle}"
+						           TextWrapping="WrapWholeWords" />
+						<TextBlock Foreground="Red"
+						           Style="{ThemeResource BodyStrongTextBlockStyle}"
+						           Text="This action cannot be undone."
+						           TextWrapping="WrapWholeWords" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
 			<Grid x:Name="AllSongsListViewGrid">
 				<ListView x:Name="AllSongsListView"
 				          Margin="10,10,10,10"
@@ -279,6 +301,11 @@
 							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 						</Style>
 					</ListView.ItemContainerStyle>
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<AddDeleteThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
 				</ListView>
 			</Grid>
 			<Grid x:Name="AllSongCompactViewGrid">
@@ -376,6 +403,13 @@
 							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 						</Style>
 					</ListView.ItemContainerStyle>
+
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<AddDeleteThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
+
 				</ListView>
 			</Grid>
 			<StackPanel x:Name="AlphabetNavigationPanel"

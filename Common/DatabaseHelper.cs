@@ -72,7 +72,7 @@ public class DatabaseHelper
 										FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
-										Path TEXT PRIMARY KEY, 
+										Path TEXT PRIMARY KEY,
 										FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 	}
 
@@ -161,6 +161,21 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Deletes a song entry from the database using the specified file path.
+	/// This method removes the corresponding record from the `Songs` table.
+	/// </summary>
+	/// <param name="path">
+	/// The file path of the song to be deleted from the database.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of deleting the song from the database.
+	/// </returns>
+	public async Task DeleteSongFromDB(string path)
+	{
+		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", path);
+	}
+
+	/// <summary>
 	/// Loads all songs from the database and sorts them based on the specified property and order.
 	/// </summary>
 	/// <param name="songProperty">The property to sort the songs by, such as Title, Artists, or Album. Defaults to Title.</param>
@@ -179,6 +194,15 @@ public class DatabaseHelper
 		}
 	}
 
+	/// <summary>
+	/// Loads the paths of all songs from the database, ordered by the specified song property and sort direction.
+	/// </summary>
+	/// <param name="songProperty">The property of the song used for sorting, such as Title, Artists, or Album. Defaults to Title.</param>
+	/// <param name="ascending">Indicates whether the sorting should be in ascending order. Defaults to true.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation, returning a list of strings containing the paths of the songs.
+	/// If the operation fails, an empty list is returned.
+	/// </returns>
 	public async Task<List<string>> LoadSongPathsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true)
 	{
 		try
@@ -241,12 +265,6 @@ public class DatabaseHelper
 	public async Task IncrementPlayCountAsync(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = PlayCount + 1 WHERE Path = ?", songPath);
-	}
-
-	public async Task DeleteSongAsync(string songPath)
-	{
-		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", songPath);
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE SongPath = ?", songPath);
 	}
 
 	/// <summary>

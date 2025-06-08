@@ -713,7 +713,7 @@ public sealed partial class AllSongsViewPage : Page
 	private void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
 
-}
+	}
 
 	/// <summary>
 	/// Handles the click event for the "Play" menu flyout item in the song list UI.
@@ -743,7 +743,39 @@ public sealed partial class AllSongsViewPage : Page
 
 	}
 
+	/// <summary>
+	/// Handles the delete action when a menu flyout item is clicked, initiating a confirmation dialog and deleting the selected song.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a MenuFlyoutItem representing the delete option.</param>
+	/// <param name="e">The event data associated with the click event.</param>
+	/// <remarks>
+	/// This method displays a confirmation dialog to the user with details about the song to be deleted. If the user confirms the
+	/// action, it deletes the file from the local file system, removes the song entry from the database, and updates the collection
+	/// of displayed songs to reflect the changes.
+	/// </remarks>
 	private async void MenuFlyoutItemDelete_OnClick(object sender, RoutedEventArgs e)
 	{
+		DeleteDialog.Visibility = Visibility.Visible;
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+
+		if (songData != null)
+		{
+			DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
+									$"\nTitle: {songData.Title}" +
+									$"\nArtist: {songData.Artists}" +
+									$"\nAlbum: {songData.Album}" +
+									$"\nFile: {songData.Path}";
+
+			var result = await DeleteDialog.ShowAsync();
+			if (result == ContentDialogResult.Primary)
+			{
+				if (File.Exists(songData.Path))
+				{
+					File.Delete(songData.Path);
+					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
+					AllSongs.Remove(songData);
+				}
+			}
+		}
 	}
-	}
+}
