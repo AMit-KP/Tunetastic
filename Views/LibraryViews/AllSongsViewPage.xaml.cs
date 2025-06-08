@@ -757,14 +757,25 @@ public sealed partial class AllSongsViewPage : Page
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
 	}
 
-	private void MenuFlyoutItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event for the "Add to queue" menu flyout item.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the associated song data from the menu item's data context
+	/// and adds the song's file path to the queued playing list asynchronously.
+	/// </remarks>
+	/// <param name="sender">The source of the event, typically the MenuFlyoutItem that was clicked.</param>
+	/// <param name="e">The event data associated with the routed event.</param>
+	private async void MenuFlyoutItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
 	{
-
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		List<string> songPaths = new List<string> { songData?.Path ?? "" };
+		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
-
+		//TODO add Card Display
 	}
 
 	/// <summary>

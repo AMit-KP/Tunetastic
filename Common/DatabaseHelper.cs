@@ -72,7 +72,8 @@ public class DatabaseHelper
 										FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
-										Path TEXT PRIMARY KEY,
+										Id INTEGER PRIMARY KEY AUTOINCREMENT,
+										Path TEXT,
 										FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 	}
 
@@ -352,11 +353,14 @@ public class DatabaseHelper
 		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S INNER JOIN PlaylistSongs P ON S.Path = P.SongPath WHERE P.PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
 	}
 
-	public async Task AddSongsToQueuedPlayingList(string songPath)
-	{
-		await _database.ExecuteAsync("INSERT OR REPLACE INTO QueuedPlayingList (Path) VALUES (?)", songPath);
-	}
-
+	/// <summary>
+	/// Adds a list of song paths to the queued playing list in the database.
+	/// If a song already exists in the queued playing list, it is replaced with the new entry.
+	/// </summary>
+	/// <param name="songPaths">A list of strings representing the paths of the songs to be added to the queued playing list.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding songs to the queued playing list.
+	/// </returns>
 	public async Task AddSongsToQueuedPlayingList(List<string> songPaths)
 	{
 		await _database.RunInTransactionAsync(conn =>
@@ -368,12 +372,31 @@ public class DatabaseHelper
 		});
 	}
 
-	public async Task<List<string>> GetQueuedPlayingList()
+	/// <summary>
+	/// Retrieves the list of songs currently in the queued playing list.
+	/// The queued playing list is managed within the database and includes songs
+	/// ordered by their position in the queue.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation of fetching the queued playing list.
+	/// The task result contains a list of <see cref="Song"/> objects retrieved from the database,
+	/// ordered by their queue position.
+	/// </returns>
+	public async Task<List<Song>> GetQueuedPlayingList()
 	{
-		var result = await _database.QueryAsync<Song>("SELECT Path FROM QueuedPlayingList ORDER BY rowid");
-		return result.Select(song => song.Path).ToList();
+		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S JOIN QueuedPlayingList Q ON S.Path = Q.Path ORDER BY Q.Id");
 	}
 
+	/// <summary>
+	/// Removes a song from the queued playing list in the database.
+	/// This operation deletes the specified song entry from the `QueuedPlayingList` table.
+	/// </summary>
+	/// <param name="songPath">
+	/// The file path of the song to be removed from the queued playing list.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of removing the song from the queued playing list.
+	/// </returns>
 	public async Task RemoveFromQueuedPlayingList(string songPath)
 	{
 		await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Path = ?", songPath);
@@ -402,6 +425,11 @@ public class Song
 	public string Extension { get; set; }
 }
 
+/// <summary>
+/// Represents a playlist within the Tunetastic application.
+/// This class models the structure of a playlist entry in the database, including its unique identifier and name.
+/// Used in conjunction with database interactions to manage user-created playlists.
+/// </summary>
 [Table("Playlists")]
 public class PlaylistName
 {
