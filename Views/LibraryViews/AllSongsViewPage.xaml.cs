@@ -694,6 +694,9 @@ public sealed partial class AllSongsViewPage : Page
 	/// <param name="e">An object containing event data related to the 'Opened' event.</param>
 	private async void MenuFlyout_Opened(object sender, object e)
 	{
+		var song = (sender as MenuFlyout)?.Target?.DataContext as Song;
+		GetCurrentViewStyle().SelectedItem = song;
+
 		var addToPlaylist = FindName("AddToPlaylist") as MenuFlyoutSubItem;
 		addToPlaylist?.Items.Clear();
 
