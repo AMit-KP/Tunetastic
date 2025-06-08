@@ -16,6 +16,45 @@
       Unloaded="Page_Unloaded"
       mc:Ignorable="d">
 
+	<Page.Resources>
+		<MenuFlyout x:Key="RightClickMenu"
+		            Opened="MenuFlyout_Opened">
+			<MenuFlyoutItem Click="MenuFlyoutItemPlay_OnClick"
+			                Text="Play">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE768;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<MenuFlyoutSubItem x:Name="AddToPlaylist"
+			                   Text="Add to playlist">
+				<MenuFlyoutSubItem.Icon>
+					<FontIcon Glyph="&#xE728;" />
+				</MenuFlyoutSubItem.Icon>
+			</MenuFlyoutSubItem>
+			<MenuFlyoutItem Click="MenuFlyoutItemAddToQueue_OnClick"
+			                Text="Add to queue">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE84F;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
+			                Text="Info/Tag">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE946;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
+			                Text="Delete">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE74D;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+		</MenuFlyout>
+	</Page.Resources>
+
 	<Grid Margin="10,10,10,0">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
@@ -152,6 +191,7 @@
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AllSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
@@ -203,7 +243,9 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<controls:DataRow HorizontalAlignment="Left">
+							<controls:DataRow HorizontalAlignment="Left"
+							                  Background="Transparent"
+							                  ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid Width="40"
 								      Height="60"
 								      Margin="0,2,0,2"
@@ -245,6 +287,7 @@
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AllSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
@@ -260,7 +303,8 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<Grid>
+							<Grid Background="Transparent"
+							      ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*" />
 									<ColumnDefinition Width="Auto" />

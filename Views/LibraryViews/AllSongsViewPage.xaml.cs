@@ -681,4 +681,55 @@ public sealed partial class AllSongsViewPage : Page
 		AllSongs = null;
 		GC.Collect();
 	}
+	private async void MenuFlyout_Opened(object sender, object e)
+	{
+		var addToPlaylist = FindName("AddToPlaylist") as MenuFlyoutSubItem;
+		addToPlaylist?.Items.Clear();
+
+		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
+
+		if (playLists == null || playLists.Count == 0)
+		{
+			var menuItem = new MenuFlyoutItem
+			{
+				Text = "No Playlists created",
+				Foreground = new SolidColorBrush(Colors.Red)
+			};
+			addToPlaylist?.Items.Add(menuItem);
+			return;
+		}
+
+		foreach (var playList in playLists)
+		{
+			var menuItem = new MenuFlyoutItem
+			{
+				Text = playList
+			};
+			menuItem.Click += AddToPlaylist_Click;
+			addToPlaylist?.Items.Add(menuItem);
+		}
+	}
+
+	private void AddToPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+
 }
+
+	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
+	{
+	}
+
+	private void MenuFlyoutItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
+	{
+
+	}
+
+	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
+	{
+
+	}
+
+	private async void MenuFlyoutItemDelete_OnClick(object sender, RoutedEventArgs e)
+	{
+	}
+	}

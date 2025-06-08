@@ -118,7 +118,7 @@ public class MusicPlayer
 			if (_shuffleStatus != value)
 			{
 				_shuffleStatus = value;
-				ShuffleStatusChanged?.Invoke(this, _shuffleStatus); // Fire event
+				ShuffleStatusChanged?.Invoke(this, _shuffleStatus);
 			}
 		}
 	}
@@ -136,7 +136,7 @@ public class MusicPlayer
 	/// music player using hardware or software controls such as play, pause, next, and previous buttons.
 	/// It is configured to handle button press events and update playback status.
 	/// </summary>
-	public SystemMediaTransportControls SMTC;
+	public SystemMediaTransportControls? SMTC;
 
 	/// <summary>
 	/// A private field indicating whether the music player is currently performing a fade operation
