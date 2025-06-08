@@ -681,6 +681,17 @@ public sealed partial class AllSongsViewPage : Page
 		AllSongs = null;
 		GC.Collect();
 	}
+
+	/// <summary>
+	/// Handles the 'Opened' event of the <see cref="MenuFlyout"/> control in the context menu.
+	/// </summary>
+	/// <remarks>
+	/// This method dynamically populates the "Add to Playlist" submenu with the available playlists retrieved from the database.
+	/// If no playlists exist, a single "No Playlists created" item is added to the submenu with a red text color.
+	/// The method ensures that all items in the submenu are cleared before adding new items.
+	/// </remarks>
+	/// <param name="sender">The source object where the event is triggered.</param>
+	/// <param name="e">An object containing event data related to the 'Opened' event.</param>
 	private async void MenuFlyout_Opened(object sender, object e)
 	{
 		var addToPlaylist = FindName("AddToPlaylist") as MenuFlyoutSubItem;
@@ -710,9 +721,22 @@ public sealed partial class AllSongsViewPage : Page
 		}
 	}
 
-	private void AddToPlaylist_Click(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event to add a song to a selected playlist.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a <see cref="MenuFlyoutItem"/> representing the selected playlist.</param>
+	/// <param name="e">Event data associated with the click action.</param>
+	/// <remarks>
+	/// This method retrieves the song and playlist information from the clicked menu item
+	/// and adds the song to the specified playlist using the database helper.
+	/// </remarks>
+	private async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
+		if (playlist != null && song != null)
+			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
 	}
 
 	/// <summary>

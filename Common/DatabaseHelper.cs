@@ -257,12 +257,12 @@ public class DatabaseHelper
 		}
 	}
 
-	public async Task CleanupOrphanedPlaylistEntriesAsync()
+	public async Task CleanupOrphanedPlaylistEntries()
 	{
 		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE SongPath NOT IN (SELECT Path FROM Songs)");
 	}
 
-	public async Task IncrementPlayCountAsync(string songPath)
+	public async Task IncrementPlayCount(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = PlayCount + 1 WHERE Path = ?", songPath);
 	}
@@ -302,10 +302,54 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task representing the asynchronous operation of removing the playlist and its associated data.
 	/// </returns>
-	public async Task RemovePlaylistAsync(string playlistName)
+	public async Task RemovePlaylist(string playlistName)
 	{
 		await _database.ExecuteAsync("DELETE FROM Playlists WHERE Name = ?", playlistName);
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
+	}
+
+	/// <summary>
+	/// Adds a song to the specified playlist in the database by creating an entry in the `PlaylistSongs` table.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist to which the song should be added. Must correspond to an existing playlist in the database.</param>
+	/// <param name="songPath">The path of the song to add to the playlist. Must correspond to an existing song in the `Songs` table.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding the song to the playlist.
+	/// </returns>
+	public async Task AddSongToPlaylist(string playlistName, string songPath)
+	{
+		await _database.ExecuteAsync("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?)", playlistName, songPath);
+	}
+
+	/// <summary>
+	/// Removes a specific song from a playlist in the database.
+	/// This method ensures that the entry linking the given song to the specified playlist
+	/// is deleted if it exists.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist from which the song will be removed.</param>
+	/// <param name="songPath">The path of the song to be removed from the playlist.</param>
+	/// <returns>
+	/// A task representing the asynchronous operation of removing the song from the playlist.
+	/// </returns>
+	public async Task RemoveSongFromPlaylist(string playlistName, string songPath)
+	{
+		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?) AND SongPath = ?", playlistName, songPath);
+	}
+
+	/// <summary>
+	/// Retrieves a list of songs that belong to the specified playlist.
+	/// This method queries the `Songs` table and joins it with the `PlaylistSongs` table
+	/// to fetch all the songs associated with the given playlist name.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist for which songs need to be retrieved.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains
+	/// a list of <see cref="Song"/> objects representing the songs in the specified playlist.
+	/// </returns>
+	public async Task<List<Song>> GetSongsInPlaylist(string playlistName)
+	{
+		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S INNER JOIN PlaylistSongs P ON S.Path = P.SongPath WHERE P.PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
 	}
 
 	public async Task AddSongsToQueuedPlayingList(string songPath)
@@ -333,21 +377,6 @@ public class DatabaseHelper
 	public async Task RemoveFromQueuedPlayingList(string songPath)
 	{
 		await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Path = ?", songPath);
-	}
-
-	public async Task AddSongToPlaylistAsync(int playlistId, string songPath)
-	{
-		await _database.ExecuteAsync("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES (?, ?)", playlistId, songPath);
-	}
-
-	public async Task RemoveSongFromPlaylistAsync(int playlistId, string songPath)
-	{
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId = ? AND SongPath = ?", playlistId, songPath);
-	}
-
-	public async Task<List<Song>> GetSongsInPlaylistAsync(int playlistId)
-	{
-		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S INNER JOIN PlaylistSongs P ON S.Path = P.SongPath WHERE P.PlaylistId = ?", playlistId);
 	}
 }
 
