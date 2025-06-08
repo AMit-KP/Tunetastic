@@ -715,8 +715,22 @@ public sealed partial class AllSongsViewPage : Page
 
 }
 
+	/// <summary>
+	/// Handles the click event for the "Play" menu flyout item in the song list UI.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a menu flyout item associated with a song.</param>
+	/// <param name="e">Provides event data for the click event.</param>
+	/// <remarks>
+	/// This method retrieves the selected song's data from the sender control and prepares a playlist with all available songs.
+	/// The playlist is then passed to the application's music player for playback, starting with the selected song.
+	/// Additionally, this method updates the application's local settings to store the current playlist context.
+	/// </remarks>
 	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
 	{
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
 	}
 
 	private void MenuFlyoutItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
