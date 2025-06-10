@@ -121,19 +121,26 @@
 						</DropDownButton.Flyout>
 					</DropDownButton>
 					<DropDownButton x:Name="ViewButton"
-					                HorizontalAlignment="Right"
-					                Content="View">
+					                HorizontalAlignment="Right">
 						<DropDownButton.Flyout>
 							<MenuFlyout x:Name="ViewStyle"
 							            Placement="BottomEdgeAlignedRight">
 								<RadioMenuFlyoutItem x:Name="ListViewStyle"
 								                     Click="ViewButton_OnClick"
 								                     GroupName="View"
-								                     Text="List View" />
+								                     Text="List View">
+									<RadioMenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE8FD;" />
+									</RadioMenuFlyoutItem.Icon>
+								</RadioMenuFlyoutItem>
 								<RadioMenuFlyoutItem x:Name="CompactViewStyle"
 								                     Click="ViewButton_OnClick"
 								                     GroupName="View"
-								                     Text="Compact View" />
+								                     Text="Compact View">
+									<RadioMenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE71D;" />
+									</RadioMenuFlyoutItem.Icon>
+								</RadioMenuFlyoutItem>
 							</MenuFlyout>
 						</DropDownButton.Flyout>
 					</DropDownButton>
@@ -304,6 +311,7 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
+							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 				</ListView>
@@ -330,7 +338,8 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<Grid Background="Transparent"
+							<Grid x:Name="CompactViewItemGrid"
+							      Background="Transparent"
 							      ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*" />
@@ -340,13 +349,17 @@
 									<StackPanel Orientation="Horizontal"
 									            Spacing="20">
 										<Grid Width="100"
-										      Height="120"
-										      Margin="0,5,0,5"
+										      Height="100"
+										      Margin="0,10,0,10">
+											<Grid Width="Auto"
+											      Height="Auto"
 										      HorizontalAlignment="Center"
 										      VerticalAlignment="Center"
 										      CornerRadius="10">
-											<Image VerticalAlignment="Center"
+												<Image HorizontalAlignment="Center"
+												       VerticalAlignment="Center"
 											       Source="{x:Bind Cover}" />
+										</Grid>
 										</Grid>
 										<StackPanel Width="Auto"
 										            HorizontalAlignment="Center"
@@ -407,6 +420,7 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
+							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 

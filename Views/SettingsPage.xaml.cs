@@ -539,13 +539,15 @@ public sealed partial class SettingsPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ComboBox object.</param>
 	/// <param name="e">The event arguments containing details about the selection change.</param>
-	private void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private async void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		App.Current.ThemeService.OnThemeComboBoxSelectionChanged(sender);
 		if (Theme.SelectedItem is ComboBoxItem ThemeItem)
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)] = ThemeItem.Tag?.ToString();
 		}
+
+		await Task.Delay(100);
 		App.Current.ThemeService.UpdateCaptionButtons();
 
 		if (TintSettings.Visibility == Visibility.Visible)

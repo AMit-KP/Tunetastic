@@ -131,30 +131,30 @@ public sealed partial class AllSongsViewPage : Page
 		var sortOrder = localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending";
 		switch (sortBy)
 		{
-			case "Title":
-				Title.IsChecked = true;
-				break;
 			case "Artists":
 				Artists.IsChecked = true;
 				break;
+
 			case "Album":
 				Album.IsChecked = true;
 				break;
+
 			case "Duration":
 				Duration.IsChecked = true;
 				break;
+
+			case "Title":
 			default:
 				Title.IsChecked = true;
 				break;
 		}
 		switch (sortOrder)
 		{
-			case "Ascending":
-				Ascending.IsChecked = true;
-				break;
 			case "Descending":
 				Descending.IsChecked = true;
 				break;
+
+			case "Ascending":
 			default:
 				Ascending.IsChecked = true;
 				break;
@@ -179,9 +179,8 @@ public sealed partial class AllSongsViewPage : Page
 			case "List View":
 				ListViewStyle.IsChecked = true;
 				break;
+
 			case "Compact View":
-				CompactViewStyle.IsChecked = true;
-				break;
 			default:
 				CompactViewStyle.IsChecked = true;
 				break;
@@ -203,25 +202,27 @@ public sealed partial class AllSongsViewPage : Page
 	private async Task UpdateListBasedOnViewStyle()
 	{
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		string? glyph = null;
 		switch (viewStyle)
 		{
 			case "List View":
 				AllSongsListViewGrid.Visibility = Visibility.Visible;
 				AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+				CompactModeMultiSelectButton.Visibility = Visibility.Collapsed;
+				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
-				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-				AllSongCompactViewGrid.Visibility = Visibility.Visible;
-				break;
-
 			default:
 				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
 				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				CompactModeMultiSelectButton.Visibility = Visibility.Visible;
+				glyph = "\uE71D";
 				break;
 		}
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AllSongViewStyle)] = viewStyle;
-		ViewButton.Content = viewStyle;
+		ViewButton.Content = new FontIcon() { Glyph = glyph };
+		ToolTipService.SetToolTip(ViewButton, viewStyle);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(selectedSong);
@@ -300,7 +301,6 @@ public sealed partial class AllSongsViewPage : Page
 			_ => AllSongCompactView
 		};
 	}
-
 
 	/// <summary>
 	/// Handles the ItemClick event for the ListView control in the AllSongsViewPage.
