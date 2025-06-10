@@ -653,17 +653,24 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the selection change event for a ListView within the AllSongsViewPage.
+	/// Handles the SelectionChanged event for the ListView to modify UI elements or update internal state based on user selection changes.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the ListView.</param>
-	/// <param name="e">Provides data for the SelectionChanged event, including information about added or removed items.</param>
+	/// <param name="sender">The source of the event, typically the ListView control where the selection was changed.</param>
+	/// <param name="e">Provides data about the SelectionChanged event, including the modified selection.</param>
 	/// <remarks>
-	/// This method updates the currently selected song by retrieving it from the currently active ListView.
-	/// The selected song can then be used for subsequent operations such as playback or details display.
+	/// This method dynamically updates the `MoreButton`'s state depending on the selection mode and selected items count.
+	/// If the ListView is in multi-select mode, the button is enabled or disabled based on whether any items are selected.
+	/// In single-select mode, updates the `selectedSong` property with the currently selected song.
 	/// </remarks>
 	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		selectedSong = GetCurrentViewStyle().SelectedItem as Song;
+		var listView = GetCurrentViewStyle();
+		if (listView.IsMultiSelectCheckBoxEnabled)
+		{
+			MoreButton.IsEnabled = listView.SelectedItems.Count > 0;
+		}
+		else
+			selectedSong = listView.SelectedItem as Song;
 	}
 
 	/// <summary>
@@ -694,10 +701,9 @@ public sealed partial class AllSongsViewPage : Page
 	/// <param name="e">An object containing event data related to the 'Opened' event.</param>
 	private async void MenuFlyout_Opened(object sender, object e)
 	{
-		var song = (sender as MenuFlyout)?.Target?.DataContext as Song;
-		GetCurrentViewStyle().SelectedItem = song;
+		var menu = sender as MenuFlyout;
+		var addToPlaylist = menu?.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault();
 
-		var addToPlaylist = FindName("AddToPlaylist") as MenuFlyoutSubItem;
 		addToPlaylist?.Items.Clear();
 
 		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
@@ -725,21 +731,36 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the click event to add a song to a selected playlist.
+	/// Handles the logic for adding songs to a selected playlist from the current view.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically a <see cref="MenuFlyoutItem"/> representing the selected playlist.</param>
+	/// <param name="sender">The source of the event, typically the menu item representing a playlist.</param>
 	/// <param name="e">Event data associated with the click action.</param>
 	/// <remarks>
-	/// This method retrieves the song and playlist information from the clicked menu item
-	/// and adds the song to the specified playlist using the database helper.
+	/// This method is triggered when a user selects the "Add to Playlist" option for one or more songs.
+	/// It determines the selected songs from the active view style and adds them to the chosen playlist.
+	/// Uses asynchronous operations to interact with the database for playlist updates.
 	/// </remarks>
 	private async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
-		var playlist = (sender as MenuFlyoutItem)?.Text;
+		var listView = GetCurrentViewStyle();
+		if (listView.IsMultiSelectCheckBoxEnabled)
+		{
+			var songs = listView.SelectedItems;
+			List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
 
-		if (playlist != null && song != null)
-			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+			var playlist = (sender as MenuFlyoutItem)?.Text;
+
+			if (playlist != null)
+				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+		}
+		else
+		{
+			var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+			var playlist = (sender as MenuFlyoutItem)?.Text;
+
+			if (playlist != null && song != null)
+				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+		}
 	}
 
 	/// <summary>
@@ -815,5 +836,118 @@ public sealed partial class AllSongsViewPage : Page
 				}
 			}
 		}
+		//TODO handle playback
+	}
+
+	/// <summary>
+	/// Handles the click event for the CompactModeMultiSelectButton to toggle between multi-select mode
+	/// and single-select mode in the Compact View of the all songs page.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the CompactModeMultiSelectButton.</param>
+	/// <param name="e">The event data for the RoutedEventArgs associated with the click action.</param>
+	/// <remarks>
+	/// When the button is toggled, it switches the functionality of the song list view between multi-select
+	/// and single-select modes. In multi-select mode, checkboxes are enabled for selecting multiple items,
+	/// and certain UI elements such as context menus are disabled to prevent conflicts. In single-select
+	/// mode, standard selection behavior is restored, and UI elements such as context menus are re-enabled.
+	/// This method also adjusts the visibility and interactivity of related UI components (e.g., MoreButton,
+	/// PlayAllButtonStackPanel) based on the current mode.
+	/// </remarks>
+	private void CompactModeMultiSelectButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (CompactModeMultiSelectButton.IsChecked == true)
+		{
+			MoreButton.Visibility = Visibility.Visible;
+			MoreButton.IsEnabled = false;
+			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
+			ToolTipService.SetToolTip(CompactModeMultiSelectButton, "Turn off multi-select mode");
+			AllSongCompactView.SelectionMode = ListViewSelectionMode.Multiple;
+			AllSongCompactView.IsItemClickEnabled = false;
+			AllSongCompactView.IsMultiSelectCheckBoxEnabled = true;
+			AllSongCompactView.IsRightTapEnabled = false;
+			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AllSongCompactView);
+
+			foreach (var item in ItemGrids)
+			{
+				if (item is UIElement uiElement)
+				{
+					uiElement.IsRightTapEnabled = false;
+				}
+			}
+		}
+		else
+		{
+			MoreButton.Visibility = Visibility.Collapsed;
+			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
+			ToolTipService.SetToolTip(CompactModeMultiSelectButton, "Turn on multi-select mode");
+			AllSongCompactView.SelectionMode = ListViewSelectionMode.Single;
+			AllSongCompactView.IsItemClickEnabled = true;
+			AllSongCompactView.IsMultiSelectCheckBoxEnabled = false;
+			AllSongCompactView.IsRightTapEnabled = true;
+			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AllSongCompactView);
+
+			foreach (var item in ItemGrids)
+			{
+				if (item is UIElement uiElement)
+				{
+					uiElement.IsRightTapEnabled = true;
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Handles the click event for adding multiple selected songs from the menu flyout to the playing queue.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the menu flyout item.</param>
+	/// <param name="e">The event data associated with the routed event.</param>
+	/// <remarks>
+	/// This method retrieves the selected items from the current song view style, extracts their file paths,
+	/// and asynchronously adds them to the queued playing list using the <see cref="DatabaseHelper"/> instance.
+	/// </remarks>
+	private async void MenuFlyoutMultiItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
+	{
+		var songs = GetCurrentViewStyle().SelectedItems;
+		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
+
+		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+	}
+
+	/// <summary>
+	/// Handles the click event for the "Delete" menu flyout item, allowing the user to delete selected songs from the system.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the currently selected songs, prompts the user for confirmation through a dialog,
+	/// and deletes the selected songs from both the file system and the application's database if confirmed.
+	/// </remarks>
+	/// <param name="sender">The source of the event, typically the menu flyout item.</param>
+	/// <param name="e">Provides data for the routed event, including information about the source and state of the event.</param>
+	private async void MenuFlyoutMultiItemDelete_OnClick(object sender, RoutedEventArgs e)
+	{
+		var songs = GetCurrentViewStyle().SelectedItems;
+
+		List<Song> songList = new();
+		foreach (var item in songs)
+			songList.Add((Song)item);
+
+
+		DeleteDialog.Visibility = Visibility.Visible;
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songs.Count > 1 ? "these" : "this")} {songs.Count} song{(songs.Count > 1 ? "s" : "")}/track{(songs.Count > 1 ? "s" : "")} from your system?";
+
+		var result = await DeleteDialog.ShowAsync();
+
+		if (result == ContentDialogResult.Primary)
+		{
+			foreach (Song songData in songList)
+			{
+				if (File.Exists(songData.Path))
+				{
+					File.Delete(songData.Path);
+					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
+					AllSongs.Remove(songData);
+				}
+			}
+		}
+		//TODO handle playback
 	}
 }

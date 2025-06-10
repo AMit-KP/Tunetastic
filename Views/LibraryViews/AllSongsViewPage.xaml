@@ -70,7 +70,13 @@
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
-				<StackPanel Orientation="Horizontal"
+				<ToggleButton x:Name="CompactModeMultiSelectButton"
+				              Click="CompactModeMultiSelectButton_Click"
+				              ToolTipService.ToolTip="Turn on multi-select mode">
+					<FontIcon Glyph="&#xE73A;" />
+				</ToggleButton>
+				<StackPanel x:Name="PlayAllButtonStackPanel"
+				            Orientation="Horizontal"
 				            Spacing="5">
 					<Button x:Name="ShuffleAndPlay"
 					        HorizontalAlignment="Right"
@@ -145,6 +151,34 @@
 						</DropDownButton.Flyout>
 					</DropDownButton>
 				</StackPanel>
+				<Button x:Name="MoreButton"
+				        Visibility="Collapsed">
+					<FontIcon Glyph="&#xE712;" />
+					<Button.Flyout>
+						<MenuFlyout x:Name="More"
+						            Opened="MenuFlyout_Opened"
+						            Placement="BottomEdgeAlignedRight">
+							<MenuFlyoutSubItem Text="Add to playlist">
+								<MenuFlyoutSubItem.Icon>
+									<FontIcon Glyph="&#xE728;" />
+								</MenuFlyoutSubItem.Icon>
+							</MenuFlyoutSubItem>
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemAddToQueue_OnClick"
+							                Text="Add to queue">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE84F;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+							<MenuFlyoutSeparator />
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemDelete_OnClick"
+							                Text="Delete">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE74D;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+						</MenuFlyout>
+					</Button.Flyout>
+				</Button>
 			</StackPanel>
 		</Grid>
 		<Grid Grid.Row="1">
@@ -322,13 +356,15 @@
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
 				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AllSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
 				          ScrollViewer.VerticalScrollBarVisibility="Visible"
 				          ScrollViewer.VerticalScrollMode="Enabled"
-				          SelectionChanged="ListView_SelectionChanged">
+				          SelectionChanged="ListView_SelectionChanged"
+				          SelectionMode="Single">
 
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -338,8 +374,7 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<Grid x:Name="CompactViewItemGrid"
-							      Background="Transparent"
+							<Grid Background="Transparent"
 							      ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*" />
@@ -353,13 +388,13 @@
 										      Margin="0,10,0,10">
 											<Grid Width="Auto"
 											      Height="Auto"
-										      HorizontalAlignment="Center"
-										      VerticalAlignment="Center"
-										      CornerRadius="10">
+											      HorizontalAlignment="Center"
+											      VerticalAlignment="Center"
+											      CornerRadius="10">
 												<Image HorizontalAlignment="Center"
 												       VerticalAlignment="Center"
-											       Source="{x:Bind Cover}" />
-										</Grid>
+												       Source="{x:Bind Cover}" />
+											</Grid>
 										</Grid>
 										<StackPanel Width="Auto"
 										            HorizontalAlignment="Center"

@@ -322,6 +322,33 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Adds multiple songs to a specified playlist in the database.
+	/// This operation creates entries in the `PlaylistSongs` table by associating the songs
+	/// with the provided playlist name and their respective paths.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist to which the songs will be added.
+	/// It is used to identify the playlist in the database.
+	/// </param>
+	/// <param name="songPaths">
+	/// A list of file paths representing the songs to be added to the playlist.
+	/// Each path corresponds to a song entry in the database.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding multiple songs to the playlist.
+	/// </returns>
+	public async Task AddSongsToPlaylist(string playlistName, List<string> songPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var songPath in songPaths)
+			{
+				conn.Execute("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?)", playlistName, songPath);
+			}
+		});
+	}
+
+	/// <summary>
 	/// Removes a specific song from a playlist in the database.
 	/// This method ensures that the entry linking the given song to the specified playlist
 	/// is deleted if it exists.
@@ -334,6 +361,31 @@ public class DatabaseHelper
 	public async Task RemoveSongFromPlaylist(string playlistName, string songPath)
 	{
 		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?) AND SongPath = ?", playlistName, songPath);
+	}
+
+	/// <summary>
+	/// Removes multiple songs from a specified playlist in the database.
+	/// This method deletes entries from the `PlaylistSongs` table where the provided song paths
+	/// are associated with the given playlist.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist from which the songs will be removed.
+	/// </param>
+	/// <param name="songPaths">
+	/// A list of file paths representing the songs to be removed from the playlist.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of removing songs from the playlist.
+	/// </returns>
+	public async Task RemoveSongsToPlaylist(string playlistName, List<string> songPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var songPath in songPaths)
+			{
+				conn.Execute("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?) AND SongPath = ?", playlistName, songPath);
+			}
+		});
 	}
 
 	/// <summary>
