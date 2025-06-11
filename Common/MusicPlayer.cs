@@ -573,7 +573,7 @@ public class MusicPlayer
 		}
 		else
 		{
-			ActualPlaylist = OriginalPlaylist;
+			ActualPlaylist = OriginalPlaylist?.ToList();
 		}
 	}
 
@@ -620,13 +620,14 @@ public class MusicPlayer
 	/// settings and data. If the current song is identified, it reloads the appropriate playlist or track
 	/// for continued playback.
 	/// </summary>
-	public async void ResetAfterScan()
+	public async void ResetOrReloadPlayer(Song? song = null)
 	{
-		var track = await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		var track = song ?? await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
 		if (track == null)
 		{
 			Pause();
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			ActualPlaylist = null;
 			OriginalPlaylist = null;
 			ActualPlaylist = OriginalPlaylist = new List<string>();
@@ -642,8 +643,44 @@ public class MusicPlayer
 		}
 		else
 		{
-			LoadPlaylist(CurrentSong, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
+			LoadPlaylist(track.Path, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
 		}
+	}
+
+	/// <summary>
+	/// Handles actions required after a song is deleted from the device or database.
+	/// This method ensures the music player's state is updated accordingly, such as
+	/// determining the next playable track in the playlist and resetting or reloading the player
+	/// to maintain a consistent playback experience.
+	/// </summary>
+	public async void HandleAfterDelete()
+	{
+		var track = await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
+		var initialIndex = currentIndex;
+
+		if (track == null)
+		{
+			if (ActualPlaylist != null && ActualPlaylist.Count > 0)
+			{
+				do
+				{
+					if (++initialIndex == ActualPlaylist.Count)
+						break;
+
+					track = await DatabaseHelper.Instance.GetSongByPath(ActualPlaylist[initialIndex]);
+				} while (track == null);
+
+				initialIndex = currentIndex;
+
+				while (track == null)
+				{
+					if (--initialIndex < 0) break;
+
+					track = await DatabaseHelper.Instance.GetSongByPath(ActualPlaylist[initialIndex]);
+				}
+			}
+		}
+		ResetOrReloadPlayer(track);
 	}
 }
 

@@ -237,7 +237,8 @@ public sealed partial class SettingsPage : Page
 	private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args) => DispatcherQueue.GetForCurrentThread().TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 	{
 		var numberBox = sender as NumberBox;
-		if (numberBox?.Value < 0)
+
+		if (numberBox?.Value < 0 || double.IsNaN(numberBox.Value))
 		{
 			numberBox.Value = 0;
 		}
@@ -282,6 +283,7 @@ public sealed partial class SettingsPage : Page
 			: "No file extensions enabled for scanning tracks";
 
 		FileExt.Description = description;
+		//TODO live update without scan
 	}
 
 	/// <summary>

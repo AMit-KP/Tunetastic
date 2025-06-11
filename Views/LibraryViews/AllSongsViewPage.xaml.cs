@@ -62,14 +62,16 @@ public sealed partial class AllSongsViewPage : Page
 	/// </returns>
 	private async Task CheckScanning()
 	{
+		GoToSettings.Visibility = Visibility.Visible;
+		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
+		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+		PageButtons.Visibility = Visibility.Collapsed;
+
 		if (GetMusicData.IsScanning)
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
-			AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-			AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
 			LoadingProgress.Opacity = 0;
 			LoadingProgress.Visibility = Visibility.Visible;
-			PageButtons.Visibility = Visibility.Collapsed;
 
 			for (double i = 0; i <= 1; i += 0.05)
 			{
@@ -96,13 +98,6 @@ public sealed partial class AllSongsViewPage : Page
 			});
 			return;
 		}
-		GoToSettings.Visibility = Visibility.Visible;
-		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
-		ShuffleAndPlay.Visibility = Visibility.Collapsed;
-		PlayAll.Visibility = Visibility.Collapsed;
-		ViewButton.Visibility = Visibility.Collapsed;
-		SortDropDown.Visibility = Visibility.Collapsed;
 
 		if (await DatabaseHelper.Instance.GetSongsCount() > 0)
 		{
@@ -111,8 +106,7 @@ public sealed partial class AllSongsViewPage : Page
 			SortDropDown.Visibility = Visibility.Visible;
 			UpdateAsPerLastViewStyle();
 			UpdateAsPerLastSorting();
-			ShuffleAndPlay.Visibility = Visibility.Visible;
-			PlayAll.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Visible;
 		}
 	}
 
@@ -159,7 +153,7 @@ public sealed partial class AllSongsViewPage : Page
 				Ascending.IsChecked = true;
 				break;
 		}
-		UpdateListBasedOnSorting();
+		_ = UpdateListBasedOnSorting();
 	}
 
 	/// <summary>
@@ -208,7 +202,6 @@ public sealed partial class AllSongsViewPage : Page
 			case "List View":
 				AllSongsListViewGrid.Visibility = Visibility.Visible;
 				AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
-				CompactModeMultiSelectButton.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
@@ -216,7 +209,6 @@ public sealed partial class AllSongsViewPage : Page
 			default:
 				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
 				AllSongCompactViewGrid.Visibility = Visibility.Visible;
-				CompactModeMultiSelectButton.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
@@ -237,7 +229,7 @@ public sealed partial class AllSongsViewPage : Page
 	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
 	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
 	/// </remarks>
-	private async void UpdateListBasedOnSorting()
+	private async Task UpdateListBasedOnSorting()
 	{
 		var song = selectedSong;
 		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
@@ -375,11 +367,16 @@ public sealed partial class AllSongsViewPage : Page
 	/// </summary>
 	/// <param name="sender">The control that triggered the event, typically a UI element like a menu flyout item.</param>
 	/// <param name="e">Event data associated with the Sort button click.</param>
-	private void SortButton_OnClick(object sender, RoutedEventArgs e)
+	private async void SortButton_OnClick(object sender, RoutedEventArgs e)
 	{
-		UpdateListBasedOnSorting();
-		AdjustAlphabetSize();
-		//TODO resort current playlist
+		await UpdateListBasedOnSorting();
+		await AdjustAlphabetSize();
+
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+		{
+			List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing);
+		}
 	}
 
 	/// <summary>
@@ -833,17 +830,27 @@ public sealed partial class AllSongsViewPage : Page
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					AllSongs.Remove(songData);
+					MusicPlayer.Instance.HandleAfterDelete();
+					GlobalNotification.Info("Song/Track deleted successfully." +
+											$"\nTitle: {songData.Title}" +
+											$"\nArtist: {songData.Artists}" +
+											$"\nAlbum: {songData.Album}" +
+											$"\nFile: {songData.Path}");
 				}
 			}
+			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
+			{
+				GoToSettings.Visibility = Visibility.Visible;
+				PageButtons.Visibility = Visibility.Collapsed;
+			}
 		}
-		//TODO handle playback
 	}
 
 	/// <summary>
-	/// Handles the click event for the CompactModeMultiSelectButton to toggle between multi-select mode
-	/// and single-select mode in the Compact View of the all songs page.
+	/// Handles the click event for the MultiSelectButton to toggle between multi-select mode
+	/// and single-select mode in the all songs page.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the CompactModeMultiSelectButton.</param>
+	/// <param name="sender">The source of the event, typically the MultiSelectButton.</param>
 	/// <param name="e">The event data for the RoutedEventArgs associated with the click action.</param>
 	/// <remarks>
 	/// When the button is toggled, it switches the functionality of the song list view between multi-select
@@ -853,19 +860,21 @@ public sealed partial class AllSongsViewPage : Page
 	/// This method also adjusts the visibility and interactivity of related UI components (e.g., MoreButton,
 	/// PlayAllButtonStackPanel) based on the current mode.
 	/// </remarks>
-	private void CompactModeMultiSelectButton_Click(object sender, RoutedEventArgs e)
+	private void MultiSelectButton_Click(object sender, RoutedEventArgs e)
 	{
-		if (CompactModeMultiSelectButton.IsChecked == true)
+		var view = GetCurrentViewStyle();
+		if (MultiSelectButton.IsChecked == true)
 		{
 			MoreButton.Visibility = Visibility.Visible;
 			MoreButton.IsEnabled = false;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
-			ToolTipService.SetToolTip(CompactModeMultiSelectButton, "Turn off multi-select mode");
-			AllSongCompactView.SelectionMode = ListViewSelectionMode.Multiple;
-			AllSongCompactView.IsItemClickEnabled = false;
-			AllSongCompactView.IsMultiSelectCheckBoxEnabled = true;
-			AllSongCompactView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AllSongCompactView);
+			SortAndViewButtonPanel.Visibility = Visibility.Collapsed;
+			ToolTipService.SetToolTip(MultiSelectButton, "Turn off multi-select mode");
+			view.SelectionMode = ListViewSelectionMode.Multiple;
+			view.IsItemClickEnabled = false;
+			view.IsMultiSelectCheckBoxEnabled = true;
+			view.IsRightTapEnabled = false;
+			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -874,17 +883,19 @@ public sealed partial class AllSongsViewPage : Page
 					uiElement.IsRightTapEnabled = false;
 				}
 			}
+			if (view.Name == "AllSongsListView") Header.Margin = new Thickness(40, 0, 0, 0);
 		}
 		else
 		{
 			MoreButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(CompactModeMultiSelectButton, "Turn on multi-select mode");
-			AllSongCompactView.SelectionMode = ListViewSelectionMode.Single;
-			AllSongCompactView.IsItemClickEnabled = true;
-			AllSongCompactView.IsMultiSelectCheckBoxEnabled = false;
-			AllSongCompactView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AllSongCompactView);
+			SortAndViewButtonPanel.Visibility = Visibility.Visible;
+			ToolTipService.SetToolTip(MultiSelectButton, "Turn on multi-select mode");
+			view.SelectionMode = ListViewSelectionMode.Single;
+			view.IsItemClickEnabled = true;
+			view.IsMultiSelectCheckBoxEnabled = false;
+			view.IsRightTapEnabled = true;
+			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -893,6 +904,7 @@ public sealed partial class AllSongsViewPage : Page
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
+			if (view.Name == "AllSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
 		}
 	}
 
@@ -932,7 +944,7 @@ public sealed partial class AllSongsViewPage : Page
 
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songs.Count > 1 ? "these" : "this")} {songs.Count} song{(songs.Count > 1 ? "s" : "")}/track{(songs.Count > 1 ? "s" : "")} from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} song{(songList.Count > 1 ? "s" : "")}/track{(songs.Count > 1 ? "s" : "")} from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 
@@ -947,7 +959,13 @@ public sealed partial class AllSongsViewPage : Page
 					AllSongs.Remove(songData);
 				}
 			}
+			MusicPlayer.Instance.HandleAfterDelete();
+			GlobalNotification.Info($"{songList.Count} Song{(songList.Count > 1 ? "s" : "")}/Track{(songList.Count > 1 ? "s" : "")} deleted successfully.");
 		}
-		//TODO handle playback
+		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
+		{
+			GoToSettings.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Collapsed;
+		}
 	}
 }

@@ -39,13 +39,13 @@
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
-			<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
+			<!--<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
 			                Text="Info/Tag">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE946;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
-			<MenuFlyoutSeparator />
+			<MenuFlyoutSeparator />-->
 			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
 			                Text="Delete">
 				<MenuFlyoutItem.Icon>
@@ -70,8 +70,8 @@
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
-				<ToggleButton x:Name="CompactModeMultiSelectButton"
-				              Click="CompactModeMultiSelectButton_Click"
+				<ToggleButton x:Name="MultiSelectButton"
+				              Click="MultiSelectButton_Click"
 				              ToolTipService.ToolTip="Turn on multi-select mode">
 					<FontIcon Glyph="&#xE73A;" />
 				</ToggleButton>
@@ -91,7 +91,8 @@
 						<FontIcon Glyph="&#xF5B0;" />
 					</Button>
 				</StackPanel>
-				<StackPanel Orientation="Horizontal"
+				<StackPanel x:Name="SortAndViewButtonPanel"
+				            Orientation="Horizontal"
 				            Spacing="5">
 					<DropDownButton x:Name="SortDropDown"
 					                HorizontalAlignment="Right">
@@ -254,13 +255,15 @@
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
 				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AllSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
 				          ScrollViewer.VerticalScrollBarVisibility="Visible"
 				          ScrollViewer.VerticalScrollMode="Enabled"
-				          SelectionChanged="ListView_SelectionChanged">
+				          SelectionChanged="ListView_SelectionChanged"
+				          SelectionMode="Single">
 
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -279,7 +282,8 @@
 								<behaviors:StickyHeaderBehavior />
 							</interactivity:Interaction.Behaviors>
 
-							<controls:DataTable Margin="12,0,0,0"
+							<controls:DataTable x:Name="Header"
+							                    Margin="12,0,0,0"
 							                    ColumnSpacing="10">
 								<controls:DataColumn DesiredWidth="40" />
 								<controls:DataColumn Content="Title"

@@ -607,6 +607,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		isUpdatingProgressBar = true;
 		ProgressBarValue = sender.Position.TotalSeconds;
 		await Task.Delay(1);
+		//TODO TaskBAr progress
 		isUpdatingProgressBar = false;
 	});
 

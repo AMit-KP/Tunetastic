@@ -198,17 +198,17 @@ public class DatabaseHelper
 	/// <summary>
 	/// Loads the paths of all songs from the database, ordered by the specified song property and sort direction.
 	/// </summary>
-	/// <param name="songProperty">The property of the song used for sorting, such as Title, Artists, or Album. Defaults to Title.</param>
+	/// <param name="SortBySongProperty">The property of the song used for sorting, such as Title, Artists, or Album. Defaults to Title.</param>
 	/// <param name="ascending">Indicates whether the sorting should be in ascending order. Defaults to true.</param>
 	/// <returns>
 	/// A task that represents the asynchronous operation, returning a list of strings containing the paths of the songs.
 	/// If the operation fails, an empty list is returned.
 	/// </returns>
-	public async Task<List<string>> LoadSongPathsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true)
+	public async Task<List<string>> LoadSongPathsFromDB(SongProperty SortBySongProperty = SongProperty.Title, bool ascending = true)
 	{
 		try
 		{
-			return (await _database.QueryAsync<Song>($"SELECT Path FROM Songs ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}")).Select(s => s.Path).ToList();
+			return (await _database.QueryAsync<Song>($"SELECT Path FROM Songs ORDER BY {SortBySongProperty.ToString()} {(ascending ? "ASC" : "DESC")}")).Select(s => s.Path).ToList();
 		}
 		catch (Exception)
 		{

@@ -81,7 +81,7 @@ public class GetMusicData
 		}
 
 		_isScanning = false;
-		MusicPlayer.Instance.ResetAfterScan();
+		MusicPlayer.Instance.ResetOrReloadPlayer();
 	}
 
 
@@ -186,6 +186,7 @@ public class GetMusicData
 			{
 				try
 				{
+					//TODO some songs have unsupported codecs
 					using (var audioModel = TagLib.File.Create(filePath))
 					{
 						var fileInfo = new FileInfo(filePath);
@@ -267,7 +268,7 @@ public class GetMusicData
 			uniqueMetadata = null;
 			libraries = null;
 
-			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Libraries: {librariesCount} Songs/Tracks: {songsCount}";
+			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {DateTime.Now}";
 			ScanProgress = 100;
 			await Task.Delay(10);
 			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount);
