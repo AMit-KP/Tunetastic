@@ -237,7 +237,8 @@ public sealed partial class SettingsPage : Page
 	private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args) => DispatcherQueue.GetForCurrentThread().TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 	{
 		var numberBox = sender as NumberBox;
-		if (numberBox?.Value < 0)
+
+		if (numberBox?.Value < 0 || double.IsNaN(numberBox.Value))
 		{
 			numberBox.Value = 0;
 		}
@@ -282,6 +283,7 @@ public sealed partial class SettingsPage : Page
 			: "No file extensions enabled for scanning tracks";
 
 		FileExt.Description = description;
+		//TODO live update without scan
 	}
 
 	/// <summary>
@@ -539,13 +541,15 @@ public sealed partial class SettingsPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ComboBox object.</param>
 	/// <param name="e">The event arguments containing details about the selection change.</param>
-	private void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private async void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		App.Current.ThemeService.OnThemeComboBoxSelectionChanged(sender);
 		if (Theme.SelectedItem is ComboBoxItem ThemeItem)
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)] = ThemeItem.Tag?.ToString();
 		}
+
+		await Task.Delay(100);
 		App.Current.ThemeService.UpdateCaptionButtons();
 
 		if (TintSettings.Visibility == Visibility.Visible)

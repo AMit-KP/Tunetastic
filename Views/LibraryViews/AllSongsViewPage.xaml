@@ -16,6 +16,45 @@
       Unloaded="Page_Unloaded"
       mc:Ignorable="d">
 
+	<Page.Resources>
+		<MenuFlyout x:Key="RightClickMenu"
+		            Opened="MenuFlyout_Opened">
+			<MenuFlyoutItem Click="MenuFlyoutItemPlay_OnClick"
+			                Text="Play">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE768;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<MenuFlyoutSubItem x:Name="AddToPlaylist"
+			                   Text="Add to playlist">
+				<MenuFlyoutSubItem.Icon>
+					<FontIcon Glyph="&#xE728;" />
+				</MenuFlyoutSubItem.Icon>
+			</MenuFlyoutSubItem>
+			<MenuFlyoutItem Click="MenuFlyoutItemAddToQueue_OnClick"
+			                Text="Add to queue">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE84F;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<!--<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
+			                Text="Info/Tag">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE946;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />-->
+			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
+			                Text="Delete">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE74D;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+		</MenuFlyout>
+	</Page.Resources>
+
 	<Grid Margin="10,10,10,0">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
@@ -31,7 +70,13 @@
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
-				<StackPanel Orientation="Horizontal"
+				<ToggleButton x:Name="MultiSelectButton"
+				              Click="MultiSelectButton_Click"
+				              ToolTipService.ToolTip="Turn on multi-select mode">
+					<FontIcon Glyph="&#xE73A;" />
+				</ToggleButton>
+				<StackPanel x:Name="PlayAllButtonStackPanel"
+				            Orientation="Horizontal"
 				            Spacing="5">
 					<Button x:Name="ShuffleAndPlay"
 					        HorizontalAlignment="Right"
@@ -46,7 +91,8 @@
 						<FontIcon Glyph="&#xF5B0;" />
 					</Button>
 				</StackPanel>
-				<StackPanel Orientation="Horizontal"
+				<StackPanel x:Name="SortAndViewButtonPanel"
+				            Orientation="Horizontal"
 				            Spacing="5">
 					<DropDownButton x:Name="SortDropDown"
 					                HorizontalAlignment="Right">
@@ -82,23 +128,58 @@
 						</DropDownButton.Flyout>
 					</DropDownButton>
 					<DropDownButton x:Name="ViewButton"
-					                HorizontalAlignment="Right"
-					                Content="View">
+					                HorizontalAlignment="Right">
 						<DropDownButton.Flyout>
 							<MenuFlyout x:Name="ViewStyle"
 							            Placement="BottomEdgeAlignedRight">
 								<RadioMenuFlyoutItem x:Name="ListViewStyle"
 								                     Click="ViewButton_OnClick"
 								                     GroupName="View"
-								                     Text="List View" />
+								                     Text="List View">
+									<RadioMenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE8FD;" />
+									</RadioMenuFlyoutItem.Icon>
+								</RadioMenuFlyoutItem>
 								<RadioMenuFlyoutItem x:Name="CompactViewStyle"
 								                     Click="ViewButton_OnClick"
 								                     GroupName="View"
-								                     Text="Compact View" />
+								                     Text="Compact View">
+									<RadioMenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE71D;" />
+									</RadioMenuFlyoutItem.Icon>
+								</RadioMenuFlyoutItem>
 							</MenuFlyout>
 						</DropDownButton.Flyout>
 					</DropDownButton>
 				</StackPanel>
+				<Button x:Name="MoreButton"
+				        Visibility="Collapsed">
+					<FontIcon Glyph="&#xE712;" />
+					<Button.Flyout>
+						<MenuFlyout x:Name="More"
+						            Opened="MenuFlyout_Opened"
+						            Placement="BottomEdgeAlignedRight">
+							<MenuFlyoutSubItem Text="Add to playlist">
+								<MenuFlyoutSubItem.Icon>
+									<FontIcon Glyph="&#xE728;" />
+								</MenuFlyoutSubItem.Icon>
+							</MenuFlyoutSubItem>
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemAddToQueue_OnClick"
+							                Text="Add to queue">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE84F;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+							<MenuFlyoutSeparator />
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemDelete_OnClick"
+							                Text="Delete">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE74D;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+						</MenuFlyout>
+					</Button.Flyout>
+				</Button>
 			</StackPanel>
 		</Grid>
 		<Grid Grid.Row="1">
@@ -146,18 +227,43 @@
 					</Grid>
 				</Grid>
 			</StackPanel>
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
+				<ContentDialog x:Name="DeleteDialog"
+				               Title="Confirm Deletion"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Secondary"
+				               PrimaryButtonText="Delete"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Collapsed">
+					<StackPanel Spacing="10">
+						<TextBlock x:Name="DeleteDialogText"
+						           Style="{ThemeResource BodyTextBlockStyle}"
+						           TextWrapping="WrapWholeWords" />
+						<TextBlock Foreground="Red"
+						           Style="{ThemeResource BodyStrongTextBlockStyle}"
+						           Text="This action cannot be undone."
+						           TextWrapping="WrapWholeWords" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
 			<Grid x:Name="AllSongsListViewGrid">
 				<ListView x:Name="AllSongsListView"
 				          Margin="10,10,10,10"
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
+				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AllSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
 				          ScrollViewer.VerticalScrollBarVisibility="Visible"
 				          ScrollViewer.VerticalScrollMode="Enabled"
-				          SelectionChanged="ListView_SelectionChanged">
+				          SelectionChanged="ListView_SelectionChanged"
+				          SelectionMode="Single">
 
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -176,7 +282,8 @@
 								<behaviors:StickyHeaderBehavior />
 							</interactivity:Interaction.Behaviors>
 
-							<controls:DataTable Margin="12,0,0,0"
+							<controls:DataTable x:Name="Header"
+							                    Margin="12,0,0,0"
 							                    ColumnSpacing="10">
 								<controls:DataColumn DesiredWidth="40" />
 								<controls:DataColumn Content="Title"
@@ -203,7 +310,9 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<controls:DataRow HorizontalAlignment="Left">
+							<controls:DataRow HorizontalAlignment="Left"
+							                  Background="Transparent"
+							                  ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid Width="40"
 								      Height="60"
 								      Margin="0,2,0,2"
@@ -237,6 +346,12 @@
 							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 						</Style>
 					</ListView.ItemContainerStyle>
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<AddDeleteThemeTransition />
+							<ContentThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
 				</ListView>
 			</Grid>
 			<Grid x:Name="AllSongCompactViewGrid">
@@ -245,12 +360,15 @@
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
+				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AllSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
 				          ScrollViewer.VerticalScrollBarVisibility="Visible"
 				          ScrollViewer.VerticalScrollMode="Enabled"
-				          SelectionChanged="ListView_SelectionChanged">
+				          SelectionChanged="ListView_SelectionChanged"
+				          SelectionMode="Single">
 
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -260,7 +378,8 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<Grid>
+							<Grid Background="Transparent"
+							      ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*" />
 									<ColumnDefinition Width="Auto" />
@@ -269,13 +388,17 @@
 									<StackPanel Orientation="Horizontal"
 									            Spacing="20">
 										<Grid Width="100"
-										      Height="120"
-										      Margin="0,5,0,5"
-										      HorizontalAlignment="Center"
-										      VerticalAlignment="Center"
-										      CornerRadius="10">
-											<Image VerticalAlignment="Center"
-											       Source="{x:Bind Cover}" />
+										      Height="100"
+										      Margin="0,10,0,10">
+											<Grid Width="Auto"
+											      Height="Auto"
+											      HorizontalAlignment="Center"
+											      VerticalAlignment="Center"
+											      CornerRadius="10">
+												<Image HorizontalAlignment="Center"
+												       VerticalAlignment="Center"
+												       Source="{x:Bind Cover}" />
+											</Grid>
 										</Grid>
 										<StackPanel Width="Auto"
 										            HorizontalAlignment="Center"
@@ -332,6 +455,14 @@
 							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 						</Style>
 					</ListView.ItemContainerStyle>
+
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<AddDeleteThemeTransition />
+							<ContentThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
+
 				</ListView>
 			</Grid>
 			<StackPanel x:Name="AlphabetNavigationPanel"

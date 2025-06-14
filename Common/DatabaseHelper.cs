@@ -72,7 +72,8 @@ public class DatabaseHelper
 										FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
-										Path TEXT PRIMARY KEY, 
+										Id INTEGER PRIMARY KEY AUTOINCREMENT,
+										Path TEXT,
 										FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 	}
 
@@ -161,6 +162,21 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Deletes a song entry from the database using the specified file path.
+	/// This method removes the corresponding record from the `Songs` table.
+	/// </summary>
+	/// <param name="path">
+	/// The file path of the song to be deleted from the database.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of deleting the song from the database.
+	/// </returns>
+	public async Task DeleteSongFromDB(string path)
+	{
+		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", path);
+	}
+
+	/// <summary>
 	/// Loads all songs from the database and sorts them based on the specified property and order.
 	/// </summary>
 	/// <param name="songProperty">The property to sort the songs by, such as Title, Artists, or Album. Defaults to Title.</param>
@@ -179,11 +195,20 @@ public class DatabaseHelper
 		}
 	}
 
-	public async Task<List<string>> LoadSongPathsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true)
+	/// <summary>
+	/// Loads the paths of all songs from the database, ordered by the specified song property and sort direction.
+	/// </summary>
+	/// <param name="SortBySongProperty">The property of the song used for sorting, such as Title, Artists, or Album. Defaults to Title.</param>
+	/// <param name="ascending">Indicates whether the sorting should be in ascending order. Defaults to true.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation, returning a list of strings containing the paths of the songs.
+	/// If the operation fails, an empty list is returned.
+	/// </returns>
+	public async Task<List<string>> LoadSongPathsFromDB(SongProperty SortBySongProperty = SongProperty.Title, bool ascending = true)
 	{
 		try
 		{
-			return (await _database.QueryAsync<Song>($"SELECT Path FROM Songs ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}")).Select(s => s.Path).ToList();
+			return (await _database.QueryAsync<Song>($"SELECT Path FROM Songs ORDER BY {SortBySongProperty.ToString()} {(ascending ? "ASC" : "DESC")}")).Select(s => s.Path).ToList();
 		}
 		catch (Exception)
 		{
@@ -233,20 +258,14 @@ public class DatabaseHelper
 		}
 	}
 
-	public async Task CleanupOrphanedPlaylistEntriesAsync()
+	public async Task CleanupOrphanedPlaylistEntries()
 	{
 		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE SongPath NOT IN (SELECT Path FROM Songs)");
 	}
 
-	public async Task IncrementPlayCountAsync(string songPath)
+	public async Task IncrementPlayCount(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = PlayCount + 1 WHERE Path = ?", songPath);
-	}
-
-	public async Task DeleteSongAsync(string songPath)
-	{
-		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", songPath);
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE SongPath = ?", songPath);
 	}
 
 	/// <summary>
@@ -284,17 +303,116 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task representing the asynchronous operation of removing the playlist and its associated data.
 	/// </returns>
-	public async Task RemovePlaylistAsync(string playlistName)
+	public async Task RemovePlaylist(string playlistName)
 	{
 		await _database.ExecuteAsync("DELETE FROM Playlists WHERE Name = ?", playlistName);
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
 	}
 
-	public async Task AddSongsToQueuedPlayingList(string songPath)
+	/// <summary>
+	/// Adds a song to the specified playlist in the database by creating an entry in the `PlaylistSongs` table.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist to which the song should be added. Must correspond to an existing playlist in the database.</param>
+	/// <param name="songPath">The path of the song to add to the playlist. Must correspond to an existing song in the `Songs` table.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding the song to the playlist.
+	/// </returns>
+	public async Task AddSongToPlaylist(string playlistName, string songPath)
 	{
-		await _database.ExecuteAsync("INSERT OR REPLACE INTO QueuedPlayingList (Path) VALUES (?)", songPath);
+		await _database.ExecuteAsync("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?)", playlistName, songPath);
 	}
 
+	/// <summary>
+	/// Adds multiple songs to a specified playlist in the database.
+	/// This operation creates entries in the `PlaylistSongs` table by associating the songs
+	/// with the provided playlist name and their respective paths.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist to which the songs will be added.
+	/// It is used to identify the playlist in the database.
+	/// </param>
+	/// <param name="songPaths">
+	/// A list of file paths representing the songs to be added to the playlist.
+	/// Each path corresponds to a song entry in the database.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding multiple songs to the playlist.
+	/// </returns>
+	public async Task AddSongsToPlaylist(string playlistName, List<string> songPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var songPath in songPaths)
+			{
+				conn.Execute("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?)", playlistName, songPath);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Removes a specific song from a playlist in the database.
+	/// This method ensures that the entry linking the given song to the specified playlist
+	/// is deleted if it exists.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist from which the song will be removed.</param>
+	/// <param name="songPath">The path of the song to be removed from the playlist.</param>
+	/// <returns>
+	/// A task representing the asynchronous operation of removing the song from the playlist.
+	/// </returns>
+	public async Task RemoveSongFromPlaylist(string playlistName, string songPath)
+	{
+		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?) AND SongPath = ?", playlistName, songPath);
+	}
+
+	/// <summary>
+	/// Removes multiple songs from a specified playlist in the database.
+	/// This method deletes entries from the `PlaylistSongs` table where the provided song paths
+	/// are associated with the given playlist.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist from which the songs will be removed.
+	/// </param>
+	/// <param name="songPaths">
+	/// A list of file paths representing the songs to be removed from the playlist.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of removing songs from the playlist.
+	/// </returns>
+	public async Task RemoveSongsToPlaylist(string playlistName, List<string> songPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var songPath in songPaths)
+			{
+				conn.Execute("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?) AND SongPath = ?", playlistName, songPath);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Retrieves a list of songs that belong to the specified playlist.
+	/// This method queries the `Songs` table and joins it with the `PlaylistSongs` table
+	/// to fetch all the songs associated with the given playlist name.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist for which songs need to be retrieved.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains
+	/// a list of <see cref="Song"/> objects representing the songs in the specified playlist.
+	/// </returns>
+	public async Task<List<Song>> GetSongsInPlaylist(string playlistName)
+	{
+		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S INNER JOIN PlaylistSongs P ON S.Path = P.SongPath WHERE P.PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
+	}
+
+	/// <summary>
+	/// Adds a list of song paths to the queued playing list in the database.
+	/// If a song already exists in the queued playing list, it is replaced with the new entry.
+	/// </summary>
+	/// <param name="songPaths">A list of strings representing the paths of the songs to be added to the queued playing list.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding songs to the queued playing list.
+	/// </returns>
 	public async Task AddSongsToQueuedPlayingList(List<string> songPaths)
 	{
 		await _database.RunInTransactionAsync(conn =>
@@ -306,30 +424,34 @@ public class DatabaseHelper
 		});
 	}
 
-	public async Task<List<string>> GetQueuedPlayingList()
+	/// <summary>
+	/// Retrieves the list of songs currently in the queued playing list.
+	/// The queued playing list is managed within the database and includes songs
+	/// ordered by their position in the queue.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation of fetching the queued playing list.
+	/// The task result contains a list of <see cref="Song"/> objects retrieved from the database,
+	/// ordered by their queue position.
+	/// </returns>
+	public async Task<List<Song>> GetQueuedPlayingList()
 	{
-		var result = await _database.QueryAsync<Song>("SELECT Path FROM QueuedPlayingList ORDER BY rowid");
-		return result.Select(song => song.Path).ToList();
+		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S JOIN QueuedPlayingList Q ON S.Path = Q.Path ORDER BY Q.Id");
 	}
 
+	/// <summary>
+	/// Removes a song from the queued playing list in the database.
+	/// This operation deletes the specified song entry from the `QueuedPlayingList` table.
+	/// </summary>
+	/// <param name="songPath">
+	/// The file path of the song to be removed from the queued playing list.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of removing the song from the queued playing list.
+	/// </returns>
 	public async Task RemoveFromQueuedPlayingList(string songPath)
 	{
 		await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Path = ?", songPath);
-	}
-
-	public async Task AddSongToPlaylistAsync(int playlistId, string songPath)
-	{
-		await _database.ExecuteAsync("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES (?, ?)", playlistId, songPath);
-	}
-
-	public async Task RemoveSongFromPlaylistAsync(int playlistId, string songPath)
-	{
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId = ? AND SongPath = ?", playlistId, songPath);
-	}
-
-	public async Task<List<Song>> GetSongsInPlaylistAsync(int playlistId)
-	{
-		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S INNER JOIN PlaylistSongs P ON S.Path = P.SongPath WHERE P.PlaylistId = ?", playlistId);
 	}
 }
 
@@ -355,6 +477,11 @@ public class Song
 	public string Extension { get; set; }
 }
 
+/// <summary>
+/// Represents a playlist within the Tunetastic application.
+/// This class models the structure of a playlist entry in the database, including its unique identifier and name.
+/// Used in conjunction with database interactions to manage user-created playlists.
+/// </summary>
 [Table("Playlists")]
 public class PlaylistName
 {

@@ -34,7 +34,7 @@ public sealed partial class PlayListTemplate : Page
 		App.Current.NavService.GoBack();
 		var playListTag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
 
-		await DatabaseHelper.Instance.RemovePlaylistAsync(PlaylistHeader.Text);
+		await DatabaseHelper.Instance.RemovePlaylist(PlaylistHeader.Text);
 
 		var a = NavigationPageMappings.PageDictionary.Remove(playListTag);
 

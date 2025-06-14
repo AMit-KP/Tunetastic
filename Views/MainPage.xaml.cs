@@ -112,9 +112,10 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	/// <param name="sender">The source of the event, typically the ThemeButton.</param>
 	/// <param name="e">The event data associated with the button click.</param>
-	private void ThemeButton_Click(object sender, RoutedEventArgs e)
+	private async void ThemeButton_Click(object sender, RoutedEventArgs e)
 	{
 		ThemeService.ChangeThemeWithoutSave(App.MainWindow);
+		await Task.Delay(100);
 		App.Current.ThemeService.UpdateCaptionButtons();
 	}
 

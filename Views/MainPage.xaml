@@ -73,7 +73,7 @@
 			               IsPrimaryButtonEnabled="False"
 			               PrimaryButtonText="Add"
 			               SecondaryButtonText="Cancel"
-			               Visibility="Visible">
+			               Visibility="Collapsed">
 				<StackPanel>
 					<TextBox x:Name="PlaylistNameBox"
 					         PlaceholderText="Enter playlist name"
