@@ -54,4 +54,6 @@ public enum LocalSave
     AllSongViewSortOrder,
 	AllSongViewStyle,
 	MinimizeToTray,
+	RecentlyAddedSongViewStyle,
+	RecentlyAddedMaxLimit,
 }

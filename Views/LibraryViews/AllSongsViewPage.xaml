@@ -354,7 +354,7 @@
 					</ListView.ItemContainerTransitions>
 				</ListView>
 			</Grid>
-			<Grid x:Name="AllSongCompactViewGrid">
+			<Grid x:Name="AllSongsCompactViewGrid">
 				<ListView x:Name="AllSongCompactView"
 				          Margin="10,10,10,10"
 				          Padding="0,0,35,0"

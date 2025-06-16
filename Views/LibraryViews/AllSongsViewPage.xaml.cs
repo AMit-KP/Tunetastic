@@ -64,7 +64,7 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		GoToSettings.Visibility = Visibility.Visible;
 		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+		AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -201,14 +201,14 @@ public sealed partial class AllSongsViewPage : Page
 		{
 			case "List View":
 				AllSongsListViewGrid.Visibility = Visibility.Visible;
-				AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+				AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
 				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				AllSongsCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
