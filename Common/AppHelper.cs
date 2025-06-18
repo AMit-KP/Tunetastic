@@ -56,4 +56,6 @@ public enum LocalSave
 	MinimizeToTray,
 	RecentlyAddedSongViewStyle,
 	RecentlyAddedMaxLimit,
+	MostPlayedSongViewStyle,
+	MostPlayedMaxLimit,
 }
