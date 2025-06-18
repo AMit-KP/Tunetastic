@@ -53,8 +53,8 @@ public sealed partial class RecentlyAdded : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
-		RecentlyAddedSongsListView.Visibility = Visibility.Collapsed;
-		RecentlyAddedSongsCompactView.Visibility = Visibility.Collapsed;
+		RecentlyAddedSongsListViewGrid.Visibility = Visibility.Collapsed;
+		RecentlyAddedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -144,15 +144,15 @@ public sealed partial class RecentlyAdded : Page
 		switch (viewStyle)
 		{
 			case "List View":
-				RecentlyAddedSongsListView.Visibility = Visibility.Visible;
-				RecentlyAddedSongsCompactView.Visibility = Visibility.Collapsed;
+				RecentlyAddedSongsListViewGrid.Visibility = Visibility.Visible;
+				RecentlyAddedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
-				RecentlyAddedSongsListView.Visibility = Visibility.Collapsed;
-				RecentlyAddedSongsCompactView.Visibility = Visibility.Visible;
+				RecentlyAddedSongsListViewGrid.Visibility = Visibility.Collapsed;
+				RecentlyAddedSongsCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
