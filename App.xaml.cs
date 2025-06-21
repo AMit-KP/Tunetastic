@@ -42,7 +42,6 @@ public partial class App : Application
 		services.AddSingleton<IThemeService, ThemeService>();
 		services.AddSingleton<IJsonNavigationService, JsonNavigationService>();
 
-		services.AddTransient<MainViewModel>();
 		services.AddSingleton<ContextMenuService>();
 		services.AddTransient<SettingViewModel>();
 		services.AddSingleton<MusicControlViewModel>();

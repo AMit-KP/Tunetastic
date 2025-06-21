@@ -73,14 +73,11 @@ public sealed partial class MainPage : Page
 		}
 
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
-		if (navService != null)
-		{
-			navService.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
-				.ConfigureDefaultPage(typeof(MainPlayerPage))
-				.ConfigureSettingsPage(typeof(SettingsPage))
-				.ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
-				.ConfigureTitleBar(AppTitleBar);
-		}
+		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
+			.ConfigureDefaultPage(typeof(MainPlayerPage))
+			.ConfigureSettingsPage(typeof(SettingsPage))
+			.ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
+			.ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
 	}
 

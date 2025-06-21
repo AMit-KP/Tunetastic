@@ -258,11 +258,17 @@ public class DatabaseHelper
 		}
 	}
 
-	public async Task CleanupOrphanedPlaylistEntries()
-	{
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE SongPath NOT IN (SELECT Path FROM Songs)");
-	}
-
+	/// <summary>
+	/// Increments the play count of a song in the database.
+	/// This method updates the `PlayCount` field of the song record
+	/// corresponding to the specified file path by adding one to its current value.
+	/// </summary>
+	/// <param name="songPath">
+	/// The file path of the song whose play count should be incremented.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of updating the play count in the database.
+	/// </returns>
 	public async Task IncrementPlayCount(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = PlayCount + 1 WHERE Path = ?", songPath);

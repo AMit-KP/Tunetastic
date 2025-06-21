@@ -76,7 +76,7 @@ public sealed partial class SettingsPage : Page
 		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
-		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged; 
+		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
 		#endregion
 
 		if (GetMusicData.IsScanning) ScanButton_Click(null, null);
@@ -376,10 +376,7 @@ public sealed partial class SettingsPage : Page
 	private void AutoAdvanceSwitch_OnToggled(object sender, RoutedEventArgs? e)
 	{
 		var toggle = sender as ToggleSwitch;
-		if (toggle != null)
-			AutoAdvanceSlider.IsEnabled = toggle.IsOn;
-		else
-			AutoAdvanceSlider.IsEnabled = false;
+		AutoAdvanceSlider.IsEnabled = toggle != null && toggle.IsOn;
 
 		AutoAdvanceSlider_OnIsEnabledChanged(AutoAdvanceSwitch, null);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceStatus)] = AutoAdvanceSwitch.IsOn;
@@ -424,10 +421,7 @@ public sealed partial class SettingsPage : Page
 	private void ManualTrackChangeSwitch_OnToggled(object sender, RoutedEventArgs? e)
 	{
 		var toggle = sender as ToggleSwitch;
-		if (toggle != null)
-			ManualTrackChangeSlider.IsEnabled = toggle.IsOn;
-		else
-			ManualTrackChangeSlider.IsEnabled = false;
+		ManualTrackChangeSlider.IsEnabled = toggle != null && toggle.IsOn;
 
 		ManualTrackChangeSlider_OnIsEnabledChanged(ManualTrackChangeSwitch, null);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)] = ManualTrackChangeSwitch.IsOn;
@@ -555,11 +549,12 @@ public sealed partial class SettingsPage : Page
 		if (TintSettings.Visibility == Visibility.Visible)
 		{
 			var actualTheme = App.Current.ThemeService.GetActualTheme();
-			Color color = Color.FromArgb(0, 0, 0, 0);
-			if (actualTheme == ElementTheme.Light)
-				color = Color.FromArgb(255, 223, 223, 223);
-			else if (actualTheme == ElementTheme.Dark)
-				color = Color.FromArgb(255, 32, 32, 32);
+			Color color = actualTheme switch
+			{
+				ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
+				ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32),
+				_ => Color.FromArgb(0,0,0,0)
+			};
 
 			TintBox.Fill = new SolidColorBrush(color);
 		}
@@ -584,11 +579,12 @@ public sealed partial class SettingsPage : Page
 			if (TintSettings.Visibility == Visibility.Visible)
 			{
 				var actualTheme = App.Current.ThemeService.GetActualTheme();
-				Color color = Color.FromArgb(0, 0, 0, 0);
-				if (actualTheme == ElementTheme.Light)
-					color = Color.FromArgb(255, 223, 223, 223);
-				else if (actualTheme == ElementTheme.Dark)
-					color = Color.FromArgb(255, 32, 32, 32);
+				Color color = actualTheme switch
+				{
+					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
+					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32),
+					_ => Color.FromArgb(0, 0, 0, 0)
+				};
 
 				TintBox.Fill = new SolidColorBrush(color);
 			}
@@ -673,10 +669,11 @@ public sealed partial class SettingsPage : Page
 			else
 			{
 				var actualTheme = App.Current.ThemeService.GetActualTheme();
-				if (actualTheme == ElementTheme.Light)
-					color = Color.FromArgb(255, 223, 223, 223);
-				else if (actualTheme == ElementTheme.Dark)
-					color = Color.FromArgb(255, 32, 32, 32);
+				color = actualTheme switch
+				{
+					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
+					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32)
+				};
 			}
 			TintBox.Fill = new SolidColorBrush(color);
 		}
@@ -747,7 +744,7 @@ public sealed partial class SettingsPage : Page
 		#region Uncomment this is implemented
 		//UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
 
-		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"); 
+		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
 		#endregion
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");

@@ -9,7 +9,6 @@ using WinUIEx;
 namespace Tunetastic.Views;
 public sealed partial class MainWindow : WindowEx
 {
-	public MainViewModel ViewModel { get; }
 	private OverlappedPresenter overlappedPresenter;
 	public AppWindow CurrentAppWindow { get; }
 	public static MainWindow _instance;
@@ -18,13 +17,11 @@ public sealed partial class MainWindow : WindowEx
 	/// Represents the primary window of the application and initializes its components and settings.
 	/// </summary>
 	/// <remarks>
-	/// This class serves as the main interface for the application, providing access to the <see cref="MainViewModel"/> instance,
-	/// configuring the application window's behavior (such as extending content to the title bar), and interacting with system tray settings.
+	/// This class serves as the main interface for the application, configuring the application window's behavior (such as extending content to the title bar), and interacting with system tray settings.
 	/// </remarks>
 	public MainWindow()
 	{
-		ViewModel = App.GetService<MainViewModel>();
-		this.InitializeComponent();
+		InitializeComponent();
 		_instance = this;
 
 		CurrentAppWindow = this.AppWindow;
@@ -194,25 +191,25 @@ public sealed partial class MainWindow : WindowEx
 	{
 		double baseFactor;
 
-		// Piecewise linear interpolation for base factor at 100% zoom:
-		if (screenHeight <= 1440)
+		switch (screenHeight)
 		{
-			// Between 768px and 1440px:
-			// At 768    => factor = 0.9,
-			// At 1440   => factor = 0.6.
-			baseFactor = 0.9 - 0.3 * ((screenHeight - 768) / (1440 - 768));
-		}
-		else if (screenHeight <= 2400)
-		{
-			// Between 1440px and 2400px:
-			// At 1440   => factor = 0.6,
-			// At 2400   => factor = 0.35 (rough average between 0.3 and 0.4).
-			baseFactor = 0.6 - 0.25 * ((screenHeight - 1440) / (2400 - 1440));
-		}
-		else
-		{
-			// For screens taller than 2400px, you can default to the factor at 2400px.
-			baseFactor = 0.35;
+			// Piecewise linear interpolation for base factor at 100% zoom:
+			case <= 1440:
+				// Between 768px and 1440px:
+				// At 768    => factor = 0.9,
+				// At 1440   => factor = 0.6.
+				baseFactor = 0.9 - 0.3 * ((screenHeight - 768) / (1440 - 768));
+				break;
+			case <= 2400:
+				// Between 1440px and 2400px:
+				// At 1440   => factor = 0.6,
+				// At 2400   => factor = 0.35 (rough average between 0.3 and 0.4).
+				baseFactor = 0.6 - 0.25 * ((screenHeight - 1440) / (2400 - 1440));
+				break;
+			default:
+				// For screens taller than 2400px, you can default to the factor at 2400px.
+				baseFactor = 0.35;
+				break;
 		}
 
 		// Apply the zoom factor.
