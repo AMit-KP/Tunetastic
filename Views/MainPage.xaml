@@ -45,7 +45,7 @@
 			                Grid.Row="1"
 			                IsBackButtonVisible="Collapsed"
 			                IsBackEnabled="False"
-			                IsPaneOpen="False"
+			                IsPaneOpen="True"
 			                IsPaneToggleButtonVisible="False"
 			                ItemInvoked="NavView_ItemInvoked"
 			                SelectionChanged="NavView_SelectionChanged">

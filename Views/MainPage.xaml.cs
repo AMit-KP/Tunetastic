@@ -320,8 +320,10 @@ public sealed partial class MainPage : Page
 	/// such as dynamically adding playlists to the navigation menu through the AddPlayLists method.
 	/// It ensures that the page is adequately prepared for user interaction upon loading.
 	/// </remarks>
-	private void Page_Loaded(object sender, RoutedEventArgs e)
+	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		AddPlayLists();
+		await Task.Delay(1000);
+		NavView.IsPaneOpen = false;
 	}
 }
