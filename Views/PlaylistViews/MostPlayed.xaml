@@ -194,6 +194,18 @@
 				        Click="GotoSettigsButton_Click"
 				        Content="Open Settings" />
 			</StackPanel>
+			<Grid x:Name="NoResultsGrid"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center"
+			      Visibility="Collapsed">
+				<TextBlock HorizontalAlignment="Center"
+				           VerticalAlignment="Center"
+				           HorizontalTextAlignment="Center"
+				           Style="{ThemeResource SubtitleTextBlockStyle}"
+				           Text="Play and really listen to some music and come back."
+				           TextAlignment="Center"
+				           TextWrapping="WrapWholeWords" />
+			</Grid>
 			<StackPanel x:Name="LoadingProgress"
 			            HorizontalAlignment="Center"
 			            VerticalAlignment="Center"

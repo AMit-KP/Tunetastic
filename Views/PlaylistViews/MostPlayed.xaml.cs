@@ -221,17 +221,25 @@ public sealed partial class MostPlayed : Page
 		var song = selectedSong;
 		var maxLimit = MaxLimit.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Limit" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "100";
 
-		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(SongProperty.PlayCount, ascending: false, limit: maxLimit == "Unlimited" ? 0 : int.Parse(maxLimit));
+		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(SongProperty.PlayCount, ascending: false, limit: maxLimit == "Unlimited" ? 0 : int.Parse(maxLimit), whereCondition: $"{SongProperty.PlayCount.ToString()} > 0");
 		MostPlayedSongs.Clear();
 		MostPlayedSongs.AddRange(newList);
 		newList = null;
 
 		MaxLimitDropDown.Content = $"Max Limit: {maxLimit}";
 		ToolTipService.SetToolTip(MaxLimitDropDown, $"The maximum number of songs to display in the list: {maxLimit}");
-		await ScrollToSong(song);       //somehow this doesn't work
-		await Task.Delay(1000);
-		await ScrollToSong(song);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedMaxLimit)] = maxLimit;
+
+
+		if (MostPlayedSongs.Count > 0)
+		{
+			NoResultsGrid.Visibility = Visibility.Collapsed;
+			await ScrollToSong(song);       //somehow this doesn't work
+			await Task.Delay(1000);
+			await ScrollToSong(song);
+		}
+		else
+			NoResultsGrid.Visibility = Visibility.Visible;
 	}
 
 	/// <summary>

@@ -183,11 +183,11 @@ public class DatabaseHelper
 	/// <param name="ascending">A boolean indicating whether the songs should be sorted in ascending order. Defaults to true.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains a list of songs ordered by the specified property, order and limit.
 	/// If an exception occurs, an empty list is returned.</returns>
-	public async Task<List<Song>> LoadSongsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true, int limit = 0)
+	public async Task<List<Song>> LoadSongsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true, int limit = 0, string? whereCondition = null)
 	{
 		try
 		{
-			return await _database.QueryAsync<Song>($"SELECT * FROM Songs ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}{(limit > 0 ? $" LIMIT {limit}" : "")}");
+			return await _database.QueryAsync<Song>($"SELECT * FROM Songs {(whereCondition == null ? "" : $" WHERE {whereCondition}")} ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}{(limit > 0 ? $" LIMIT {limit}" : "")}");
 		}
 		catch (Exception)
 		{
