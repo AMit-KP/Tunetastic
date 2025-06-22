@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -260,8 +261,21 @@ public sealed partial class AllSongsViewPage : Page
 				break;
 		}
 
-		SortDropDown.Content = $"Sort By: {sortBy} {(AscOrder ? "⬆️" : "⬇️")}";
-		ToolTipService.SetToolTip(SortDropDown, $"The list is sorted by \"{sortBy}\" column in {orderBy} order.");
+		var sortDropdownContent = new TextBlock();
+		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
+		sortDropdownContent.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
+
+		var orderDropdownTooltip = new TextBlock();
+		orderDropdownTooltip.Inlines.Add(new Run { Text = "The list is sorted by " });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = $" column in " });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = orderBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = " order." });
+
+		SortDropDown.Content = sortDropdownContent;
+		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
+
 		await ScrollToSong(song);       //somehow this doesn't work
 		await Task.Delay(1000);
 		await ScrollToSong(song);

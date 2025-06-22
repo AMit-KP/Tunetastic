@@ -64,7 +64,8 @@
 		      Margin="15,10,45,10">
 			<TextBlock HorizontalAlignment="Left"
 			           Style="{ThemeResource TitleTextBlockStyle}"
-			           Text="All Songs" />
+			           Text="All Songs"
+			           ToolTipService.ToolTip="All songs/tracks will be displayed here" />
 
 			<StackPanel x:Name="PageButtons"
 			            HorizontalAlignment="Right"
@@ -300,7 +301,7 @@
 									           Text="Album" />
 								</controls:DataColumn>
 								<controls:DataColumn Content="Duration"
-								                     DesiredWidth="125"
+								                     DesiredWidth="120"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 							</controls:DataTable>
@@ -322,23 +323,55 @@
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Title}"
-								           TextTrimming="CharacterEllipsis"
-								           ToolTipService.ToolTip="{x:Bind Title}" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
+											<Run Text="Title: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Title}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Artists}"
-								           TextTrimming="CharacterEllipsis"
-								           ToolTipService.ToolTip="{x:Bind Artists}" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
+											<Run Text="Artists: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Artists}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Album}"
-								           TextTrimming="CharacterEllipsis"
-								           ToolTipService.ToolTip="{x:Bind Album}" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
+											<Run Text="Album: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Album}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           HorizontalTextAlignment="Left"
 								           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}"
-								           TextTrimming="CharacterEllipsis" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock>
+											<Run Text="Duration: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 							</controls:DataRow>
 						</DataTemplate>
 					</ListView.ItemTemplate>
@@ -420,21 +453,48 @@
 											           Style="{ThemeResource SubtitleTextBlockStyle}"
 											           Text="{x:Bind Title}"
 											           TextTrimming="CharacterEllipsis"
-											           TextWrapping="WrapWholeWords" />
+											           TextWrapping="WrapWholeWords">
+												<ToolTipService.ToolTip>
+													<TextBlock TextTrimming="CharacterEllipsis"
+													           TextWrapping="WrapWholeWords">
+														<Run Text="Title: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Title}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 											<TextBlock HorizontalAlignment="Left"
 											           VerticalAlignment="Center"
 											           MaxLines="2"
 											           Style="{ThemeResource BodyStrongTextBlockStyle}"
 											           Text="{x:Bind Artists}"
 											           TextTrimming="CharacterEllipsis"
-											           TextWrapping="WrapWholeWords" />
+											           TextWrapping="WrapWholeWords">
+												<ToolTipService.ToolTip>
+													<TextBlock TextTrimming="CharacterEllipsis"
+													           TextWrapping="WrapWholeWords">
+														<Run Text="Artists: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Artists}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 											<TextBlock HorizontalAlignment="Left"
 											           VerticalAlignment="Center"
 											           MaxLines="2"
 											           Style="{ThemeResource BodyStrongTextBlockStyle}"
 											           Text="{x:Bind Album}"
 											           TextTrimming="CharacterEllipsis"
-											           TextWrapping="WrapWholeWords" />
+											           TextWrapping="WrapWholeWords">
+												<ToolTipService.ToolTip>
+													<TextBlock TextTrimming="CharacterEllipsis"
+													           TextWrapping="WrapWholeWords">
+														<Run Text="Album: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Album}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 										</StackPanel>
 									</Grid>
 								</Grid>
@@ -452,14 +512,30 @@
 										           VerticalAlignment="Bottom"
 										           HorizontalTextAlignment="Right"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
-										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}">
+											<ToolTipService.ToolTip>
+												<TextBlock>
+													<Run Text="Duration: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+										</TextBlock>
 									</Grid>
 									<Grid Grid.Row="0"
 									      VerticalAlignment="Center">
 										<TextBlock HorizontalAlignment="Right"
 										           VerticalAlignment="Top"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
-										           Text="{x:Bind Year}" />
+										           Text="{x:Bind Year}">
+											<ToolTipService.ToolTip>
+												<TextBlock>
+													<Run Text="Year: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind Year}" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+										</TextBlock>
 									</Grid>
 								</Grid>
 							</Grid>

@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.PlaylistViews;
@@ -226,8 +227,17 @@ public sealed partial class MostPlayed : Page
 		MostPlayedSongs.AddRange(newList);
 		newList = null;
 
-		MaxLimitDropDown.Content = $"Max Limit: {maxLimit}";
-		ToolTipService.SetToolTip(MaxLimitDropDown, $"The maximum number of songs to display in the list: {maxLimit}");
+		var maxLimitDropDownContent = new TextBlock();
+		maxLimitDropDownContent.Inlines.Add(new Run { Text = "Max Limit: " });
+		maxLimitDropDownContent.Inlines.Add(new Run { Text = maxLimit, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+
+		var maxLimitDropDownTooltip = new TextBlock();
+		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = "The maximum number of songs/tracks to display in the list: " });
+		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = maxLimit, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		maxLimitDropDownTooltip.TextWrapping = TextWrapping.WrapWholeWords;
+
+		MaxLimitDropDown.Content = maxLimitDropDownContent;
+		ToolTipService.SetToolTip(MaxLimitDropDown, maxLimitDropDownTooltip);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedMaxLimit)] = maxLimit;
 
 
