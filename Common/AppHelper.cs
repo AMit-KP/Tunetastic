@@ -58,4 +58,5 @@ public enum LocalSave
 	RecentlyAddedMaxLimit,
 	MostPlayedSongViewStyle,
 	MostPlayedMaxLimit,
+	RecentlyAddedSongTimeStyle,
 }

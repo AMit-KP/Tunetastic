@@ -10,6 +10,7 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      x:Name="RecentlyAddedPage"
       Loaded="Page_Loaded"
       Unloaded="Page_Unloaded">
 
@@ -118,6 +119,30 @@
 								                     Click="MaxLimitButton_OnClick"
 								                     GroupName="Limit"
 								                     Text="Unlimited" />
+							</MenuFlyout>
+						</DropDownButton.Flyout>
+					</DropDownButton>
+					<DropDownButton x:Name="TimeFieldType"
+					                HorizontalAlignment="Right">
+						<DropDownButton.Flyout>
+							<MenuFlyout x:Name="TimeFieldStyle"
+							            Placement="BottomEdgeAlignedRight">
+								<RadioMenuFlyoutItem x:Name="DateStyle"
+								                     Click="TimeStyle_Click"
+								                     GroupName="Time"
+								                     Text="Exact Date Style">
+									<RadioMenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE787;" />
+									</RadioMenuFlyoutItem.Icon>
+								</RadioMenuFlyoutItem>
+								<RadioMenuFlyoutItem x:Name="RelativeTimeStyle"
+								                     Click="TimeStyle_Click"
+								                     GroupName="Time"
+								                     Text="Relative Time Style">
+									<RadioMenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xEC92;" />
+									</RadioMenuFlyoutItem.Icon>
+								</RadioMenuFlyoutItem>
 							</MenuFlyout>
 						</DropDownButton.Flyout>
 					</DropDownButton>
@@ -297,7 +322,7 @@
 								                     DesiredWidth="75"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-								<controls:DataColumn DesiredWidth="145"
+								<controls:DataColumn DesiredWidth="165"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}">
 									<TextBlock FontWeight="Bold"
@@ -370,11 +395,54 @@
 										</TextBlock>
 									</ToolTipService.ToolTip>
 								</TextBlock>
-								<TextBlock HorizontalAlignment="Left"
-								           VerticalAlignment="Center"
-								           HorizontalTextAlignment="Left"
-								           Text="{x:Bind DateAdded}"
-								           ToolTipService.ToolTip="{x:Bind DateAdded}" />
+								<Grid>
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           HorizontalTextAlignment="Left"
+									           Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}}"
+									           TextTrimming="CharacterEllipsis"
+									           TextWrapping="WrapWholeWords"
+									           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}, ConverterParameter=True}">
+										<ToolTipService.ToolTip>
+											<TextBlock TextWrapping="WrapWholeWords">
+												<Run FontWeight="Bold"
+												     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
+												<Underline />
+												<LineBreak />
+												<Run Text="Date Added/Modified: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='D'}" />
+												<LineBreak />
+												<Run Text="Time Added/Modified: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='T'}" />
+											</TextBlock>
+										</ToolTipService.ToolTip>
+									</TextBlock>
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           HorizontalTextAlignment="Left"
+									           Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}"
+									           TextTrimming="CharacterEllipsis"
+									           TextWrapping="WrapWholeWords"
+									           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}}">
+										<ToolTipService.ToolTip>
+											<TextBlock TextWrapping="WrapWholeWords">
+												<Run FontWeight="Bold"
+												     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
+												<Underline />
+												<LineBreak />
+												<Run Text="Date Added/Modified: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='D'}" />
+												<LineBreak />
+												<Run Text="Time Added/Modified: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='T'}" />
+											</TextBlock>
+										</ToolTipService.ToolTip>
+									</TextBlock>
+								</Grid>
 							</controls:DataRow>
 						</DataTemplate>
 					</ListView.ItemTemplate>
@@ -518,12 +586,43 @@
 										           VerticalAlignment="Center"
 										           FontWeight="Bold"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
-										           Text="{x:Bind DateAdded}">
+										           Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}}"
+										           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}, ConverterParameter=True}">
 											<ToolTipService.ToolTip>
 												<TextBlock TextWrapping="WrapWholeWords">
+													<Run FontWeight="Bold"
+													     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
+													<Underline />
+													<LineBreak />
 													<Run Text="Date Added/Modified: " />
 													<Run FontWeight="Bold"
-													     Text="{x:Bind DateAdded}" />
+													     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='D'}" />
+													<LineBreak />
+													<Run Text="Time Added/Modified: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='T'}" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+										</TextBlock>
+										<TextBlock HorizontalAlignment="Right"
+										           VerticalAlignment="Center"
+										           FontWeight="Bold"
+										           Style="{ThemeResource BodyStrongTextBlockStyle}"
+										           Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}"
+										           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}}">
+											<ToolTipService.ToolTip>
+												<TextBlock TextWrapping="WrapWholeWords">
+													<Run FontWeight="Bold"
+													     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
+													<Underline />
+													<LineBreak />
+													<Run Text="Date Added/Modified: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='D'}" />
+													<LineBreak />
+													<Run Text="Time Added/Modified: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind DateAdded, Converter={StaticResource DateFormatConverter}, ConverterParameter='T'}" />
 												</TextBlock>
 											</ToolTipService.ToolTip>
 										</TextBlock>

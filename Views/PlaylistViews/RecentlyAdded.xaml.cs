@@ -24,6 +24,7 @@ public sealed partial class RecentlyAdded : Page
 
 	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
+	public bool IsRelativeDisplayMode { get; set; } = false;
 
 	/// <summary>
 	/// Represents the page for displaying songs recently added to the music library.
@@ -94,10 +95,10 @@ public sealed partial class RecentlyAdded : Page
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Visible;
-			MaxLimitDropDown.Visibility = Visibility.Visible;
-			UpdateAsPerLastViewStyle();
-			UpdateAsPerLastMaxLimit();
 			PageButtons.Visibility = Visibility.Visible;
+			UpdateAsPerLastViewStyle();
+			UpdateAsPerLastTimeStyle();
+			UpdateAsPerLastMaxLimit();
 		}
 	}
 
@@ -752,5 +753,66 @@ public sealed partial class RecentlyAdded : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
+	}
+
+	/// <summary>
+	/// Handles the click event to change the time display style in the Recently Added playlist view.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a menu item.</param>
+	/// <param name="e">The event data associated with the click event.</param>
+	/// <remarks>
+	/// This method updates the time style preference, switches between relative and exact date styles, and ensures
+	/// the preference is saved in the application settings. It also refreshes the current page view to reflect the time style change.
+	/// </remarks>
+	private async void TimeStyle_Click(object sender, RoutedEventArgs e)
+	{
+		UpdateTimeStyle();
+		await _dispatcherQueue.EnqueueAsync(() =>
+		{
+			this.Content = new RecentlyAdded();
+		});
+	}
+
+	/// <summary>
+	/// Updates the time display style for recently added songs based on the selected option.
+	/// </summary>
+	/// <remarks>
+	/// This method determines the selected time style from the user interface, updates the display mode accordingly,
+	/// and persists the preference in local settings. It also updates the associated visual icon and tooltip to reflect
+	/// the chosen display style.
+	/// </remarks>
+	private void UpdateTimeStyle()
+	{
+		var timeStyle = TimeFieldStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Time" && item.IsChecked).Select(item => item.Name).FirstOrDefault() ?? "DateStyle";
+		IsRelativeDisplayMode = timeStyle == "RelativeTimeStyle";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyAddedSongTimeStyle)] = timeStyle;
+		TimeFieldType.Content = new FontIcon() { Glyph = IsRelativeDisplayMode ? "\uEC92" : "\uE787" };
+		ToolTipService.SetToolTip(TimeFieldType, IsRelativeDisplayMode ? "Relative Time Style" : "Date Style");
+	}
+
+	/// <summary>
+	/// Updates the UI to reflect the previously selected time style for displaying song timestamps.
+	/// </summary>
+	/// <remarks>
+	/// This method reads the user's last saved time style preference from application settings, which is stored under the key
+	/// "RecentlyAddedSongTimeStyle". Depending on the value retrieved, it checks either the "DateStyle" (exact date display) or
+	/// the "RelativeTimeStyle" (relative time display) option in the user interface. If no preference is saved, the default
+	/// "DateStyle" is selected. After updating the selection, the UI is refreshed by invoking the time style update logic.
+	/// </remarks>
+	private void UpdateAsPerLastTimeStyle()
+	{
+		var timeStyle = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyAddedSongTimeStyle)]?.ToString() ?? "DateStyle";
+		switch (timeStyle)
+		{
+			case "RelativeTimeStyle":
+				RelativeTimeStyle.IsChecked = true;
+				break;
+
+			case "DateStyle":
+			default:
+				DateStyle.IsChecked = true;
+				break;
+		}
+		UpdateTimeStyle();
 	}
 }
