@@ -105,9 +105,9 @@ public sealed partial class AllSongsViewPage : Page
 			GoToSettings.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Visible;
 			SortDropDown.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Visible;
 			UpdateAsPerLastViewStyle();
 			UpdateAsPerLastSorting();
-			PageButtons.Visibility = Visibility.Visible;
 		}
 	}
 
@@ -303,8 +303,8 @@ public sealed partial class AllSongsViewPage : Page
 		return viewStyle switch
 		{
 			"List View" => AllSongsListView,
-			"Compact View" => AllSongCompactView,
-			_ => AllSongCompactView
+			"Compact View" => AllSongsCompactView,
+			_ => AllSongsCompactView
 		};
 	}
 
@@ -498,8 +498,8 @@ public sealed partial class AllSongsViewPage : Page
 		double availableSpace = viewStyle switch
 		{
 			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongCompactView.ActualHeight,
-			_ => AllSongCompactView.ActualHeight
+			"Compact View" => AllSongsCompactView.ActualHeight,
+			_ => AllSongsCompactView.ActualHeight
 		};
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
@@ -592,8 +592,8 @@ public sealed partial class AllSongsViewPage : Page
 		double availableSpace = viewStyle switch
 		{
 			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongCompactView.ActualHeight,
-			_ => AllSongCompactView.ActualHeight
+			"Compact View" => AllSongsCompactView.ActualHeight,
+			_ => AllSongsCompactView.ActualHeight
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
@@ -763,6 +763,8 @@ public sealed partial class AllSongsViewPage : Page
 
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+
+			GlobalNotification.Info($"{songs.Count} songs added successfully to {playlist} playlist.");
 		}
 		else
 		{
@@ -770,7 +772,10 @@ public sealed partial class AllSongsViewPage : Page
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
 			if (playlist != null && song != null)
+			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+			}
 		}
 	}
 
@@ -806,6 +811,8 @@ public sealed partial class AllSongsViewPage : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songData?.Title} added successfully to queue.");
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
@@ -937,6 +944,8 @@ public sealed partial class AllSongsViewPage : Page
 		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
 	}
 
 	/// <summary>

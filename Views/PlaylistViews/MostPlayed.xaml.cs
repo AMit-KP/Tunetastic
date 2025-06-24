@@ -243,13 +243,17 @@ public sealed partial class MostPlayed : Page
 
 		if (MostPlayedSongs.Count > 0)
 		{
+			PageButtons.Visibility = Visibility.Visible;
 			NoResultsGrid.Visibility = Visibility.Collapsed;
 			await ScrollToSong(song);       //somehow this doesn't work
 			await Task.Delay(1000);
 			await ScrollToSong(song);
 		}
 		else
+		{
 			NoResultsGrid.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Collapsed;
+		}
 	}
 
 	/// <summary>
@@ -544,6 +548,8 @@ public sealed partial class MostPlayed : Page
 
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+
+			GlobalNotification.Info($"{songs.Count} Song/Track{(songs.Count > 1 ? "s" : "")} added successfully to {playlist} playlist.");
 		}
 		else
 		{
@@ -551,7 +557,10 @@ public sealed partial class MostPlayed : Page
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
 			if (playlist != null && song != null)
+			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+			}
 		}
 	}
 
@@ -587,6 +596,8 @@ public sealed partial class MostPlayed : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songData?.Title} added successfully to queue.");
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
@@ -718,6 +729,8 @@ public sealed partial class MostPlayed : Page
 		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
 	}
 
 	/// <summary>

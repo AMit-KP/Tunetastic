@@ -383,7 +383,7 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation of removing songs from the playlist.
 	/// </returns>
-	public async Task RemoveSongsToPlaylist(string playlistName, List<string> songPaths)
+	public async Task RemoveSongsFromPlaylist(string playlistName, List<string> songPaths)
 	{
 		await _database.RunInTransactionAsync(conn =>
 		{

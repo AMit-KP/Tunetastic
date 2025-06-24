@@ -535,6 +535,8 @@ public sealed partial class RecentlyAdded : Page
 
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+
+			GlobalNotification.Info($"{songs.Count} Song/Track{(songs.Count > 1 ? "s" : "")} added successfully to {playlist} playlist.");
 		}
 		else
 		{
@@ -542,7 +544,10 @@ public sealed partial class RecentlyAdded : Page
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
 			if (playlist != null && song != null)
+			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+			}
 		}
 	}
 
@@ -578,6 +583,8 @@ public sealed partial class RecentlyAdded : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songData?.Title} added successfully to queue.");
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
@@ -709,6 +716,8 @@ public sealed partial class RecentlyAdded : Page
 		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
 	}
 
 	/// <summary>

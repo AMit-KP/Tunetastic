@@ -18,7 +18,8 @@
 		<MenuFlyout x:Key="RightClickMenu"
 		            Opened="MenuFlyout_Opened">
 			<MenuFlyoutItem Click="MenuFlyoutItemPlay_OnClick"
-			                Text="Play">
+			                Text="Play"
+			                ToolTipService.ToolTip="Play this song/track">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE768;" />
 				</MenuFlyoutItem.Icon>
@@ -31,7 +32,8 @@
 				</MenuFlyoutSubItem.Icon>
 			</MenuFlyoutSubItem>
 			<MenuFlyoutItem Click="MenuFlyoutItemAddToQueue_OnClick"
-			                Text="Add to queue">
+			                Text="Add to queue"
+			                ToolTipService.ToolTip="Add this song/track to the queue">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE84F;" />
 				</MenuFlyoutItem.Icon>
@@ -45,7 +47,8 @@
 		</MenuFlyoutItem>
 		<MenuFlyoutSeparator />-->
 			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
-			                Text="Delete">
+			                Text="Delete"
+			                ToolTipService.ToolTip="Delete this song/track">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE74D;" />
 				</MenuFlyoutItem.Icon>
@@ -184,14 +187,16 @@
 								</MenuFlyoutSubItem.Icon>
 							</MenuFlyoutSubItem>
 							<MenuFlyoutItem Click="MenuFlyoutMultiItemAddToQueue_OnClick"
-							                Text="Add to queue">
+							                Text="Add to queue"
+							                ToolTipService.ToolTip="Add selected songs/tracks to the queue">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE84F;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
 							<MenuFlyoutSeparator />
 							<MenuFlyoutItem Click="MenuFlyoutMultiItemDelete_OnClick"
-							                Text="Delete">
+							                Text="Delete"
+							                ToolTipService.ToolTip="Delete selected songs/tracks">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE74D;" />
 								</MenuFlyoutItem.Icon>

@@ -6,10 +6,10 @@ using Nucs.JsonSettings.Modulation.Recovery;
 namespace Tunetastic.Common;
 public static partial class AppHelper
 {
-    public static AppConfig Settings = JsonSettings.Configure<AppConfig>()
-                               .WithRecovery(RecoveryAction.RenameAndLoadDefault)
-                               .WithVersioning(VersioningResultAction.RenameAndLoadDefault)
-                               .LoadNow();
+	public static AppConfig Settings = JsonSettings.Configure<AppConfig>()
+							   .WithRecovery(RecoveryAction.RenameAndLoadDefault)
+							   .WithVersioning(VersioningResultAction.RenameAndLoadDefault)
+							   .LoadNow();
 }
 
 /// <summary>
@@ -18,40 +18,40 @@ public static partial class AppHelper
 /// </summary>
 public enum LocalSave
 {
-    IgnoreDuplicateEnabled,
-    ScanAtStartup,
-    IgnoreTracksBelowDuration,
-    ScanResult,
-    PlayPauseStopFadeStatus,
-    PlayPauseStopFadeValue,
-    AutoAdvanceStatus,
-    AutoAdvanceValue,
-    ManualTrackChangeStatus,
-    ManualTrackChangeValue,
-    PreviousResetStatus,
-    RestartTrackOnSelectionStatus,
-    UseSystemVolumeStatus,
-    PauseOnMuteStatus,
-    AutoStartStatus,
-    MainPlayerBGBlurValue,
-    LastPlayedTrack,
-    PlayBackPosition,
-    CurrentIndex,
-    CurrentPlaylist,
-    ShuffleStatus,
-    RepeatStatus,
-    Backdrop,
-    Theme,
-    BackdropTintColorStatus,
-    BackdropTintColorA,
-    BackdropTintColorR,
-    BackdropTintColorG,
-    BackdropTintColorB,
-    RainbowFrameStatus,
-    RainbowFrameSpeed,
-    RainbowOnlyDuringPlayback,
-    AllSongViewSortBy,
-    AllSongViewSortOrder,
+	IgnoreDuplicateEnabled,
+	ScanAtStartup,
+	IgnoreTracksBelowDuration,
+	ScanResult,
+	PlayPauseStopFadeStatus,
+	PlayPauseStopFadeValue,
+	AutoAdvanceStatus,
+	AutoAdvanceValue,
+	ManualTrackChangeStatus,
+	ManualTrackChangeValue,
+	PreviousResetStatus,
+	RestartTrackOnSelectionStatus,
+	UseSystemVolumeStatus,
+	PauseOnMuteStatus,
+	AutoStartStatus,
+	MainPlayerBGBlurValue,
+	LastPlayedTrack,
+	PlayBackPosition,
+	CurrentIndex,
+	CurrentPlaylist,
+	ShuffleStatus,
+	RepeatStatus,
+	Backdrop,
+	Theme,
+	BackdropTintColorStatus,
+	BackdropTintColorA,
+	BackdropTintColorR,
+	BackdropTintColorG,
+	BackdropTintColorB,
+	RainbowFrameStatus,
+	RainbowFrameSpeed,
+	RainbowOnlyDuringPlayback,
+	AllSongViewSortBy,
+	AllSongViewSortOrder,
 	AllSongViewStyle,
 	MinimizeToTray,
 	RecentlyAddedSongViewStyle,
