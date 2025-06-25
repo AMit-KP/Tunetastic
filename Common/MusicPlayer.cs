@@ -622,7 +622,6 @@ public class MusicPlayer
 	/// </summary>
 	public async void ResetOrReloadPlayer(Song? song = null)
 	{
-
 		var track = song ?? await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
 		if (track == null)
 		{

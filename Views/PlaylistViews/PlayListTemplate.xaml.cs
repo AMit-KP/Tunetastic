@@ -145,6 +145,15 @@ public sealed partial class PlayListTemplate : Page
 		var list = await DatabaseHelper.Instance.GetSongsInPlaylist(PlaylistHeader.Text);
 		PlayListSongs.AddRange(list);
 		list = null;
+		HandleEmptyPlayList();
+	}
+
+	/// <summary>
+	/// Manages the visibility and accessibility of UI elements related to the playlist view,
+	/// based on whether the playlist contains any songs.
+	/// </summary>
+	private void HandleEmptyPlayList()
+	{
 		if (PlayListSongs.Count > 0)
 		{
 			NoResultsGrid.Visibility = Visibility.Collapsed;
@@ -511,8 +520,8 @@ public sealed partial class PlayListTemplate : Page
 			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
 				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+			}
 		}
-	}
 	}
 
 	/// <summary>
@@ -730,14 +739,103 @@ public sealed partial class PlayListTemplate : Page
 		}
 	}
 
-	private void MenuFlyoutItemRemove_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event of the "Remove" menu flyout item, removing the selected song from the playlist and updating the data store.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the MenuFlyoutItem that was clicked.</param>
+	/// <param name="e">The event data containing information about the routed event.</param>
+	private async void MenuFlyoutItemRemove_OnClick(object sender, RoutedEventArgs e)
 	{
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (songData != null)
+		{
+			var index = songData.Path == MusicPlayer.Instance.CurrentSong ? PlayListSongs.IndexOf(songData) : -1;
+			PlayListSongs.Remove(songData);
 
+			List<string> songPaths = new List<string> { songData?.Path ?? "" };
+			await DatabaseHelper.Instance.RemoveSongsFromPlaylist(PlaylistHeader.Text, songPaths);
+
+
+			GlobalNotification.Info($"Song/Track removed successfully from {PlaylistHeader.Text}." +
+									$"\nTitle: {songData.Title}" +
+									$"\nArtist: {songData.Artists}" +
+									$"\nAlbum: {songData.Album}" +
+									$"\nFile: {songData.Path}");
+
+			HandleAfterRemove(index);
+		}
 	}
 
-	private void MenuFlyoutMultiItemRemove_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event for removing multiple selected items from the playlist menu,
+	/// updates the playlist by removing the selected songs, displays a notification,
+	/// and performs post-removal actions.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a menu flyout item.</param>
+	/// <param name="e">Event data that provides details about the routed event.</param>
+	private async void MenuFlyoutMultiItemRemove_OnClick(object sender, RoutedEventArgs e)
 	{
+		var songs = GetCurrentViewStyle().SelectedItems;
+		List<Song> songList = new();
+		foreach (var item in songs)
+			songList.Add((Song)item);
 
+		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
+
+		int index = songPaths.Contains(MusicPlayer.Instance.CurrentSong) ? PlayListSongs.Select((s, idx) => new { Song = s, Index = idx })
+																						.Where(x => x.Song.Path == MusicPlayer.Instance.CurrentSong)
+																						.Select(x => x.Index)
+																						.FirstOrDefault()
+																		: -1;
+
+		await DatabaseHelper.Instance.RemoveSongsFromPlaylist(PlaylistHeader.Text, songPaths);
+
+		GlobalNotification.Info($"{songList.Count} Song/Track{(songList.Count > 1 ? "s" : "")} removed successfully from {PlaylistHeader.Text}.");
+
+		foreach (Song song in songList)
+		{
+			PlayListSongs.Remove(song);
+			await Task.Delay(10);
+		}
+
+		HandleAfterRemove(index);
+	}
+
+	/// <summary>
+	/// Performs necessary operations after a song or multiple songs are removed from the playlist.
+	/// Updates the playlist's current state, reloads the player as required, and handles empty playlist scenarios.
+	/// </summary>
+	/// <param name="index">The index of the removed song if applicable, or -1 if the removed song is not playing.</param>
+	private void HandleAfterRemove(int index)
+	{
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist")
+		{
+			if (PlayListSongs.Count > 0)
+			{
+				string track = "";
+				if (index == -1)
+				{
+					track = MusicPlayer.Instance.CurrentSong;
+				}
+				else
+				{
+					if (index < PlayListSongs.Count)
+						track = PlayListSongs[index].Path;
+					else
+						track = PlayListSongs[PlayListSongs.Count - 1].Path;
+				}
+
+				List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
+				MusicPlayer.Instance.LoadPlaylist(songPaths, track);
+			}
+			else
+			{
+				MusicPlayer.Instance.CurrentSong = "";
+				MusicPlayer.Instance.ResetOrReloadPlayer();
+			}
+		}
+
+		HandleEmptyPlayList();
 	}
 
 	private void SortPlayList_Click(object sender, RoutedEventArgs e)
