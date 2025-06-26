@@ -321,6 +321,29 @@
 					</StackPanel>
 				</ContentDialog>
 			</Grid>
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
+				<ContentDialog x:Name="RenamePlaylistDialog"
+				               Title="Rename Playlist"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Primary"
+				               IsPrimaryButtonEnabled="False"
+				               PrimaryButtonText="Rename"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Collapsed">
+					<StackPanel>
+						<TextBox x:Name="PlaylistNameBox"
+						         PlaceholderText="Enter new playlist name"
+						         TextChanged="OnPlaylistNameChanged" />
+						<TextBlock x:Name="ErrorMessage"
+						           Foreground="Red"
+						           Text="Playlist name already exists"
+						           Visibility="Collapsed" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
 			<Grid x:Name="PlayListSongsListViewGrid">
 				<ListView x:Name="PlayListSongsListView"
 				          Margin="10,10,10,10"

@@ -55,7 +55,6 @@ public sealed partial class PlayListTemplate : Page
 		DeleteDialogText.Inlines.Add(new Run { Text = PlaylistHeader.Text, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		DeleteDialogText.Inlines.Add(new Run { Text = " PlayList?" });
 
-
 		var result = await DeleteDialog.ShowAsync();
 
 		if (result == ContentDialogResult.Primary)
@@ -842,8 +841,85 @@ public sealed partial class PlayListTemplate : Page
 	{
 
 	}
-	private void RenamePlayList_Click(object sender, RoutedEventArgs e)
+
+	/// <summary>
+	/// Represents a collection of playlist names retrieved from the data source.
+	/// </summary>
+	private List<string>? playLists;
+
+	/// <summary>
+	/// Handles the click event triggered for renaming a playlist.
+	/// Shows a dialog where the user can enter a new name for the playlist, performs the renaming
+	/// operation in the database, and updates the playlist header and navigation structure.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the MenuFlyoutItem that is clicked.</param>
+	/// <param name="e">The event-specific data for the click action.</param>
+	private async void RenamePlayList_Click(object sender, RoutedEventArgs e)
 	{
+		RenamePlaylistDialog.Visibility = Visibility.Visible;
+		RenamePlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		PlaylistNameBox.Text = string.Empty;
+
+		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
+
+		ContentDialogResult result = await RenamePlaylistDialog.ShowAsync();
+
+		if (result == ContentDialogResult.Primary)
+		{
+			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+			var tag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(PlaylistNameBox.Text.Trim(), @"\s+", "_") + "CustomPlaylist";
+			if (playlistsGroup != null)
+			{
+				DataGroup dataGroup = new();
+				dataGroup.UniqueId = tag;
+				dataGroup.Title = PlaylistNameBox.Text.Trim();
+
+				var playListNavigationItem = playlistsGroup.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews." + Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist");
+				if (playListNavigationItem != null)
+				{
+					var oldTag = playListNavigationItem.Tag.ToString();
+					if (oldTag != null) NavigationPageMappings.PageDictionary.Remove(oldTag);
+
+					playListNavigationItem.Content = new TextBlock
+					{
+						Text = dataGroup.Title,
+						TextTrimming = TextTrimming.CharacterEllipsis
+					};
+					playListNavigationItem.Tag = tag;
+					playListNavigationItem.DataContext = dataGroup;
+					ToolTipService.SetToolTip(playListNavigationItem, dataGroup.Title);
+
+					NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
+				}
+			}
+			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
+			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
+		}
+		playLists = null;
+	}
+
+	/// <summary>
+	/// Handles changes to the playlist name entered in the input box.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the TextBox control.</param>
+	/// <param name="e">Provides data for the event when the text in the TextBox changes.</param>
+	/// <remarks>
+	/// This method checks if the entered playlist name already exists in the list of playlists.
+	/// If it exists, it displays an error message and disables the "Add" button in the dialog.
+	/// Otherwise, it hides the error message and enables the "Add" button if the input is not empty or whitespace.
+	/// </remarks>
+	private void OnPlaylistNameChanged(object sender, TextChangedEventArgs e)
+	{
+		if (playLists != null && playLists.Contains(PlaylistNameBox.Text.Trim()))
+		{
+			ErrorMessage.Visibility = Visibility.Visible;
+			RenamePlaylistDialog.IsPrimaryButtonEnabled = false;
+		}
+		else
+		{
+			ErrorMessage.Visibility = Visibility.Collapsed;
+			RenamePlaylistDialog.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(PlaylistNameBox.Text.Trim());
+		}
 
 	}
 }

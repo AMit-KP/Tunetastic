@@ -315,6 +315,19 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Renames an existing playlist in the database by updating its name.
+	/// </summary>
+	/// <param name="oldName">The current name of the playlist to be renamed.</param>
+	/// <param name="newName">The new name to assign to the playlist.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of renaming the playlist.
+	/// </returns>
+	public async Task RenamePlaylist(string oldName, string newName)
+	{
+		await _database.ExecuteAsync("UPDATE Playlists SET Name = ? WHERE Name = ?", newName, oldName);
+	}
+
+	/// <summary>
 	/// Adds a song to the specified playlist in the database by creating an entry in the `PlaylistSongs` table.
 	/// </summary>
 	/// <param name="playlistName">The name of the playlist to which the song should be added. Must correspond to an existing playlist in the database.</param>
