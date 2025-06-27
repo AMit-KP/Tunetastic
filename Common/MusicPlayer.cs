@@ -43,12 +43,11 @@ public class MusicPlayer
 	private List<string>? ActualPlaylist;
 
 	/// <summary>
-	/// A private queue that stores the list of songs to be played in the order they are added.
-	/// This queue operates as part of the music player's queue management system, enabling
-	/// functionality to temporarily add tracks for playback outside of the standard playlist order.
-	/// Songs in the queue are played sequentially before returning to the regular playlist sequence.
+	/// A private boolean field used to indicate whether the next song in the playback
+	/// is part of a queued list. This field manages the playback flow depending on whether
+	/// songs are played in sequence from the primary playlist or from a user-defined queue.
 	/// </summary>
-	private Queue<string>? SongQueue;
+	private bool SongQueue = false;
 
 	/// <summary>
 	/// A private integer field representing the index of the currently playing song
@@ -157,7 +156,6 @@ public class MusicPlayer
 		MediaPlayer = new MediaPlayer();
 		MediaPlayer.AutoPlay = false;
 		MediaPlayer.AudioCategory = MediaPlayerAudioCategory.Media;
-		SongQueue = new Queue<string>();
 		MediaPlayer.MediaEnded += (s, e) => HandleTrackEnd();
 		SMTCSetup();
 	}
@@ -260,15 +258,6 @@ public class MusicPlayer
 	{
 		RepeatStatus = mode;
 	}
-
-	/// <summary>
-	/// Adds a song to the queue for playback. The song will be played after the currently playing song
-	/// and before returning to the main playlist sequence.
-	/// </summary>
-	/// <param name="songPath">
-	/// The file path of the song to be added to the queue. The path must point to a valid audio file.
-	/// </param>
-	public void AddToQueue(string songPath) => SongQueue?.Enqueue(songPath);        //TODO queue system
 
 	/// <summary>
 	/// Loads a specified song into the media player and optionally starts playback. Supports fading transitions based on the specified fade type.
@@ -438,15 +427,22 @@ public class MusicPlayer
 				var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 				bool restartOnPrevious = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
+				string? songToPlay = null;
+
 				if (!restartOnPrevious || MediaPlayer.PlaybackSession.Position.TotalSeconds < 5)
 				{
-					currentIndex = currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1;
+					currentIndex = !SongQueue ? currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1 : currentIndex;
+					songToPlay = ActualPlaylist[currentIndex];
+				}
+				else
+				{
+					songToPlay = CurrentSong;
 				}
 
 				bool isPlaying = MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
 				bool manualCrossfadeEnabled = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
 
-				await LoadSong(ActualPlaylist[currentIndex], isPlaying, isPlaying && manualCrossfadeEnabled ? FadeType.Manual : FadeType.None);
+				await LoadSong(songToPlay, isPlaying, isPlaying && manualCrossfadeEnabled ? FadeType.Manual : FadeType.None);
 			}
 			else return;
 		}
@@ -471,8 +467,24 @@ public class MusicPlayer
 		if (GetMusicData.IsScanning) return;
 		try
 		{
-			//TODO handle queue
 			bool isPlaying = autoChange ? autoChange : MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
+
+			var queuedList = await DatabaseHelper.Instance.GetQueuedPlayingList();
+
+			var fadeType = isPlaying ? bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[autoChange ? nameof(LocalSave.AutoAdvanceStatus) : nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false") ? (autoChange ? FadeType.AutoAdvance : FadeType.Manual) : FadeType.None : FadeType.None;
+
+			if (queuedList?.Count > 0)
+			{
+				await LoadSong(queuedList[0].Path, isPlaying, fadeType);
+				await DatabaseHelper.Instance.ClearFromQueue();
+				SongQueue = true;
+				return;
+			}
+			else
+			{
+				SongQueue = false;
+			}
+
 
 			if (OriginalPlaylist?.Count > 0)
 			{
@@ -507,9 +519,6 @@ public class MusicPlayer
 							return;
 					}
 				}
-
-				var fadeType = isPlaying ? bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[autoChange ? nameof(LocalSave.AutoAdvanceStatus) : nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false") ? (autoChange ? FadeType.AutoAdvance : FadeType.Manual) : FadeType.None : FadeType.None;
-
 				await LoadSong(ActualPlaylist[currentIndex], isPlaying, fadeType);
 			}
 			else return;

@@ -49,10 +49,11 @@ public sealed partial class PlayListTemplate : Page
 	/// <param name="e">An object containing event data.</param>
 	private async void DeletePlayList_Click(object sender, RoutedEventArgs e)
 	{
+		var playListName = PlaylistHeader.Text;
 		DeleteDialog.Visibility = Visibility.Visible;
 		DeleteDialogText.Inlines.Clear();
 		DeleteDialogText.Inlines.Add(new Run { Text = "Are you sure you want to delete " });
-		DeleteDialogText.Inlines.Add(new Run { Text = PlaylistHeader.Text, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		DeleteDialogText.Inlines.Add(new Run { Text = playListName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		DeleteDialogText.Inlines.Add(new Run { Text = " PlayList?" });
 
 		var result = await DeleteDialog.ShowAsync();
@@ -60,9 +61,9 @@ public sealed partial class PlayListTemplate : Page
 		if (result == ContentDialogResult.Primary)
 		{
 			App.Current.NavService.GoBack();
-			var playListTag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
+			var playListTag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(playListName, @"\s+", "_") + "CustomPlaylist";
 
-			await DatabaseHelper.Instance.RemovePlaylist(PlaylistHeader.Text);
+			await DatabaseHelper.Instance.RemovePlaylist(playListName);
 
 			var a = NavigationPageMappings.PageDictionary.Remove(playListTag);
 
@@ -75,6 +76,7 @@ public sealed partial class PlayListTemplate : Page
 					break;
 				}
 			}
+			GlobalNotification.Info($"{playListName} PlayList deleted successfully.");
 		}
 	}
 
@@ -866,6 +868,7 @@ public sealed partial class PlayListTemplate : Page
 
 		await DatabaseHelper.Instance.SortPlaylistSongs(PlaylistHeader.Text, orderWay.Item1, orderWay.Item2);
 		LoadPlayListSongs();
+		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted successfully.");
 	}
 
 	/// <summary>
@@ -920,6 +923,7 @@ public sealed partial class PlayListTemplate : Page
 			}
 			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
 			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
+			GlobalNotification.Info("Playlist renamed to " + PlaylistHeader.Text + " successfully.");
 		}
 		playLists = null;
 	}
