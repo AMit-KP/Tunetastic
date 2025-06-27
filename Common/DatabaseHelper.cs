@@ -76,7 +76,8 @@ public class DatabaseHelper
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
 										Id INTEGER PRIMARY KEY AUTOINCREMENT,
-										Path TEXT,
+										Path TEXT NOT NULL,
+										Position INTEGER,
 										FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 	}
 
@@ -470,52 +471,222 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Adds a list of song paths to the queued playing list in the database.
-	/// If a song already exists in the queued playing list, it is replaced with the new entry.
+	/// Adds a list of songs to the 'QueuedPlayingList' table in the database.
+	/// Each song is inserted into the queue with a unique position. If duplicate entries are not allowed,
+	/// it ensures songs are not repeated within the queue.
 	/// </summary>
-	/// <param name="songPaths">A list of strings representing the paths of the songs to be added to the queued playing list.</param>
+	/// <param name="songPaths">
+	/// A list of file paths representing the songs to be added to the queued playing list.
+	/// </param>
 	/// <returns>
-	/// A task that represents the asynchronous operation of adding songs to the queued playing list.
+	/// A task that represents the asynchronous operation of adding the provided songs to the queue.
 	/// </returns>
 	public async Task AddSongsToQueuedPlayingList(List<string> songPaths)
 	{
+		int basePosition = await GetNextQueuePosition();
+
 		await _database.RunInTransactionAsync(conn =>
 		{
+			int position = basePosition;
+			bool duplicateAllowed = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.duplicateQueueAllowed)]?.ToString() ?? "false");
+
 			foreach (var songPath in songPaths)
 			{
-				conn.Execute("INSERT OR REPLACE INTO QueuedPlayingList (Path) VALUES (?)", songPath);
+				if (!duplicateAllowed)
+				{
+					var exists = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM QueuedPlayingList WHERE Path = ?", songPath);
+					if (exists > 0) continue;
+				}
+
+				conn.Execute(@"INSERT INTO QueuedPlayingList (Path, Position) VALUES (?, ?)", songPath, position++);
 			}
 		});
 	}
 
 	/// <summary>
-	/// Retrieves the list of songs currently in the queued playing list.
-	/// The queued playing list is managed within the database and includes songs
-	/// ordered by their position in the queue.
+	/// Retrieves the list of songs from the queued playing list, preserving the order
+	/// in which they are meant to be played.
+	/// The queue is managed within the `QueuedPlayingList` table, which references
+	/// the song information stored in the `Songs` table.
+	/// This method ensures that the items in the queue are returned in ascending order
+	/// based on their respective positions.
 	/// </summary>
 	/// <returns>
-	/// A task that represents the asynchronous operation of fetching the queued playing list.
-	/// The task result contains a list of <see cref="Song"/> objects retrieved from the database,
-	/// ordered by their queue position.
+	/// A task representing the asynchronous operation of retrieving the queued playing list.
+	/// The result contains a list of `Song` objects representing the queued songs in their
+	/// respective order.
 	/// </returns>
 	public async Task<List<Song>> GetQueuedPlayingList()
 	{
-		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S JOIN QueuedPlayingList Q ON S.Path = Q.Path ORDER BY Q.Id");
+		return await _database.QueryAsync<Song>(@"SELECT S.* FROM Songs S
+												JOIN QueuedPlayingList Q ON S.Path = Q.Path
+												ORDER BY Q.Position ASC");
 	}
 
 	/// <summary>
-	/// Removes a song from the queued playing list in the database.
-	/// This operation deletes the specified song entry from the `QueuedPlayingList` table.
+	/// Retrieves the next available position in the queue for the `QueuedPlayingList` table.
+	/// This method calculates the maximum position value currently present in the table,
+	/// increments it by one, and returns the result.
 	/// </summary>
-	/// <param name="songPath">
-	/// The file path of the song to be removed from the queued playing list.
+	/// <returns>
+	/// A task representing the asynchronous operation that returns the next queue position as an integer.
+	/// </returns>
+	private async Task<int> GetNextQueuePosition()
+	{
+		return await _database.ExecuteScalarAsync<int>("SELECT COALESCE(MAX(Position), -1) + 1 FROM QueuedPlayingList");
+	}
+
+	/// <summary>
+	/// Reorders the queued playing list based on the provided sequence of paths.
+	/// Updates the positions of the items in the queue to match the new order.
+	/// </summary>
+	/// <param name="orderedPaths">A list of song paths that defines the new order of the queue. Each path corresponds to a song in the queue.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of reordering the queued playing list.
+	/// </returns>
+	public async Task ReorderQueue(List<string> orderedPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			int position = 0;
+			foreach (var path in orderedPaths)
+			{
+				conn.Execute(@"UPDATE QueuedPlayingList SET Position = ?
+								WHERE Id = (SELECT Id FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1)", position++, path);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Moves the specified item in the `QueuedPlayingList` table one position up in the queue.
+	/// If the item is already at the top of the queue, no changes are made.
+	/// </summary>
+	/// <param name="path">The path of the song to be moved up in the queue.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of moving the queue item up.
+	/// </returns>
+	public async Task MoveQueueItemUp(string path)
+	{
+		var currentRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1", path);
+
+		if (currentRow.Count == 0) return;
+
+		var current = currentRow[0];
+
+		var aboveRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Position < ? ORDER BY Position DESC LIMIT 1", current.Position);
+
+		if (aboveRow.Count == 0) return;
+
+		var above = aboveRow[0];
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			conn.Execute("UPDATE QueuedPlayingList SET Position = ? WHERE Id = ?", current.Position, above.Id);
+			conn.Execute("UPDATE QueuedPlayingList SET Position = ? WHERE Id = ?", above.Position, current.Id);
+		});
+	}
+
+	/// <summary>
+	/// Moves a queued item in the `QueuedPlayingList` table down by one position.
+	/// This method swaps the current item's position with the next item in the queue,
+	/// ensuring they maintain their relative order.
+	/// </summary>
+	/// <param name="path">The unique file path of the queued item to be moved down in the list.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of moving the item down in the queue.
+	/// If the item is already at the bottom of the queue or not found, no changes are made.
+	/// </returns>
+	public async Task MoveQueueItemDown(string path)
+	{
+		var currentRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1", path);
+
+		if (currentRow.Count == 0) return;
+		var current = currentRow[0];
+
+		var belowRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Position > ? ORDER BY Position ASC LIMIT 1", current.Position);
+
+		if (belowRow.Count == 0) return;
+		var below = belowRow[0];
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			conn.Execute("UPDATE QueuedPlayingList SET Position = ? WHERE Id = ?", current.Position, below.Id);
+			conn.Execute("UPDATE QueuedPlayingList SET Position = ? WHERE Id = ?", below.Position, current.Id);
+		});
+	}
+
+	/// <summary>
+	/// Moves a song in the queue to the top of the queued playing list.
+	/// This operation identifies the song by its path, finds the current position, and adjusts it
+	/// to ensure that the song appears at the top of the queue, preceding all other songs.
+	/// </summary>
+	/// <param name="path">
+	/// The file path of the song to be moved to the top.
 	/// </param>
 	/// <returns>
-	/// A task that represents the asynchronous operation of removing the song from the queued playing list.
+	/// A task that represents the asynchronous operation of moving the song to the top of the queued playing list.
 	/// </returns>
-	public async Task RemoveFromQueuedPlayingList(string songPath)
+	public async Task MoveQueueItemToTop(string path)
 	{
-		await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Path = ?", songPath);
+		var currentRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1", path);
+
+		if (currentRow.Count == 0) return;
+		var current = currentRow[0];
+
+		var minPosition = await _database.ExecuteScalarAsync<int>("SELECT MIN(Position) FROM QueuedPlayingList");
+
+		if (current.Position == minPosition) return;
+
+		await _database.ExecuteAsync("UPDATE QueuedPlayingList SET Position = ? WHERE Id = ?", minPosition - 1, current.Id);
+	}
+
+	/// <summary>
+	/// Moves a specific song in the queued playing list to the bottom position.
+	/// This method updates the position of the song identified by its path in the `QueuedPlayingList` table.
+	/// </summary>
+	/// <param name="path">
+	/// The file path of the song to be moved to the bottom of the queue.
+	/// </param>
+	/// <returns>
+	/// A task representing the asynchronous operation of repositioning the song in the queue.
+	/// </
+	public async Task MoveQueueItemToBottom(string path)
+	{
+		var currentRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1", path);
+
+		if (currentRow.Count == 0) return;
+		var current = currentRow[0];
+
+		var maxPosition = await _database.ExecuteScalarAsync<int>("SELECT MAX(Position) FROM QueuedPlayingList");
+
+		await _database.ExecuteAsync("UPDATE QueuedPlayingList SET Position = ? WHERE Id = ?", maxPosition + 1, current.Id);
+	}
+
+	/// <summary>
+	/// Removes a song from the queued playing list. If a specific song path is provided, the first occurrence
+	/// of that song in the queue, based on position, will be removed. If no path is specified, the first song
+	/// in the queue will be removed.
+	/// </summary>
+	/// <param name="path">
+	/// The file path of the song to remove from the queue. If null, the first song in the queue will be cleared.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of removing a song from the queued playing list.
+	/// </returns>
+	public async Task ClearFromQueue(string? path = null)
+	{
+		if (!string.IsNullOrEmpty(path))
+		{
+			await _database.ExecuteAsync(@"DELETE FROM QueuedPlayingList
+											WHERE Id = (SELECT Id FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1)", path);
+		}
+		else
+		{
+			var firstId = await _database.ExecuteScalarAsync<int?>("SELECT Id FROM QueuedPlayingList ORDER BY Position ASC LIMIT 1");
+
+			if (firstId.HasValue)
+				await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Id = ?", firstId.Value);
+		}
 	}
 }
 
