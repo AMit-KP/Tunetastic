@@ -142,6 +142,7 @@ public sealed partial class PlayListTemplate : Page
 	private async void LoadPlayListSongs()
 	{
 		var list = await DatabaseHelper.Instance.GetSongsInPlaylist(PlaylistHeader.Text);
+		PlayListSongs.Clear();
 		PlayListSongs.AddRange(list);
 		list = null;
 		HandleEmptyPlayList();
@@ -837,9 +838,34 @@ public sealed partial class PlayListTemplate : Page
 		HandleEmptyPlayList();
 	}
 
-	private void SortPlayList_Click(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the sorting of playlist songs based on the selected sorting criteria from the menu.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a MenuFlyoutItem, containing the sorting criterion in its Tag property.</param>
+	/// <param name="e">Event data that provides information about the Click event.</param>
+	private async void SortPlayList_Click(object sender, RoutedEventArgs e)
 	{
+		var orderWay = (sender as MenuFlyoutItem)?.Tag?.ToString() switch
+		{
+			"TitleAsc" => (SongProperty.Title, true),
+			"TitleDesc" => (SongProperty.Title, false),
+			"ArtistsAsc" => (SongProperty.Artists, true),
+			"ArtistsDesc" => (SongProperty.Artists, false),
+			"AlbumAsc" => (SongProperty.Album, true),
+			"AlbumDesc" => (SongProperty.Album, false),
+			"YearAsc" => (SongProperty.Year, true),
+			"YearDesc" => (SongProperty.Year, false),
+			"DurationAsc" => (SongProperty.Duration, true),
+			"DurationDesc" => (SongProperty.Duration, false),
+			"PlayCountAsc" => (SongProperty.PlayCount, true),
+			"PlayCountDesc" => (SongProperty.PlayCount, false),
+			"ModifiedTimeAsc" => (SongProperty.DateAdded, true),
+			"ModifiedTimeDesc" => (SongProperty.DateAdded, false),
+			_ => (SongProperty.Title, true)
+		};
 
+		await DatabaseHelper.Instance.SortPlaylistSongs(PlaylistHeader.Text, orderWay.Item1, orderWay.Item2);
+		LoadPlayListSongs();
 	}
 
 	/// <summary>

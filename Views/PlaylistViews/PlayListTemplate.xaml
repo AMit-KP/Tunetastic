@@ -146,38 +146,58 @@
 								</MenuFlyoutSubItem.Icon>
 								<MenuFlyoutSubItem Text="Title">
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TitleAsc"
 									                Text="Ascending" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TitleDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Artists">
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ArtistsAsc"
 									                Text="Ascending" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ArtistsDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Album">
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="AlbumAsc"
 									                Text="Ascending" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="AlbumDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Year">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="YearAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="YearDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Duration">
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="DurationAsc"
 									                Text="Ascending" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="DurationDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Play Count">
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="PlayCountAsc"
 									                Text="Ascending" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="PlayCountDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Modified Time">
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ModifiedTimeAsc"
 									                Text="Ascending" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ModifiedTimeDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
 							</MenuFlyoutSubItem>
