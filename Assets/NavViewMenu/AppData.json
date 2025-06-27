@@ -71,6 +71,7 @@
         {
           "UniqueId": "Tunetastic.Views.PlaylistViews.QueuedList",
           "Title": "Queue",
+          "HideNavigationViewItem": true,
           "IconGlyph": "E84F",
           "HideItem": false
         },
