@@ -36,6 +36,8 @@ public class DatabaseHelper
 	/// <br/>
 	/// - `PlaylistSongs`: Stores the relationship between playlists and songs, along with foreign key constraints.
 	/// <br/>
+	/// - `QueuedPlayingList`: A table for managing a queue of songs to be played.
+	/// <br/>
 	/// The database is located in the local folder of the application's storage space.
 	/// </summary>
 	/// <returns>
@@ -67,6 +69,7 @@ public class DatabaseHelper
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS PlaylistSongs (
 										PlaylistId INTEGER,
 										SongPath TEXT,
+										Position INTEGER DEFAULT 0,
 										PRIMARY KEY (PlaylistId, SongPath),
 										FOREIGN KEY (PlaylistId) REFERENCES Playlists(Id) ON DELETE CASCADE,
 										FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
@@ -95,10 +98,10 @@ public class DatabaseHelper
 			foreach (var song in songs)
 			{
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-                    (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-					song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
-					0, song.Cover, song.Duration, song.DateAdded, null, song.Extension);
+							(Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+							song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
+							0, song.Cover, song.Duration, song.DateAdded, null, song.Extension);
 			}
 		});
 	}
@@ -133,10 +136,10 @@ public class DatabaseHelper
 				DateTime? lastPlayed = existingSongData.FirstOrDefault(s => s.Path == song.Path)?.DateLastPlayed;
 
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-                    (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-					song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
-					existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed, song.Extension);
+							(Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+							song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
+							existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed, song.Extension);
 			}
 		});
 
@@ -328,58 +331,64 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Adds a song to the specified playlist in the database by creating an entry in the `PlaylistSongs` table.
+	/// Adds a song to the specified playlist in the database.
+	/// If the song already exists in the playlist, this method will ignore the duplicate entry.
+	/// The method assigns the next available position within the playlist for the song.
 	/// </summary>
-	/// <param name="playlistName">The name of the playlist to which the song should be added. Must correspond to an existing playlist in the database.</param>
-	/// <param name="songPath">The path of the song to add to the playlist. Must correspond to an existing song in the `Songs` table.</param>
+	/// <param name="playlistName">The name of the playlist to which the song should be added.</param>
+	/// <param name="songPath">The file path of the song to be added to the playlist.</param>
 	/// <returns>
 	/// A task that represents the asynchronous operation of adding the song to the playlist.
 	/// </returns>
 	public async Task AddSongToPlaylist(string playlistName, string songPath)
 	{
-		await _database.ExecuteAsync("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?)", playlistName, songPath);
+		int nextPosition = await GetNextPlaylistPosition(playlistName);
+		await _database.ExecuteAsync(@"INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath, Position)
+										VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?, ?)", playlistName, songPath, nextPosition);
 	}
 
 	/// <summary>
-	/// Adds multiple songs to a specified playlist in the database.
-	/// This operation creates entries in the `PlaylistSongs` table by associating the songs
-	/// with the provided playlist name and their respective paths.
+	/// Adds a list of songs to the specified playlist in the database.
+	/// This method inserts song paths into the `PlaylistSongs` table, associating them with the playlist
+	/// name provided. Songs are added starting at the next available position within the playlist.
 	/// </summary>
-	/// <param name="playlistName">
-	/// The name of the playlist to which the songs will be added.
-	/// It is used to identify the playlist in the database.
-	/// </param>
-	/// <param name="songPaths">
-	/// A list of file paths representing the songs to be added to the playlist.
-	/// Each path corresponds to a song entry in the database.
-	/// </param>
+	/// <param name="playlistName">The name of the playlist to which the songs will be added.</param>
+	/// <param name="songPaths">A list of file paths for the songs to be added to the playlist.</param>
 	/// <returns>
-	/// A task that represents the asynchronous operation of adding multiple songs to the playlist.
+	/// A task representing the asynchronous operation of adding songs to the playlist.
 	/// </returns>
 	public async Task AddSongsToPlaylist(string playlistName, List<string> songPaths)
 	{
+		int basePosition = await GetNextPlaylistPosition(playlistName);
+
 		await _database.RunInTransactionAsync(conn =>
 		{
+			int position = basePosition;
 			foreach (var songPath in songPaths)
 			{
-				conn.Execute("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?)", playlistName, songPath);
+				conn.Execute(@"INSERT OR IGNORE INTO PlaylistSongs
+							(PlaylistId, SongPath, Position)
+							VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?, ?)", playlistName, songPath, position++);
 			}
 		});
 	}
 
 	/// <summary>
-	/// Removes a specific song from a playlist in the database.
-	/// This method ensures that the entry linking the given song to the specified playlist
-	/// is deleted if it exists.
+	/// Retrieves the next available position number for a song in the specified playlist.
+	/// This method determines the maximum current position in the playlist and increments it by one.
+	/// It is used to assign a position to a new song being added to the playlist.
 	/// </summary>
-	/// <param name="playlistName">The name of the playlist from which the song will be removed.</param>
-	/// <param name="songPath">The path of the song to be removed from the playlist.</param>
+	/// <param name="playlistName">
+	/// The name of the playlist for which the next position number is being calculated.
+	/// </param>
 	/// <returns>
-	/// A task representing the asynchronous operation of removing the song from the playlist.
+	/// A task representing the asynchronous operation, containing the next available position number in the playlist.
 	/// </returns>
-	public async Task RemoveSongFromPlaylist(string playlistName, string songPath)
+	private async Task<int> GetNextPlaylistPosition(string playlistName)
 	{
-		await _database.ExecuteAsync("DELETE FROM PlaylistSongs WHERE PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?) AND SongPath = ?", playlistName, songPath);
+		return await _database.ExecuteScalarAsync<int>(@"SELECT COALESCE(MAX(Position), -1) + 1
+														FROM PlaylistSongs
+														WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
 	}
 
 	/// <summary>
@@ -408,20 +417,56 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Retrieves a list of songs that belong to the specified playlist.
-	/// This method queries the `Songs` table and joins it with the `PlaylistSongs` table
-	/// to fetch all the songs associated with the given playlist name.
+	/// Retrieves all songs associated with a given playlist, ordered by their position within the playlist.
 	/// </summary>
 	/// <param name="playlistName">
-	/// The name of the playlist for which songs need to be retrieved.
+	/// The name of the playlist whose songs are to be retrieved.
 	/// </param>
 	/// <returns>
-	/// A task that represents the asynchronous operation. The task result contains
-	/// a list of <see cref="Song"/> objects representing the songs in the specified playlist.
+	/// A task representing the asynchronous operation, with a list of <see cref="Song"/> objects that belong to the specified playlist.
 	/// </returns>
 	public async Task<List<Song>> GetSongsInPlaylist(string playlistName)
 	{
-		return await _database.QueryAsync<Song>("SELECT S.* FROM Songs S INNER JOIN PlaylistSongs P ON S.Path = P.SongPath WHERE P.PlaylistId IN (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
+		return await _database.QueryAsync<Song>(@"SELECT S.* FROM Songs S
+												JOIN PlaylistSongs P ON S.Path = P.SongPath
+												WHERE P.PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+												ORDER BY P.Position ASC", playlistName);
+	}
+
+	/// <summary>
+	/// Sorts the songs in a specified playlist based on the given column and sorting order.
+	/// Updates the `Position` of each song in the playlist to reflect the new order.
+	/// </summary>
+	/// <param name="playlistName">
+	/// The name of the playlist whose songs need to be sorted.
+	/// </param>
+	/// <param name="orderByColumn">
+	/// The column by which the playlist songs should be sorted (e.g., Title, Artists, Album).
+	/// </param>
+	/// <param name="ascending">
+	/// Indicates whether the sorting should be in ascending (`true`) or descending (`false`) order.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of sorting songs in the playlist.
+	/// </returns>
+	public async Task SortPlaylistSongs(string playlistName, SongProperty orderByColumn, bool ascending)
+	{
+		var songPaths = (await _database.QueryAsync<Song>($@"SELECT S.Path FROM Songs S
+															JOIN PlaylistSongs P ON S.Path = P.SongPath
+															WHERE P.PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+															ORDER BY S.{orderByColumn.ToString()} {(ascending ? "ASC" : "DESC")}", playlistName)).Select(s => s.Path).ToList();
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			int position = 0;
+			foreach (var path in songPaths)
+			{
+				conn.Execute(@"UPDATE PlaylistSongs
+							SET Position = ?
+							WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+							AND SongPath = ?", position++, playlistName, path);
+			}
+		});
 	}
 
 	/// <summary>
