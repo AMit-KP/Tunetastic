@@ -65,7 +65,7 @@ public sealed partial class PlayListTemplate : Page
 
 			await DatabaseHelper.Instance.RemovePlaylist(playListName);
 
-			var a = NavigationPageMappings.PageDictionary.Remove(playListTag);
+			NavigationPageMappings.PageDictionary.Remove(playListTag);
 
 			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
 			foreach (NavigationViewItem item in playlistsGroup.MenuItems)
@@ -77,6 +77,11 @@ public sealed partial class PlayListTemplate : Page
 				}
 			}
 			GlobalNotification.Info($"{playListName} PlayList deleted successfully.");
+			if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist")
+			{
+				MusicPlayer.Instance.CurrentSong = "";
+				MusicPlayer.Instance.ResetOrReloadPlayer();
+			}
 		}
 	}
 

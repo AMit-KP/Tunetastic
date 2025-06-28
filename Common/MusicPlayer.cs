@@ -477,11 +477,13 @@ public class MusicPlayer
 			{
 				await LoadSong(queuedList[0].Path, isPlaying, fadeType);
 				await DatabaseHelper.Instance.ClearFromQueue();
+				if (!SongQueue) GlobalNotification.Info("Queue started.");
 				SongQueue = true;
 				return;
 			}
 			else
 			{
+				if (SongQueue) GlobalNotification.Info("Queue ended.");
 				SongQueue = false;
 			}
 

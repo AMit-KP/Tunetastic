@@ -323,7 +323,117 @@ public sealed partial class MainPage : Page
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		AddPlayLists();
+		HidePreDefinedPlayLists();
+		HidePreDefinedLibraries();
 		await Task.Delay(1000);
 		NavView.IsPaneOpen = false;
+	}
+
+	/// <summary>
+	/// Hides predefined library views based on the user's saved preferences.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the library visibility preferences stored in application settings and hides the corresponding libraries in the UI.
+	/// It checks whether libraries such as "Artists", "Albums", "Genres", and "Years" are enabled, and if not, calls the <c>HideLibrary</c> method to remove them from view.
+	/// </remarks>
+	private void HidePreDefinedLibraries()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.ArtistsEnabled)]?.ToString() ?? "true")) HideLibrary("Artists");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.AlbumsEnabled)]?.ToString() ?? "true")) HideLibrary("Albums");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.GenresEnabled)]?.ToString() ?? "true")) HideLibrary("Genres");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true")) HideLibrary("Years");
+	}
+
+	/// <summary>
+	/// Hides predefined playlists based on user preferences stored in application settings.
+	/// </summary>
+	/// <remarks>
+	/// This method checks the local application settings to determine which predefined playlists
+	/// (e.g., "Recently Added", "Recently Played", "Most Played") should be hidden. If the corresponding
+	/// settings indicate that a playlist is disabled, it invokes the <c>HidePlayList</c> method to hide the playlist.
+	/// </remarks>
+	private void HidePreDefinedPlayLists()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)]?.ToString() ?? "true")) HidePlayList("Recently Added");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true")) HidePlayList("Recently Played");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.MostPlayedEnabled)]?.ToString() ?? "true")) HidePlayList("Most Played");
+	}
+
+	/// <summary>
+	/// Hides a specific library from the application's navigation view.
+	/// </summary>
+	/// <param name="libraryName">
+	/// The name of the library to be hidden. This should correspond to the tag of the navigation item representing the library.
+	/// </param>
+	/// <remarks>
+	/// This method attempts to locate the navigation item corresponding to the specified library in the application's navigation menu and sets its visibility to collapsed.
+	/// It also removes the associated page from the navigation history.
+	/// In case of an exception during this process, the method retries after a brief delay.
+	/// </remarks>
+	private async void HideLibrary(string libraryName)
+	{
+		try
+		{
+			var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+			var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.{libraryName}ViewPage");
+			if (libraryNavigationItem != null) libraryNavigationItem.Visibility = Visibility.Collapsed;
+			RemovePageFromHistory(libraryName);
+		}
+		catch (Exception)
+		{
+			await Task.Delay(100);
+			HideLibrary(libraryName);
+		}
+	}
+
+	/// <summary>
+	/// Hides the specified playlist from the navigation menu.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist to be hidden.</param>
+	/// <remarks>
+	/// This method locates the specified playlist in the navigation menu and sets its visibility to collapsed.
+	/// It also removes the playlist's page from the navigation history.
+	/// If an exception occurs, a retry mechanism is implemented with a delay.
+	/// </remarks>
+	private async void HidePlayList(string playlistName)
+	{
+		try
+		{
+			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+			var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.PlaylistViews.{playlistName.Replace(" ", "")}");
+			if (playListNavigationItem != null) playListNavigationItem.Visibility = Visibility.Collapsed;
+			RemovePageFromHistory(playlistName);
+		}
+		catch (Exception)
+		{
+			await Task.Delay(100);
+			HidePlayList(playlistName);
+		}
+	}
+
+	/// <summary>
+	/// Removes a specified page from the navigation history.
+	/// </summary>
+	/// <param name="pageName">
+	/// The name of the page to be removed from the navigation backstack. This should match the parameter used when the page was originally navigated to.
+	/// </param>
+	/// <remarks>
+	/// This method iterates through the navigation backstack and removes any entry that matches the provided page name.
+	/// This is typically used to ensure that certain pages are not accessible via the back navigation once they are hidden or disabled in the UI.
+	/// </remarks>
+	public async void RemovePageFromHistory(string pageName)
+	{
+		var history = NavFrame.BackStack;
+		for (int i = history.Count - 1; i >= 0; i--)
+		{
+			if (history[i].Parameter.ToString() == pageName)
+			{
+				history.RemoveAt(i);
+			}
+		}
 	}
 }

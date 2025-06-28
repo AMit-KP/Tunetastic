@@ -63,4 +63,11 @@ public enum LocalSave
 	RecentlyPlayedSongViewStyle,
 	RecentlyPlayedMaxLimit,
 	RecentlyPlayedSongTimeStyle,
+	ArtistsEnabled,
+	AlbumsEnabled,
+	GenresEnabled,
+	YearsEnabled,
+	RecentlyAddedEnabled,
+	RecentlyPlayedEnabled,
+	MostPlayedEnabled,
 }
