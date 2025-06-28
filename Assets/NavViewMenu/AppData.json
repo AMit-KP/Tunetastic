@@ -82,6 +82,12 @@
           "HideItem": false
         },
         {
+          "UniqueId": "Tunetastic.Views.PlaylistViews.RecentlyPlayed",
+          "Title": "Recently Played",
+          "IconGlyph": "E81C",
+          "HideItem": false
+        },
+        {
           "UniqueId": "Tunetastic.Views.PlaylistViews.MostPlayed",
           "Title": "Most Played",
           "IconGlyph": "E96A",

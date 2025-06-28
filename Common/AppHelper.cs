@@ -60,4 +60,7 @@ public enum LocalSave
 	MostPlayedMaxLimit,
 	RecentlyAddedSongTimeStyle,
 	duplicateQueueAllowed,
+	RecentlyPlayedSongViewStyle,
+	RecentlyPlayedMaxLimit,
+	RecentlyPlayedSongTimeStyle,
 }

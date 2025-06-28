@@ -279,6 +279,21 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Updates the `DateLastPlayed` field of a song in the database to the current date and time.
+	/// This method queries the `Songs` table and modifies the corresponding row with the provided song path.
+	/// </summary>
+	/// <param name="songPath">
+	/// The file path of the song whose `DateLastPlayed` field needs to be updated.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of updating the `DateLastPlayed` field in the database.
+	/// </returns>
+	public async Task UpdateDateLastPlayed(string songPath)
+	{
+		await _database.ExecuteAsync("UPDATE Songs SET DateLastPlayed = ? WHERE Path = ?", DateTime.Now, songPath);
+	}
+
+	/// <summary>
 	/// Creates a new playlist with the specified name and adds it to the database.
 	/// </summary>
 	/// <param name="playlistName">

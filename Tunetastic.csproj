@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.11.128.1085</AssemblyVersion>
-    <FileVersion>1.11.128.1085</FileVersion>
+    <AssemblyVersion>1.11.137.1094</AssemblyVersion>
+    <FileVersion>1.11.137.1094</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -73,6 +73,9 @@
     </Page>
     <Page Update="Views\LibraryViews\AlbumsViewPage.xaml">
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Update="Views\PlaylistViews\RecentlyPlayed.xaml">
+      <SubType>Designer</SubType>
     </Page>
     <Page Update="Views\PlaylistViews\RecentlyAdded.xaml">
       <Generator>MSBuild:Compile</Generator>

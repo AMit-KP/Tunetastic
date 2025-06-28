@@ -705,6 +705,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_midpointTimer?.Stop();
 			_playbackTracker.MarkPlayCountRecorded();
 			await DatabaseHelper.Instance.IncrementPlayCount(_musicPlayer.CurrentSong);
+			await DatabaseHelper.Instance.UpdateDateLastPlayed(_musicPlayer.CurrentSong);
 		}
 	}
 
