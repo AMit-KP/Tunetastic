@@ -198,9 +198,9 @@ public class MusicPlayer
 	/// An optional parameter specifying the path of the song to start playing.
 	/// If null, the first song in the playlist is used.
 	/// </param>
-	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true)
+	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true, bool dontReloadCurrent = false)
 	{
-		await LoadSong(startingSong ?? songPaths[0], play);
+		await LoadSong(startingSong ?? songPaths[0], play, dontReloadCurrent: dontReloadCurrent);
 		_ = Task.Run(() =>
 		{
 			OriginalPlaylist = new List<string>(songPaths);
@@ -209,12 +209,13 @@ public class MusicPlayer
 		});
 	}
 
-	public async void LoadPlaylist(string? startingSong, bool play = true)
+	public async void LoadPlaylist(string? startingSong, bool play = true, bool dontReloadCurrent = false)
 	{
-		await LoadSong(startingSong, play);
+		await LoadSong(startingSong, play, dontReloadCurrent: dontReloadCurrent);
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		List<string> list = new();
+		//TODO: Add others later
 		switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
 		{
 			case "AllSongsViewPage":
@@ -293,7 +294,7 @@ public class MusicPlayer
 	/// <param name="play">Determines whether playback starts after loading. Defaults to true.</param>
 	/// <param name="fadeType">Specifies the type of fade transition to apply during song change. Options include none, manual, or automatic advance. Defaults to null.</param>
 	/// <returns>A task representing the asynchronous operation of loading the song.</returns>
-	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null)
+	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null, bool dontReloadCurrent = false)
 	{
 		try
 		{
@@ -305,6 +306,12 @@ public class MusicPlayer
 
 			if (songPath == CurrentSong)
 			{
+				if (dontReloadCurrent)
+				{
+					if (!isPlaying && play) Play();
+					return;
+				}
+
 				if (bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "false"))
 				{
 					//fadeType = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false") ? FadeType.Manual : FadeType.None;
@@ -680,7 +687,7 @@ public class MusicPlayer
 		}
 		else
 		{
-			LoadPlaylist(track.Path, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing);
+			LoadPlaylist(track.Path, MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 	}
 
