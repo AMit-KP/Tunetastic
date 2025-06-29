@@ -323,7 +323,7 @@ public sealed partial class AllSongsViewPage : Page
 		var track = e.ClickedItem as Song;
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 	}
 
 	/// <summary>
@@ -369,7 +369,7 @@ public sealed partial class AllSongsViewPage : Page
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AllSongsViewPage")
 		{
 			var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
@@ -386,7 +386,7 @@ public sealed partial class AllSongsViewPage : Page
 		await UpdateListBasedOnSorting();
 		await AdjustAlphabetSize();
 
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AllSongsViewPage")
 		{
 			List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
@@ -429,7 +429,7 @@ public sealed partial class AllSongsViewPage : Page
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
@@ -456,7 +456,7 @@ public sealed partial class AllSongsViewPage : Page
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(AllSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
@@ -794,7 +794,7 @@ public sealed partial class AllSongsViewPage : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 	}
 
 	/// <summary>

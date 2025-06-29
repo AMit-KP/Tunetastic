@@ -885,7 +885,7 @@ public sealed partial class SettingsPage : Page
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = ArtistsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!ArtistsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Artists");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ArtistsEnabled)] = ArtistsToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "Artists")   //TODO: Change this
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Artists")   //TODO: Change this
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -907,7 +907,7 @@ public sealed partial class SettingsPage : Page
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = AlbumsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!AlbumsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Albums");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AlbumsEnabled)] = AlbumsToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "Albums")   //TODO: Change this
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Albums")   //TODO: Change this
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -929,7 +929,7 @@ public sealed partial class SettingsPage : Page
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = GenresToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!GenresToggle.IsOn) MainPage._instance.RemovePageFromHistory("Genres");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.GenresEnabled)] = GenresToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "Genres")   //TODO: Change this
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Genres")   //TODO: Change this
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -950,7 +950,7 @@ public sealed partial class SettingsPage : Page
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = YearsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!YearsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Years");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "Years")   //TODO: Change this
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Years")   //TODO: Change this
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -972,7 +972,7 @@ public sealed partial class SettingsPage : Page
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyAddedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!RecentlyAddedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Added");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)] = RecentlyAddedToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "RecentlyAdded")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyAdded")
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -993,7 +993,7 @@ public sealed partial class SettingsPage : Page
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!RecentlyPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Played");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)] = RecentlyPlayedToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "RecentlyPlayed")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -1014,7 +1014,7 @@ public sealed partial class SettingsPage : Page
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = MostPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 		if (!MostPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Most Played");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedEnabled)] = MostPlayedToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "MostPlayed")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
 		{
 			MusicPlayer.Instance.CurrentSong = "";
 			MusicPlayer.Instance.ResetOrReloadPlayer();

@@ -381,7 +381,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			{
 				localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
 				localSettings.Values.Remove(nameof(LocalSave.PlayBackPosition));
-				localSettings.Values.Remove(nameof(LocalSave.CurrentPlaylist));
+				localSettings.Values.Remove(nameof(LocalSave.CurrentPlayinglist));
 				return;
 			}
 

@@ -216,7 +216,7 @@ public class MusicPlayer
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		List<string> list = new();
 		//TODO: Add others later
-		switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
+		switch (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString())
 		{
 			case "AllSongsViewPage":
 				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title"),
@@ -680,7 +680,7 @@ public class MusicPlayer
 			MediaPlayer.Source = null;
 			localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
 			localSettings.Values.Remove(nameof(LocalSave.PlayBackPosition));
-			localSettings.Values.Remove(nameof(LocalSave.CurrentPlaylist));
+			localSettings.Values.Remove(nameof(LocalSave.CurrentPlayinglist));
 			currentIndex = 0;
 
 			MusicControl._instance.ViewModel.ResetCurrentSongFloatingWindow();

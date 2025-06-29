@@ -292,7 +292,7 @@ public sealed partial class RecentlyPlayed : Page
 		var track = e.ClickedItem as Song;
 		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "RecentlyPlayed";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 	}
 
 	/// <summary>
@@ -338,7 +338,7 @@ public sealed partial class RecentlyPlayed : Page
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "RecentlyPlayed")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
 		{
 			var SelectedSong = RecentlyPlayedSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
@@ -358,7 +358,7 @@ public sealed partial class RecentlyPlayed : Page
 	{
 		await UpdateListBasedOnMaxLimit();
 
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "RecentlyPlayed")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
 		{
 			List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
@@ -400,7 +400,7 @@ public sealed partial class RecentlyPlayed : Page
 		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "RecentlyPlayed";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
@@ -427,7 +427,7 @@ public sealed partial class RecentlyPlayed : Page
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
 		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "RecentlyPlayed";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(RecentlyPlayedSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
@@ -578,7 +578,7 @@ public sealed partial class RecentlyPlayed : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "RecentlyPlayed";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 	}
 
 	/// <summary>

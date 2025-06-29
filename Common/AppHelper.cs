@@ -37,7 +37,7 @@ public enum LocalSave
 	LastPlayedTrack,
 	PlayBackPosition,
 	CurrentIndex,
-	CurrentPlaylist,
+	CurrentPlayinglist,
 	ShuffleStatus,
 	RepeatStatus,
 	Backdrop,

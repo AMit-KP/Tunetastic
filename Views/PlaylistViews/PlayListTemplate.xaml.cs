@@ -77,7 +77,7 @@ public sealed partial class PlayListTemplate : Page
 				}
 			}
 			GlobalNotification.Info($"{playListName} PlayList deleted successfully.");
-			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == playListName)
 			{
 				MusicPlayer.Instance.CurrentSong = "";
@@ -281,7 +281,7 @@ public sealed partial class PlayListTemplate : Page
 		var track = e.ClickedItem as Song;
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 	}
 
 	/// <summary>
@@ -327,7 +327,7 @@ public sealed partial class PlayListTemplate : Page
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			var SelectedSong = PlayListSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
@@ -370,7 +370,7 @@ public sealed partial class PlayListTemplate : Page
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
@@ -397,7 +397,7 @@ public sealed partial class PlayListTemplate : Page
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(PlayListSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
@@ -548,7 +548,7 @@ public sealed partial class PlayListTemplate : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 	}
 
 	/// <summary>
@@ -817,7 +817,7 @@ public sealed partial class PlayListTemplate : Page
 	/// <param name="index">The index of the removed song if applicable, or -1 if the removed song is not playing.</param>
 	private void HandleAfterRemove(int index)
 	{
-		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			if (PlayListSongs.Count > 0)
@@ -877,7 +877,7 @@ public sealed partial class PlayListTemplate : Page
 		await DatabaseHelper.Instance.SortPlaylistSongs(PlaylistHeader.Text, orderWay.Item1, orderWay.Item2);
 		LoadPlayListSongs();
 
-		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();

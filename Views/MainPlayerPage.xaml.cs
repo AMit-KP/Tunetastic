@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Dispatching;
+﻿using System.Text.RegularExpressions;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Media;
 using Windows.Storage;
@@ -175,7 +176,28 @@ public sealed partial class MainPlayerPage : Page
 
 	private void MusicDetails_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
 	{
-		//TODO switch based on playlist
-		App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
+		//TODO add others later
+		switch (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString())
+		{
+			case "AllSongsViewPage":
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
+				break;
+
+			case "MostPlayed":
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.PlaylistViews.MostPlayed");
+				break;
+
+			case "RecentlyPlayed":
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.PlaylistViews.RecentlyPlayed");
+				break;
+
+			case "RecentlyAdded":
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.PlaylistViews.RecentlyAdded");
+				break;
+
+			case var playlist when playlist?.StartsWith("CustomPlaylist__") == true:
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.PlaylistViews." + Regex.Replace(playlist.Substring("CustomPlaylist__".Length), @"\s+", "_") + "CustomPlaylist");
+				break;
+		}
 	}
 }
