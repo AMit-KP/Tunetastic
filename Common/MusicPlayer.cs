@@ -218,9 +218,36 @@ public class MusicPlayer
 		switch (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString())
 		{
 			case "AllSongsViewPage":
-				list = await DatabaseHelper.Instance.LoadSongPathsFromDB(Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title"), (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title"),
+																	  ascending: (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending")).Select(s => s.Path).ToList();
 				break;
 
+			case "MostPlayed":
+				var mostPlayedMaxLimit = localSettings.Values[nameof(LocalSave.MostPlayedMaxLimit)]?.ToString() ?? "100";
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: SongProperty.PlayCount,
+																	  ascending: false,
+																	  limit: mostPlayedMaxLimit == "Unlimited" ? 0 : int.Parse(mostPlayedMaxLimit),
+																	  whereCondition: $"{SongProperty.PlayCount.ToString()} > 0")).Select(s => s.Path).ToList();
+				break;
+
+			case "RecentlyPlayed":
+				var recentlyPlayedMaxLimit = localSettings.Values[nameof(LocalSave.RecentlyPlayedMaxLimit)]?.ToString() ?? "100";
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: SongProperty.DateLastPlayed,
+																	  ascending: false,
+																	  limit: recentlyPlayedMaxLimit == "Unlimited" ? 0 : int.Parse(recentlyPlayedMaxLimit),
+																	  whereCondition: $"{SongProperty.DateLastPlayed.ToString()} NOT NULL")).Select(s => s.Path).ToList();
+				break;
+
+			case "RecentlyAdded":
+				var recentlyAddedMaxLimit = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyAddedMaxLimit)]?.ToString() ?? "100";
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: SongProperty.DateAdded,
+																	  ascending: false,
+																	  limit: recentlyAddedMaxLimit == "Unlimited" ? 0 : int.Parse(recentlyAddedMaxLimit))).Select(s => s.Path).ToList();
+				break;
+
+			case var playlist when playlist?.StartsWith("CustomPlaylist__") == true:
+				list = (await DatabaseHelper.Instance.GetSongsInPlaylist(playlist.Substring("CustomPlaylist__".Length))).Select(s => s.Path).ToList();
+				break;
 		}
 		_ = Task.Run(() =>
 		{

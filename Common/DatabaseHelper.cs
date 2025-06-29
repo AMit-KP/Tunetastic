@@ -183,40 +183,19 @@ public class DatabaseHelper
 	/// <summary>
 	/// Loads all songs from the database and sorts them based on the specified property, order and limit.
 	/// </summary>
-	/// <param name="songProperty">The property to sort the songs by, such as Title, Artists, or Album. Defaults to Title.</param>
+	/// <param name="orderBy">The property to sort the songs by, such as Title, Artists, or Album. Defaults to Title.</param>
 	/// <param name="ascending">A boolean indicating whether the songs should be sorted in ascending order. Defaults to true.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains a list of songs ordered by the specified property, order and limit.
 	/// If an exception occurs, an empty list is returned.</returns>
-	public async Task<List<Song>> LoadSongsFromDB(SongProperty songProperty = SongProperty.Title, bool ascending = true, int limit = 0, string? whereCondition = null)
+	public async Task<List<Song>> LoadSongsFromDB(SongProperty orderBy = SongProperty.Title, bool ascending = true, int limit = 0, string? whereCondition = null)
 	{
 		try
 		{
-			return await _database.QueryAsync<Song>($"SELECT * FROM Songs {(whereCondition == null ? "" : $" WHERE {whereCondition}")} ORDER BY {songProperty.ToString()} {(ascending ? "ASC" : "DESC")}{(limit > 0 ? $" LIMIT {limit}" : "")}");
+			return await _database.QueryAsync<Song>($"SELECT * FROM Songs {(whereCondition == null ? "" : $" WHERE {whereCondition}")} ORDER BY {orderBy.ToString()} {(ascending ? "ASC" : "DESC")}{(limit > 0 ? $" LIMIT {limit}" : "")}");
 		}
 		catch (Exception)
 		{
 			return new List<Song>();
-		}
-	}
-
-	/// <summary>
-	/// Loads the paths of all songs from the database, ordered by the specified song property and sort direction.
-	/// </summary>
-	/// <param name="SortBySongProperty">The property of the song used for sorting, such as Title, Artists, or Album. Defaults to Title.</param>
-	/// <param name="ascending">Indicates whether the sorting should be in ascending order. Defaults to true.</param>
-	/// <returns>
-	/// A task that represents the asynchronous operation, returning a list of strings containing the paths of the songs.
-	/// If the operation fails, an empty list is returned.
-	/// </returns>
-	public async Task<List<string>> LoadSongPathsFromDB(SongProperty SortBySongProperty = SongProperty.Title, bool ascending = true)
-	{
-		try
-		{
-			return (await _database.QueryAsync<Song>($"SELECT Path FROM Songs ORDER BY {SortBySongProperty.ToString()} {(ascending ? "ASC" : "DESC")}")).Select(s => s.Path).ToList();
-		}
-		catch (Exception)
-		{
-			return new List<string>();
 		}
 	}
 

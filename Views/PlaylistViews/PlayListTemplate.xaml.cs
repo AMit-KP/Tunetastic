@@ -77,7 +77,8 @@ public sealed partial class PlayListTemplate : Page
 				}
 			}
 			GlobalNotification.Info($"{playListName} PlayList deleted successfully.");
-			if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist")
+			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == playListName)
 			{
 				MusicPlayer.Instance.CurrentSong = "";
 				MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -280,7 +281,7 @@ public sealed partial class PlayListTemplate : Page
 		var track = e.ClickedItem as Song;
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 	}
 
 	/// <summary>
@@ -304,7 +305,7 @@ public sealed partial class PlayListTemplate : Page
 	/// <param name="sender">The source of the event, typically the page itself.</param>
 	/// <param name="e">The event data associated with the Loaded event.</param>
 	/// <remarks>
-	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AllSongsViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "PlayListPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
@@ -326,7 +327,8 @@ public sealed partial class PlayListTemplate : Page
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist")
+		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			var SelectedSong = PlayListSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
@@ -368,7 +370,7 @@ public sealed partial class PlayListTemplate : Page
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
+		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
@@ -395,7 +397,7 @@ public sealed partial class PlayListTemplate : Page
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
+		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(PlayListSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
@@ -546,7 +548,7 @@ public sealed partial class PlayListTemplate : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "CustomPlaylist__" + PlaylistHeader.Text;
 	}
 
 	/// <summary>
@@ -815,7 +817,8 @@ public sealed partial class PlayListTemplate : Page
 	/// <param name="index">The index of the removed song if applicable, or -1 if the removed song is not playing.</param>
 	private void HandleAfterRemove(int index)
 	{
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "CustomPlaylist")
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			if (PlayListSongs.Count > 0)
 			{
@@ -873,6 +876,14 @@ public sealed partial class PlayListTemplate : Page
 
 		await DatabaseHelper.Instance.SortPlaylistSongs(PlaylistHeader.Text, orderWay.Item1, orderWay.Item2);
 		LoadPlayListSongs();
+
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
+		{
+			List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong);
+		}
+
 		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted successfully.");
 	}
 
