@@ -208,6 +208,12 @@
 									<FontIcon Glyph="&#xE8AC;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
+							<MenuFlyoutItem Click="ExportPlayList_Click"
+							                Text="Export Playlist">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xEDE1;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
 							<MenuFlyoutSeparator />
 							<MenuFlyoutItem Click="DeletePlayList_Click"
 							                Text="Delete Playlist">
@@ -345,6 +351,49 @@
 			      Height="Auto"
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center">
+				<ContentDialog x:Name="ExportDialog"
+				               Title="Export"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Primary"
+				               PrimaryButtonText="Export"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Visible">
+					<StackPanel Orientation="Vertical"
+					            Spacing="10">
+						<TextBlock Text="The playlist will be exported as choosen format and saved to Downloads folder."
+						           TextWrapping="WrapWholeWords" />
+						<StackPanel Orientation="Horizontal"
+						            Spacing="10">
+							<TextBox x:Name="ExportTextBox"
+							         Width="380"
+							         PlaceholderText="Enter Playlist file name"
+							         TextChanged="OnPlaylistExportNameChanged" />
+							<ComboBox x:Name="ExportFormat"
+							          Width="100"
+							          SelectedIndex="0">
+								<ComboBoxItem Content="M3U8"
+								              ToolTipService.ToolTip="M3U UTF-8" />
+								<ComboBoxItem Content="M3U"
+								              ToolTipService.ToolTip="MP3 URL" />
+								<ComboBoxItem Content="PLS"
+								              ToolTipService.ToolTip="Playlist File" />
+								<ComboBoxItem Content="WPL"
+								              ToolTipService.ToolTip="Windows Media Player Playlist" />
+								<ComboBoxItem Content="ZPL"
+								              ToolTipService.ToolTip="Zune Playlist" />
+							</ComboBox>
+						</StackPanel>
+						<TextBlock x:Name="ExportErrorMessage"
+						           Foreground="Red"
+						           Text=""
+						           TextWrapping="WrapWholeWords" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
 				<ContentDialog x:Name="RenamePlaylistDialog"
 				               Title="Rename Playlist"
 				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
@@ -358,9 +407,7 @@
 						         PlaceholderText="Enter new playlist name"
 						         TextChanged="OnPlaylistNameChanged" />
 						<TextBlock x:Name="ErrorMessage"
-						           Foreground="Red"
-						           Text="Playlist name already exists"
-						           Visibility="Collapsed" />
+						           Foreground="Red" />
 					</StackPanel>
 				</ContentDialog>
 			</Grid>

@@ -177,6 +177,8 @@ public sealed partial class MainPage : Page
 		AddPlaylistDialog.Visibility = Visibility.Visible;
 		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
 		PlaylistNameBox.Text = string.Empty;
+		ErrorMessage.Text = "";
+		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
@@ -192,28 +194,38 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
-	/// Handles changes to the playlist name entered in the input box.
+	/// Handles the event triggered when the text in the playlist name input box changes.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the TextBox control.</param>
-	/// <param name="e">Provides data for the event when the text in the TextBox changes.</param>
+	/// <param name="sender">The object that raised the event, typically the PlaylistNameBox TextBox control.</param>
+	/// <param name="e">Arguments that describe the change in the text content of the TextBox.</param>
 	/// <remarks>
-	/// This method checks if the entered playlist name already exists in the list of playlists.
-	/// If it exists, it displays an error message and disables the "Add" button in the dialog.
-	/// Otherwise, it hides the error message and enables the "Add" button if the input is not empty or whitespace.
+	/// This method validates the input for the playlist name based on several criteria, such as:
+	/// ensuring the name is not empty,
+	/// avoiding reserved system names,
+	/// disallowing invalid characters,
+	/// checking for maximum length, and
+	/// verifying that the name does not already exist in the list of playlists.
+	/// If validation fails, an appropriate error message will be displayed and the "Add" button
+	/// in the playlist creation dialog will be disabled. Otherwise, the "Add" button will be enabled.
 	/// </remarks>
 	private void OnPlaylistNameChanged(object sender, TextChangedEventArgs e)
 	{
-		if (playLists != null && playLists.Contains(PlaylistNameBox.Text.Trim()))
-		{
-			ErrorMessage.Visibility = Visibility.Visible;
-			AddPlaylistDialog.IsPrimaryButtonEnabled = false;
-		}
-		else
-		{
-			ErrorMessage.Visibility = Visibility.Collapsed;
-			AddPlaylistDialog.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(PlaylistNameBox.Text.Trim());
-		}
+		string name = PlaylistNameBox.Text.Trim();
+		ErrorMessage.Text = "";
+		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
 
+		ErrorMessage.Text = name switch
+		{
+			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
+			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
+			_ when name.Length > 255 => "Name is too long",
+			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ => ""
+		};
+
+		AddPlaylistDialog.IsPrimaryButtonEnabled = ErrorMessage.Text == "";
 	}
 
 	/// <summary>

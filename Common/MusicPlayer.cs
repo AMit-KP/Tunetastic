@@ -190,13 +190,21 @@ public class MusicPlayer
 	}
 
 	/// <summary>
-	/// Loads a playlist into the music player and optionally starts playback with a specified starting song.
-	/// This method updates the player's playlist and reshuffles it if shuffle mode is enabled.
+	/// Loads a playlist into the music player from a list of song file paths and optionally starts playback.
+	/// This method also allows resuming from the currently playing song without reloading, or specifying a song to start playback.
 	/// </summary>
-	/// <param name="songPaths">A list of song file paths representing the playlist to be loaded.</param>
+	/// <param name="songPaths">A list of file paths representing the songs in the playlist.</param>
 	/// <param name="startingSong">
-	/// An optional parameter specifying the path of the song to start playing.
-	/// If null, the first song in the playlist is used.
+	/// An optional parameter specifying the file path of the song to start playback.
+	/// If null, playback starts from the first song in the playlist.
+	/// </param>
+	/// <param name="play">
+	/// A boolean indicating whether playback should start immediately after loading the playlist.
+	/// Defaults to true.
+	/// </param>
+	/// <param name="dontReloadCurrent">
+	/// A boolean indicating whether to avoid reloading the currently playing song if it's part of the new playlist.
+	/// Defaults to false.
 	/// </param>
 	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true, bool dontReloadCurrent = false)
 	{
@@ -209,6 +217,14 @@ public class MusicPlayer
 		});
 	}
 
+	/// <summary>
+	/// Loads a music playlist based on the user's configuration and preferences.
+	/// The method determines the appropriate playlist such as all songs, most played, recently played, recently added,
+	/// or custom playlists and prepares it for playback. Optionally, starts playback from the specified starting song.
+	/// </summary>
+	/// <param name="startingSong">The path of the song to start playback from, or null to start with the default song.</param>
+	/// <param name="play">Indicates whether to start playback automatically after loading the playlist. Default is true.</param>
+	/// <param name="dontReloadCurrent">If true, prevents reloading the current playing song if it is already loaded. Default is false.</param>
 	public async void LoadPlaylist(string? startingSong, bool play = true, bool dontReloadCurrent = false)
 	{
 		await LoadSong(startingSong, play, dontReloadCurrent: dontReloadCurrent);
@@ -220,7 +236,7 @@ public class MusicPlayer
 		{
 			case "AllSongsViewPage":
 				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title"),
-																	  ascending: (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending")).Select(s => s.Path).ToList();
+					ascending: (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending")).Select(s => s.Path).ToList();
 				break;
 
 			case "MostPlayed":
@@ -288,12 +304,13 @@ public class MusicPlayer
 	}
 
 	/// <summary>
-	/// Loads a specified song into the media player and optionally starts playback. Supports fading transitions based on the specified fade type.
+	/// Loads a specified song into the media player and optionally starts playback. Supports fade transitions during the song change if specified.
 	/// </summary>
-	/// <param name="songPath">The file path or URL of the song to be loaded. If null or empty, the method exits without performing any action.</param>
-	/// <param name="play">Determines whether playback starts after loading. Defaults to true.</param>
-	/// <param name="fadeType">Specifies the type of fade transition to apply during song change. Options include none, manual, or automatic advance. Defaults to null.</param>
-	/// <returns>A task representing the asynchronous operation of loading the song.</returns>
+	/// <param name="songPath">The file path or URL of the song to be loaded. If null or empty, no song is loaded.</param>
+	/// <param name="play">Indicates whether playback should start immediately after loading the song. Defaults to true.</param>
+	/// <param name="fadeType">Defines the fade transition behavior during song loading. Options include None, Manual, or AutoAdvance. Defaults to null.</param>
+	/// <param name="dontReloadCurrent">If true, the current song is not reloaded if it matches the one being loaded. Defaults to false.</param>
+	/// <returns>A task that represents the asynchronous operation of loading and potentially playing the song.</returns>
 	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null, bool dontReloadCurrent = false)
 	{
 		try
@@ -441,16 +458,28 @@ public class MusicPlayer
 	}
 
 	/// <summary>
-	/// Switches to the previous track in the playlist.
-	/// If PreviousResetStatus is true and the current track's playback position is more than 5 sec predefined threshold,
-	/// the player restarts the track. Otherwise, it moves to the previous track
-	/// in the playlist order, or to the last track if the current track is the first one.
-	/// This method handles manual crossfade settings and playback state preservation.
-	/// If an error occurs during the operation, the player attempts to shift to the next track.
+	/// Plays the previous track in the playlist or restarts the current track based on user settings and playback position.
 	/// </summary>
-	/// <Remark>
-	/// If scanning is in progress, then the function doesn't work
-	/// </Remark>
+	/// <remarks>
+	/// This method handles several scenarios:
+	/// <list type="bullet">
+	/// <item>If music scanning is in progress (<see cref="GetMusicData.IsScanning"/>), the method returns without action</item>
+	/// <item>If the playlist is empty, the method returns without action</item>
+	/// <item>The behavior depends on the PreviousResetStatus setting and current playback position:
+	///   <list type="bullet">
+	///     <item>If PreviousResetStatus is false or playback position is less than 5 seconds: moves to the previous track</item>
+	///     <item>If PreviousResetStatus is true and playback position is 5 seconds or more: restarts the current track</item>
+	///   </list>
+	/// </item>
+	/// <item>When moving to previous track:
+	///   <list type="bullet">
+	///     <item>In normal playlist mode: moves to the previous track, or to the last track if at the beginning</item>
+	///     <item>In queue mode: stays on the current track</item>
+	///   </list>
+	/// </item>
+	/// </list>
+	/// </remarks>
+	/// <exception cref="Exception">Throws if unable to load the previous song, triggering Next() as fallback</exception>
 	public async void Previous()
 	{
 		if (GetMusicData.IsScanning) return;
@@ -490,7 +519,7 @@ public class MusicPlayer
 	/// <summary>
 	/// Advances the current song index to the next song in the playlist.
 	/// Depending on the repeat mode, it will either loop the playlist, play the same song,
-	/// or stop playback if there is no further song to play.
+	/// or stop playback if there is no further song to play. It also checks whether there's any queued songs present to play.
 	/// </summary>
 	/// <param name="autoChange">If set to true, the playback will automatically advance to the next song; otherwise, playback state will be maintained based on user action.</param>
 	/// <Remark>

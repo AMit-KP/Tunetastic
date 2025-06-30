@@ -80,8 +80,8 @@
 					         TextChanged="OnPlaylistNameChanged" />
 					<TextBlock x:Name="ErrorMessage"
 					           Foreground="Red"
-					           Text="Playlist name already exists"
-					           Visibility="Collapsed" />
+					           Text=""
+					           TextWrapping="WrapWholeWords" />
 				</StackPanel>
 			</ContentDialog>
 		</Grid>

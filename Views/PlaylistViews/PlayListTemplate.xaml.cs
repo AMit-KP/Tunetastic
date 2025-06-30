@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
@@ -903,9 +904,9 @@ public sealed partial class PlayListTemplate : Page
 	{
 		RenamePlaylistDialog.Visibility = Visibility.Visible;
 		RenamePlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
-		PlaylistNameBox.Text = string.Empty;
-
+		PlaylistNameBox.Text = PlaylistHeader.Text;
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
+		OnPlaylistNameChanged(null, null);
 
 		ContentDialogResult result = await RenamePlaylistDialog.ShowAsync();
 
@@ -945,27 +946,103 @@ public sealed partial class PlayListTemplate : Page
 	}
 
 	/// <summary>
-	/// Handles changes to the playlist name entered in the input box.
+	/// Handles the event triggered when the text in the playlist name input box changes.
+	/// Updates the error message and enables/disables the primary button of the dialog based on validation rules.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the TextBox control.</param>
-	/// <param name="e">Provides data for the event when the text in the TextBox changes.</param>
-	/// <remarks>
-	/// This method checks if the entered playlist name already exists in the list of playlists.
-	/// If it exists, it displays an error message and disables the "Add" button in the dialog.
-	/// Otherwise, it hides the error message and enables the "Add" button if the input is not empty or whitespace.
-	/// </remarks>
-	private void OnPlaylistNameChanged(object sender, TextChangedEventArgs e)
+	/// <param name="sender">The source of the event, typically the TextBox that contains the playlist name entered by the user.</param>
+	/// <param name="e">Event data containing information about the text change, such as the new text value.</param>
+	private void OnPlaylistNameChanged(object? sender, TextChangedEventArgs? e)
 	{
-		if (playLists != null && playLists.Contains(PlaylistNameBox.Text.Trim()))
-		{
-			ErrorMessage.Visibility = Visibility.Visible;
-			RenamePlaylistDialog.IsPrimaryButtonEnabled = false;
-		}
-		else
-		{
-			ErrorMessage.Visibility = Visibility.Collapsed;
-			RenamePlaylistDialog.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(PlaylistNameBox.Text.Trim());
-		}
+		string name = PlaylistNameBox.Text.Trim();
+		ErrorMessage.Text = "";
+		RenamePlaylistDialog.IsPrimaryButtonEnabled = false;
 
+		ErrorMessage.Text = name switch
+		{
+			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
+			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
+			_ when name.Length > 255 => "Name is too long",
+			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ => ""
+		};
+
+		RenamePlaylistDialog.IsPrimaryButtonEnabled = ErrorMessage.Text == "";
+	}
+
+	/// <summary>
+	/// Cleans a provided file name by removing invalid characters and trimming it to ensure compliance with file system constraints.
+	/// </summary>
+	/// <param name="name">The input file name to sanitize.</param>
+	/// <returns>A sanitized string that can be safely used as a file name, or an empty string if the input is invalid.</returns>
+	private static string SanitizeFileName(string name)
+	{
+		var invalidChars = Path.GetInvalidFileNameChars();
+		var cleaned = new string(name.Where(ch => !invalidChars.Contains(ch)).ToArray());
+
+		cleaned = Regex.Replace(cleaned, @"\p{Cs}", "");
+
+		cleaned = cleaned.Trim().TrimEnd('.');
+
+		string downloadsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+		var maxlength = 255 - (downloadsPath.Length + 10);
+		if (cleaned.Length > maxlength)
+			cleaned = cleaned.Substring(0, maxlength);
+
+		return string.IsNullOrWhiteSpace(cleaned) ? "" : cleaned;
+	}
+
+	/// <summary>
+	/// Handles the click event for exporting the playlist, allowing the user to specify the file name and format for the exported playlist.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the menu item or button clicked by the user.</param>
+	/// <param name="e">An object containing event data for the click event.</param>
+	private async void ExportPlayList_Click(object sender, RoutedEventArgs e)
+	{
+		ExportDialog.Visibility = Visibility.Visible;
+		ExportDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		ExportTextBox.Text = SanitizeFileName(PlaylistHeader.Text);
+		OnPlaylistExportNameChanged(null, null);
+		ExportFormat.SelectedIndex = 0;
+
+		ContentDialogResult result = await ExportDialog.ShowAsync();
+
+		if (result == ContentDialogResult.Primary)
+		{
+			await ImportExportPlaylist.Export(ExportTextBox.Text.Trim(), (ExportFormat.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "M3U8", PlayListSongs.Select(x => x.Path).ToList());
+		}
+	}
+
+	/// <summary>
+	/// Handles changes to the playlist export name, validating the input and updating UI elements accordingly.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the TextBox where the user enters the playlist name.</param>
+	/// <param name="e">An object containing information about the TextChanged event.</param>
+	private void OnPlaylistExportNameChanged(object? sender, TextChangedEventArgs? e)
+	{
+		string name = ExportTextBox.Text.Trim();
+		ExportErrorMessage.Text = "";
+		ExportDialog.IsPrimaryButtonEnabled = false;
+
+		string downloadsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+		var maxlength = 255 - (downloadsPath.Length + 10);
+
+		ExportErrorMessage.Text = name switch
+		{
+			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
+			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
+			_ when name.Length > maxlength => "Name is too long",
+			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate) => "Name cannot contain emojis or special symbols.",
+			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.OtherSymbol) => "Name cannot contain emojis or special symbols.",
+			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control) => "Name cannot contain emojis or special symbols.",
+			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.PrivateUse) => "Name cannot contain emojis or special symbols.",
+			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ => ""
+		};
+
+		ExportDialog.IsPrimaryButtonEnabled = ErrorMessage.Text == "";
 	}
 }
