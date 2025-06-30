@@ -74,9 +74,16 @@ public sealed partial class SettingsPage : Page
 		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
 		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
 		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
+		ArtistsToggle.Toggled += ArtistsToggle_Toggled;
+		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
+		GenresToggle.Toggled += GenresToggle_Toggled;
+		YearsToggle.Toggled += YearsToggle_Toggled;
+		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
+		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
+		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
-		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged; 
+		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
 		#endregion
 
 		if (GetMusicData.IsScanning) ScanButton_Click(null, null);
@@ -376,10 +383,7 @@ public sealed partial class SettingsPage : Page
 	private void AutoAdvanceSwitch_OnToggled(object sender, RoutedEventArgs? e)
 	{
 		var toggle = sender as ToggleSwitch;
-		if (toggle != null)
-			AutoAdvanceSlider.IsEnabled = toggle.IsOn;
-		else
-			AutoAdvanceSlider.IsEnabled = false;
+		AutoAdvanceSlider.IsEnabled = toggle != null && toggle.IsOn;
 
 		AutoAdvanceSlider_OnIsEnabledChanged(AutoAdvanceSwitch, null);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceStatus)] = AutoAdvanceSwitch.IsOn;
@@ -424,10 +428,7 @@ public sealed partial class SettingsPage : Page
 	private void ManualTrackChangeSwitch_OnToggled(object sender, RoutedEventArgs? e)
 	{
 		var toggle = sender as ToggleSwitch;
-		if (toggle != null)
-			ManualTrackChangeSlider.IsEnabled = toggle.IsOn;
-		else
-			ManualTrackChangeSlider.IsEnabled = false;
+		ManualTrackChangeSlider.IsEnabled = toggle != null && toggle.IsOn;
 
 		ManualTrackChangeSlider_OnIsEnabledChanged(ManualTrackChangeSwitch, null);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)] = ManualTrackChangeSwitch.IsOn;
@@ -555,11 +556,12 @@ public sealed partial class SettingsPage : Page
 		if (TintSettings.Visibility == Visibility.Visible)
 		{
 			var actualTheme = App.Current.ThemeService.GetActualTheme();
-			Color color = Color.FromArgb(0, 0, 0, 0);
-			if (actualTheme == ElementTheme.Light)
-				color = Color.FromArgb(255, 223, 223, 223);
-			else if (actualTheme == ElementTheme.Dark)
-				color = Color.FromArgb(255, 32, 32, 32);
+			Color color = actualTheme switch
+			{
+				ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
+				ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32),
+				_ => Color.FromArgb(0, 0, 0, 0)
+			};
 
 			TintBox.Fill = new SolidColorBrush(color);
 		}
@@ -584,11 +586,12 @@ public sealed partial class SettingsPage : Page
 			if (TintSettings.Visibility == Visibility.Visible)
 			{
 				var actualTheme = App.Current.ThemeService.GetActualTheme();
-				Color color = Color.FromArgb(0, 0, 0, 0);
-				if (actualTheme == ElementTheme.Light)
-					color = Color.FromArgb(255, 223, 223, 223);
-				else if (actualTheme == ElementTheme.Dark)
-					color = Color.FromArgb(255, 32, 32, 32);
+				Color color = actualTheme switch
+				{
+					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
+					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32),
+					_ => Color.FromArgb(0, 0, 0, 0)
+				};
 
 				TintBox.Fill = new SolidColorBrush(color);
 			}
@@ -673,10 +676,11 @@ public sealed partial class SettingsPage : Page
 			else
 			{
 				var actualTheme = App.Current.ThemeService.GetActualTheme();
-				if (actualTheme == ElementTheme.Light)
-					color = Color.FromArgb(255, 223, 223, 223);
-				else if (actualTheme == ElementTheme.Dark)
-					color = Color.FromArgb(255, 32, 32, 32);
+				color = actualTheme switch
+				{
+					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
+					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32)
+				};
 			}
 			TintBox.Fill = new SolidColorBrush(color);
 		}
@@ -717,6 +721,20 @@ public sealed partial class SettingsPage : Page
 		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 
 		Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
+
+		ArtistsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ArtistsEnabled)]?.ToString() ?? "true");
+
+		AlbumsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AlbumsEnabled)]?.ToString() ?? "true");
+
+		GenresToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.GenresEnabled)]?.ToString() ?? "true");
+
+		YearsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true");
+
+		RecentlyAddedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)]?.ToString() ?? "true");
+
+		RecentlyPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true");
+
+		MostPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MostPlayedEnabled)]?.ToString() ?? "true");
 	}
 
 	/// <summary>
@@ -747,7 +765,7 @@ public sealed partial class SettingsPage : Page
 		#region Uncomment this is implemented
 		//UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
 
-		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"); 
+		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
 		#endregion
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
@@ -850,5 +868,156 @@ public sealed partial class SettingsPage : Page
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)] = MinimizeToTray.IsOn;
 		MainWindow.SetMinimizeBehaviourStatic(MinimizeToTray.IsOn);
+	}
+
+	/// <summary>
+	/// Handles the toggled event for the "Artists" toggle switch in the settings page.
+	/// Updates the visibility of the "Artists" navigation library item in the application's menu,
+	/// modifies associated application settings, and adjusts the behavior of the music player
+	/// if the "Artists" view is currently active.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Artists" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void ArtistsToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage");
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = ArtistsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!ArtistsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Artists");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ArtistsEnabled)] = ArtistsToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Artists")   //TODO: Change this
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled event for the "Albums" toggle switch.
+	/// This method is responsible for updating the visibility of the Albums library section in the UI,
+	/// storing the toggle state in application settings, and updating the music player state
+	/// if the Albums playlist is currently selected.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Albums" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void AlbumsToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage");
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = AlbumsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!AlbumsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Albums");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AlbumsEnabled)] = AlbumsToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Albums")   //TODO: Change this
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled state change of the "Genres" toggle switch.
+	/// This method updates the visibility of the "Genres" section in the library navigation,
+	/// manages the application's internal state for the "Genres" feature, and resets
+	/// the music player if the current playlist is set to "Genres".
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Genres" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void GenresToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.GenresViewPage");
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = GenresToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!GenresToggle.IsOn) MainPage._instance.RemovePageFromHistory("Genres");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.GenresEnabled)] = GenresToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Genres")   //TODO: Change this
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled event of the "Years" toggle switch in the settings page.
+	/// This method updates the visibility of the Years library navigation item,
+	/// adjusts the application settings, and resets the music player if necessary.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Years" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void YearsToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.YearsViewPage");
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = YearsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!YearsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Years");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Years")   //TODO: Change this
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled state change of the "Recently Added" toggle switch.
+	/// This method is responsible for updating the visibility of the "Recently Added" playlist UI element,
+	/// saving the toggle state to local settings, and performing necessary updates to the music player
+	/// based on the enabled or disabled state of the "Recently Added" feature.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Recently Added" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void RecentlyAddedToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyAdded");
+		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyAddedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!RecentlyAddedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Added");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)] = RecentlyAddedToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyAdded")
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggling event of the "Recently Played" toggle switch.
+	/// This method enables or disables the visibility of the "Recently Played" playlist in the user interface
+	/// and updates the application state accordingly.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Recently Played" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void RecentlyPlayedToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyPlayed");
+		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!RecentlyPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Played");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)] = RecentlyPlayedToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled event of the "Most Played" toggle switch.
+	/// This method updates the visibility of the "Most Played" playlist in the application's navigation menu,
+	/// manages local application settings related to the feature, and adjusts the media player accordingly.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the "Most Played" toggle switch.</param>
+	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
+	private async void MostPlayedToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.MostPlayed");
+		if (playListNavigationItem != null) playListNavigationItem.Visibility = MostPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+		if (!MostPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Most Played");
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedEnabled)] = MostPlayedToggle.IsOn;
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
+		{
+			MusicPlayer.Instance.CurrentSong = "";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
 	}
 }

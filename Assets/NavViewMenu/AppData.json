@@ -71,6 +71,7 @@
         {
           "UniqueId": "Tunetastic.Views.PlaylistViews.QueuedList",
           "Title": "Queue",
+          "HideNavigationViewItem": true,
           "IconGlyph": "E84F",
           "HideItem": false
         },
@@ -78,6 +79,12 @@
           "UniqueId": "Tunetastic.Views.PlaylistViews.RecentlyAdded",
           "Title": "Recently Added",
           "IconGlyph": "E823",
+          "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.PlaylistViews.RecentlyPlayed",
+          "Title": "Recently Played",
+          "IconGlyph": "E81C",
           "HideItem": false
         },
         {

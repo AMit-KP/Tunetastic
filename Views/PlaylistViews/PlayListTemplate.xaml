@@ -10,12 +10,58 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded"
       mc:Ignorable="d">
-	<!--
-		ActualThemeChanged="Page_ActualThemeChanged"
-		Loaded="Page_Loaded"
-		SizeChanged="Page_SizeChanged"
-	-->
+
+	<Page.Resources>
+		<MenuFlyout x:Key="RightClickMenu"
+		            Opened="MenuFlyout_Opened">
+			<MenuFlyoutItem Click="MenuFlyoutItemPlay_OnClick"
+			                Text="Play"
+			                ToolTipService.ToolTip="Play this song/track">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE768;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<MenuFlyoutSubItem x:Name="AddToPlaylist"
+			                   Text="Add to playlist">
+				<MenuFlyoutSubItem.Icon>
+					<FontIcon Glyph="&#xE728;" />
+				</MenuFlyoutSubItem.Icon>
+			</MenuFlyoutSubItem>
+			<MenuFlyoutItem Click="MenuFlyoutItemAddToQueue_OnClick"
+			                Text="Add to queue"
+			                ToolTipService.ToolTip="Add this song/track to the queue">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE84F;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<!--<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
+			                Text="Info/Tag">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE946;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />-->
+			<MenuFlyoutItem Click="MenuFlyoutItemRemove_OnClick"
+			                Text="Remove"
+			                ToolTipService.ToolTip="Remove this song/track from the playlist">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xECC9;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
+			                Text="Delete"
+			                ToolTipService.ToolTip="Delete this song/track">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE74D;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+		</MenuFlyout>
+	</Page.Resources>
 
 	<Grid Margin="10,10,10,0">
 		<Grid.RowDefinitions>
@@ -42,7 +88,13 @@
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
-				<!--<StackPanel Orientation="Horizontal"
+				<ToggleButton x:Name="MultiSelectButton"
+				              Click="MultiSelectButton_Click"
+				              ToolTipService.ToolTip="Turn on multi-select mode">
+					<FontIcon Glyph="&#xE73A;" />
+				</ToggleButton>
+				<StackPanel x:Name="PlayAllButtonStackPanel"
+				            Orientation="Horizontal"
 				            Spacing="5">
 					<Button x:Name="ShuffleAndPlay"
 					        HorizontalAlignment="Right"
@@ -57,80 +109,161 @@
 						<FontIcon Glyph="&#xF5B0;" />
 					</Button>
 				</StackPanel>
-				<StackPanel Orientation="Horizontal"
-				            Spacing="5">
-					<DropDownButton x:Name="SortDropDown"
-					                HorizontalAlignment="Right">
-						<DropDownButton.Flyout>
-							<MenuFlyout x:Name="Sort"
-							            Placement="BottomEdgeAlignedRight">
-								<RadioMenuFlyoutItem x:Name="Title"
-								                     Click="SortButton_OnClick"
-								                     GroupName="SortBy"
-								                     Text="Title" />
-								<RadioMenuFlyoutItem x:Name="Artists"
-								                     Click="SortButton_OnClick"
-								                     GroupName="SortBy"
-								                     Text="Artists" />
-								<RadioMenuFlyoutItem x:Name="Album"
-								                     Click="SortButton_OnClick"
-								                     GroupName="SortBy"
-								                     Text="Album" />
-								<RadioMenuFlyoutItem x:Name="Duration"
-								                     Click="SortButton_OnClick"
-								                     GroupName="SortBy"
-								                     Text="Duration" />
-								<MenuFlyoutSeparator />
-								<RadioMenuFlyoutItem x:Name="Ascending"
-								                     Click="SortButton_OnClick"
-								                     GroupName="Order"
-								                     Text="Ascending" />
-								<RadioMenuFlyoutItem x:Name="Descending"
-								                     Click="SortButton_OnClick"
-								                     GroupName="Order"
-								                     Text="Descending" />
-							</MenuFlyout>
-						</DropDownButton.Flyout>
-					</DropDownButton>
-					<DropDownButton x:Name="ViewButton"
-					                HorizontalAlignment="Right"
-					                Content="View">
-						<DropDownButton.Flyout>
-							<MenuFlyout x:Name="ViewStyle"
-							            Placement="BottomEdgeAlignedRight">
-								<RadioMenuFlyoutItem x:Name="ListViewStyle"
-								                     Click="ViewButton_OnClick"
-								                     GroupName="View"
-								                     Text="List View" />
-								<RadioMenuFlyoutItem x:Name="CompactViewStyle"
-								                     Click="ViewButton_OnClick"
-								                     GroupName="View"
-								                     Text="Compact View" />
-							</MenuFlyout>
-						</DropDownButton.Flyout>
-					</DropDownButton>
-				</StackPanel>-->
-				<Button ToolTipService.ToolTip="Delete this playlist">
-					<FontIcon Glyph="&#xE74D;" />
+				<DropDownButton x:Name="ViewButton"
+				                HorizontalAlignment="Right">
+					<DropDownButton.Flyout>
+						<MenuFlyout x:Name="ViewStyle"
+						            Placement="BottomEdgeAlignedRight">
+							<RadioMenuFlyoutItem x:Name="ListViewStyle"
+							                     Click="ViewButton_OnClick"
+							                     GroupName="View"
+							                     Text="List View">
+								<RadioMenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE8FD;" />
+								</RadioMenuFlyoutItem.Icon>
+							</RadioMenuFlyoutItem>
+							<RadioMenuFlyoutItem x:Name="CompactViewStyle"
+							                     Click="ViewButton_OnClick"
+							                     GroupName="View"
+							                     Text="Compact View">
+								<RadioMenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE71D;" />
+								</RadioMenuFlyoutItem.Icon>
+							</RadioMenuFlyoutItem>
+						</MenuFlyout>
+					</DropDownButton.Flyout>
+				</DropDownButton>
+				<Button x:Name="SettingsButton">
+					<FontIcon Glyph="&#xE713;" />
 					<Button.Flyout>
-						<Flyout>
-							<Flyout.FlyoutPresenterStyle>
-								<Style TargetType="FlyoutPresenter">
-									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
-								</Style>
-							</Flyout.FlyoutPresenterStyle>
-							<StackPanel Spacing="5">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Are you sure you want to delete this playlist?" />
-								<Button Click="DeletePlayList_Click"
-								        Content="Yes" />
-							</StackPanel>
-						</Flyout>
+						<MenuFlyout x:Name="Settings"
+						            Placement="BottomEdgeAlignedRight"
+						            ToolTipService.ToolTip="Playlist Settings">
+							<MenuFlyoutSubItem x:Name="SortPlayList"
+							                   Text="Sort Playlist">
+								<MenuFlyoutSubItem.Icon>
+									<FontIcon Glyph="&#xE8CB;" />
+								</MenuFlyoutSubItem.Icon>
+								<MenuFlyoutSubItem Text="Title">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TitleAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TitleDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Artists">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ArtistsAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ArtistsDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Album">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="AlbumAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="AlbumDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Year">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="YearAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="YearDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Duration">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="DurationAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="DurationDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Play Count">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="PlayCountAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="PlayCountDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Modified Time">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ModifiedTimeAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="ModifiedTimeDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
+							</MenuFlyoutSubItem>
+							<MenuFlyoutSeparator />
+							<MenuFlyoutItem Click="RenamePlayList_Click"
+							                Text="Rename Playlist">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE8AC;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+							<MenuFlyoutItem Click="ExportPlayList_Click"
+							                Text="Export Playlist">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xEDE1;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+							<MenuFlyoutSeparator />
+							<MenuFlyoutItem Click="DeletePlayList_Click"
+							                Text="Delete Playlist">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE74D;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+						</MenuFlyout>
+					</Button.Flyout>
+				</Button>
+				<Button x:Name="MoreButton"
+				        Visibility="Collapsed">
+					<FontIcon Glyph="&#xE712;" />
+					<Button.Flyout>
+						<MenuFlyout x:Name="More"
+						            Opened="MenuFlyout_Opened"
+						            Placement="BottomEdgeAlignedRight">
+							<MenuFlyoutSubItem Text="Add to playlist">
+								<MenuFlyoutSubItem.Icon>
+									<FontIcon Glyph="&#xE728;" />
+								</MenuFlyoutSubItem.Icon>
+							</MenuFlyoutSubItem>
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemAddToQueue_OnClick"
+							                Text="Add to queue"
+							                ToolTipService.ToolTip="Add selected songs/tracks to the queue">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE84F;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+							<MenuFlyoutSeparator />
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemRemove_OnClick"
+							                Text="Remove"
+							                ToolTipService.ToolTip="Remove selected songs/tracks from the playlist">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xECC9;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+							<MenuFlyoutItem Click="MenuFlyoutMultiItemDelete_OnClick"
+							                Text="Delete"
+							                ToolTipService.ToolTip="Delete selected songs/tracks">
+								<MenuFlyoutItem.Icon>
+									<FontIcon Glyph="&#xE74D;" />
+								</MenuFlyoutItem.Icon>
+							</MenuFlyoutItem>
+						</MenuFlyout>
 					</Button.Flyout>
 				</Button>
 			</StackPanel>
 		</Grid>
-		<!--<Grid Grid.Row="1">
+		<Grid Grid.Row="1">
 			<StackPanel x:Name="GoToSettings"
 			            HorizontalAlignment="Center"
 			            VerticalAlignment="Center"
@@ -149,6 +282,23 @@
 				        Click="GotoSettigsButton_Click"
 				        Content="Open Settings" />
 			</StackPanel>
+			<Grid x:Name="NoResultsGrid"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center"
+			      Visibility="Collapsed">
+				<TextBlock HorizontalAlignment="Center"
+				           VerticalAlignment="Center"
+				           HorizontalTextAlignment="Center"
+				           Style="{ThemeResource SubtitleTextBlockStyle}"
+				           TextAlignment="Center"
+				           TextTrimming="CharacterEllipsis"
+				           TextWrapping="WrapWholeWords">
+					<Run Text="Add some songs or tracks to" />
+					<Run FontWeight="Bold"
+					     Text="{Binding ElementName=PlaylistHeader, Path=Text}" />
+					<Run Text="playlist to see them here." />
+				</TextBlock>
+			</Grid>
 			<StackPanel x:Name="LoadingProgress"
 			            HorizontalAlignment="Center"
 			            VerticalAlignment="Center"
@@ -175,18 +325,107 @@
 					</Grid>
 				</Grid>
 			</StackPanel>
-			<Grid x:Name="AllSongsListViewGrid">
-				<ListView x:Name="AllSongsListView"
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
+				<ContentDialog x:Name="DeleteDialog"
+				               Title="Confirm Deletion"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Secondary"
+				               PrimaryButtonText="Delete"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Collapsed">
+					<StackPanel Spacing="10">
+						<TextBlock x:Name="DeleteDialogText"
+						           Style="{ThemeResource BodyTextBlockStyle}"
+						           TextWrapping="WrapWholeWords" />
+						<TextBlock Foreground="Red"
+						           Style="{ThemeResource BodyStrongTextBlockStyle}"
+						           Text="This action cannot be undone."
+						           TextWrapping="WrapWholeWords" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
+				<ContentDialog x:Name="ExportDialog"
+				               Title="Export"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Primary"
+				               PrimaryButtonText="Export"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Visible">
+					<StackPanel Orientation="Vertical"
+					            Spacing="10">
+						<TextBlock Text="The playlist will be exported as choosen format and saved to Downloads folder."
+						           TextWrapping="WrapWholeWords" />
+						<StackPanel Orientation="Horizontal"
+						            Spacing="10">
+							<TextBox x:Name="ExportTextBox"
+							         Width="380"
+							         PlaceholderText="Enter Playlist file name"
+							         TextChanged="OnPlaylistExportNameChanged" />
+							<ComboBox x:Name="ExportFormat"
+							          Width="100"
+							          SelectedIndex="0">
+								<ComboBoxItem Content="M3U8"
+								              ToolTipService.ToolTip="M3U UTF-8" />
+								<ComboBoxItem Content="M3U"
+								              ToolTipService.ToolTip="MP3 URL" />
+								<ComboBoxItem Content="PLS"
+								              ToolTipService.ToolTip="Playlist File" />
+								<ComboBoxItem Content="WPL"
+								              ToolTipService.ToolTip="Windows Media Player Playlist" />
+								<ComboBoxItem Content="ZPL"
+								              ToolTipService.ToolTip="Zune Playlist" />
+							</ComboBox>
+						</StackPanel>
+						<TextBlock x:Name="ExportErrorMessage"
+						           Foreground="Red"
+						           Text=""
+						           TextWrapping="WrapWholeWords" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
+			<Grid Width="Auto"
+			      Height="Auto"
+			      HorizontalAlignment="Center"
+			      VerticalAlignment="Center">
+				<ContentDialog x:Name="RenamePlaylistDialog"
+				               Title="Rename Playlist"
+				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+				               DefaultButton="Primary"
+				               IsPrimaryButtonEnabled="False"
+				               PrimaryButtonText="Rename"
+				               SecondaryButtonText="Cancel"
+				               Visibility="Collapsed">
+					<StackPanel>
+						<TextBox x:Name="PlaylistNameBox"
+						         PlaceholderText="Enter new playlist name"
+						         TextChanged="OnPlaylistNameChanged" />
+						<TextBlock x:Name="ErrorMessage"
+						           Foreground="Red" />
+					</StackPanel>
+				</ContentDialog>
+			</Grid>
+			<Grid x:Name="PlayListSongsListViewGrid">
+				<ListView x:Name="PlayListSongsListView"
 				          Margin="10,10,10,10"
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
+				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
-				          ItemsSource="{x:Bind AllSongs}"
+				          ItemsSource="{x:Bind PlayListSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
 				          ScrollViewer.VerticalScrollBarVisibility="Visible"
 				          ScrollViewer.VerticalScrollMode="Enabled"
-				          SelectionChanged="ListView_SelectionChanged">
+				          SelectionChanged="ListView_SelectionChanged"
+				          SelectionMode="Single">
 
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -205,15 +444,15 @@
 								<behaviors:StickyHeaderBehavior />
 							</interactivity:Interaction.Behaviors>
 
-							<controls:DataTable Margin="12,0,0,0"
+							<controls:DataTable x:Name="Header"
+							                    Margin="12,0,0,0"
 							                    ColumnSpacing="10">
 								<controls:DataColumn DesiredWidth="40" />
 								<controls:DataColumn Content="Title"
 								                     DesiredWidth="350"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-								<controls:DataColumn CanResize="True"
-								                     Content="Artists"
+								<controls:DataColumn Content="Artists"
 								                     DesiredWidth="*"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
@@ -223,7 +462,7 @@
 									           Text="Album" />
 								</controls:DataColumn>
 								<controls:DataColumn Content="Duration"
-								                     DesiredWidth="125"
+								                     DesiredWidth="120"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 							</controls:DataTable>
@@ -231,8 +470,10 @@
 					</ListView.Header>
 
 					<ListView.ItemTemplate>
-						<DataTemplate x:DataType="local:Song">
-							<controls:DataRow HorizontalAlignment="Left">
+						<DataTemplate x:DataType="common:Song">
+							<controls:DataRow HorizontalAlignment="Left"
+							                  Background="Transparent"
+							                  ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid Width="40"
 								      Height="60"
 								      Margin="0,2,0,2"
@@ -243,20 +484,55 @@
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Title}"
-								           TextTrimming="CharacterEllipsis"
-								           ToolTipService.ToolTip="{x:Bind Title}" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
+											<Run Text="Title: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Title}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Artists}"
-								           ToolTipService.ToolTip="{x:Bind Artists}" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
+											<Run Text="Artists: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Artists}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Album}"
-								           ToolTipService.ToolTip="{x:Bind Album}" />
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
+											<Run Text="Album: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Album}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           HorizontalTextAlignment="Left"
-								           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+								           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}"
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock>
+											<Run Text="Duration: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 							</controls:DataRow>
 						</DataTemplate>
 					</ListView.ItemTemplate>
@@ -266,20 +542,29 @@
 							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 						</Style>
 					</ListView.ItemContainerStyle>
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<AddDeleteThemeTransition />
+							<ContentThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
 				</ListView>
 			</Grid>
-			<Grid x:Name="AllSongCompactViewGrid">
-				<ListView x:Name="AllSongCompactView"
+			<Grid x:Name="PlayListSongsCompactViewGrid">
+				<ListView x:Name="PlayListSongsCompactView"
 				          Margin="10,10,10,10"
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
+				          IsRightTapEnabled="True"
 				          ItemClick="ListView_ItemClick"
-				          ItemsSource="{x:Bind AllSongs}"
+				          ItemsSource="{x:Bind PlayListSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
 				          ScrollViewer.VerticalScrollBarVisibility="Visible"
 				          ScrollViewer.VerticalScrollMode="Enabled"
-				          SelectionChanged="ListView_SelectionChanged">
+				          SelectionChanged="ListView_SelectionChanged"
+				          SelectionMode="Single">
 
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -288,48 +573,94 @@
 					</ListView.ItemsPanel>
 
 					<ListView.ItemTemplate>
-						<DataTemplate x:DataType="local:Song">
-							<Grid>
+						<DataTemplate x:DataType="common:Song">
+							<Grid Background="Transparent"
+							      ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="*" />
 									<ColumnDefinition Width="Auto" />
 								</Grid.ColumnDefinitions>
-								<Grid Grid.Column="0">
-									<StackPanel Orientation="Horizontal"
-									            Spacing="20">
-										<Grid Width="100"
-										      Height="120"
-										      Margin="0,5,0,5"
-										      HorizontalAlignment="Center"
-										      VerticalAlignment="Center"
-										      CornerRadius="10">
-											<Image VerticalAlignment="Center"
-											       Source="{x:Bind Cover}" />
+								<Grid Grid.Column="0"
+								      HorizontalAlignment="Left"
+								      VerticalAlignment="Center">
+									<Grid>
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="100" />
+											<ColumnDefinition Width="20" />
+											<ColumnDefinition Width="*" />
+										</Grid.ColumnDefinitions>
+										<Grid Grid.Column="0"
+										      Width="100"
+										      Height="100"
+										      Margin="0,10,0,10">
+											<Grid Width="Auto"
+											      Height="Auto"
+											      HorizontalAlignment="Center"
+											      VerticalAlignment="Center"
+											      CornerRadius="10">
+												<Image HorizontalAlignment="Center"
+												       VerticalAlignment="Center"
+												       Source="{x:Bind Cover}" />
+											</Grid>
 										</Grid>
-										<StackPanel Width="Auto"
+										<StackPanel Grid.Column="2"
 										            HorizontalAlignment="Center"
 										            VerticalAlignment="Center"
 										            Orientation="Vertical"
 										            Spacing="5">
 											<TextBlock HorizontalAlignment="Left"
 											           VerticalAlignment="Center"
+											           MaxLines="2"
 											           Style="{ThemeResource SubtitleTextBlockStyle}"
 											           Text="{x:Bind Title}"
-											           TextWrapping="WrapWholeWords" />
+											           TextTrimming="CharacterEllipsis"
+											           TextWrapping="WrapWholeWords">
+												<ToolTipService.ToolTip>
+													<TextBlock TextTrimming="CharacterEllipsis"
+													           TextWrapping="WrapWholeWords">
+														<Run Text="Title: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Title}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 											<TextBlock HorizontalAlignment="Left"
 											           VerticalAlignment="Center"
+											           MaxLines="2"
 											           Style="{ThemeResource BodyStrongTextBlockStyle}"
 											           Text="{x:Bind Artists}"
-											           TextWrapping="WrapWholeWords" />
+											           TextTrimming="CharacterEllipsis"
+											           TextWrapping="WrapWholeWords">
+												<ToolTipService.ToolTip>
+													<TextBlock TextTrimming="CharacterEllipsis"
+													           TextWrapping="WrapWholeWords">
+														<Run Text="Artists: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Artists}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 											<TextBlock HorizontalAlignment="Left"
 											           VerticalAlignment="Center"
+											           MaxLines="2"
 											           Style="{ThemeResource BodyStrongTextBlockStyle}"
 											           Text="{x:Bind Album}"
-											           TextWrapping="WrapWholeWords" />
+											           TextTrimming="CharacterEllipsis"
+											           TextWrapping="WrapWholeWords">
+												<ToolTipService.ToolTip>
+													<TextBlock TextTrimming="CharacterEllipsis"
+													           TextWrapping="WrapWholeWords">
+														<Run Text="Album: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Album}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 										</StackPanel>
-									</StackPanel>
+									</Grid>
 								</Grid>
 								<Grid Grid.Column="1"
+								      Width="120"
 								      HorizontalAlignment="Right"
 								      VerticalAlignment="Center">
 									<Grid.RowDefinitions>
@@ -342,14 +673,30 @@
 										           VerticalAlignment="Bottom"
 										           HorizontalTextAlignment="Right"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
-										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}">
+											<ToolTipService.ToolTip>
+												<TextBlock>
+													<Run Text="Duration: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+										</TextBlock>
 									</Grid>
 									<Grid Grid.Row="0"
 									      VerticalAlignment="Center">
 										<TextBlock HorizontalAlignment="Right"
 										           VerticalAlignment="Top"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
-										           Text="{x:Bind Year}" />
+										           Text="{x:Bind Year}">
+											<ToolTipService.ToolTip>
+												<TextBlock>
+													<Run Text="Year: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind Year}" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+										</TextBlock>
 									</Grid>
 								</Grid>
 							</Grid>
@@ -361,15 +708,16 @@
 							<Setter Property="HorizontalContentAlignment" Value="Stretch" />
 						</Style>
 					</ListView.ItemContainerStyle>
+
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<AddDeleteThemeTransition />
+							<ContentThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
+
 				</ListView>
 			</Grid>
-			<StackPanel x:Name="AlphabetNavigationPanel"
-			            Margin="0,50,30,10"
-			            HorizontalAlignment="Right"
-			            VerticalAlignment="Stretch"
-			            Orientation="Vertical"
-			            Spacing="0">
-			</StackPanel>
-		</Grid>-->
+		</Grid>
 	</Grid>
 </Page>

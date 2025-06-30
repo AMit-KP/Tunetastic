@@ -200,7 +200,7 @@ public class GetMusicData
 							Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 							Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre",
 							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
-							DateAdded = fileInfo.LastWriteTimeUtc,
+							DateAdded = fileInfo.LastWriteTime,
 							Extension = fileInfo.Extension
 						};
 
@@ -235,7 +235,7 @@ public class GetMusicData
 						Year = "Unknown Year",
 						Genre = "Unknown Genre",
 						Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
-						DateAdded = fileInfo.LastWriteTimeUtc,
+						DateAdded = fileInfo.LastWriteTime,
 						Extension = fileInfo.Extension
 					};
 					if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))

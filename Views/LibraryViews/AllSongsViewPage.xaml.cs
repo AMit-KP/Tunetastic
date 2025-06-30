@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -64,7 +65,7 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		GoToSettings.Visibility = Visibility.Visible;
 		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-		AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+		AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -104,9 +105,9 @@ public sealed partial class AllSongsViewPage : Page
 			GoToSettings.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Visible;
 			SortDropDown.Visibility = Visibility.Visible;
+			PageButtons.Visibility = Visibility.Visible;
 			UpdateAsPerLastViewStyle();
 			UpdateAsPerLastSorting();
-			PageButtons.Visibility = Visibility.Visible;
 		}
 	}
 
@@ -201,14 +202,14 @@ public sealed partial class AllSongsViewPage : Page
 		{
 			case "List View":
 				AllSongsListViewGrid.Visibility = Visibility.Visible;
-				AllSongCompactViewGrid.Visibility = Visibility.Collapsed;
+				AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
 				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-				AllSongCompactViewGrid.Visibility = Visibility.Visible;
+				AllSongsCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
@@ -260,8 +261,21 @@ public sealed partial class AllSongsViewPage : Page
 				break;
 		}
 
-		SortDropDown.Content = $"Sort By: {sortBy} {(AscOrder ? "⬆️" : "⬇️")}";
-		ToolTipService.SetToolTip(SortDropDown, $"The list is sorted by \"{sortBy}\" column in {orderBy} order.");
+		var sortDropdownContent = new TextBlock();
+		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
+		sortDropdownContent.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
+
+		var orderDropdownTooltip = new TextBlock();
+		orderDropdownTooltip.Inlines.Add(new Run { Text = "The list is sorted by " });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = $" column in " });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = orderBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = " order." });
+
+		SortDropDown.Content = sortDropdownContent;
+		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
+
 		await ScrollToSong(song);       //somehow this doesn't work
 		await Task.Delay(1000);
 		await ScrollToSong(song);
@@ -289,8 +303,8 @@ public sealed partial class AllSongsViewPage : Page
 		return viewStyle switch
 		{
 			"List View" => AllSongsListView,
-			"Compact View" => AllSongCompactView,
-			_ => AllSongCompactView
+			"Compact View" => AllSongsCompactView,
+			_ => AllSongsCompactView
 		};
 	}
 
@@ -309,7 +323,7 @@ public sealed partial class AllSongsViewPage : Page
 		var track = e.ClickedItem as Song;
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 	}
 
 	/// <summary>
@@ -355,7 +369,7 @@ public sealed partial class AllSongsViewPage : Page
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AllSongsViewPage")
 		{
 			var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
@@ -372,10 +386,10 @@ public sealed partial class AllSongsViewPage : Page
 		await UpdateListBasedOnSorting();
 		await AdjustAlphabetSize();
 
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)]?.ToString() == "AllSongsViewPage")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AllSongsViewPage")
 		{
 			List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 	}
 
@@ -415,7 +429,7 @@ public sealed partial class AllSongsViewPage : Page
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
@@ -442,7 +456,7 @@ public sealed partial class AllSongsViewPage : Page
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(AllSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
@@ -484,8 +498,8 @@ public sealed partial class AllSongsViewPage : Page
 		double availableSpace = viewStyle switch
 		{
 			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongCompactView.ActualHeight,
-			_ => AllSongCompactView.ActualHeight
+			"Compact View" => AllSongsCompactView.ActualHeight,
+			_ => AllSongsCompactView.ActualHeight
 		};
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
@@ -578,8 +592,8 @@ public sealed partial class AllSongsViewPage : Page
 		double availableSpace = viewStyle switch
 		{
 			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongCompactView.ActualHeight,
-			_ => AllSongCompactView.ActualHeight
+			"Compact View" => AllSongsCompactView.ActualHeight,
+			_ => AllSongsCompactView.ActualHeight
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
@@ -749,6 +763,8 @@ public sealed partial class AllSongsViewPage : Page
 
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+
+			GlobalNotification.Info($"{songs.Count} songs added successfully to {playlist} playlist.");
 		}
 		else
 		{
@@ -756,7 +772,10 @@ public sealed partial class AllSongsViewPage : Page
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
 			if (playlist != null && song != null)
+			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+			}
 		}
 	}
 
@@ -775,7 +794,7 @@ public sealed partial class AllSongsViewPage : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlaylist)] = "AllSongsViewPage";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 	}
 
 	/// <summary>
@@ -792,6 +811,8 @@ public sealed partial class AllSongsViewPage : Page
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songData?.Title} added successfully to queue.");
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
@@ -923,6 +944,8 @@ public sealed partial class AllSongsViewPage : Page
 		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+
+		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
 	}
 
 	/// <summary>

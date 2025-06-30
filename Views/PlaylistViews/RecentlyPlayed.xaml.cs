@@ -4,37 +4,36 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
+
 namespace Tunetastic.Views.PlaylistViews;
 
 /// <summary>
-/// Represents the Most Played playlist page that displays songs with the highest play counts in the library.
+/// Represents the Recently Played playlist page that displays songs recently played.
 /// </summary>
-/// <remarks>
-/// This class is responsible for initializing and managing the user interface for the Most Played playlist. It handles the presentation of popular songs based on play statistics and updates the UI accordingly during runtime or data operations.
-/// </remarks>
-public sealed partial class MostPlayed : Page
+public sealed partial class RecentlyPlayed : Page
 {
 	/// <summary>
-	/// Gets or sets the collection of songs that are most frequently played.
-	/// The collection is automatically updated based on play count and
-	/// a user-defined maximum display limit.
+	/// Gets or sets the collection of songs recently added to the library.
+	/// The collection is dynamically updated based on user-defined
+	/// criteria such as maximum display limit.
 	/// </summary>
-	public ObservableCollection<Song> MostPlayedSongs
+	public ObservableCollection<Song> RecentlyPlayedSongs
 	{
-		get;
-		set;
+		get; set;
 	} = new();
 
 	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
+	public bool IsRelativeDisplayMode { get; set; } = false;
 
 	/// <summary>
-	/// Represents the Most Played playlist page that displays songs with the highest play counts in the library.
+	/// Represents the page for displaying songs recently played.
 	/// </summary>
 	/// <remarks>
-	/// This class is responsible for initializing and managing the user interface for the Most Played playlist. It handles the presentation of popular songs based on play statistics and updates the UI accordingly during runtime or data operations.
+	/// This class initializes the user interface of the Recently Played playlist view and manages the loading and presentation of recently played songs.
+	/// It ensures the user interface is updated appropriately during music scanning operations or when retrieving data from the database.
 	/// </remarks>
-	public MostPlayed()
+	public RecentlyPlayed()
 	{
 		this.InitializeComponent();
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -56,8 +55,8 @@ public sealed partial class MostPlayed : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
-		MostPlayedSongsListViewGrid.Visibility = Visibility.Collapsed;
-		MostPlayedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
+		RecentlyPlayedSongsListViewGrid.Visibility = Visibility.Collapsed;
+		RecentlyPlayedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -87,7 +86,7 @@ public sealed partial class MostPlayed : Page
 			LoadingProgress.Visibility = Visibility.Collapsed;
 			await _dispatcherQueue.EnqueueAsync(() =>
 			{
-				this.Content = new MostPlayed();
+				this.Content = new RecentlyPlayed();
 			});
 			return;
 		}
@@ -97,9 +96,10 @@ public sealed partial class MostPlayed : Page
 			GoToSettings.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Visible;
 			MaxLimitDropDown.Visibility = Visibility.Visible;
-			UpdateAsPerLastViewStyle();
-			UpdateAsPerLastMaxLimit();
 			PageButtons.Visibility = Visibility.Visible;
+			UpdateAsPerLastMaxLimit();
+			UpdateAsPerLastViewStyle();
+			UpdateAsPerLastTimeStyle();
 		}
 	}
 
@@ -114,7 +114,7 @@ public sealed partial class MostPlayed : Page
 	private void UpdateAsPerLastViewStyle()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var viewStyle = localSettings.Values[nameof(LocalSave.MostPlayedSongViewStyle)]?.ToString() ?? "Compact View";
+		var viewStyle = localSettings.Values[nameof(LocalSave.RecentlyPlayedSongViewStyle)]?.ToString() ?? "Compact View";
 		switch (viewStyle)
 		{
 			case "List View":
@@ -147,19 +147,19 @@ public sealed partial class MostPlayed : Page
 		switch (viewStyle)
 		{
 			case "List View":
-				MostPlayedSongsListViewGrid.Visibility = Visibility.Visible;
-				MostPlayedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
+				RecentlyPlayedSongsListViewGrid.Visibility = Visibility.Visible;
+				RecentlyPlayedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
-				MostPlayedSongsListViewGrid.Visibility = Visibility.Collapsed;
-				MostPlayedSongsCompactViewGrid.Visibility = Visibility.Visible;
+				RecentlyPlayedSongsListViewGrid.Visibility = Visibility.Collapsed;
+				RecentlyPlayedSongsCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedSongViewStyle)] = viewStyle;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedSongViewStyle)] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
 		ToolTipService.SetToolTip(ViewButton, viewStyle);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
@@ -168,17 +168,17 @@ public sealed partial class MostPlayed : Page
 	}
 
 	/// <summary>
-	/// Updates the UI to reflect the user's last selected maximum song display limit for the Most Played playlist.
+	/// Updates the selection state of the maximum limit option for the Recently Played playlist
+	/// based on the last saved user preference.
 	/// </summary>
 	/// <remarks>
-	/// This method retrieves the user's previously saved preference for the maximum number of songs to display
-	/// from local application settings and adjusts the corresponding UI element (e.g., RadioMenuFlyoutItem)
-	/// to indicate the selected option. If no preference exists, it defaults to a limit of 100 songs.
-	/// Additionally, it initiates the process to update the song list according to the selected limit.
+	/// This method checks the stored value for the maximum number of songs to display in the Recently Played playlist
+	/// and marks the corresponding UI control (e.g., RadioMenuFlyoutItem) as selected. If no preference is found,
+	/// the default value is set to 100 songs. It also triggers the update of the song list based on the selected limit.
 	/// </remarks>
 	private void UpdateAsPerLastMaxLimit()
 	{
-		var maxLimit = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedMaxLimit)]?.ToString() ?? "100";
+		var maxLimit = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedMaxLimit)]?.ToString() ?? "100";
 		switch (maxLimit)
 		{
 			case "50":
@@ -207,24 +207,24 @@ public sealed partial class MostPlayed : Page
 	}
 
 	/// <summary>
-	/// Updates the "Most Played" songs list based on the maximum limit selected by the user.
+	/// Updates the list of recently played songs based on the selected maximum limit.
 	/// </summary>
 	/// <remarks>
-	/// This method handles fetching a specific number of songs corresponding to the selected maximum limit from the database
-	/// and updates the "Most Played" UI list accordingly. It also ensures that the selected limit is saved in local settings
-	/// and modifies related UI elements such as tooltips and labels to reflect the new limit.
+	/// This method retrieves the maximum limit selection from the user interface and updates the list of recently played songs accordingly.
+	/// It queries the database to fetch the appropriate number of songs and updates the user interface with the new list.
+	/// Additionally, it ensures the selection is saved to application settings and adjusts interface elements like tooltips and labels.
 	/// </remarks>
 	/// <returns>
-	/// A task representing the asynchronous operation of updating and refreshing the "Most Played" songs list.
+	/// A task representing the asynchronous operation of updating the list.
 	/// </returns>
 	private async Task UpdateListBasedOnMaxLimit()
 	{
 		var song = selectedSong;
 		var maxLimit = MaxLimit.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Limit" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "100";
 
-		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(SongProperty.PlayCount, ascending: false, limit: maxLimit == "Unlimited" ? 0 : int.Parse(maxLimit), whereCondition: $"{SongProperty.PlayCount.ToString()} > 0");
-		MostPlayedSongs.Clear();
-		MostPlayedSongs.AddRange(newList);
+		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(SongProperty.DateLastPlayed, ascending: false, limit: maxLimit == "Unlimited" ? 0 : int.Parse(maxLimit), whereCondition: $"{SongProperty.DateLastPlayed.ToString()} NOT NULL");
+		RecentlyPlayedSongs.Clear();
+		RecentlyPlayedSongs.AddRange(newList);
 		newList = null;
 
 		var maxLimitDropDownContent = new TextBlock();
@@ -238,10 +238,9 @@ public sealed partial class MostPlayed : Page
 
 		MaxLimitDropDown.Content = maxLimitDropDownContent;
 		ToolTipService.SetToolTip(MaxLimitDropDown, maxLimitDropDownTooltip);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedMaxLimit)] = maxLimit;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedMaxLimit)] = maxLimit;
 
-
-		if (MostPlayedSongs.Count > 0)
+		if (RecentlyPlayedSongs.Count > 0)
 		{
 			PageButtons.Visibility = Visibility.Visible;
 			NoResultsGrid.Visibility = Visibility.Collapsed;
@@ -272,14 +271,14 @@ public sealed partial class MostPlayed : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		return viewStyle switch
 		{
-			"List View" => MostPlayedSongsListView,
-			"Compact View" => MostPlayedSongsCompactView,
-			_ => MostPlayedSongsCompactView
+			"List View" => RecentlyPlayedSongsListView,
+			"Compact View" => RecentlyPlayedSongsCompactView,
+			_ => RecentlyPlayedSongsCompactView
 		};
 	}
 
 	/// <summary>
-	/// Handles the ItemClick event for the ListView control in the MostPlayed page.
+	/// Handles the ItemClick event for the ListView control in the RecentlyPlayed page.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ListView control.</param>
 	/// <param name="e">Provides data for the ItemClick event, including the clicked item.</param>
@@ -291,9 +290,9 @@ public sealed partial class MostPlayed : Page
 	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		var track = e.ClickedItem as Song;
-		List<string> songPaths = MostPlayedSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "MostPlayed";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 	}
 
 	/// <summary>
@@ -312,16 +311,16 @@ public sealed partial class MostPlayed : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the MostPlayed page.
+	/// Handles the Loaded event for the RecentlyPlayed page.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the page itself.</param>
 	/// <param name="e">The event data associated with the Loaded event.</param>
 	/// <remarks>
-	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "MostPlayed" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "RecentlyPlayed" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
-		while (MostPlayedSongs == null || MostPlayedSongs.Count == 0)
+		while (RecentlyPlayedSongs == null || RecentlyPlayedSongs.Count == 0)
 		{
 			await Task.Delay(100);
 		}
@@ -329,39 +328,39 @@ public sealed partial class MostPlayed : Page
 	}
 
 	/// <summary>
-	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "MostPlayed".
+	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "RecentlyPlayed".
 	/// </summary>
 	/// <remarks>
-	/// This method checks the local application settings to determine if the "MostPlayed" is the active playlist.
+	/// This method checks the local application settings to determine if the "RecentlyPlayed" is the active playlist.
 	/// If it is, the method retrieves the last played track based on its path from the saved settings and attempts to scroll
 	/// the page to that specific song within the song collection.
 	/// </remarks>
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
 		{
-			var SelectedSong = MostPlayedSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+			var SelectedSong = RecentlyPlayedSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
 		}
 	}
 
 	/// <summary>
-	/// Handles the click event for the maximum limit button in the "Most Played" playlist view.
+	/// Handles the event triggered when the max limit button is clicked.
 	/// </summary>
-	/// <param name="sender">The trigger source of the event, typically the menu item representing the selected limit.</param>
-	/// <param name="e">The event data related to the button click action.</param>
+	/// <param name="sender">The source of the event, usually the button that was clicked.</param>
+	/// <param name="e">The event data associated with the button click.</param>
 	/// <remarks>
-	/// This method updates the song list in the "Most Played" playlist according to the selected maximum limit. If "Most Played" is the current playlist in the music player,
-	/// the playlist is reloaded to reflect the changes and ensures the playback state consistency.
+	/// This method updates the Recently Played song list based on the selected maximum limit. If the current playlist is "RecentlyPlayed",
+	/// it reloads the playlist in the music player to reflect the updated song list.
 	/// </remarks>
 	private async void MaxLimitButton_OnClick(object sender, RoutedEventArgs e)
 	{
 		await UpdateListBasedOnMaxLimit();
 
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
+		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
 		{
-			List<string> songPaths = MostPlayedSongs.Select(s => s.Path).ToList();
+			List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 	}
@@ -398,14 +397,14 @@ public sealed partial class MostPlayed : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-		List<string> songPaths = MostPlayedSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "MostPlayed";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-		var SelectedSong = MostPlayedSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		var SelectedSong = RecentlyPlayedSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
 		await ScrollToSong(SelectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(SelectedSong);
@@ -426,11 +425,11 @@ public sealed partial class MostPlayed : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-		List<string> songPaths = MostPlayedSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "MostPlayed";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
-		await ScrollToSong(MostPlayedSongs[0]);
+		await ScrollToSong(RecentlyPlayedSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
 	}
 
@@ -470,7 +469,7 @@ public sealed partial class MostPlayed : Page
 	}
 
 	/// <summary>
-	/// Handles the Unloaded event for the MostPlayedPage.
+	/// Handles the Unloaded event for the RecentlyPlayedPage.
 	/// </summary>
 	/// <remarks>
 	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
@@ -480,8 +479,8 @@ public sealed partial class MostPlayed : Page
 	/// <param name="e">The event arguments associated with the Unloaded event.</param>
 	private void Page_Unloaded(object sender, RoutedEventArgs e)
 	{
-		MostPlayedSongs.Clear();
-		MostPlayedSongs = null;
+		RecentlyPlayedSongs.Clear();
+		RecentlyPlayedSongs = null;
 		GC.Collect();
 	}
 
@@ -577,9 +576,9 @@ public sealed partial class MostPlayed : Page
 	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		List<string> songPaths = MostPlayedSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = RecentlyPlayedSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "MostPlayed";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "RecentlyPlayed";
 	}
 
 	/// <summary>
@@ -635,7 +634,7 @@ public sealed partial class MostPlayed : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					MostPlayedSongs.Remove(songData);
+					RecentlyPlayedSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
 					GlobalNotification.Info("Song/Track deleted successfully." +
 											$"\nTitle: {songData.Title}" +
@@ -689,7 +688,7 @@ public sealed partial class MostPlayed : Page
 					uiElement.IsRightTapEnabled = false;
 				}
 			}
-			if (view.Name == "MostPlayedSongsListView") Header.Margin = new Thickness(40, 0, 0, 0);
+			if (view.Name == "RecentlyPlayedSongsListView") Header.Margin = new Thickness(40, 0, 0, 0);
 		}
 		else
 		{
@@ -710,7 +709,7 @@ public sealed partial class MostPlayed : Page
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
-			if (view.Name == "MostPlayedSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
+			if (view.Name == "RecentlyPlayedSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
 		}
 	}
 
@@ -764,7 +763,7 @@ public sealed partial class MostPlayed : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					MostPlayedSongs.Remove(songData);
+					RecentlyPlayedSongs.Remove(songData);
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
@@ -775,5 +774,66 @@ public sealed partial class MostPlayed : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
+	}
+
+	/// <summary>
+	/// Handles the click event to change the time display style in the Recently Played playlist view.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically a menu item.</param>
+	/// <param name="e">The event data associated with the click event.</param>
+	/// <remarks>
+	/// This method updates the time style preference, switches between relative and exact date styles, and ensures
+	/// the preference is saved in the application settings. It also refreshes the current page view to reflect the time style change.
+	/// </remarks>
+	private async void TimeStyle_Click(object sender, RoutedEventArgs e)
+	{
+		UpdateTimeStyle();
+		await _dispatcherQueue.EnqueueAsync(() =>
+		{
+			this.Content = new RecentlyPlayed();
+		});
+	}
+
+	/// <summary>
+	/// Updates the time display style for recently Played songs based on the selected option.
+	/// </summary>
+	/// <remarks>
+	/// This method determines the selected time style from the user interface, updates the display mode accordingly,
+	/// and persists the preference in local settings. It also updates the associated visual icon and tooltip to reflect
+	/// the chosen display style.
+	/// </remarks>
+	private void UpdateTimeStyle()
+	{
+		var timeStyle = TimeFieldStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Time" && item.IsChecked).Select(item => item.Name).FirstOrDefault() ?? "RelativeTimeStyle";
+		IsRelativeDisplayMode = timeStyle == "RelativeTimeStyle";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedSongTimeStyle)] = timeStyle;
+		TimeFieldType.Content = new FontIcon() { Glyph = IsRelativeDisplayMode ? "\uEC92" : "\uE787" };
+		ToolTipService.SetToolTip(TimeFieldType, IsRelativeDisplayMode ? "Relative Time Style" : "Date Style");
+	}
+
+	/// <summary>
+	/// Updates the UI to reflect the previously selected time style for displaying song timestamps.
+	/// </summary>
+	/// <remarks>
+	/// This method reads the user's last saved time style preference from application settings, which is stored under the key
+	/// "RecentlyPlayedSongTimeStyle". Depending on the value retrieved, it checks either the "DateStyle" (exact date display) or
+	/// the "RelativeTimeStyle" (relative time display) option in the user interface. If no preference is saved, the default
+	/// "DateStyle" is selected. After updating the selection, the UI is refreshed by invoking the time style update logic.
+	/// </remarks>
+	private void UpdateAsPerLastTimeStyle()
+	{
+		var timeStyle = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedSongTimeStyle)]?.ToString() ?? "RelativeTimeStyle";
+		switch (timeStyle)
+		{
+			case "DateStyle":
+				DateStyle.IsChecked = true;
+				break;
+
+			case "RelativeTimeStyle":
+			default:
+				RelativeTimeStyle.IsChecked = true;
+				break;
+		}
+		UpdateTimeStyle();
 	}
 }

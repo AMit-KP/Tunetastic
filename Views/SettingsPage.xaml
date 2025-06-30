@@ -24,7 +24,7 @@
 				          Glyph="&#xE8F7;" />
 				<TextBlock x:Name="LibraryTextBlock"
 				           Style="{ThemeResource TitleTextBlockStyle}"
-				           Text="Library" />
+				           Text="Library &amp; PlayLists" />
 			</StackPanel>
 
 			<dev:SettingsExpander Description="Click to view libraries added"
@@ -109,6 +109,34 @@
 						</dev:SettingsCard>
 					</DataTemplate>
 				</dev:SettingsExpander.ItemTemplate>
+			</dev:SettingsExpander>
+
+			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
+			                      Description="Select which Pre-defined Libraries and Playlists to show/hide on Navigation"
+			                      Header="Libraries and Playlists to show">
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard Header="Artists">
+						<ToggleSwitch x:Name="ArtistsToggle" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Header="Albums">
+						<ToggleSwitch x:Name="AlbumsToggle" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Header="Genres">
+						<ToggleSwitch x:Name="GenresToggle" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Header="Years">
+						<ToggleSwitch x:Name="YearsToggle" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Header="Recently Added">
+						<ToggleSwitch x:Name="RecentlyAddedToggle" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Header="Recently Played">
+						<ToggleSwitch x:Name="RecentlyPlayedToggle" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Header="Most Played">
+						<ToggleSwitch x:Name="MostPlayedToggle" />
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
 			<!--  Audio & Playback  -->

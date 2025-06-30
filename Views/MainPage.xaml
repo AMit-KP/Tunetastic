@@ -45,7 +45,7 @@
 			                Grid.Row="1"
 			                IsBackButtonVisible="Collapsed"
 			                IsBackEnabled="False"
-			                IsPaneOpen="False"
+			                IsPaneOpen="True"
 			                IsPaneToggleButtonVisible="False"
 			                ItemInvoked="NavView_ItemInvoked"
 			                SelectionChanged="NavView_SelectionChanged">
@@ -71,17 +71,34 @@
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 			               DefaultButton="Primary"
 			               IsPrimaryButtonEnabled="False"
-			               PrimaryButtonText="Add"
+			               PrimaryButtonText="Create"
 			               SecondaryButtonText="Cancel"
 			               Visibility="Collapsed">
-				<StackPanel>
+				<StackPanel Spacing="10">
 					<TextBox x:Name="PlaylistNameBox"
+					         Width="400"
 					         PlaceholderText="Enter playlist name"
 					         TextChanged="OnPlaylistNameChanged" />
 					<TextBlock x:Name="ErrorMessage"
 					           Foreground="Red"
-					           Text="Playlist name already exists"
-					           Visibility="Collapsed" />
+					           Text=""
+					           TextWrapping="WrapWholeWords" />
+					<StackPanel Width="400"
+					            Orientation="Horizontal"
+					            Spacing="10">
+						<TextBlock x:Name="AddPlaylistDialogDescription"
+						           Width="290"
+						           VerticalAlignment="Center"
+						           TextWrapping="WrapWholeWords">
+							<Run Text="You can also select an existing playlist file." />
+							<LineBreak />
+							<Run Text="Supported formats: M3U, M3U8, PLS, WPL, ZPL" />
+						</TextBlock>
+						<Button Width="100"
+						        Click="BrowseButton_Click"
+						        Content="Browse"
+						        Style="{StaticResource AccentButtonStyle}" />
+					</StackPanel>
 				</StackPanel>
 			</ContentDialog>
 		</Grid>

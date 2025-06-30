@@ -1,7 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Tunetastic.Views.PlaylistViews;
+using WinRT.Interop;
 using AutoSuggestBoxHelper = DevWinUI.AutoSuggestBoxHelper;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
@@ -73,14 +75,11 @@ public sealed partial class MainPage : Page
 		}
 
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
-		if (navService != null)
-		{
-			navService.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
-				.ConfigureDefaultPage(typeof(MainPlayerPage))
-				.ConfigureSettingsPage(typeof(SettingsPage))
-				.ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
-				.ConfigureTitleBar(AppTitleBar);
-		}
+		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
+			.ConfigureDefaultPage(typeof(MainPlayerPage))
+			.ConfigureSettingsPage(typeof(SettingsPage))
+			.ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
+			.ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
 	}
 
@@ -171,15 +170,24 @@ public sealed partial class MainPage : Page
 	/// Displays the dialog for adding a new playlist.
 	/// </summary>
 	/// <remarks>
-	/// This method triggers the `AddPlaylistDialog` to become visible and sets its theme based on the current application theme.
-	/// It clears any existing text in the input box, loads custom playlists from persistent storage,
-	/// and upon user confirmation, adds the new playlist name to the current list and saves it back to storage.
+	/// This asynchronous method makes the `AddPlaylistDialog` visible and configures its properties,
+	/// including the theme, primary button's state, and description text. It resets the input field,
+	/// prepares any accompanying UI elements, and retrieves the existing playlist names from persistent storage.
+	/// Upon user confirmation, it validates and handles the creation or addition of a new playlist.
 	/// </remarks>
 	private async void ShowAddPlaylistDialog()
 	{
 		AddPlaylistDialog.Visibility = Visibility.Visible;
 		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
 		PlaylistNameBox.Text = string.Empty;
+		ErrorMessage.Text = "";
+		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
+		var desc = new TextBlock();
+		desc.Inlines.Add(new Run() { Text = "You can also select an existing playlist file." });
+		desc.Inlines.Add(new LineBreak());
+		desc.Inlines.Add(new Run() { Text = "Supported formats: M3U, M3U8, PLS, WPL, ZPL" });
+		AddPlaylistDialogDescription.Text = desc.Text;
+		AddPlaylistDialog.PrimaryButtonText = "Create";
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
@@ -190,33 +198,47 @@ public sealed partial class MainPage : Page
 			{
 				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
 			}
+			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
+			{
+				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
+			}
 		}
 		playLists = null;
 	}
 
 	/// <summary>
-	/// Handles changes to the playlist name entered in the input box.
+	/// Handles the event triggered when the text in the playlist name input box changes.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the TextBox control.</param>
-	/// <param name="e">Provides data for the event when the text in the TextBox changes.</param>
+	/// <param name="sender">The object that raised the event, typically the PlaylistNameBox TextBox control.</param>
+	/// <param name="e">Arguments that describe the change in the text content of the TextBox.</param>
 	/// <remarks>
-	/// This method checks if the entered playlist name already exists in the list of playlists.
-	/// If it exists, it displays an error message and disables the "Add" button in the dialog.
-	/// Otherwise, it hides the error message and enables the "Add" button if the input is not empty or whitespace.
+	/// This method validates the input for the playlist name based on several criteria, such as:
+	/// ensuring the name is not empty,
+	/// avoiding reserved system names,
+	/// disallowing invalid characters,
+	/// checking for maximum length, and
+	/// verifying that the name does not already exist in the list of playlists.
+	/// If validation fails, an appropriate error message will be displayed and the "Add" button
+	/// in the playlist creation dialog will be disabled. Otherwise, the "Add" button will be enabled.
 	/// </remarks>
 	private void OnPlaylistNameChanged(object sender, TextChangedEventArgs e)
 	{
-		if (playLists != null && playLists.Contains(PlaylistNameBox.Text.Trim()))
-		{
-			ErrorMessage.Visibility = Visibility.Visible;
-			AddPlaylistDialog.IsPrimaryButtonEnabled = false;
-		}
-		else
-		{
-			ErrorMessage.Visibility = Visibility.Collapsed;
-			AddPlaylistDialog.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(PlaylistNameBox.Text.Trim());
-		}
+		string name = PlaylistNameBox.Text.Trim();
+		ErrorMessage.Text = "";
+		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
 
+		ErrorMessage.Text = name switch
+		{
+			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
+			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
+			_ when name.Length > 255 => "Name is too long",
+			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ => ""
+		};
+
+		AddPlaylistDialog.IsPrimaryButtonEnabled = ErrorMessage.Text == "";
 	}
 
 	/// <summary>
@@ -323,8 +345,172 @@ public sealed partial class MainPage : Page
 	/// such as dynamically adding playlists to the navigation menu through the AddPlayLists method.
 	/// It ensures that the page is adequately prepared for user interaction upon loading.
 	/// </remarks>
-	private void Page_Loaded(object sender, RoutedEventArgs e)
+	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		AddPlayLists();
+		HidePreDefinedPlayLists();
+		HidePreDefinedLibraries();
+		await Task.Delay(1000);
+		NavView.IsPaneOpen = false;
+	}
+
+	/// <summary>
+	/// Hides predefined library views based on the user's saved preferences.
+	/// </summary>
+	/// <remarks>
+	/// This method retrieves the library visibility preferences stored in application settings and hides the corresponding libraries in the UI.
+	/// It checks whether libraries such as "Artists", "Albums", "Genres", and "Years" are enabled, and if not, calls the <c>HideLibrary</c> method to remove them from view.
+	/// </remarks>
+	private void HidePreDefinedLibraries()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.ArtistsEnabled)]?.ToString() ?? "true")) HideLibrary("Artists");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.AlbumsEnabled)]?.ToString() ?? "true")) HideLibrary("Albums");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.GenresEnabled)]?.ToString() ?? "true")) HideLibrary("Genres");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true")) HideLibrary("Years");
+	}
+
+	/// <summary>
+	/// Hides predefined playlists based on user preferences stored in application settings.
+	/// </summary>
+	/// <remarks>
+	/// This method checks the local application settings to determine which predefined playlists
+	/// (e.g., "Recently Added", "Recently Played", "Most Played") should be hidden. If the corresponding
+	/// settings indicate that a playlist is disabled, it invokes the <c>HidePlayList</c> method to hide the playlist.
+	/// </remarks>
+	private void HidePreDefinedPlayLists()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)]?.ToString() ?? "true")) HidePlayList("Recently Added");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true")) HidePlayList("Recently Played");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.MostPlayedEnabled)]?.ToString() ?? "true")) HidePlayList("Most Played");
+	}
+
+	/// <summary>
+	/// Hides a specific library from the application's navigation view.
+	/// </summary>
+	/// <param name="libraryName">
+	/// The name of the library to be hidden. This should correspond to the tag of the navigation item representing the library.
+	/// </param>
+	/// <remarks>
+	/// This method attempts to locate the navigation item corresponding to the specified library in the application's navigation menu and sets its visibility to collapsed.
+	/// It also removes the associated page from the navigation history.
+	/// In case of an exception during this process, the method retries after a brief delay.
+	/// </remarks>
+	private async void HideLibrary(string libraryName)
+	{
+		try
+		{
+			var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+			var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.{libraryName}ViewPage");
+			if (libraryNavigationItem != null) libraryNavigationItem.Visibility = Visibility.Collapsed;
+			RemovePageFromHistory(libraryName);
+		}
+		catch (Exception)
+		{
+			await Task.Delay(100);
+			HideLibrary(libraryName);
+		}
+	}
+
+	/// <summary>
+	/// Hides the specified playlist from the navigation menu.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist to be hidden.</param>
+	/// <remarks>
+	/// This method locates the specified playlist in the navigation menu and sets its visibility to collapsed.
+	/// It also removes the playlist's page from the navigation history.
+	/// If an exception occurs, a retry mechanism is implemented with a delay.
+	/// </remarks>
+	private async void HidePlayList(string playlistName)
+	{
+		try
+		{
+			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+			var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.PlaylistViews.{playlistName.Replace(" ", "")}");
+			if (playListNavigationItem != null) playListNavigationItem.Visibility = Visibility.Collapsed;
+			RemovePageFromHistory(playlistName);
+		}
+		catch (Exception)
+		{
+			await Task.Delay(100);
+			HidePlayList(playlistName);
+		}
+	}
+
+	/// <summary>
+	/// Removes a specified page from the navigation history.
+	/// </summary>
+	/// <param name="pageName">
+	/// The name of the page to be removed from the navigation backstack. This should match the parameter used when the page was originally navigated to.
+	/// </param>
+	/// <remarks>
+	/// This method iterates through the navigation backstack and removes any e Imntry that matches the provided page name.
+	/// This is typically used to ensure that certain pages are not accessible via the back navigation once they are hidden or disabled in the UI.
+	/// </remarks>
+	public async void RemovePageFromHistory(string pageName)
+	{
+		var history = NavFrame.BackStack;
+		for (int i = history.Count - 1; i >= 0; i--)
+		{
+			if (history[i].Parameter.ToString() == pageName)
+			{
+				history.RemoveAt(i);
+			}
+		}
+	}
+
+	/// <summary>
+	/// A collection of file paths corresponding to songs in the currently processed playlist.
+	/// </summary>
+	/// <remarks>
+	/// This property holds a list of song paths that are selected from a playlist file during the import operation.
+	/// It is primarily used when creating or updating a playlist to store the songs extracted from the imported playlist file.
+	/// The content of this list gets updated dynamically based on user actions, such as importing a playlist through a file picker.
+	/// </remarks>
+	private List<string> PlaylistFileSongs { get; } = new();
+
+	/// <summary>
+	/// Handles the click event of the Browse button within the Add Playlist dialog.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the Browse button.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	/// <remarks>
+	/// This method opens a file picker for the user to select a playlist file. It filters the file types to common playlist formats
+	/// such as `.m3u`, `.m3u8`, `.pls`, `.wpl`, and `.zpl`. Once a file is selected, the method imports playlist details, including the
+	/// name, total track count, and list of tracks found in the user's library. The imported information is then populated in the
+	/// Add Playlist dialog for confirmation or further action by the user.
+	/// </remarks>
+	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
+	{
+		//TODO: Drag n Drop
+		//TODO: Add playlist from anywhere in file explorer
+		var picker = new FilePicker(WindowNative.GetWindowHandle(App.MainWindow));
+		picker.FileTypeChoices = new Dictionary<string, IList<string>>
+		{
+			{ "Playlists", new List<string> { "*.m3u", "*.m3u8", "*.pls", "*.wpl", "*.zpl" } },
+		};
+		picker.ShowAllFilesOption = false;
+
+		var file = await picker.PickSingleFileAsync();
+		if (file != null)
+		{
+			var (name, totalcount, songList) = await ImportExportPlaylist.ImportData(file.Path);
+
+			var desc = new TextBlock();
+			desc.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
+			desc.Inlines.Add(new LineBreak());
+			desc.Inlines.Add(new Run() { Text = $"Playlist: {file.Path}" });
+			desc.Inlines.Add(new LineBreak());
+			desc.Inlines.Add(new Run() { Text = $"Tracks: {songList.Count} out of {totalcount} found in library" });
+
+			PlaylistNameBox.Text = name;
+			AddPlaylistDialogDescription.Text = desc.Text;
+			AddPlaylistDialog.PrimaryButtonText = "Add Playlist";
+			PlaylistFileSongs.Clear();
+			PlaylistFileSongs.AddRange(songList);
+		}
 	}
 }
