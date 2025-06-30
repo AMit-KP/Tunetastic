@@ -179,10 +179,6 @@ public sealed partial class MainPlayerPage : Page
 		//TODO add others later
 		switch (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString())
 		{
-			case "AllSongsViewPage":
-				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
-				break;
-
 			case "MostPlayed":
 				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.PlaylistViews.MostPlayed");
 				break;
@@ -197,6 +193,11 @@ public sealed partial class MainPlayerPage : Page
 
 			case var playlist when playlist?.StartsWith("CustomPlaylist__") == true:
 				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.PlaylistViews." + Regex.Replace(playlist.Substring("CustomPlaylist__".Length), @"\s+", "_") + "CustomPlaylist");
+				break;
+
+			case "AllSongsViewPage":
+			default:
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 				break;
 		}
 	}
