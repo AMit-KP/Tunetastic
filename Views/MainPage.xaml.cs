@@ -1,7 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Tunetastic.Views.PlaylistViews;
+using WinRT.Interop;
 using AutoSuggestBoxHelper = DevWinUI.AutoSuggestBoxHelper;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
@@ -168,9 +170,10 @@ public sealed partial class MainPage : Page
 	/// Displays the dialog for adding a new playlist.
 	/// </summary>
 	/// <remarks>
-	/// This method triggers the `AddPlaylistDialog` to become visible and sets its theme based on the current application theme.
-	/// It clears any existing text in the input box, loads custom playlists from persistent storage,
-	/// and upon user confirmation, adds the new playlist name to the current list and saves it back to storage.
+	/// This asynchronous method makes the `AddPlaylistDialog` visible and configures its properties,
+	/// including the theme, primary button's state, and description text. It resets the input field,
+	/// prepares any accompanying UI elements, and retrieves the existing playlist names from persistent storage.
+	/// Upon user confirmation, it validates and handles the creation or addition of a new playlist.
 	/// </remarks>
 	private async void ShowAddPlaylistDialog()
 	{
@@ -179,6 +182,12 @@ public sealed partial class MainPage : Page
 		PlaylistNameBox.Text = string.Empty;
 		ErrorMessage.Text = "";
 		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
+		var desc = new TextBlock();
+		desc.Inlines.Add(new Run() { Text = "You can also select an existing playlist file." });
+		desc.Inlines.Add(new LineBreak());
+		desc.Inlines.Add(new Run() { Text = "Supported formats: M3U, M3U8, PLS, WPL, ZPL" });
+		AddPlaylistDialogDescription.Text = desc.Text;
+		AddPlaylistDialog.PrimaryButtonText = "Create";
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
@@ -188,6 +197,10 @@ public sealed partial class MainPage : Page
 			if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
 			{
 				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
+			}
+			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
+			{
+				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
 			}
 		}
 		playLists = null;
@@ -434,7 +447,7 @@ public sealed partial class MainPage : Page
 	/// The name of the page to be removed from the navigation backstack. This should match the parameter used when the page was originally navigated to.
 	/// </param>
 	/// <remarks>
-	/// This method iterates through the navigation backstack and removes any entry that matches the provided page name.
+	/// This method iterates through the navigation backstack and removes any e Imntry that matches the provided page name.
 	/// This is typically used to ensure that certain pages are not accessible via the back navigation once they are hidden or disabled in the UI.
 	/// </remarks>
 	public async void RemovePageFromHistory(string pageName)
@@ -446,6 +459,58 @@ public sealed partial class MainPage : Page
 			{
 				history.RemoveAt(i);
 			}
+		}
+	}
+
+	/// <summary>
+	/// A collection of file paths corresponding to songs in the currently processed playlist.
+	/// </summary>
+	/// <remarks>
+	/// This property holds a list of song paths that are selected from a playlist file during the import operation.
+	/// It is primarily used when creating or updating a playlist to store the songs extracted from the imported playlist file.
+	/// The content of this list gets updated dynamically based on user actions, such as importing a playlist through a file picker.
+	/// </remarks>
+	private List<string> PlaylistFileSongs { get; } = new();
+
+	/// <summary>
+	/// Handles the click event of the Browse button within the Add Playlist dialog.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the Browse button.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	/// <remarks>
+	/// This method opens a file picker for the user to select a playlist file. It filters the file types to common playlist formats
+	/// such as `.m3u`, `.m3u8`, `.pls`, `.wpl`, and `.zpl`. Once a file is selected, the method imports playlist details, including the
+	/// name, total track count, and list of tracks found in the user's library. The imported information is then populated in the
+	/// Add Playlist dialog for confirmation or further action by the user.
+	/// </remarks>
+	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
+	{
+		//TODO: Drag n Drop
+		//TODO: Add playlist from anywhere in file explorer
+		var picker = new FilePicker(WindowNative.GetWindowHandle(App.MainWindow));
+		picker.FileTypeChoices = new Dictionary<string, IList<string>>
+		{
+			{ "Playlists", new List<string> { "*.m3u", "*.m3u8", "*.pls", "*.wpl", "*.zpl" } },
+		};
+		picker.ShowAllFilesOption = false;
+
+		var file = await picker.PickSingleFileAsync();
+		if (file != null)
+		{
+			var (name, totalcount, songList) = await ImportExportPlaylist.ImportData(file.Path);
+
+			var desc = new TextBlock();
+			desc.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
+			desc.Inlines.Add(new LineBreak());
+			desc.Inlines.Add(new Run() { Text = $"Playlist: {file.Path}" });
+			desc.Inlines.Add(new LineBreak());
+			desc.Inlines.Add(new Run() { Text = $"Tracks: {songList.Count} out of {totalcount} found in library" });
+
+			PlaylistNameBox.Text = name;
+			AddPlaylistDialogDescription.Text = desc.Text;
+			AddPlaylistDialog.PrimaryButtonText = "Add Playlist";
+			PlaylistFileSongs.Clear();
+			PlaylistFileSongs.AddRange(songList);
 		}
 	}
 }

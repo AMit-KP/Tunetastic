@@ -166,4 +166,113 @@ public static class ImportExportPlaylist
 		);
 		doc.Save(path);
 	}
+
+	/// <summary>
+	/// Imports a playlist from the specified file and filters its tracks to include only those
+	/// available in the library.
+	/// </summary>
+	/// <param name="filePath">The full path to the playlist file to be imported.</param>
+	/// <returns>
+	/// A tuple containing the playlist name, the total number of tracks in the file,
+	/// and a list of tracks that exist in the library.
+	/// </returns>
+	public static async Task<(string name, int totalTrackCount, List<string> trackInLibrary)> ImportData(string filePath)
+	{
+		try
+		{
+			if (!File.Exists(filePath))
+				GlobalNotification.Error($"Playlist file {filePath} not found.");
+
+			List<string> allTracks = new();
+			await Task.Run(() =>
+			{
+				allTracks = GetTrackPaths(filePath);
+			});
+
+			if (allTracks.Count == 0)
+				GlobalNotification.Error("No valid tracks found in the playlist.");
+
+			var filteredTracks = await DatabaseHelper.Instance.FilterExistingSongs(allTracks);
+
+			var name = Path.GetFileNameWithoutExtension(filePath);
+			return (name, allTracks.Count, filteredTracks);
+		}
+		catch (Exception)
+		{
+			GlobalNotification.Error("Failed to import playlist.");
+			return ("", 0, new List<string>());
+		}
+	}
+
+	/// <summary>
+	/// Retrieves a list of track paths from a playlist file based on its format.
+	/// </summary>
+	/// <param name="filePath">The file path of the playlist to parse.</param>
+	/// <returns>A list of strings representing the paths of tracks contained in the playlist.</returns>
+	private static List<string> GetTrackPaths(string filePath)
+	{
+		var ext = Path.GetExtension(filePath).ToLowerInvariant();
+
+		return ext switch
+		{
+			".m3u" or ".m3u8" => ParseM3U(filePath),
+			".pls" => ParsePLS(filePath),
+			".wpl" => ParseWPL(filePath),
+			".zpl" => ParseZPL(filePath),
+		};
+	}
+
+	/// <summary>
+	/// Parses an M3U or M3U8 playlist file and extracts the list of track file paths.
+	/// </summary>
+	/// <param name="filePath">The full path to the M3U or M3U8 playlist file to be parsed.</param>
+	/// <returns>A list of strings containing file paths specified in the playlist.</returns>
+	private static List<string> ParseM3U(string filePath)
+	{
+		return File.ReadLines(filePath)
+					.Where(line => !string.IsNullOrWhiteSpace(line) && !line.StartsWith("#"))
+					.Select(line => line.Trim())
+					.ToList();
+	}
+
+	/// <summary>
+	/// Parses a PLS file and extracts track file paths from it.
+	/// </summary>
+	/// <param name="filePath">The full file path of the PLS file to be parsed.</param>
+	/// <returns>A list of file paths representing the tracks defined in the PLS file.</returns>
+	private static List<string> ParsePLS(string filePath)
+	{
+		return File.ReadLines(filePath)
+					.Where(line => line.StartsWith("File", StringComparison.OrdinalIgnoreCase))
+					.Select(line => line.Split('=', 2)[1].Trim())
+					.ToList();
+	}
+
+	/// <summary>
+	/// Parses a Windows Media Player Playlist (WPL) file and retrieves the file paths of the media items within it.
+	/// </summary>
+	/// <param name="filePath">The full file path of the WPL file to be parsed.</param>
+	/// <returns>A list of file paths representing the media items contained in the WPL playlist.</returns>
+	private static List<string?> ParseWPL(string filePath)
+	{
+		var doc = XDocument.Load(filePath);
+		return doc.Descendants("media")
+					.Select(x => x.Attribute("src")?.Value)
+					.Where(src => !string.IsNullOrWhiteSpace(src))
+					.ToList();
+	}
+
+	/// <summary>
+	/// Parses a ZPL playlist file and extracts the list of track file paths.
+	/// </summary>
+	/// <param name="filePath">The full file path of the ZPL file to be parsed.</param>
+	/// <returns>A list of strings representing the file paths of the tracks contained in the playlist.</returns>
+	private static List<string?> ParseZPL(string filePath)
+	{
+		var doc = XDocument.Load(filePath);
+		return doc.Descendants("media")
+				.Select(x => x.Attribute("src")?.Value)
+				.Where(src => !string.IsNullOrWhiteSpace(src))
+				.ToList();
+	}
 }

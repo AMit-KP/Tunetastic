@@ -242,6 +242,29 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Filters the provided list of file paths to include only those that exist in the database.
+	/// This method checks the `Songs` table in the database for paths matching the given list
+	/// and returns only the paths that are found in the database.
+	/// </summary>
+	/// <param name="paths">A list of file paths to be filtered. The list may contain paths that may or may not exist in the database.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The result contains a list of file paths that exist in the database.
+	/// </returns>
+	public async Task<List<string>> FilterExistingSongs(List<string> paths)
+	{
+		if (paths == null || paths.Count == 0)
+			return new List<string>();
+
+		string placeholders = string.Join(", ", paths.Select(_ => "?"));
+		string query = $"SELECT Path FROM Songs WHERE Path IN ({placeholders})";
+
+		var existing = await _database.QueryAsync<Song>(query, paths.Cast<object>().ToArray());
+		var existingSet = existing.Select(s => s.Path).ToHashSet();
+
+		return paths.Where(p => existingSet.Contains(p)).ToList();
+	}
+
+	/// <summary>
 	/// Increments the play count of a song in the database.
 	/// This method updates the `PlayCount` field of the song record
 	/// corresponding to the specified file path by adding one to its current value.
@@ -643,7 +666,7 @@ public class DatabaseHelper
 	/// </param>
 	/// <returns>
 	/// A task representing the asynchronous operation of repositioning the song in the queue.
-	/// </
+	/// </returns>
 	public async Task MoveQueueItemToBottom(string path)
 	{
 		var currentRow = await _database.QueryAsync<(int Id, int Position)>("SELECT Id, Position FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1", path);
