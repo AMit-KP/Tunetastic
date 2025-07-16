@@ -70,4 +70,5 @@ public enum LocalSave
 	RecentlyAddedEnabled,
 	RecentlyPlayedEnabled,
 	MostPlayedEnabled,
+	YearsViewSortOrder,
 }
