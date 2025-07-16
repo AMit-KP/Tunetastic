@@ -197,10 +197,12 @@ public sealed partial class MainPage : Page
 			if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
 			{
 				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
+				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created successfully.");
 			}
 			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
 			{
 				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
+				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist added successfully with {PlaylistFileSongs.Count} song{(PlaylistFileSongs.Count > 1 ? "s" : "")}.");
 			}
 		}
 		playLists = null;

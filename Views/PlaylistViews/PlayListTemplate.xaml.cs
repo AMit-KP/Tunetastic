@@ -7,9 +7,13 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.PlaylistViews;
+
 /// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
+/// Represents a page designed to display and manage a playlist within the application.
 /// </summary>
+/// <remarks>
+/// Provides functionality to handle playlist data, including initialization, navigation events, and managing playlist content.
+/// </remarks>
 public sealed partial class PlayListTemplate : Page
 {
 	/// <summary>
