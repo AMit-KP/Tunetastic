@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.14.99.1285</AssemblyVersion>
-    <FileVersion>1.14.99.1285</FileVersion>
+    <AssemblyVersion>1.14.126.1312</AssemblyVersion>
+    <FileVersion>1.14.126.1312</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -114,6 +114,7 @@
     <None Remove="Views\LibraryViews\AlbumsViewPage.xaml" />
     <None Remove="Views\LibraryViews\ArtistsViewPage.xaml" />
     <None Remove="Views\LibraryViews\GenresViewPage.xaml" />
+    <None Remove="Views\LibraryViews\YearDetailPage.xaml" />
     <None Remove="Views\LibraryViews\YearsViewPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\PlaylistViews\MostPlayed.xaml" />
@@ -171,9 +172,9 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Triggers" Version="8.2.250402" />
     <PackageReference Include="Config.Net" Version="5.2.1" />
-    <PackageReference Include="DevWinUI" Version="8.5.0" />
+    <PackageReference Include="DevWinUI" Version="8.6.0" />
     <PackageReference Include="DevWinUI.ContextMenu" Version="8.3.0" />
-    <PackageReference Include="DevWinUI.Controls" Version="8.5.0" />
+    <PackageReference Include="DevWinUI.Controls" Version="8.6.0" />
     <PackageReference Include="Downloader" Version="4.0.2" />
     <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
@@ -204,6 +205,9 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Page Update="Views\LibraryViews\YearDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Views\PlaylistViews\RelativeTimeTextBlock.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
