@@ -726,6 +726,29 @@ public class DatabaseHelper
 
 		return result.ToList();
 	}
+
+	/// <summary>
+	/// Retrieves a list of songs grouped by their genres from the database.
+	/// The method aggregates songs based on their genre, calculates the total count
+	/// and total duration for each genre, and groups them accordingly.
+	/// Genres with the value 'Unknown Genre' are handled as 'Unknown'.
+	/// </summary>
+	/// <param name="ascending">A boolean indicating whether the genres should be ordered alphabetically in ascending order. Defaults to true.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains
+	/// a list of <see cref="GenreModel"/> objects where each object represents a genre,
+	/// its count, and the total duration of songs in that genre.
+	/// </returns>
+	public async Task<List<GenreModel>> GetSongsGroupedByGenre(bool ascending = true)
+	{
+		var result = await _database.QueryAsync<GenreModel>(@$"SELECT CASE WHEN TRIM(Genre) = 'Unknown Genre' THEN 'Unknown' ELSE Genre END AS Genre, COUNT(*) AS Count, SUM(Duration) AS TotalDuration
+															   FROM Songs
+															   WHERE Genre IS NOT NULL AND TRIM(Genre) != ''
+															   GROUP BY Genre
+															   ORDER BY Genre {(ascending ? "ASC" : "DESC")}");
+
+		return result.ToList();
+	}
 }
 
 /// <summary>
@@ -764,13 +787,26 @@ public class PlaylistName
 }
 
 /// <summary>
-/// Represents aggregated data for a specific year in the song database.
-/// This model encapsulates the year, the count of songs associated with that year,
-/// and the total duration of those songs.
+/// Represents data aggregation for a specific year, used for displaying and managing
+/// year-based song statistics within the Tunetastic application.
+/// This model includes properties to represent the year, the number of songs recorded
+/// for that year, and the total playback duration of those songs.
 /// </summary>
 public class YearModel
 {
 	public string Year { get; set; }
+	public int Count { get; set; }
+	public double TotalDuration { get; set; }
+}
+
+/// <summary>
+/// Represents a data model for a music genre. This model includes information about
+/// the genre name, total count of songs in the genre, and the cumulative duration of all songs
+/// within the genre. It is commonly used in operations or views related to genre-based song grouping in the application.
+/// </summary>
+public class GenreModel
+{
+	public string Genre { get; set; }
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
 }

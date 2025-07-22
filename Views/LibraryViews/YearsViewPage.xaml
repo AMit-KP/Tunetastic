@@ -62,7 +62,7 @@
 			<TextBlock HorizontalAlignment="Left"
 			           Style="{ThemeResource TitleTextBlockStyle}"
 			           Text="Years"
-			           ToolTipService.ToolTip="All songs/tracks will grouped as years and be displayed here" />
+			           ToolTipService.ToolTip="All songs/tracks will grouped by years and displayed here" />
 
 			<StackPanel x:Name="PageButtons"
 			            HorizontalAlignment="Right"
