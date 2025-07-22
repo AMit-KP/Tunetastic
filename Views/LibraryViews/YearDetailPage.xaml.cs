@@ -3,30 +3,19 @@ using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Tunetastic.Views.LibraryViews;
 
 /// <summary>
-/// Represents a page in the application that displays a collection of all available songs.
+/// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
-/// <remarks>
-/// This class is a part of the library view system in the application and is designed to work with the application's song data.
-/// It initializes a collection of songs upon construction and provides functionality to load the song collection as a playlist for playback.
-/// </remarks>
-public sealed partial class AllSongsViewPage : Page
+public sealed partial class YearDetailPage : Page
 {
 	/// <summary>
-	/// Gets or sets the collection of all songs available in the application.
+	/// Gets or sets the collection of songs that are added to the respective playlist.
 	/// </summary>
-	/// <remarks>
-	/// The <c>AllSongs</c> property holds an observable collection of <c>Song</c> objects, representing the full list
-	/// of songs loaded from the application's data source. This property is primarily used to populate the user interface
-	/// and manage interactions with the song list.
-	/// The collection is initialized and populated when the page instance is created. This property is also bound to
-	/// the <c>ListView</c> in the associated XAML to display the songs in the UI, allowing users to interact with
-	/// individual items.
-	/// </remarks>
-	public ObservableCollection<Song> AllSongs
+	public ObservableCollection<Song> YearGroupSongs
 	{
 		get; set;
 	} = new();
@@ -34,19 +23,82 @@ public sealed partial class AllSongsViewPage : Page
 	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
 
-	/// <summary>
-	/// Represents a page for displaying and managing all available songs in the application.
-	/// </summary>
-	/// <remarks>
-	/// This class is responsible for initializing and displaying a collection of songs. It provides functionalities
-	/// such as managing the song list and integrating it as a playlist for playback. The page's content is dynamically
-	/// updated through asynchronous operations.
-	/// </remarks>
-	public AllSongsViewPage()
+	public YearDetailPage()
 	{
 		this.InitializeComponent();
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 		_ = CheckScanning();
+	}
+
+	/// <summary>
+	/// Called when the page is navigated to. Handles the setup of the year group header and its associated animation.
+	/// </summary>
+	/// <param name="e">Navigation event arguments containing the year parameter passed during navigation</param>
+	/// <remarks>
+	/// This override performs three main tasks:
+	/// <br/>
+	/// 1. Sets the year group header text based on the navigation parameter
+	/// <br/>
+	/// 2. Applies a connected animation to the year header for smooth visual transitions
+	/// <br/>
+	/// 3. Triggers the year selection in the navigation
+	/// <br/>
+	/// <br/>
+	/// The year parameter is expected to be passed during navigation, where "Unknown" is handled as a special case
+	/// and displayed as "Unknown Year".
+	/// </remarks>
+	protected override async void OnNavigatedTo(NavigationEventArgs e)
+	{
+		ActualYearGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Year" : e.Parameter.ToString());
+		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("YearHeaderAnimation");
+
+		if (animation != null)
+		{
+			await ActualYearGroup.DispatcherQueue.EnqueueAsync(() =>
+			{
+				animation.TryStart(ActualYearGroup);
+			});
+		}
+
+		SelectYearOnNavigation();
+	}
+
+	/// <summary>
+	/// Handles the navigation animation and visibility when navigating away from the current page.
+	/// </summary>
+	/// <param name="e">Navigation event arguments containing information about the navigation.</param>
+	/// <remarks>
+	/// This method performs two main tasks:
+	/// <br/>
+	/// 1. Prepares a connected animation for the year header to maintain visual continuity
+	/// <br/>
+	/// 2. Handles the visibility transition of the ActualYearGroup element:
+	/// <br/>
+	///    - When navigating to YearsViewPage: Applies a fade-out animation
+	/// <br/>
+	///    - For other destinations: Immediately collapses the element
+	/// </remarks>
+	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+	{
+		ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimationBack", ActualYearGroup);
+		if (e.SourcePageType.Name == "YearsViewPage")
+		{
+			var fadeOut = new DoubleAnimation
+			{
+				To = 0,
+				Duration = TimeSpan.FromMilliseconds(30),
+				FillBehavior = FillBehavior.Stop
+			};
+			Storyboard.SetTarget(fadeOut, ActualYearGroup);
+			Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+			var sb = new Storyboard();
+			sb.Children.Add(fadeOut);
+			sb.Completed += (_, __) => ActualYearGroup.Visibility = Visibility.Collapsed;
+			sb.Begin();
+		}
+		else
+			ActualYearGroup.Visibility = Visibility.Collapsed;
 	}
 
 	/// <summary>
@@ -64,8 +116,8 @@ public sealed partial class AllSongsViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
-		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-		AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
+		YearDetailListViewGrid.Visibility = Visibility.Collapsed;
+		YearDetailCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -95,7 +147,7 @@ public sealed partial class AllSongsViewPage : Page
 			LoadingProgress.Visibility = Visibility.Collapsed;
 			await _dispatcherQueue.EnqueueAsync(() =>
 			{
-				this.Content = new AllSongsViewPage();
+				this.Content = new YearDetailPage();
 			});
 			return;
 		}
@@ -104,7 +156,6 @@ public sealed partial class AllSongsViewPage : Page
 		{
 			GoToSettings.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Visible;
-			SortDropDown.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Visible;
 			UpdateAsPerLastViewStyle();
 			UpdateAsPerLastSorting();
@@ -112,7 +163,7 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Updates the sorting preferences for the song list displayed on the AllSongsViewPage.
+	/// Updates the sorting preferences for the song list displayed on the YearDetailViewPage.
 	/// </summary>
 	/// <remarks>
 	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
@@ -122,8 +173,8 @@ public sealed partial class AllSongsViewPage : Page
 	private void UpdateAsPerLastSorting()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var sortBy = localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title";
-		var sortOrder = localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending";
+		var sortBy = localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title";
+		var sortOrder = localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending";
 		switch (sortBy)
 		{
 			case "Artists":
@@ -168,7 +219,7 @@ public sealed partial class AllSongsViewPage : Page
 	private void UpdateAsPerLastViewStyle()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var viewStyle = localSettings.Values[nameof(LocalSave.AllSongViewStyle)]?.ToString() ?? "Compact View";
+		var viewStyle = localSettings.Values[nameof(LocalSave.YearDetailViewStyle)]?.ToString() ?? "Compact View";
 		switch (viewStyle)
 		{
 			case "List View":
@@ -201,19 +252,19 @@ public sealed partial class AllSongsViewPage : Page
 		switch (viewStyle)
 		{
 			case "List View":
-				AllSongsListViewGrid.Visibility = Visibility.Visible;
-				AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
+				YearDetailListViewGrid.Visibility = Visibility.Visible;
+				YearDetailCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
-				AllSongsListViewGrid.Visibility = Visibility.Collapsed;
-				AllSongsCompactViewGrid.Visibility = Visibility.Visible;
+				YearDetailListViewGrid.Visibility = Visibility.Collapsed;
+				YearDetailCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AllSongViewStyle)] = viewStyle;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.YearDetailViewStyle)] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
 		ToolTipService.SetToolTip(ViewButton, viewStyle);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
@@ -240,24 +291,24 @@ public sealed partial class AllSongsViewPage : Page
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
 
-		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(Enum.Parse<SongProperty>(sortBy), AscOrder);
-		AllSongs.Clear();
-		AllSongs.AddRange(newList);
+		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(sortBy), ascending: AscOrder, whereCondition: $"{SongProperty.Year.ToString()} = '{ActualYearGroup.Text}'");
+		YearGroupSongs.Clear();
+		YearGroupSongs.AddRange(newList);
 		newList = null;
 
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 			case "Artists":
-				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 			case "Album":
-				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 		}
 
@@ -276,14 +327,13 @@ public sealed partial class AllSongsViewPage : Page
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
 
-		song = AllSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
-
+		song = YearGroupSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
 		await ScrollToSong(song);       //somehow this doesn't work
 		await Task.Delay(1000);
 		await ScrollToSong(song);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
-		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
+		localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)] = sortBy;
+		localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)] = orderBy;
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
@@ -304,14 +354,14 @@ public sealed partial class AllSongsViewPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		return viewStyle switch
 		{
-			"List View" => AllSongsListView,
-			"Compact View" => AllSongsCompactView,
-			_ => AllSongsCompactView
+			"List View" => YearDetailListView,
+			"Compact View" => YearDetailCompactView,
+			_ => YearDetailCompactView
 		};
 	}
 
 	/// <summary>
-	/// Handles the ItemClick event for the ListView control in the AllSongsViewPage.
+	/// Handles the ItemClick event for the ListView control in the YearDetailViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ListView control.</param>
 	/// <param name="e">Provides data for the ItemClick event, including the clicked item.</param>
@@ -323,9 +373,9 @@ public sealed partial class AllSongsViewPage : Page
 	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		var track = e.ClickedItem as Song;
-		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = YearGroupSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"YearGroup>{ActualYearGroup.Text}";
 	}
 
 	/// <summary>
@@ -344,16 +394,16 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the AllSongsViewPage.
+	/// Handles the Loaded event for the YearDetailViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the page itself.</param>
 	/// <param name="e">The event data associated with the Loaded event.</param>
 	/// <remarks>
-	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AllSongsViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "YearDetailViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
-		while (AllSongs == null || AllSongs.Count == 0)
+		while (YearGroupSongs == null || YearGroupSongs.Count == 0)
 		{
 			await Task.Delay(100);
 		}
@@ -361,19 +411,20 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "AllSongsViewPage".
+	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "YearDetailViewPage".
 	/// </summary>
 	/// <remarks>
-	/// This method checks the local application settings to determine if the "AllSongsViewPage" is the active playlist.
+	/// This method checks the local application settings to determine if the "YearDetailViewPage" is the active playlist.
 	/// If it is, the method retrieves the last played track based on its path from the saved settings and attempts to scroll
 	/// the page to that specific song within the song collection.
 	/// </remarks>
 	private void ScrollToCurrentPlayingTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AllSongsViewPage")
+		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("YearGroup>") && currentPlaylist.Substring("YearGroup>".Length) == ActualYearGroup.Text)
 		{
-			var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+			var SelectedSong = YearGroupSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
 		}
 	}
@@ -387,10 +438,10 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		await UpdateListBasedOnSorting();
 		await AdjustAlphabetSize();
-
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AllSongsViewPage")
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("YearGroup>") && currentPlaylist.Substring("YearGroup>".Length) == ActualYearGroup.Text)
 		{
-			List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+			List<string> songPaths = YearGroupSongs.Select(s => s.Path).ToList();
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 	}
@@ -428,14 +479,14 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = YearGroupSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"YearGroup>{ActualYearGroup.Text}";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-		var SelectedSong = AllSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		var SelectedSong = YearGroupSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
 		await ScrollToSong(SelectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(SelectedSong);
@@ -456,11 +507,11 @@ public sealed partial class AllSongsViewPage : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = YearGroupSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"YearGroup>{ActualYearGroup.Text}";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
-		await ScrollToSong(AllSongs[0]);
+		await ScrollToSong(YearGroupSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
 	}
 
@@ -499,9 +550,9 @@ public sealed partial class AllSongsViewPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = viewStyle switch
 		{
-			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongsCompactView.ActualHeight,
-			_ => AllSongsCompactView.ActualHeight
+			"List View" => YearDetailListView.ActualHeight - 40,
+			"Compact View" => YearDetailCompactView.ActualHeight,
+			_ => YearDetailCompactView.ActualHeight
 		};
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
@@ -557,24 +608,24 @@ public sealed partial class AllSongsViewPage : Page
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
 				break;
 		}
 		if (targetSong != null)
 		{
 			var listView = GetCurrentViewStyle();
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AllSongsListView ? -40 : 0);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == YearDetailListView ? -40 : 0);
 			listView.SelectedItem = targetSong;
 			await Task.Delay(500);
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AllSongsListView ? -40 : 0);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == YearDetailListView ? -40 : 0);
 		}
 	}
 
@@ -593,9 +644,9 @@ public sealed partial class AllSongsViewPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = viewStyle switch
 		{
-			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongsCompactView.ActualHeight,
-			_ => AllSongsCompactView.ActualHeight
+			"List View" => YearDetailListView.ActualHeight - 40,
+			"Compact View" => YearDetailCompactView.ActualHeight,
+			_ => YearDetailCompactView.ActualHeight
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
@@ -687,7 +738,7 @@ public sealed partial class AllSongsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Unloaded event for the AllSongsViewPage.
+	/// Handles the Unloaded event for the YearDetailViewPage.
 	/// </summary>
 	/// <remarks>
 	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
@@ -697,8 +748,8 @@ public sealed partial class AllSongsViewPage : Page
 	/// <param name="e">The event arguments associated with the Unloaded event.</param>
 	private void Page_Unloaded(object sender, RoutedEventArgs e)
 	{
-		AllSongs.Clear();
-		AllSongs = null;
+		YearGroupSongs.Clear();
+		YearGroupSongs = null;
 		GC.Collect();
 	}
 
@@ -795,9 +846,9 @@ public sealed partial class AllSongsViewPage : Page
 	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		List<string> songPaths = AllSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = YearGroupSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"YearGroup>{ActualYearGroup.Text}";
 	}
 
 	/// <summary>
@@ -853,7 +904,7 @@ public sealed partial class AllSongsViewPage : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					AllSongs.Remove(songData);
+					YearGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
 					GlobalNotification.Info("Song/Track deleted." +
 											$"\nTitle: {songData.Title}" +
@@ -866,6 +917,11 @@ public sealed partial class AllSongsViewPage : Page
 			{
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
+			}
+			if (YearGroupSongs.Count <= 0)
+			{
+				App.Current.NavService.GoBack();
+				MainPage._instance.RemovePageFromHistory(ActualYearGroup.Text == "Unknown Year" ? "Unknown" : ActualYearGroup.Text);
 			}
 		}
 	}
@@ -907,7 +963,7 @@ public sealed partial class AllSongsViewPage : Page
 					uiElement.IsRightTapEnabled = false;
 				}
 			}
-			if (view.Name == "AllSongsListView") Header.Margin = new Thickness(40, 0, 0, 0);
+			if (view.Name == "YearDetailListView") Header.Margin = new Thickness(40, 0, 0, 0);
 		}
 		else
 		{
@@ -928,7 +984,7 @@ public sealed partial class AllSongsViewPage : Page
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
-			if (view.Name == "AllSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
+			if (view.Name == "YearDetailListView") Header.Margin = new Thickness(12, 0, 0, 0);
 		}
 	}
 
@@ -982,7 +1038,7 @@ public sealed partial class AllSongsViewPage : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					AllSongs.Remove(songData);
+					YearGroupSongs.Remove(songData);
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
@@ -993,5 +1049,33 @@ public sealed partial class AllSongsViewPage : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
+		if (YearGroupSongs.Count <= 0)
+		{
+			App.Current.NavService.GoBack();
+			MainPage._instance.RemovePageFromHistory(ActualYearGroup.Text == "Unknown Year" ? "Unknown" : ActualYearGroup.Text);
+		}
+	}
+
+	/// <summary>
+	/// Handles the tapped event on a year item, initiating navigation to the YearsViewPage and updating selection state.
+	/// </summary>
+	/// <param name="sender">The source of the tapped event, usually the UI element that was tapped.</param>
+	/// <param name="e">Provides data about the Tapped event, including event-specific properties.</param>
+	private void Year_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+	{
+		App.Current.NavService.NavigateTo(typeof(YearsViewPage), "Years", false, new DrillInNavigationTransitionInfo());
+		SelectYearOnNavigation();
+	}
+
+	/// <summary>
+	/// Sets the selection state of the navigation item associated with the YearsViewPage
+	/// to ensure it is highlighted within the application's navigation view.
+	/// </summary>
+	private static void SelectYearOnNavigation()
+	{
+		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.YearsViewPage");
+		libraryNavigationItem.IsSelected = true;
 	}
 }

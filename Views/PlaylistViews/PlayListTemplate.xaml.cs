@@ -7,9 +7,13 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.PlaylistViews;
+
 /// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
+/// Represents a page designed to display and manage a playlist within the application.
 /// </summary>
+/// <remarks>
+/// Provides functionality to handle playlist data, including initialization, navigation events, and managing playlist content.
+/// </remarks>
 public sealed partial class PlayListTemplate : Page
 {
 	/// <summary>
@@ -77,7 +81,7 @@ public sealed partial class PlayListTemplate : Page
 					break;
 				}
 			}
-			GlobalNotification.Info($"{playListName} PlayList deleted successfully.");
+			GlobalNotification.Info($"{playListName} PlayList deleted.");
 			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == playListName)
 			{
@@ -154,14 +158,14 @@ public sealed partial class PlayListTemplate : Page
 		PlayListSongs.Clear();
 		PlayListSongs.AddRange(list);
 		list = null;
-		HandleEmptyPlayList();
+		HandleEmptyPlayList(scrollToSelectedItem: true);
 	}
 
 	/// <summary>
 	/// Manages the visibility and accessibility of UI elements related to the playlist view,
 	/// based on whether the playlist contains any songs.
 	/// </summary>
-	private void HandleEmptyPlayList()
+	private async void HandleEmptyPlayList(bool scrollToSelectedItem = false)
 	{
 		if (PlayListSongs.Count > 0)
 		{
@@ -170,6 +174,16 @@ public sealed partial class PlayListTemplate : Page
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
 			SortPlayList.IsEnabled = true;
+			if (scrollToSelectedItem)
+			{
+				var song = PlayListSongs.Select(s => s).Where(s => s.Path == selectedSong?.Path).FirstOrDefault();
+				if (song != null)
+				{
+					await ScrollToSong(song);
+					await Task.Delay(1000);
+					await ScrollToSong(song);
+				}
+			}
 		}
 		else
 		{
@@ -491,6 +505,7 @@ public sealed partial class PlayListTemplate : Page
 			{
 				Text = playList
 			};
+			ToolTipService.SetToolTip(menuItem, $"Add {(MultiSelectButton.IsChecked == true ? "selected songs/tracks" : "this song/track")} to {playList} playlist");
 			menuItem.Click += AddToPlaylist_Click;
 			addToPlaylist?.Items.Add(menuItem);
 		}
@@ -519,7 +534,7 @@ public sealed partial class PlayListTemplate : Page
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
 
-			GlobalNotification.Info($"{songs.Count} Song/Track{(songs.Count > 1 ? "s" : "")} added successfully to {playlist} playlist.");
+			GlobalNotification.Info($"{songs.Count} {(songs.Count > 1 ? "songs/tracks" : "song/track")} added to {playlist} playlist.");
 		}
 		else
 		{
@@ -529,7 +544,7 @@ public sealed partial class PlayListTemplate : Page
 			if (playlist != null && song != null)
 			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+				GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
 			}
 		}
 	}
@@ -567,7 +582,7 @@ public sealed partial class PlayListTemplate : Page
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songData?.Title} added successfully to queue.");
+		GlobalNotification.Info($"{songData?.Title} added to queue.");
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
@@ -607,7 +622,7 @@ public sealed partial class PlayListTemplate : Page
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					PlayListSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info("Song/Track deleted successfully." +
+					GlobalNotification.Info("Song/Track deleted." +
 											$"\nTitle: {songData.Title}" +
 											$"\nArtist: {songData.Artists}" +
 											$"\nAlbum: {songData.Album}" +
@@ -702,7 +717,7 @@ public sealed partial class PlayListTemplate : Page
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
+		GlobalNotification.Info($"{songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} added to the queue.");
 	}
 
 	/// <summary>
@@ -724,7 +739,7 @@ public sealed partial class PlayListTemplate : Page
 
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} song{(songList.Count > 1 ? "s" : "")}/track{(songs.Count > 1 ? "s" : "")} from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 
@@ -740,7 +755,7 @@ public sealed partial class PlayListTemplate : Page
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} Song{(songList.Count > 1 ? "s" : "")}/Track{(songList.Count > 1 ? "s" : "")} deleted successfully.");
+			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -766,7 +781,7 @@ public sealed partial class PlayListTemplate : Page
 			await DatabaseHelper.Instance.RemoveSongsFromPlaylist(PlaylistHeader.Text, songPaths);
 
 
-			GlobalNotification.Info($"Song/Track removed successfully from {PlaylistHeader.Text}." +
+			GlobalNotification.Info($"Song/Track removed from {PlaylistHeader.Text}." +
 									$"\nTitle: {songData.Title}" +
 									$"\nArtist: {songData.Artists}" +
 									$"\nAlbum: {songData.Album}" +
@@ -800,7 +815,7 @@ public sealed partial class PlayListTemplate : Page
 
 		await DatabaseHelper.Instance.RemoveSongsFromPlaylist(PlaylistHeader.Text, songPaths);
 
-		GlobalNotification.Info($"{songList.Count} Song/Track{(songList.Count > 1 ? "s" : "")} removed successfully from {PlaylistHeader.Text}.");
+		GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} removed from {PlaylistHeader.Text}.");
 
 		foreach (Song song in songList)
 		{
@@ -846,7 +861,7 @@ public sealed partial class PlayListTemplate : Page
 			}
 		}
 
-		HandleEmptyPlayList();
+		HandleEmptyPlayList(scrollToSelectedItem: true);
 	}
 
 	/// <summary>
@@ -885,7 +900,7 @@ public sealed partial class PlayListTemplate : Page
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 
-		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted successfully.");
+		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted.");
 	}
 
 	/// <summary>
@@ -940,7 +955,7 @@ public sealed partial class PlayListTemplate : Page
 			}
 			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
 			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
-			GlobalNotification.Info("Playlist renamed to " + PlaylistHeader.Text + " successfully.");
+			GlobalNotification.Info("Playlist renamed to " + PlaylistHeader.Text + ".");
 		}
 		playLists = null;
 	}

@@ -245,6 +245,7 @@ public sealed partial class MostPlayed : Page
 		{
 			PageButtons.Visibility = Visibility.Visible;
 			NoResultsGrid.Visibility = Visibility.Collapsed;
+			song = MostPlayedSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
 			await ScrollToSong(song);       //somehow this doesn't work
 			await Task.Delay(1000);
 			await ScrollToSong(song);
@@ -521,6 +522,7 @@ public sealed partial class MostPlayed : Page
 			{
 				Text = playList
 			};
+			ToolTipService.SetToolTip(menuItem, $"Add {(MultiSelectButton.IsChecked == true ? "selected songs/tracks" : "this song/track")} to {playList} playlist");
 			menuItem.Click += AddToPlaylist_Click;
 			addToPlaylist?.Items.Add(menuItem);
 		}
@@ -549,7 +551,7 @@ public sealed partial class MostPlayed : Page
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
 
-			GlobalNotification.Info($"{songs.Count} Song/Track{(songs.Count > 1 ? "s" : "")} added successfully to {playlist} playlist.");
+			GlobalNotification.Info($"{songs.Count} {(songs.Count > 1 ? "songs/tracks" : "song/track")} added to {playlist} playlist.");
 		}
 		else
 		{
@@ -559,7 +561,7 @@ public sealed partial class MostPlayed : Page
 			if (playlist != null && song != null)
 			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-				GlobalNotification.Info($"{song.Title} added successfully to {playlist} playlist.");
+				GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
 			}
 		}
 	}
@@ -597,7 +599,7 @@ public sealed partial class MostPlayed : Page
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songData?.Title} added successfully to queue.");
+		GlobalNotification.Info($"{songData?.Title} added to queue.");
 	}
 
 	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
@@ -637,7 +639,7 @@ public sealed partial class MostPlayed : Page
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					MostPlayedSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info("Song/Track deleted successfully." +
+					GlobalNotification.Info("Song/Track deleted." +
 											$"\nTitle: {songData.Title}" +
 											$"\nArtist: {songData.Artists}" +
 											$"\nAlbum: {songData.Album}" +
@@ -730,7 +732,7 @@ public sealed partial class MostPlayed : Page
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
+		GlobalNotification.Info($"{songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} added to the queue.");
 	}
 
 	/// <summary>
@@ -752,7 +754,7 @@ public sealed partial class MostPlayed : Page
 
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} song{(songList.Count > 1 ? "s" : "")}/track{(songs.Count > 1 ? "s" : "")} from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 
@@ -768,7 +770,7 @@ public sealed partial class MostPlayed : Page
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} Song{(songList.Count > 1 ? "s" : "")}/Track{(songList.Count > 1 ? "s" : "")} deleted successfully.");
+			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

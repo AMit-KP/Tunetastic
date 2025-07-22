@@ -408,7 +408,7 @@
 										<TextBlock>
 											<Run Text="Duration: " />
 											<Run FontWeight="Bold"
-											     Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+											     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
 										</TextBlock>
 									</ToolTipService.ToolTip>
 								</TextBlock>
@@ -670,7 +670,7 @@
 												<TextBlock>
 													<Run Text="Duration: " />
 													<Run FontWeight="Bold"
-													     Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}" />
+													     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
 												</TextBlock>
 											</ToolTipService.ToolTip>
 										</TextBlock>

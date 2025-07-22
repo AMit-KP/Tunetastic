@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.13.3.1186</AssemblyVersion>
-    <FileVersion>1.13.3.1186</FileVersion>
+    <AssemblyVersion>1.14.154.1340</AssemblyVersion>
+    <FileVersion>1.14.154.1340</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -114,6 +114,7 @@
     <None Remove="Views\LibraryViews\AlbumsViewPage.xaml" />
     <None Remove="Views\LibraryViews\ArtistsViewPage.xaml" />
     <None Remove="Views\LibraryViews\GenresViewPage.xaml" />
+    <None Remove="Views\LibraryViews\YearDetailPage.xaml" />
     <None Remove="Views\LibraryViews\YearsViewPage.xaml" />
     <None Remove="Views\MainPage.xaml" />
     <None Remove="Views\PlaylistViews\MostPlayed.xaml" />
@@ -171,17 +172,17 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.250402" />
     <PackageReference Include="CommunityToolkit.WinUI.Triggers" Version="8.2.250402" />
     <PackageReference Include="Config.Net" Version="5.2.1" />
-    <PackageReference Include="DevWinUI" Version="8.4.1" />
+    <PackageReference Include="DevWinUI" Version="8.6.0" />
     <PackageReference Include="DevWinUI.ContextMenu" Version="8.3.0" />
-    <PackageReference Include="DevWinUI.Controls" Version="8.4.1" />
-    <PackageReference Include="Downloader" Version="3.3.4" />
+    <PackageReference Include="DevWinUI.Controls" Version="8.6.0" />
+    <PackageReference Include="Downloader" Version="4.0.2" />
     <PackageReference Include="Google.Protobuf" Version="3.31.1" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4188" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250606001" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.0" />
@@ -192,7 +193,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.10" />
     <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
-    <PackageReference Include="System.Management" Version="9.0.6" />
+    <PackageReference Include="System.Management" Version="9.0.7" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="WinUI.Dock" Version="1.2.0" />
@@ -204,6 +205,9 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Page Update="Views\LibraryViews\YearDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Views\PlaylistViews\RelativeTimeTextBlock.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -5,5 +5,6 @@
 	<common:DurationConverter x:Key="DurationConverter" />
 	<common:DateFormatConverter x:Key="DateFormatConverter" />
 	<common:RelativeTimeConverter x:Key="RelativeTimeConverter" />
+	<common:DurationToFullTimeConverter x:Key="DurationToFullTimeConverter" />
 	<converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
 </ResourceDictionary>

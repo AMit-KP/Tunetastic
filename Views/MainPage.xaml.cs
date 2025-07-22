@@ -76,10 +76,10 @@ public sealed partial class MainPage : Page
 
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
 		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
-			.ConfigureDefaultPage(typeof(MainPlayerPage))
-			.ConfigureSettingsPage(typeof(SettingsPage))
-			.ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
-			.ConfigureTitleBar(AppTitleBar);
+				   .ConfigureDefaultPage(typeof(MainPlayerPage))
+				   .ConfigureSettingsPage(typeof(SettingsPage))
+				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
+				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
 	}
 
@@ -197,10 +197,12 @@ public sealed partial class MainPage : Page
 			if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
 			{
 				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
+				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created.");
 			}
 			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
 			{
 				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
+				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
 			}
 		}
 		playLists = null;

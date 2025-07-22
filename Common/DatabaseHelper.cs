@@ -49,36 +49,36 @@ public class DatabaseHelper
 		_database = new SQLiteAsyncConnection(dbPath);
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Songs (
-										Path TEXT PRIMARY KEY,
-										Title TEXT,
-										Artists TEXT,
-										Album TEXT,
-										Genre TEXT,
-										Year TEXT,
-										PlayCount INTEGER,
-										Cover TEXT,
-										Duration REAL,
-										DateAdded DATETIME,
-										DateLastPlayed DATETIME DEFAULT NULL,
-										Extension TEXT)");
+									   Path TEXT PRIMARY KEY,
+									   Title TEXT,
+									   Artists TEXT,
+									   Album TEXT,
+									   Genre TEXT,
+									   Year TEXT,
+									   PlayCount INTEGER,
+									   Cover TEXT,
+									   Duration REAL,
+									   DateAdded DATETIME,
+									   DateLastPlayed DATETIME DEFAULT NULL,
+									   Extension TEXT)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Playlists (
-										Id INTEGER PRIMARY KEY AUTOINCREMENT,
-										Name TEXT)");
+									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
+									   Name TEXT)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS PlaylistSongs (
-										PlaylistId INTEGER,
-										SongPath TEXT,
-										Position INTEGER DEFAULT 0,
-										PRIMARY KEY (PlaylistId, SongPath),
-										FOREIGN KEY (PlaylistId) REFERENCES Playlists(Id) ON DELETE CASCADE,
-										FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
+									   PlaylistId INTEGER,
+									   SongPath TEXT,
+									   Position INTEGER DEFAULT 0,
+									   PRIMARY KEY (PlaylistId, SongPath),
+									   FOREIGN KEY (PlaylistId) REFERENCES Playlists(Id) ON DELETE CASCADE,
+									   FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
-										Id INTEGER PRIMARY KEY AUTOINCREMENT,
-										Path TEXT NOT NULL,
-										Position INTEGER,
-										FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
+									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
+									   Path TEXT NOT NULL,
+									   Position INTEGER,
+									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 	}
 
 	/// <summary>
@@ -362,7 +362,7 @@ public class DatabaseHelper
 	{
 		int nextPosition = await GetNextPlaylistPosition(playlistName);
 		await _database.ExecuteAsync(@"INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath, Position)
-										VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?, ?)", playlistName, songPath, nextPosition);
+									   VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?, ?)", playlistName, songPath, nextPosition);
 	}
 
 	/// <summary>
@@ -384,9 +384,8 @@ public class DatabaseHelper
 			int position = basePosition;
 			foreach (var songPath in songPaths)
 			{
-				conn.Execute(@"INSERT OR IGNORE INTO PlaylistSongs
-							(PlaylistId, SongPath, Position)
-							VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?, ?)", playlistName, songPath, position++);
+				conn.Execute(@"INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath, Position)
+							   VALUES ((SELECT Id FROM Playlists WHERE Name = ?), ?, ?)", playlistName, songPath, position++);
 			}
 		});
 	}
@@ -405,8 +404,8 @@ public class DatabaseHelper
 	private async Task<int> GetNextPlaylistPosition(string playlistName)
 	{
 		return await _database.ExecuteScalarAsync<int>(@"SELECT COALESCE(MAX(Position), -1) + 1
-														FROM PlaylistSongs
-														WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
+														 FROM PlaylistSongs
+														 WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)", playlistName);
 	}
 
 	/// <summary>
@@ -446,9 +445,9 @@ public class DatabaseHelper
 	public async Task<List<Song>> GetSongsInPlaylist(string playlistName)
 	{
 		return await _database.QueryAsync<Song>(@"SELECT S.* FROM Songs S
-												JOIN PlaylistSongs P ON S.Path = P.SongPath
-												WHERE P.PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
-												ORDER BY P.Position ASC", playlistName);
+												  JOIN PlaylistSongs P ON S.Path = P.SongPath
+												  WHERE P.PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+												  ORDER BY P.Position ASC", playlistName);
 	}
 
 	/// <summary>
@@ -470,9 +469,9 @@ public class DatabaseHelper
 	public async Task SortPlaylistSongs(string playlistName, SongProperty orderByColumn, bool ascending)
 	{
 		var songPaths = (await _database.QueryAsync<Song>($@"SELECT S.Path FROM Songs S
-															JOIN PlaylistSongs P ON S.Path = P.SongPath
-															WHERE P.PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
-															ORDER BY S.{orderByColumn.ToString()} {(ascending ? "ASC" : "DESC")}", playlistName)).Select(s => s.Path).ToList();
+															 JOIN PlaylistSongs P ON S.Path = P.SongPath
+															 WHERE P.PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+															 ORDER BY S.{orderByColumn.ToString()} {(ascending ? "ASC" : "DESC")}", playlistName)).Select(s => s.Path).ToList();
 
 		await _database.RunInTransactionAsync(conn =>
 		{
@@ -480,9 +479,9 @@ public class DatabaseHelper
 			foreach (var path in songPaths)
 			{
 				conn.Execute(@"UPDATE PlaylistSongs
-							SET Position = ?
-							WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
-							AND SongPath = ?", position++, playlistName, path);
+							   SET Position = ?
+							   WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+							   AND SongPath = ?", position++, playlistName, path);
 			}
 		});
 	}
@@ -536,8 +535,8 @@ public class DatabaseHelper
 	public async Task<List<Song>> GetQueuedPlayingList()
 	{
 		return await _database.QueryAsync<Song>(@"SELECT S.* FROM Songs S
-												JOIN QueuedPlayingList Q ON S.Path = Q.Path
-												ORDER BY Q.Position ASC");
+												  JOIN QueuedPlayingList Q ON S.Path = Q.Path
+												  ORDER BY Q.Position ASC");
 	}
 
 	/// <summary>
@@ -569,7 +568,7 @@ public class DatabaseHelper
 			foreach (var path in orderedPaths)
 			{
 				conn.Execute(@"UPDATE QueuedPlayingList SET Position = ?
-								WHERE Id = (SELECT Id FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1)", position++, path);
+							   WHERE Id = (SELECT Id FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1)", position++, path);
 			}
 		});
 	}
@@ -695,7 +694,7 @@ public class DatabaseHelper
 		if (!string.IsNullOrEmpty(path))
 		{
 			await _database.ExecuteAsync(@"DELETE FROM QueuedPlayingList
-											WHERE Id = (SELECT Id FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1)", path);
+										   WHERE Id = (SELECT Id FROM QueuedPlayingList WHERE Path = ? ORDER BY Position ASC LIMIT 1)", path);
 		}
 		else
 		{
@@ -704,6 +703,28 @@ public class DatabaseHelper
 			if (firstId.HasValue)
 				await _database.ExecuteAsync("DELETE FROM QueuedPlayingList WHERE Id = ?", firstId.Value);
 		}
+	}
+
+	/// <summary>
+	/// Retrieves a list of songs grouped by year from the database.
+	/// The query counts the number of songs, sums their total duration,
+	/// and categorizes them by year. For records where the year is null or empty,
+	/// they are categorized under 'Unknown'.
+	/// </summary>
+	/// <returns>
+	/// A task representing the asynchronous operation that returns a list of
+	/// <c>YearModel</c> objects, where each object contains the year, a count
+	/// of songs for that year, and their total duration.
+	/// </returns>
+	public async Task<List<YearModel>> GetSongsGroupedByYear(bool ascending = true)
+	{
+		var result = await _database.QueryAsync<YearModel>(@$"SELECT CASE WHEN TRIM(Year) = 'Unknown Year' THEN 'Unknown' ELSE Year END AS Year, COUNT(*) AS Count, SUM(Duration) AS TotalDuration
+															  FROM Songs
+															  WHERE Year IS NOT NULL AND TRIM(Year) != ''
+															  GROUP BY Year
+															  ORDER BY Year {(ascending ? "ASC" : "DESC")}");
+
+		return result.ToList();
 	}
 }
 
@@ -740,6 +761,18 @@ public class PlaylistName
 	[PrimaryKey, AutoIncrement]
 	public int Id { get; set; }
 	public string Name { get; set; }
+}
+
+/// <summary>
+/// Represents aggregated data for a specific year in the song database.
+/// This model encapsulates the year, the count of songs associated with that year,
+/// and the total duration of those songs.
+/// </summary>
+public class YearModel
+{
+	public string Year { get; set; }
+	public int Count { get; set; }
+	public double TotalDuration { get; set; }
 }
 
 /// <summary>

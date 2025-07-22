@@ -32,7 +32,7 @@ public class DurationConverter : IValueConverter
 
 			if (duration.TotalHours >= 1)
 			{
-				return string.Format("{0:00}:{1:00}:{2:00}", (int)duration.TotalHours, duration.Minutes, duration.Seconds);
+				return string.Format("{0:00}:{1:00}:{2:00}", duration.Hours, duration.Minutes, duration.Seconds);
 			}
 			else
 			{
@@ -51,6 +51,66 @@ public class DurationConverter : IValueConverter
 	/// <param name="parameter">Additional parameter for the converter. Not used in this implementation.</param>
 	/// <param name="language">The culture or language information for the conversion. Not used in this implementation.</param>
 	/// <returns>This method does not return successfully as it throws an exception.</returns>
+	public object ConvertBack(object value, Type targetType, object parameter, string language)
+	{
+		throw new NotImplementedException();
+	}
+}
+
+/// <summary>
+/// Converts a duration in seconds into a detailed, human-readable time format string.
+/// </summary>
+/// <remarks>
+/// The <c>DurationToFullTimeConverter</c> class is aimed at transforming a numeric duration value, expressed in seconds,
+/// into a time format string with greater detail. The result is formatted as "X hours Y mins Z secs",
+/// "Y mins Z secs", or "Z secs" depending on the total duration. It emphasizes a clear verbal display of time durations
+/// for enhanced readability and user understanding. This converter is primarily designed for use within XAML bindings.
+/// It implements the <see cref="IValueConverter"/> interface, supporting forward conversions via the
+/// <see cref="Convert"/> method. Reverse conversion through the <see cref="ConvertBack"/> method is not supported
+/// and will throw a <see cref="NotImplementedException"/> if called.
+/// </remarks>
+public class DurationToFullTimeConverter : IValueConverter
+{
+	/// <summary>
+	/// Converts a duration in seconds into a detailed, human-readable time format string.
+	/// </summary>
+	/// <param name="value">The duration in seconds to be converted, represented as an object, typically a <see cref="double"/>.</param>
+	/// <param name="targetType">The type of the binding target property. Not used in this implementation.</param>
+	/// <param name="parameter">Additional parameter for the converter. Not used in this implementation.</param>
+	/// <param name="language">The culture or language information for conversion. Not used in this implementation.</param>
+	/// <returns>A detailed time representation in the format "X hours Y mins Z secs", "Y mins Z secs", or "Z secs", depending on the duration length.</returns>
+	public object Convert(object value, Type targetType, object parameter, string language)
+	{
+		if (value is double seconds && seconds >= 0)
+		{
+			TimeSpan duration = TimeSpan.FromSeconds(seconds);
+			if (duration.TotalHours >= 1)
+			{
+				return $"{duration.Hours} hour{(duration.Hours == 1 ? "" : "s")} " +
+					   $"{duration.Minutes} min{(duration.Minutes == 1 ? "" : "s")} " +
+					   $"{duration.Seconds} sec{(duration.Seconds == 1 ? "" : "s")}";
+			}
+			else if (duration.TotalMinutes >= 1)
+			{
+				return $"{duration.Minutes} min{(duration.Minutes == 1 ? "" : "s")} " +
+					   $"{duration.Seconds} sec{(duration.Seconds == 1 ? "" : "s")}";
+			}
+			else
+			{
+				return $"{duration.Seconds} sec{(duration.Seconds == 1 ? "" : "s")}";
+			}
+		}
+		return "0 sec";
+	}
+
+	/// <summary>
+	/// Not implemented. Reverse conversion from a formatted duration string to the original duration value is not supported.
+	/// </summary>
+	/// <param name="value">The value produced by the binding target. This parameter is not used.</param>
+	/// <param name="targetType">The type of the binding target property. This parameter is not used.</param>
+	/// <param name="parameter">An optional parameter for the converter. This parameter is not used.</param>
+	/// <param name="language">The culture or language information. This parameter is not used.</param>
+	/// <returns>Throws a <see cref="NotImplementedException"/> as the method is not implemented.</returns>
 	public object ConvertBack(object value, Type targetType, object parameter, string language)
 	{
 		throw new NotImplementedException();
