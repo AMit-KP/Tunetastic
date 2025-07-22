@@ -80,7 +80,7 @@
 					           VerticalAlignment="Center"
 					           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 					           Style="{ThemeResource TitleTextBlockStyle}"
-					           Text="Year" />
+					           Text="Years" />
 				</Grid>
 				<FontIcon Margin="0,4,0,0"
 				          HorizontalAlignment="Center"

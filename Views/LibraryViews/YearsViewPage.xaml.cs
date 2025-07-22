@@ -3,6 +3,7 @@ using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Tunetastic.Views.LibraryViews;
 
@@ -184,12 +185,12 @@ public sealed partial class YearsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the YearsViewPage.
+	/// Handles the `Loaded` event for the YearsViewPage.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the page itself.</param>
-	/// <param name="e">The event data associated with the Loaded event.</param>
+	/// <param name="sender">The source of the event, generally the page itself.</param>
+	/// <param name="e">The event data associated with the `Loaded` event.</param>
 	/// <remarks>
-	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "YearsViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// This method initializes content and handles animations when the page is loaded. It ensures that the `YearsGroup` collection is populated before proceeding. If a connected animation is active, it retrieves the selected year and attempts to animate the transition back to the associated UI element. The method also manages navigation states and scrolls to the current playing track if applicable.
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
@@ -197,7 +198,41 @@ public sealed partial class YearsViewPage : Page
 		{
 			await Task.Delay(100);
 		}
-		ScrollToCurrentPlayingTrack();
+
+		if (connectedAnimation)
+		{
+			var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
+			var selectedYearModel = YearsGroup.Select(s => s).Where(s => s.Year == selectedYear).FirstOrDefault();
+
+			var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("YearHeaderAnimationBack");
+
+			if (animation != null && selectedYearModel != null)
+			{
+				await Task.Delay(30);
+				await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+
+				var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
+				if (container != null)
+				{
+					var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+					if (yearTextBlock != null)
+						animation.TryStart(yearTextBlock);
+				}
+			}
+			connectedAnimation = false;
+			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? string.Empty;
+			if (currentPlaylist.StartsWith("YearGroup>"))
+			{
+				var SelectedTile = YearsGroup.Select(s => s).Where(s =>
+				{
+					var v = currentPlaylist.Substring("YearGroup>".Length);
+					return s.Year == (v == "Unknown Year" ? "Unknown" : v);
+				}).FirstOrDefault();
+				YearTileView.SelectedItem = SelectedTile;
+			}
+		}
+		else
+			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
 	}
 
@@ -215,7 +250,11 @@ public sealed partial class YearsViewPage : Page
 		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? string.Empty;
 		if (currentPlaylist.StartsWith("YearGroup>"))
 		{
-			var SelectedTile = YearsGroup.Select(s => s).Where(s => s.Year == currentPlaylist.Substring("YearGroup>".Length)).FirstOrDefault();
+			var SelectedTile = YearsGroup.Select(s => s).Where(s =>
+			{
+				var v = currentPlaylist.Substring("YearGroup>".Length);
+				return s.Year == (v == "Unknown Year" ? "Unknown" : v);
+			}).FirstOrDefault();
 			_ = ScrollToTile(SelectedTile);
 		}
 	}
@@ -613,18 +652,73 @@ public sealed partial class YearsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the item click event for the YearTileView and navigates to the detail page of the selected year.
+	/// Handles the item click event for the YearTileView and navigates to the detail page corresponding to the selected year.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the UI element triggering the click.</param>
-	/// <param name="e">An <see cref="ItemClickEventArgs"/> that contains the event data, including the clicked item representing the selected year.</param>
+	/// <param name="sender">The object that raised the event, typically the ListView control.</param>
+	/// <param name="e">Provides data about the clicked item, including the <see cref="YearModel"/> representing the selected year.</param>
 	/// <remarks>
-	/// This method retrieves the clicked item from the event arguments, casts it to a <c>YearModel</c>, and uses the navigation service to navigate to the
-	/// <c>YearDetailPage</c>. The selected year is passed as a navigation parameter for further processing and display.
+	/// This method processes the clicked item by extracting its details, performing additional validations, and navigating to the <c>YearDetailPage</c>.
+	/// It also stores the selected year in application settings for retrieval in subsequent operations.
 	/// </remarks>
 	private void YearTileView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		var yearModel = e.ClickedItem as YearModel;
+
 		if (yearModel != null)
-			App.Current.NavService.NavigateTo(typeof(YearDetailPage), yearModel.Year);
+		{
+			var container = YearTileView.ContainerFromItem(yearModel) as ListViewItem;
+			if (container != null)
+			{
+				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				if (yearTextBlock != null)
+					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+			}
+
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)] = yearModel.Year;
+			App.Current.NavService.NavigateTo(typeof(YearDetailPage), yearModel.Year, false, new DrillInNavigationTransitionInfo());
+		}
 	}
+
+	/// <summary>
+	/// A boolean flag indicating the state of the connected animation during navigation within the <c>YearsViewPage</c>.
+	/// </summary>
+	/// <remarks>
+	/// This variable is used to determine whether to invoke the connected animation sequence when navigating
+	/// to or from the <c>YearsViewPage</c>. It is set based on the navigation mode or parameters passed during
+	/// navigation, ensuring a smooth transition effect between pages. When true, connected animations
+	/// are enabled to provide a seamless visual experience for the user, such as animating focused year tiles.
+	/// The value is modified dynamically during the page lifecycle to manage transitions and UI updates properly.
+	/// </remarks>
+	private bool connectedAnimation = false;
+	protected override void OnNavigatedTo(NavigationEventArgs e)
+	{
+		base.OnNavigatedTo(e);
+
+		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string && e.Parameter == "Years");
+	}
+
+	/// <summary>
+	/// Handles navigation away from the page and prepares connected animations for the transition.
+	/// </summary>
+	/// <param name="e">An instance of <see cref="NavigatingCancelEventArgs"/> that contains the event data related to the navigation operation.</param>
+	/// <remarks>
+	/// This method is invoked when the application navigates away from the current page. It retrieves the currently selected year from local settings
+	/// and identifies the corresponding <see cref="YearModel"/> instance from the <see cref="YearsGroup"/> collection. If a matching year is found,
+	/// it attempts to locate the associated UI element in the visual tree of the page. If successful, it prepares a connected animation for a smooth
+	/// transition to the target page.
+	/// </remarks>
+	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+	{
+		var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
+		var selectedYearModel = YearsGroup.Select(s => s).Where(s => s.Year == selectedYear).FirstOrDefault();
+
+		var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
+		if (container != null)
+		{
+			var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+			if (yearTextBlock != null)
+				ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+		}
+	}
+
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Tunetastic.Views.LibraryViews;
 
@@ -30,14 +31,76 @@ public sealed partial class YearDetailPage : Page
 	}
 
 	/// <summary>
-	/// Invoked when the page is navigated to, allowing for parameters to be passed and handled during navigation.
+	/// Called when the page is navigated to. Handles the setup of the year group header and its associated animation.
 	/// </summary>
-	/// <param name="e">An object that provides data about the navigation event, including the navigation parameter.</param>
-	protected override void OnNavigatedTo(NavigationEventArgs e)
+	/// <param name="e">Navigation event arguments containing the year parameter passed during navigation</param>
+	/// <remarks>
+	/// This override performs three main tasks:
+	/// <br/>
+	/// 1. Sets the year group header text based on the navigation parameter
+	/// <br/>
+	/// 2. Applies a connected animation to the year header for smooth visual transitions
+	/// <br/>
+	/// 3. Triggers the year selection in the navigation
+	/// <br/>
+	/// <br/>
+	/// The year parameter is expected to be passed during navigation, where "Unknown" is handled as a special case
+	/// and displayed as "Unknown Year".
+	/// </remarks>
+	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
 		ActualYearGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Year" : e.Parameter.ToString());
+		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("YearHeaderAnimation");
+
+		if (animation != null)
+		{
+			await ActualYearGroup.DispatcherQueue.EnqueueAsync(() =>
+			{
+				animation.TryStart(ActualYearGroup);
+			});
+		}
+
 		SelectYearOnNavigation();
 	}
+
+	/// <summary>
+	/// Handles the navigation animation and visibility when navigating away from the current page.
+	/// </summary>
+	/// <param name="e">Navigation event arguments containing information about the navigation.</param>
+	/// <remarks>
+	/// This method performs two main tasks:
+	/// <br/>
+	/// 1. Prepares a connected animation for the year header to maintain visual continuity
+	/// <br/>
+	/// 2. Handles the visibility transition of the ActualYearGroup element:
+	/// <br/>
+	///    - When navigating to YearsViewPage: Applies a fade-out animation
+	/// <br/>
+	///    - For other destinations: Immediately collapses the element
+	/// </remarks>
+	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+	{
+		ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimationBack", ActualYearGroup);
+		if (e.SourcePageType.Name == "YearsViewPage")
+		{
+			var fadeOut = new DoubleAnimation
+			{
+				To = 0,
+				Duration = TimeSpan.FromMilliseconds(30),
+				FillBehavior = FillBehavior.Stop
+			};
+			Storyboard.SetTarget(fadeOut, ActualYearGroup);
+			Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+			var sb = new Storyboard();
+			sb.Children.Add(fadeOut);
+			sb.Completed += (_, __) => ActualYearGroup.Visibility = Visibility.Collapsed;
+			sb.Begin();
+		}
+		else
+			ActualYearGroup.Visibility = Visibility.Collapsed;
+	}
+
 	/// <summary>
 	/// Asynchronously checks the status of the ongoing music data scanning process and interacts with the user interface based on the status.
 	/// </summary>
@@ -856,7 +919,10 @@ public sealed partial class YearDetailPage : Page
 				PageButtons.Visibility = Visibility.Collapsed;
 			}
 			if (YearGroupSongs.Count <= 0)
+			{
 				App.Current.NavService.GoBack();
+				MainPage._instance.RemovePageFromHistory(ActualYearGroup.Text == "Unknown Year" ? "Unknown" : ActualYearGroup.Text);
+			}
 		}
 	}
 
@@ -938,7 +1004,7 @@ public sealed partial class YearDetailPage : Page
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songPaths.Count} Song/Track{(songPaths.Count > 1 ? "s" : "")} added to the queue.");
+		GlobalNotification.Info($"{songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} added to the queue.");
 	}
 
 	/// <summary>
@@ -960,7 +1026,7 @@ public sealed partial class YearDetailPage : Page
 
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} song{(songList.Count > 1 ? "s" : "")}/track{(songs.Count > 1 ? "s" : "")} from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 
@@ -976,7 +1042,7 @@ public sealed partial class YearDetailPage : Page
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} Song{(songList.Count > 1 ? "s" : "")}/Track{(songList.Count > 1 ? "s" : "")} deleted.");
+			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -984,7 +1050,10 @@ public sealed partial class YearDetailPage : Page
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
 		if (YearGroupSongs.Count <= 0)
+		{
 			App.Current.NavService.GoBack();
+			MainPage._instance.RemovePageFromHistory(ActualYearGroup.Text == "Unknown Year" ? "Unknown" : ActualYearGroup.Text);
+		}
 	}
 
 	/// <summary>
@@ -994,7 +1063,7 @@ public sealed partial class YearDetailPage : Page
 	/// <param name="e">Provides data about the Tapped event, including event-specific properties.</param>
 	private void Year_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
 	{
-		App.Current.NavService.NavigateTo(typeof(YearsViewPage));
+		App.Current.NavService.NavigateTo(typeof(YearsViewPage), "Years", false, new DrillInNavigationTransitionInfo());
 		SelectYearOnNavigation();
 	}
 

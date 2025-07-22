@@ -316,7 +316,8 @@
 									     Text="{x:Bind TotalDuration, Converter={StaticResource DurationToFullTimeConverter}}" />
 								</TextBlock>
 							</ToolTipService.ToolTip>
-							<TextBlock HorizontalAlignment="Center"
+							<TextBlock x:Name="YearTextBlock"
+							           HorizontalAlignment="Center"
 							           VerticalAlignment="Center"
 							           FontStyle="Normal"
 							           FontWeight="Bold"

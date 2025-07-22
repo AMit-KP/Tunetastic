@@ -74,4 +74,5 @@ public enum LocalSave
 	YearDetailViewSortBy,
 	YearDetailViewSortOrder,
 	YearDetailViewStyle,
+	SelectedYear,
 }
