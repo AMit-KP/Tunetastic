@@ -679,7 +679,23 @@ public sealed partial class GenresViewPage : Page
 			{
 				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
 				if (genreTextBlock != null)
+				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, genreTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => genreTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
 			}
 
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)] = genreModel.Genre;
@@ -717,15 +733,34 @@ public sealed partial class GenresViewPage : Page
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		var selectedGenre = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)]?.ToString());
-		var selectedGenreModel = GenresGroup.Select(s => s).Where(s => s.Genre == selectedGenre).FirstOrDefault();
-
-		var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
-		if (container != null)
+		if (e.SourcePageType.Name == "GenreDetailPage")
 		{
-			var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
-			if (genreTextBlock != null)
-				ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
+			var selectedGenre = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)]?.ToString());
+			var selectedGenreModel = GenresGroup.Select(s => s).Where(s => s.Genre == selectedGenre).FirstOrDefault();
+
+			var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
+			if (container != null)
+			{
+				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+				if (genreTextBlock != null)
+				{
+					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, genreTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => genreTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
+			}
 		}
 	}
 

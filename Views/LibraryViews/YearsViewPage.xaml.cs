@@ -671,7 +671,23 @@ public sealed partial class YearsViewPage : Page
 			{
 				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
 				if (yearTextBlock != null)
+				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, yearTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => yearTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
 			}
 
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)] = yearModel.Year;
@@ -709,16 +725,34 @@ public sealed partial class YearsViewPage : Page
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
-		var selectedYearModel = YearsGroup.Select(s => s).Where(s => s.Year == selectedYear).FirstOrDefault();
-
-		var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
-		if (container != null)
+		if (e.SourcePageType.Name == "YearDetailPage")
 		{
-			var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
-			if (yearTextBlock != null)
-				ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+			var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
+			var selectedYearModel = YearsGroup.Select(s => s).Where(s => s.Year == selectedYear).FirstOrDefault();
+
+			var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
+			if (container != null)
+			{
+				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				if (yearTextBlock != null)
+				{
+					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, yearTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => yearTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
+			}
 		}
 	}
-
 }

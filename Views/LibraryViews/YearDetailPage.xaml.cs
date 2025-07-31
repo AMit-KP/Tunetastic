@@ -85,9 +85,10 @@ public sealed partial class YearDetailPage : Page
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimationBack", ActualYearGroup);
 		if (e.SourcePageType.Name == "YearsViewPage")
 		{
+			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimationBack", ActualYearGroup);
+
 			var fadeOut = new DoubleAnimation
 			{
 				To = 0,
@@ -102,8 +103,6 @@ public sealed partial class YearDetailPage : Page
 			sb.Completed += (_, __) => ActualYearGroup.Visibility = Visibility.Collapsed;
 			sb.Begin();
 		}
-		else
-			ActualYearGroup.Visibility = Visibility.Collapsed;
 	}
 
 	/// <summary>

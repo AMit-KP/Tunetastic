@@ -85,9 +85,10 @@ public sealed partial class GenreDetailPage : Page
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimationBack", ActualGenreGroup);
 		if (e.SourcePageType.Name == "GenresViewPage")
 		{
+			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimationBack", ActualGenreGroup);
+
 			var fadeOut = new DoubleAnimation
 			{
 				To = 0,
@@ -102,8 +103,6 @@ public sealed partial class GenreDetailPage : Page
 			sb.Completed += (_, __) => ActualGenreGroup.Visibility = Visibility.Collapsed;
 			sb.Begin();
 		}
-		else
-			ActualGenreGroup.Visibility = Visibility.Collapsed;
 	}
 
 	/// <summary>
