@@ -713,7 +713,7 @@ public class DatabaseHelper
 	/// </summary>
 	/// <returns>
 	/// A task representing the asynchronous operation that returns a list of
-	/// <c>YearModel</c> objects, where each object contains the year, a count
+	/// <see cref="YearModel"/> objects, where each object contains the year, a count
 	/// of songs for that year, and their total duration.
 	/// </returns>
 	public async Task<List<YearModel>> GetSongsGroupedByYear(bool ascending = true)
@@ -747,6 +747,16 @@ public class DatabaseHelper
 															   GROUP BY Genre
 															   ORDER BY Genre {(ascending ? "ASC" : "DESC")}");
 
+		return result.ToList();
+	}
+
+	public async Task<List<AlbumModel>> GetSongsGroupedByAlbum(bool ascending = true)
+	{
+		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, Cover
+															   FROM Songs
+															   WHERE Album IS NOT NULL AND TRIM(Album) != ''
+															   GROUP BY Album
+															   ORDER BY Album {(ascending ? "ASC" : "DESC")}");
 		return result.ToList();
 	}
 }
@@ -797,6 +807,14 @@ public class YearModel
 	public string Year { get; set; }
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
+}
+
+public class AlbumModel
+{
+	public string Album { get; set; }
+	public int Count { get; set; }
+	public double TotalDuration { get; set; }
+	public string Cover { get; set; }
 }
 
 /// <summary>

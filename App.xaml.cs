@@ -59,7 +59,7 @@ public partial class App : Application
 	{
 		MainWindow = new MainWindow();
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
-		MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
+		MainWindow.AppWindow.SetIcon("Assets/AppIcon.png");
 
 		var rootFrame = new Frame();
 		MainWindow.Content = rootFrame;

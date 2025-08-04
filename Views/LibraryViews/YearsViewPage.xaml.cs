@@ -127,14 +127,17 @@ public sealed partial class YearsViewPage : Page
 	}
 
 	/// <summary>
-	/// Updates the list of songs based on the selected sorting criteria and order.
+	/// Updates the displayed song list and user interface according to the selected sorting criteria and order.
 	/// </summary>
 	/// <remarks>
-	/// This method processes the current sorting preferences, such as the column to sort by (e.g., Title, Artists, Album, or Duration)
-	/// and the order (Ascending or Descending). It modifies the displayed song list accordingly and ensures the current selection remains intact.
-	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
-	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
+	/// This method retrieves the current sorting preferences, such as ascending or descending order, and applies them to organize the songs grouped by year.
+	/// The updated list is displayed in the UI, with related elements, such as tooltips and dropdown content, being refreshed to reflect the new sorting order.
+	/// Additionally, the user's selection is preserved, and the UI scroll position is adjusted to maintain the focus on the previously selected year.
+	/// Sorting preferences are saved to local application settings to ensure they persist across sessions.
 	/// </remarks>
+	/// <returns>
+	/// A task representing the asynchronous operation of updating the song list, refreshing the user interface, and adjusting the scroll position.
+	/// </returns>
 	private async Task UpdateListBasedOnSorting()
 	{
 		var yearModel = YearTileView.SelectedItem as YearModel;

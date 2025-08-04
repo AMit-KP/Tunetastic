@@ -80,4 +80,6 @@ public enum LocalSave
 	GenreDetailViewSortOrder,
 	GenreDetailViewStyle,
 	SelectedGenre,
+	AlbumsViewSortOrder,
+	SelectedAlbum,
 }

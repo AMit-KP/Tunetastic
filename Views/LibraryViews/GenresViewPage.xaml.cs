@@ -135,14 +135,20 @@ public sealed partial class GenresViewPage : Page
 	}
 
 	/// <summary>
-	/// Updates the list of songs based on the selected sorting criteria and order.
+	/// Updates the displayed list of genres based on the selected sorting criteria and order.
 	/// </summary>
 	/// <remarks>
-	/// This method processes the current sorting preferences, such as the column to sort by (e.g., Title, Artists, Album, or Duration)
-	/// and the order (Ascending or Descending). It modifies the displayed song list accordingly and ensures the current selection remains intact.
-	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
-	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
+	/// This method retrieves the current sorting preferences, such as order (Ascending or Descending),
+	/// and updates the genre list accordingly. It modifies the user interface to reflect the selected
+	/// sorting criteria and adjusts elements like tooltips and dropdowns. Additionally, it manages
+	/// persistent storage of the sorting preferences and ensures smooth UI navigation by scrolling
+	/// to the currently selected genre tile. The genre grouping is refreshed to maintain consistency
+	/// with the defined sorting parameters.
 	/// </remarks>
+	/// <returns>
+	/// A task representing the asynchronous operation of updating the displayed genre list, refreshing the UI,
+	/// and performing relevant navigation actions.
+	/// </returns>
 	private async Task UpdateListBasedOnSorting()
 	{
 		var genreModel = GenreTileView.SelectedItem as GenreModel;
