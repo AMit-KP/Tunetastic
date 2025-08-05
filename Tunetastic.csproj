@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.16.108.1450</AssemblyVersion>
-    <FileVersion>1.16.108.1450</FileVersion>
+    <AssemblyVersion>1.16.130.1472</AssemblyVersion>
+    <FileVersion>1.16.130.1472</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -114,6 +114,7 @@
     <None Remove="Assets\Store\SplashScreen.scale-400.png" />
     <None Remove="Assets\Store\StoreLogo.scale-200.png" />
     <None Remove="Assets\Store\StoreLogo.scale-400.png" />
+    <None Remove="Views\LibraryViews\AlbumDetailPage.xaml" />
     <None Remove="Views\LibraryViews\AlbumsViewPage.xaml" />
     <None Remove="Views\LibraryViews\ArtistsViewPage.xaml" />
     <None Remove="Views\LibraryViews\GenresViewPage.xaml" />
@@ -209,6 +210,9 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+    <Page Update="Views\LibraryViews\AlbumDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Update="Views\LibraryViews\YearDetailPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

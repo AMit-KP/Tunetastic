@@ -205,7 +205,7 @@ public sealed partial class AlbumsViewPage : Page
 	{
 		while (AlbumsGroup == null || AlbumsGroup.Count == 0)
 		{
-			await Task.Delay(100);
+			await Task.Delay(500);
 		}
 
 		if (connectedAnimation)
@@ -218,7 +218,8 @@ public sealed partial class AlbumsViewPage : Page
 			if (animation != null && selectedAlbumModel != null)
 			{
 				await Task.Delay(30);
-				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(selectedAlbumModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(selectedAlbumModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				await Task.Delay(100);
 
 				var container = AlbumTileView.ContainerFromItem(selectedAlbumModel) as ListViewItem;
 				if (container != null)
@@ -429,7 +430,7 @@ public sealed partial class AlbumsViewPage : Page
 			var albumModels = AlbumTileView.SelectedItems;
 			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
 																		 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)}'"))})");
+																		 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
@@ -447,7 +448,7 @@ public sealed partial class AlbumsViewPage : Page
 			{
 				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
 																			 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album)}'");
+																			 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel.Album} added to {playlist} playlist.");
 			}
@@ -469,8 +470,8 @@ public sealed partial class AlbumsViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel?.Album == "Unknown" ? "Unknown Album" : albumModel?.Album)}'");
+																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel?.Album == "Unknown" ? "Unknown Album" : albumModel?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{albumModel?.Album}";
@@ -493,7 +494,7 @@ public sealed partial class AlbumsViewPage : Page
 		var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel?.Album == "Unknown" ? "Unknown Album" : albumModel?.Album)}'");
+																	 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel?.Album == "Unknown" ? "Unknown Album" : albumModel?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
@@ -521,7 +522,7 @@ public sealed partial class AlbumsViewPage : Page
 		var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel?.Album == "Unknown" ? "Unknown Album" : albumModel?.Album)}'");
+																	 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel?.Album == "Unknown" ? "Unknown Album" : albumModel?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		if (songPaths?.Count > 0)
@@ -624,7 +625,7 @@ public sealed partial class AlbumsViewPage : Page
 		var albumModels = AlbumTileView.SelectedItems;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)}'"))})");
+																	 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
@@ -648,8 +649,8 @@ public sealed partial class AlbumsViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var albumModels = AlbumTileView.SelectedItems;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)}'"))})");
+																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
@@ -725,7 +726,7 @@ public sealed partial class AlbumsViewPage : Page
 			}
 
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedAlbum)] = albumModel.Album;
-			//App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), albumModel.Album, false, new DrillInNavigationTransitionInfo());
+			App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), albumModel.Album, false, new DrillInNavigationTransitionInfo());
 		}
 	}
 

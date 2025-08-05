@@ -409,7 +409,7 @@ public sealed partial class GenresViewPage : Page
 			var genreModels = GenreTileView.SelectedItems;
 			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																		 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)}'"))})");
+																		 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
@@ -427,7 +427,7 @@ public sealed partial class GenresViewPage : Page
 			{
 				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																			 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre)}'");
+																			 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Genre {genreModel.Genre} added to {playlist} playlist.");
 			}
@@ -449,8 +449,8 @@ public sealed partial class GenresViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)}'");
+																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"GenreGroup>{genreModel?.Genre}";
@@ -473,7 +473,7 @@ public sealed partial class GenresViewPage : Page
 		var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)}'");
+																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
@@ -501,7 +501,7 @@ public sealed partial class GenresViewPage : Page
 		var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)}'");
+																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		if (songPaths?.Count > 0)
@@ -604,7 +604,7 @@ public sealed partial class GenresViewPage : Page
 		var genreModels = GenreTileView.SelectedItems;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)}'"))})");
+																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
@@ -628,8 +628,8 @@ public sealed partial class GenresViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var genreModels = GenreTileView.SelectedItems;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)}'"))})");
+																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
