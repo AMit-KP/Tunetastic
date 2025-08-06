@@ -623,9 +623,9 @@ public sealed partial class SettingsPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the color palette control.</param>
 	/// <param name="e">An instance of ItemClickEventArgs containing information about the clicked item, including the selected color.</param>
-	private void OnColorPaletteItemClick(object sender, ItemClickEventArgs e)
+	private void ColorPalette_ColorChanged(object sender, ColorPaletteColorChangedEventArgs e)
 	{
-		var color = e.ClickedItem as ColorPaletteItem;
+		var color = e.ColorPaletteItem;
 		if (color != null)
 			ApplyAndSaveTint(color.Color);
 	}

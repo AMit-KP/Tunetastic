@@ -14,7 +14,7 @@ public sealed partial class SplashScreen : Page
 	public SplashScreen()
 	{
 		this.InitializeComponent();
-		var theme = this.ActualTheme;
+		var theme = App.Current.ThemeService.GetActualTheme();
 		SplashImage.Source = new BitmapImage(new Uri(theme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Splash_Dark.png" : "ms-appx:///Assets/Store/Splash_Light.png"));
 		_ = CheckScanning();
 	}

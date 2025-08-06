@@ -174,6 +174,7 @@ public sealed partial class PlayListTemplate : Page
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
 			SortPlayList.IsEnabled = true;
+			ExportPlayList.IsEnabled = true;
 			if (scrollToSelectedItem)
 			{
 				var song = PlayListSongs.Select(s => s).Where(s => s.Path == selectedSong?.Path).FirstOrDefault();
@@ -192,6 +193,7 @@ public sealed partial class PlayListTemplate : Page
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
 			SortPlayList.IsEnabled = false;
+			ExportPlayList.IsEnabled = false;
 		}
 	}
 

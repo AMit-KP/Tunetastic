@@ -25,7 +25,7 @@ public sealed partial class MainPlayerPage : Page
 	public MainPlayerPage()
 	{
 		this.InitializeComponent();
-
+		BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 		_musicPlayer.CurrentSongChanged += OnCurrentSongChanged;
 	}
@@ -97,7 +97,6 @@ public sealed partial class MainPlayerPage : Page
 
 							CoverArtImage.Source = bitmapImage;
 						}
-						BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
 						if ((Title.Text + "\n" + Artist.Text).Length > 128)
 							App.TrayIcon.Text = Title.Text;
 						else
@@ -141,7 +140,6 @@ public sealed partial class MainPlayerPage : Page
 		CoverArt.CornerRadius = new CornerRadius(50);
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		Title.Text = "Please select a song";
-		BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
 		return Task.CompletedTask;
 	}
 
@@ -153,9 +151,11 @@ public sealed partial class MainPlayerPage : Page
 	/// <param name="e">Event arguments containing information about the Loaded event.</param>
 	private void Page_Loaded(object sender, RoutedEventArgs e)
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, async () =>
 		{
+			await Task.Delay(200);
 			await UpdateUI();
+			this.SizeChanged += Page_SizeChanged;
 		});
 	}
 
@@ -200,5 +200,10 @@ public sealed partial class MainPlayerPage : Page
 				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 				break;
 		}
+	}
+
+	protected override void OnNavigatedTo(NavigationEventArgs e)
+	{
+		base.OnNavigatedTo(e);
 	}
 }

@@ -45,6 +45,21 @@
 				</dev:SettingsExpander.ItemTemplate>
 			</dev:SettingsExpander>
 
+			<dev:SettingsExpander x:Name="FileExt"
+			                      Header="File Extensions"
+			                      ItemsSource="{x:Bind AllFormats, Mode=TwoWay}">
+				<dev:SettingsExpander.ItemTemplate>
+					<DataTemplate x:DataType="model:Format">
+						<dev:SettingsCard Description="{x:Bind Description}"
+						                  Header="{x:Bind Extension}">
+							<ToggleSwitch Name="{x:Bind Extension}"
+							              IsOn="{x:Bind Enabled, Mode=TwoWay}"
+							              Toggled="Ext_ToggleSwitch_OnToggled" />
+						</dev:SettingsCard>
+					</DataTemplate>
+				</dev:SettingsExpander.ItemTemplate>
+			</dev:SettingsExpander>
+
 			<dev:SettingsExpander x:Name="Scan"
 			                      Header="Scan Libraries for Songs">
 
@@ -94,21 +109,6 @@
 						              Toggled="ScanAtStart_Toggled" />
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
-			</dev:SettingsExpander>
-
-			<dev:SettingsExpander x:Name="FileExt"
-			                      Header="File Extensions"
-			                      ItemsSource="{x:Bind AllFormats, Mode=TwoWay}">
-				<dev:SettingsExpander.ItemTemplate>
-					<DataTemplate x:DataType="model:Format">
-						<dev:SettingsCard Description="{x:Bind Description}"
-						                  Header="{x:Bind Extension}">
-							<ToggleSwitch Name="{x:Bind Extension}"
-							              IsOn="{x:Bind Enabled, Mode=TwoWay}"
-							              Toggled="Ext_ToggleSwitch_OnToggled" />
-						</dev:SettingsCard>
-					</DataTemplate>
-				</dev:SettingsExpander.ItemTemplate>
 			</dev:SettingsExpander>
 
 			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
@@ -278,7 +278,8 @@
 			</dev:SettingsCard>
 			<dev:SettingsExpander x:Name="TintSettings"
 			                      Description="Add tint to your window to make your experience more personalized."
-			                      Header="Tint Color">
+			                      Header="Tint Color"
+			                      IsExpanded="True">
 				<Button Padding="0">
 					<StackPanel Orientation="Horizontal">
 						<Border Width="24"
@@ -309,11 +310,13 @@
 						<dev:SettingsCard.Description>
 							<dev:ColorPalette Margin="5,5,0,0"
 							                  HorizontalAlignment="Left"
-							                  ItemClick="OnColorPaletteItemClick"
-							                  ItemWidth="32"
-							                  Palette="Rectangle"
-							                  ShowHeader="False"
-							                  Color="NormalLarge" />
+							                  ColorChanged="ColorPalette_ColorChanged"
+							                  ColorSet="Extended"
+							                  ItemHeight="40"
+							                  ItemShape="Circle"
+							                  ItemWidth="40"
+							                  ShowColorName="True"
+							                  ShowToolTip="True" />
 						</dev:SettingsCard.Description>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.ItemsHeader>
@@ -373,7 +376,7 @@
 				           Text="About" />
 			</StackPanel>
 
-			<dev:SettingsCard Header="{x:Bind ViewModel.CurrentVersion}"
+			<!--<dev:SettingsCard Header="{x:Bind ViewModel.CurrentVersion}"
 			                  HeaderIcon="{dev:BitmapIcon Source=Assets/Fluent/Update.png}">
 				<dev:SettingsCard.Description>
 					<StackPanel Orientation="Horizontal"
@@ -394,13 +397,12 @@
 					        IsEnabled="{x:Bind ViewModel.IsCheckButtonEnabled, Mode=OneWay}"
 					        Style="{ThemeResource AccentButtonStyle}" />
 				</StackPanel>
-			</dev:SettingsCard>
+			</dev:SettingsCard>-->
 
 			<dev:SettingsExpander Description="Description"
 			                      Header="Tunetastic"
 			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
 			                      IsExpanded="False">
-
 				<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 				           IsTextSelectionEnabled="True"
 				           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
@@ -411,9 +413,9 @@
 						            Spacing="5">
 							<TextBlock Text="Related Links" />
 							<HyperlinkButton Content="Source Code"
-							                 NavigateUri="https://github.com/Ghost1372/DevWinUI" />
-							<HyperlinkButton Content="Release Notes"
-							                 NavigateUri="https://github.com/Ghost1372/DevWinUI/releases" />
+							                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
+							<HyperlinkButton Content="Store Page"
+							                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
 						</StackPanel>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>

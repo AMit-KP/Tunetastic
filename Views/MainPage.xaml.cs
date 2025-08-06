@@ -2,6 +2,7 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Views.PlaylistViews;
 using WinRT.Interop;
 using AutoSuggestBoxHelper = DevWinUI.AutoSuggestBoxHelper;
@@ -73,6 +74,8 @@ public sealed partial class MainPage : Page
 		{
 			mainWin.CurrentAppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 		}
+
+		AppIcon.Source = new BitmapImage(new Uri(this.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
 
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
 		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
@@ -488,7 +491,6 @@ public sealed partial class MainPage : Page
 	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
 	{
 		//TODO: Drag n Drop
-		//TODO: Add playlist from anywhere in file explorer
 		var picker = new FilePicker(WindowNative.GetWindowHandle(App.MainWindow));
 		picker.FileTypeChoices = new Dictionary<string, IList<string>>
 		{
@@ -514,5 +516,35 @@ public sealed partial class MainPage : Page
 			PlaylistFileSongs.Clear();
 			PlaylistFileSongs.AddRange(songList);
 		}
+	}
+
+	/// <summary>
+	/// Handles the theme change event for the page.
+	/// </summary>
+	/// <param name="sender">The <see cref="FrameworkElement"/> that triggered the event.</param>
+	/// <param name="args">The event data associated with the theme change.</param>
+	/// <remarks>
+	/// This method updates the caption buttons and adjusts the application icon source to reflect the new theme.
+	/// It ensures that the icon dynamically switches between light and dark mode assets depending on the current theme.
+	/// </remarks>
+	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
+	{
+		App.Current.ThemeService.UpdateCaptionButtons();
+		AppIcon.Source = new BitmapImage(new Uri(sender.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
+	}
+
+	/// <summary>
+	/// Toggles the animation state of the application title.
+	/// </summary>
+	/// <param name="startAnimation">A boolean indicating whether the animation should begin (true) or stop (false).</param>
+	/// <remarks>
+	/// This method adjusts the title's visual appearance by changing its stroke thickness and animation state.
+	/// When <paramref name="startAnimation"/> is set to true, the title's stroke thickness is increased, and the animation is enabled, enhancing the visual effect.
+	/// When set to false, the stroke thickness is reset, and the animation is disabled.
+	/// </remarks>
+	public void AnimateTitle(bool startAnimation)
+	{
+		AppTitle.StrokeThickness = startAnimation ? 1 : 0;
+		AppTitle.Animate = startAnimation;
 	}
 }

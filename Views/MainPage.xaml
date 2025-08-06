@@ -6,6 +6,8 @@
       xmlns:dev="using:DevWinUI"
       xmlns:local="using:Tunetastic"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:ui="using:Microsoft.UI.Xaml"
+      ActualThemeChanged="Page_ActualThemeChanged"
       Loaded="Page_Loaded"
       mc:Ignorable="d">
 
@@ -17,11 +19,35 @@
 			</Grid.RowDefinitions>
 
 			<TitleBar x:Name="AppTitleBar"
-			          Title="{x:Bind dev:ProcessInfoHelper.ProductName}"
 			          IsBackButtonVisible="True"
 			          IsPaneToggleButtonVisible="True">
-				<!--  IconSource="{dev:BitmapIconSource Source=ms-appx:///Assets/AppIcon.png}"  -->
-				<!--  Issue with windows app sdk  -->
+				<TitleBar.LeftHeader>
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<ImageIcon x:Name="AppIcon"
+						           Grid.Column="0"
+						           Width="30"
+						           Height="30"
+						           Margin="5,0,10,0"
+						           HorizontalAlignment="Center"
+						           VerticalAlignment="Stretch"
+						           Source="ms-appx:///Assets/AppIcon.png" />
+						<dev:TextBlockStrokeView x:Name="AppTitle"
+						                         Grid.Column="1"
+						                         VerticalAlignment="Center"
+						                         Animate="False"
+						                         StrokeThickness="0">
+							<TextBlock Margin="0,0,0,0"
+							           VerticalAlignment="Center"
+							           FontWeight="ExtraBold"
+							           Style="{ThemeResource SubtitleTextBlockStyle}"
+							           Text="Tunetastic" />
+						</dev:TextBlockStrokeView>
+					</Grid>
+				</TitleBar.LeftHeader>
 				<AutoSuggestBox x:Name="SearchBox"
 				                MinWidth="320"
 				                VerticalAlignment="Center"
