@@ -12,6 +12,7 @@
       xmlns:libraryviews="using:Tunetastic.Views.LibraryViews"
       xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      ActualThemeChanged="Page_ActualThemeChanged"
       Loaded="Page_Loaded"
       SizeChanged="Page_SizeChanged"
       Unloaded="Page_Unloaded"
@@ -400,6 +401,13 @@
 					</DataTemplate>
 				</ListView.ItemTemplate>
 			</ListView>
+			<StackPanel x:Name="AlphabetNavigationPanel"
+			            Margin="0,50,30,10"
+			            HorizontalAlignment="Right"
+			            VerticalAlignment="Stretch"
+			            Orientation="Vertical"
+			            Spacing="0">
+			</StackPanel>
 		</Grid>
 	</Grid>
 </Page>

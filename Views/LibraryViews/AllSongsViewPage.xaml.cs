@@ -237,29 +237,12 @@ public sealed partial class AllSongsViewPage : Page
 		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
 		bool AscOrder = orderBy == "Ascending";
 
-		IOrderedEnumerable<string>? availableLetters = null;
-		bool hasSpecialCharacters = false;
-
 		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(Enum.Parse<SongProperty>(sortBy), AscOrder);
 		AllSongs.Clear();
 		AllSongs.AddRange(newList);
 		newList = null;
 
-		switch (sortBy)
-		{
-			case "Title":
-				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-			case "Artists":
-				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-			case "Album":
-				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-		}
+		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
@@ -284,8 +267,6 @@ public sealed partial class AllSongsViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
-
-		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -462,6 +443,41 @@ public sealed partial class AllSongsViewPage : Page
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(AllSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
+	}
+
+	/// <summary>
+	/// Evaluates and updates the navigation panel based on the sorting and ordering preferences for the song list.
+	/// </summary>
+	/// <remarks>
+	/// This method determines the sort criteria and order (e.g., by "Title", "Artists", or "Album" in ascending or descending order),
+	/// evaluates the distinct starting characters of the relevant property for all songs, and identifies the presence of special characters.
+	/// It then populates the alphabet navigation panel accordingly.
+	/// </remarks>
+	private void NavigationPanelEvaluate()
+	{
+		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
+		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		bool AscOrder = orderBy == "Ascending";
+
+		IOrderedEnumerable<string>? availableLetters = null;
+		bool hasSpecialCharacters = false;
+		switch (sortBy)
+		{
+			case "Title":
+				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+			case "Artists":
+				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+			case "Album":
+				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+		}
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -867,6 +883,8 @@ public sealed partial class AllSongsViewPage : Page
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
 			}
+			else
+				NavigationPanelEvaluate();
 		}
 	}
 
@@ -993,5 +1011,7 @@ public sealed partial class AllSongsViewPage : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
+		else
+			NavigationPanelEvaluate();
 	}
 }

@@ -158,8 +158,9 @@ public sealed partial class GenresViewPage : Page
 		var groups = await DatabaseHelper.Instance.GetSongsGroupedByGenre(AscOrder);
 		GenresGroup.Clear();
 		GenresGroup.AddRange(groups);
-
 		groups = null;
+
+		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Order: " });
@@ -280,6 +281,7 @@ public sealed partial class GenresViewPage : Page
 	private async void SortButton_OnClick(object sender, RoutedEventArgs e)
 	{
 		await UpdateListBasedOnSorting();
+		await AdjustAlphabetSize();
 	}
 
 	/// <summary>
@@ -401,7 +403,7 @@ public sealed partial class GenresViewPage : Page
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 
-			GlobalNotification.Info($"All {songList.Count} songs/tracks of selected genres, added to {playlist} playlist.");
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to {playlist} playlist.");
 		}
 		else
 		{
@@ -513,6 +515,10 @@ public sealed partial class GenresViewPage : Page
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
 			}
+			else
+			{
+				NavigationPanelEvaluate();
+			}
 		}
 	}
 
@@ -594,7 +600,7 @@ public sealed partial class GenresViewPage : Page
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} songs/tracks of selected genres, added to queue.");
+		GlobalNotification.Info($"All {songList.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to queue.");
 	}
 
 	/// <summary>
@@ -647,6 +653,10 @@ public sealed partial class GenresViewPage : Page
 		{
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
+		}
+		else
+		{
+			NavigationPanelEvaluate();
 		}
 	}
 
@@ -825,5 +835,183 @@ public sealed partial class GenresViewPage : Page
 	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		GenreTileView_SizeChanged(null, null);
+	}
+
+	/// <summary>
+	/// Updates the navigation panel based on the current state of the genre collection and the selected sorting order.
+	/// </summary>
+	/// <remarks>
+	/// This method evaluates the available genres and their initial characters, determines their order based on the current sorting criteria,
+	/// and assesses the presence of special characters. Using this information, it generates and updates the navigation panel to
+	/// reflect the available alphabet options for quick navigation within the genre view.
+	/// </remarks>
+	private void NavigationPanelEvaluate()
+	{
+		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		bool AscOrder = orderBy == "Ascending";
+
+		IOrderedEnumerable<string>? availableLetters = null;
+		availableLetters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
+	}
+
+	/// <summary>
+	/// Populates the alphabet navigation panel with letters and optionally a special character marker
+	/// for navigating sections of songs.
+	/// </summary>
+	/// <param name="availableLetters">
+	/// A collection of letters representing song sections to be included in navigation. Null indicates
+	/// all letters are marked as unavailable.
+	/// </param>
+	/// <param name="order">
+	/// A flag indicating whether the letters are ordered in ascending or descending order.
+	/// </param>
+	/// <param name="sortBy">
+	/// The sorting criterion to define navigation to specific column in the song collection.
+	/// </param>
+	/// <param name="hasSpecialCharacters">
+	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
+	/// </param>
+	/// <remarks>
+	/// This method clears all existing child elements in the alphabet navigation panel before creating
+	/// and adding dynamically generated navigation elements. Each letter element is configured based on
+	/// its validity from the provided collection. Additionally, it defines interaction behavior for
+	/// navigable elements to handle user input.
+	/// </remarks>
+	private async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, bool hasSpecialCharacters)
+	{
+		AlphabetNavigationPanel.Children.Clear();
+		if (availableLetters == null && !hasSpecialCharacters) return;
+
+		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
+		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
+		if (!order) fullAlphabet = fullAlphabet.Reverse();
+
+		double availableSpace = GenreTileView.ActualHeight;
+
+		double autoHeight = availableSpace / fullAlphabet.Count();
+
+		foreach (var letter in fullAlphabet)
+		{
+			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
+
+			var Button = new Button
+			{
+				Content = letter,
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Opacity = hasSongs ? 1 : 0.5,
+				Background = new SolidColorBrush(Colors.Transparent),
+				BorderBrush = new SolidColorBrush(Colors.Transparent),
+				BorderThickness = new Thickness(0),
+				IsHitTestVisible = hasSongs,
+				Margin = new Thickness(0),
+				HorizontalContentAlignment = HorizontalAlignment.Right,
+				VerticalContentAlignment = VerticalAlignment.Stretch,
+				Padding = new Thickness(0),
+				HorizontalAlignment = HorizontalAlignment.Right,
+				VerticalAlignment = VerticalAlignment.Stretch,
+				Height = autoHeight
+			};
+
+			if (hasSongs)
+			{
+				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
+				ToolTipService.SetToolTip(Button, letter);
+				Button.Tapped += (s, e) => ScrollToSection(letter);
+			}
+
+			AlphabetNavigationPanel.Children.Add(Button);
+			await Task.Delay(1);
+		}
+		_ = AdjustAlphabetSize();
+		availableLetters = null;
+	}
+
+	/// <summary>
+	/// Scrolls the view to a specific section of the song list based on the specified letter and sorting criteria.
+	/// </summary>
+	/// <param name="letter">The starting letter of the section to scroll to, or "#" to scroll to non-alphabetic entries.</param>
+	/// <param name="sortBy">The property by which the song list is currently sorted. Valid values include "Title", "Artists", and "Album".</param>
+	/// <remarks>
+	/// This method locates the first song in the collection that matches the specified starting letter and sorting property.
+	/// If a matching song is found, the view scrolls to bring the song into focus.
+	/// </remarks>
+	private async void ScrollToSection(string letter)
+	{
+		GenreModel? targetGenre = null;
+
+		targetGenre = letter != "#" ? GenresGroup.FirstOrDefault(genre => genre.Genre.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenresGroup.FirstOrDefault(genre => !char.IsLetter(genre.Genre[0]));
+
+		if (targetGenre != null)
+		{
+			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			GenreTileView.SelectedItem = targetGenre;
+			await Task.Delay(500);
+			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+		}
+	}
+
+	/// <summary>
+	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
+	/// </summary>
+	/// <remarks>
+	/// This method calculates the height for each element in the alphabet navigation panel dynamically, ensuring
+	/// that the elements are evenly spaced and fit within the available vertical space.
+	/// </remarks>
+	/// <returns>
+	/// A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.
+	/// </returns>
+	private Task<Task> AdjustAlphabetSize()
+	{
+		double availableSpace = GenreTileView.ActualHeight;
+
+		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
+
+		if (availableSpace <= 0) return Task.FromResult(Task.CompletedTask);
+
+		double totalLetters = AlphabetNavigationPanel.Children.Count;
+
+		double autoHeight = availableSpace / totalLetters;
+
+		foreach (var button in AlphabetNavigationPanel.Children.OfType<Button>())
+		{
+			button.Height = autoHeight;
+		}
+		return Task.FromResult(Task.CompletedTask);
+	}
+
+	/// <summary>
+	/// Handles the event triggered when the page's size changes.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the page.</param>
+	/// <param name="e">The event data containing information about the new size of the page.</param>
+	/// <remarks>
+	/// This method adjusts the layout or size of elements on the page whenever the size of the page changes.
+	/// It enqueues a task on the dispatcher queue to perform required layout updates asynchronously.
+	/// </remarks>
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+	{
+		var pageHeight = e.NewSize.Height;
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		{
+			await AdjustAlphabetSize();
+		});
+	}
+
+	/// <summary>
+	/// Handles the theme change event for the page.
+	/// </summary>
+	/// <param name="sender">The <see cref="FrameworkElement"/> that triggered the theme change event.</param>
+	/// <param name="args">The event data associated with the theme change event.</param>
+	/// <remarks>
+	/// This method updates the foreground color of visible text elements in the AlphabetNavigationPanel
+	/// based on the current theme of the page. If the theme is dark, white color is applied; otherwise, black color is applied.
+	/// </remarks>
+	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
+	{
+		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
+		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
 }

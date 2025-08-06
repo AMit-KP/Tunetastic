@@ -392,7 +392,7 @@ public sealed partial class YearsViewPage : Page
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 
-			GlobalNotification.Info($"All {songList.Count} songs/tracks of selected years, added to {playlist} playlist.");
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to {playlist} playlist.");
 		}
 		else
 		{
@@ -585,7 +585,7 @@ public sealed partial class YearsViewPage : Page
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} songs/tracks of selected years, added to queue.");
+		GlobalNotification.Info($"All {songList.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to queue.");
 	}
 
 	/// <summary>
