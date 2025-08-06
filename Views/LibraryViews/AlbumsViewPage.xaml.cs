@@ -175,25 +175,6 @@ public sealed partial class AlbumsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the AlbumTileList control, ensuring proper initialization of the associated panel.
-	/// </summary>
-	/// <remarks>
-	/// This method adjusts the behavior of the SmartWrapPanel used as the items panel for the AlbumTileView ListView control.
-	/// It sets the panel's <c>ListViewWidthSource</c> property to the <c>AlbumTileView</c> instance
-	/// and invalidates its layout, allowing the panel to adapt to the current dimensions and layout requirements.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the <c>AlbumTileView</c> object.</param>
-	/// <param name="e">Event data that provides additional information about the Loaded event.</param>
-	private void AlbumTileList_Loaded(object sender, RoutedEventArgs e)
-	{
-		if (AlbumTileView.ItemsPanelRoot is SmartWrapPanel panel)
-		{
-			panel.ListViewWidthSource = AlbumTileView;
-			panel.InvalidateMeasure();
-		}
-	}
-
-	/// <summary>
 	/// Handles the `Loaded` event for the AlbumsViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, generally the page itself.</param>
@@ -205,8 +186,11 @@ public sealed partial class AlbumsViewPage : Page
 	{
 		while (AlbumsGroup == null || AlbumsGroup.Count == 0)
 		{
-			await Task.Delay(500);
+			await Task.Delay(100);
 		}
+
+		AlbumTileView_SizeChanged(null, null);
+		AlbumTileView.ContainerContentChanging += AlbumTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
@@ -244,6 +228,7 @@ public sealed partial class AlbumsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		AlbumTileView.SizeChanged += AlbumTileView_SizeChanged;
 	}
 
 	/// <summary>
@@ -832,6 +817,77 @@ public sealed partial class AlbumsViewPage : Page
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
 		UpdateShimmerPlaceholderCount(e.NewSize);
+	}
+
+	/// <summary>
+	/// Adjusts the layout and styling of items within the AlbumTileView control dynamically based on the available width.
+	/// </summary>
+	/// <param name="sender">The source of the event, usually the AlbumTileView control.</param>
+	/// <param name="e">Event data that provides information about the size changes.</param>
+	/// <remarks>
+	/// This method calculates the optimal dimensions for items in the AlbumTileView control,
+	/// ensuring that items are spaced appropriately and the layout adapts to different screen sizes.
+	/// The method determines the maximum number of items that can fit horizontally and adjusts item width and margins.
+	/// For wrapping layouts where all items cannot fit, the method redistributes the available space among visible items.
+	/// </remarks>
+	private void AlbumTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	{
+		const double baseContentWidth = 220;
+		const double baseMargin = 10;
+
+		double availableWidth = AlbumTileView.ActualWidth;
+		if (availableWidth <= 0 || AlbumTileView.ItemsPanelRoot is not ItemsWrapGrid grid)
+			return;
+
+		int itemCount = AlbumTileView.Items.Count;
+		if (itemCount <= 0) return;
+
+		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
+		int count = Math.Min(itemCount, maxFitCount);
+
+		double usedWidth = count * baseContentWidth + (count + 1) * baseMargin;
+		double remainingSpace = availableWidth - usedWidth;
+
+		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
+
+		double adjustedItemWidth = baseContentWidth;
+		double adjustedMargin = baseMargin;
+
+		if (layoutIsWrapping && count > 0)
+		{
+			double extraPerTile = remainingSpace / count;
+			adjustedItemWidth += extraPerTile;
+			adjustedMargin += extraPerTile * 0.5;
+		}
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			var container = AlbumTileView.ContainerFromItem(AlbumTileView.Items[i]) as ListViewItem;
+			if (container != null)
+			{
+				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
+			}
+		}
+		grid.ItemWidth = adjustedItemWidth;
+	}
+
+	/// <summary>
+	/// Occurs during the progressive content rendering of an album tile within the album list view, dynamically adapting the UI for items that are becoming visible.
+	/// </summary>
+	/// <param name="sender">
+	/// The ListViewBase control that triggered the event.
+	/// </param>
+	/// <param name="args">
+	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
+	/// </param>
+	/// <remarks>
+	/// This method is invoked whenever a container's UI content is about to change for a specific album tile in the <c>AlbumTileView</c>.
+	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
+	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the album view.
+	/// </remarks>
+	private void AlbumTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+	{
+		AlbumTileView_SizeChanged(null, null);
 	}
 }
 //TODO: auto-scroll header

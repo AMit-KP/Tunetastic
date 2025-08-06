@@ -219,12 +219,13 @@
 					</StackPanel>
 				</ContentDialog>
 			</Grid>
+
+			<!--  Shimmer Not required anymore. But kept it in case for a potato PC  -->
 			<Grid Margin="20,10,0,0"
 			      Padding="12">
 				<ItemsRepeater x:Name="ShimmerRepeater"
 				               VerticalAlignment="Top"
 				               Visibility="Collapsed">
-					<!--  ItemsSource="{x:Bind ShimmerPlaceholders}"  -->
 					<ItemsRepeater.Layout>
 						<common:SmartWrapVirtualizingLayout MinGap="30"
 						                                    RowGap="40"
@@ -243,7 +244,6 @@
 				</ItemsRepeater>
 			</Grid>
 
-			<!--  TODO: Replace with ItemsRepeater and smartwrapvirtualizinglayout later.  -->
 			<ListView x:Name="AlbumTileView"
 			          Margin="10"
 			          Padding="12"
@@ -254,27 +254,25 @@
 			          IsRightTapEnabled="True"
 			          ItemClick="AlbumTileView_ItemClick"
 			          ItemsSource="{x:Bind AlbumsGroup}"
-			          Loaded="AlbumTileList_Loaded"
 			          SelectionChanged="ListView_SelectionChanged"
 			          SelectionMode="Single">
 				<ListView.ItemsPanel>
 					<ItemsPanelTemplate>
-						<common:SmartWrapPanel MinGap="30"
-						                       RowGap="40"
-						                       TileHeight="230"
-						                       TileWidth="190" />
+						<ItemsWrapGrid ItemHeight="270"
+						               ItemWidth="220"
+						               Orientation="Horizontal" />
 					</ItemsPanelTemplate>
 				</ListView.ItemsPanel>
+
+				<ListView.ItemContainerTransitions>
+					<TransitionCollection>
+						<RepositionThemeTransition />
+					</TransitionCollection>
+				</ListView.ItemContainerTransitions>
+
 				<ListView.ItemContainerStyle>
 					<Style TargetType="ListViewItem">
-						<Setter Property="Margin" Value="0" />
-						<Setter Property="Transitions">
-							<Setter.Value>
-								<TransitionCollection>
-									<RepositionThemeTransition />
-								</TransitionCollection>
-							</Setter.Value>
-						</Setter>
+						<Setter Property="Margin" Value="10,15,10,15" />
 						<Setter Property="Template">
 							<Setter.Value>
 								<ControlTemplate TargetType="ListViewItem">
@@ -315,7 +313,7 @@
 
 										<ContentPresenter Width="150"
 										                  Height="220"
-										                  Margin="0"
+										                  Margin="10"
 										                  HorizontalAlignment="Center"
 										                  VerticalAlignment="Center" />
 									</Grid>

@@ -226,27 +226,25 @@
 			          IsRightTapEnabled="True"
 			          ItemClick="GenreTileView_ItemClick"
 			          ItemsSource="{x:Bind GenresGroup}"
-			          Loaded="GenreTileList_Loaded"
 			          SelectionChanged="ListView_SelectionChanged"
 			          SelectionMode="Single">
 				<ListView.ItemsPanel>
 					<ItemsPanelTemplate>
-						<common:SmartWrapPanel MinGap="30"
-						                       RowGap="40"
-						                       TileHeight="140"
-						                       TileWidth="190" />
+						<ItemsWrapGrid ItemHeight="170"
+						               ItemWidth="220"
+						               Orientation="Horizontal" />
 					</ItemsPanelTemplate>
 				</ListView.ItemsPanel>
+
+				<ListView.ItemContainerTransitions>
+					<TransitionCollection>
+						<RepositionThemeTransition />
+					</TransitionCollection>
+				</ListView.ItemContainerTransitions>
+
 				<ListView.ItemContainerStyle>
 					<Style TargetType="ListViewItem">
-						<Setter Property="Margin" Value="0" />
-						<Setter Property="Transitions">
-							<Setter.Value>
-								<TransitionCollection>
-									<RepositionThemeTransition />
-								</TransitionCollection>
-							</Setter.Value>
-						</Setter>
+						<Setter Property="Margin" Value="10,15,10,15" />
 						<Setter Property="Template">
 							<Setter.Value>
 								<ControlTemplate TargetType="ListViewItem">

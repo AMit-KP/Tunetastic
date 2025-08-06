@@ -81,8 +81,8 @@ public sealed partial class AlbumDetailPage : Page
 	{
 		if (e.SourcePageType.Name == "AlbumsViewPage")
 		{
-			//ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimationBack", ActualAlbumGroup);
-			//TODO: uncomment this when the albumviewpage is optimized
+			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimationBack", ActualAlbumGroup);
+
 			var fadeOut = new DoubleAnimation
 			{
 				To = 0,

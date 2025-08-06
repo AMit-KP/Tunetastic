@@ -111,7 +111,7 @@ public sealed partial class GenresViewPage : Page
 	/// Updates the sorting preferences for the song list displayed on the GenresViewPage.
 	/// </summary>
 	/// <remarks>
-	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
+	/// This method determines the sorting criteria and order
 	/// based on the user's saved preferences in local settings. It also updates the selection status
 	/// of the UI elements corresponding to the sorting options and triggers the list update.
 	/// </remarks>
@@ -180,25 +180,6 @@ public sealed partial class GenresViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the GenreTileList control, ensuring proper initialization of the associated panel.
-	/// </summary>
-	/// <remarks>
-	/// This method adjusts the behavior of the SmartWrapPanel used as the items panel for the GenreTileView ListView control.
-	/// It sets the panel's <c>ListViewWidthSource</c> property to the <c>GenreTileView</c> instance
-	/// and invalidates its layout, allowing the panel to adapt to the current dimensions and layout requirements.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the <c>GenreTileView</c> object.</param>
-	/// <param name="e">Event data that provides additional information about the Loaded event.</param>
-	private void GenreTileList_Loaded(object sender, RoutedEventArgs e)
-	{
-		if (GenreTileView.ItemsPanelRoot is SmartWrapPanel panel)
-		{
-			panel.ListViewWidthSource = GenreTileView;
-			panel.InvalidateMeasure();
-		}
-	}
-
-	/// <summary>
 	/// Handles the `Loaded` event for the GenresViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, generally the page itself.</param>
@@ -213,6 +194,9 @@ public sealed partial class GenresViewPage : Page
 			await Task.Delay(100);
 		}
 
+		GenreTileView_SizeChanged(null, null);
+		GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
+
 		if (connectedAnimation)
 		{
 			var selectedGenre = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)]?.ToString());
@@ -223,7 +207,7 @@ public sealed partial class GenresViewPage : Page
 			if (animation != null && selectedGenreModel != null)
 			{
 				await Task.Delay(30);
-				await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
 
 				var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 				if (container != null)
@@ -248,6 +232,7 @@ public sealed partial class GenresViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		GenreTileView.SizeChanged += GenreTileView_SizeChanged;
 	}
 
 	/// <summary>
@@ -770,4 +755,75 @@ public sealed partial class GenresViewPage : Page
 		}
 	}
 
+	/// <summary>
+	/// Adjusts the layout and styling of items within the GenreTileView control dynamically based on the available width.
+	/// </summary>
+	/// <param name="sender">The source of the event, usually the GenreTileView control.</param>
+	/// <param name="e">Event data that provides information about the size changes.</param>
+	/// <remarks>
+	/// This method calculates the optimal dimensions for items in the GenreTileView control,
+	/// ensuring that items are spaced appropriately and the layout adapts to different screen sizes.
+	/// The method determines the maximum number of items that can fit horizontally and adjusts item width and margins.
+	/// For wrapping layouts where all items cannot fit, the method redistributes the available space among visible items.
+	/// </remarks>
+	private void GenreTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	{
+		const double baseContentWidth = 220;
+		const double baseMargin = 10;
+
+		double availableWidth = GenreTileView.ActualWidth;
+		if (availableWidth <= 0 || GenreTileView.ItemsPanelRoot is not ItemsWrapGrid grid)
+			return;
+
+		int itemCount = GenreTileView.Items.Count;
+		if (itemCount <= 0) return;
+
+		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
+		int count = Math.Min(itemCount, maxFitCount);
+
+		double usedWidth = count * baseContentWidth + (count + 1) * baseMargin;
+		double remainingSpace = availableWidth - usedWidth;
+
+		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
+
+		double adjustedItemWidth = baseContentWidth;
+		double adjustedMargin = baseMargin;
+
+		if (layoutIsWrapping && count > 0)
+		{
+			double extraPerTile = remainingSpace / count;
+			adjustedItemWidth += extraPerTile;
+			adjustedMargin += extraPerTile * 0.5;
+		}
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			var container = GenreTileView.ContainerFromItem(GenreTileView.Items[i]) as ListViewItem;
+			if (container != null)
+			{
+				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
+			}
+		}
+
+		grid.ItemWidth = adjustedItemWidth;
+	}
+
+	/// <summary>
+	/// Occurs during the progressive content rendering of an genre tile within the genre list view, dynamically adapting the UI for items that are becoming visible.
+	/// </summary>
+	/// <param name="sender">
+	/// The ListViewBase control that triggered the event.
+	/// </param>
+	/// <param name="args">
+	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
+	/// </param>
+	/// <remarks>
+	/// This method is invoked whenever a container's UI content is about to change for a specific genre tile in the <c>GenreTileView</c>.
+	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
+	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the genre view.
+	/// </remarks>
+	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+	{
+		GenreTileView_SizeChanged(null, null);
+	}
 }
