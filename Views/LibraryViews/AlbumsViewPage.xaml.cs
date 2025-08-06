@@ -1063,4 +1063,3 @@ public sealed partial class AlbumsViewPage : Page
 		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
 }
-//TODO: auto-scroll header

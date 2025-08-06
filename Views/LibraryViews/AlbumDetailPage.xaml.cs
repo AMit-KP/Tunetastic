@@ -53,9 +53,11 @@ public sealed partial class AlbumDetailPage : Page
 
 		if (animation != null)
 		{
-			await ActualAlbumGroup.DispatcherQueue.EnqueueAsync(() =>
+			await ActualAlbumGroup.DispatcherQueue.EnqueueAsync(async () =>
 			{
 				animation.TryStart(ActualAlbumGroup);
+				await Task.Delay(1000);
+				AutoScrollHeader.IsPlaying = true;
 			});
 		}
 

@@ -59,9 +59,11 @@ public sealed partial class GenreDetailPage : Page
 
 		if (animation != null)
 		{
-			await ActualGenreGroup.DispatcherQueue.EnqueueAsync(() =>
+			await ActualGenreGroup.DispatcherQueue.EnqueueAsync(async () =>
 			{
 				animation.TryStart(ActualGenreGroup);
+				await Task.Delay(1000);
+				AutoScrollHeader.IsPlaying = true;
 			});
 		}
 
