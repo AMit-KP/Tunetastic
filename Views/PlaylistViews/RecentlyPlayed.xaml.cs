@@ -55,6 +55,7 @@ public sealed partial class RecentlyPlayed : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		RecentlyPlayedSongsListViewGrid.Visibility = Visibility.Collapsed;
 		RecentlyPlayedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
@@ -253,6 +254,7 @@ public sealed partial class RecentlyPlayed : Page
 		else
 		{
 			NoResultsGrid.Visibility = Visibility.Visible;
+			AddNoResultsMessage();
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
 	}
@@ -839,4 +841,105 @@ public sealed partial class RecentlyPlayed : Page
 		}
 		UpdateTimeStyle();
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“We’d show you what you’ve been grooving to… if we knew what existed.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this page starts reminiscing about imaginary playlists.",
+		"“Recent play history is currently on hold—pending actual music.”\nScan your library before this page files for quiet contemplation.",
+		"“There’s no playback trail because we haven’t met your music yet.”\nAdd your songs or this page starts documenting the sounds of anticipation.",
+		"“Playback history unavailable—it's hard to remember what was never known.”\nCheck your settings before this page starts a memoir titled ‘The Silent Years.’",
+		"“The journey through your music? Still waiting on directions.”\nScan your tracks or this page takes up cartography of empty soundscapes.",
+		"“RecentlyPlayedPage is staring into the abyss—no tunes, no tales.”\nAdd libraries before it starts tracking the echo of your silence.",
+		"“Your music diary is ready. Now it just needs music.”\nCheck your settings or the page becomes a scrapbook of blank moments.",
+		"“Playback history is clear... like a freshly waxed void.”\nScan your tracks before this page starts logging your typing cadence as rhythm.",
+		"“Memory’s sharp. Data’s missing.”\nAdd your songs or this page starts guessing what tunes your plants like.",
+		"“No songs. No playback. Just pristine potential.”\nCheck your settings before this page frames its emptiness as minimalist art."
+	};
+
+	/// <summary>
+	/// Adds a formatted "No Results" message to the UI for scenarios where the recently played songs list is empty.
+	/// </summary>
+	/// <remarks>
+	/// This method randomly selects a message from a predefined list of witty "No Results" messages.
+	/// It splits the selected message into lines, formats the first line with an italic font style,
+	/// and then displays both lines in corresponding text blocks within the UI. This serves to provide
+	/// a user-friendly notification while the data is unavailable or insufficient to populate the recently played list.
+	/// </remarks>
+	private void AddNoResultsMessage()
+	{
+		string message = NoResultsMessages[Random.Shared.Next(NoResultsMessages.Count)];
+		var lines = message.Split('\n');
+
+		NoResultsTextBlock.Inlines.Clear();
+		NoResultsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		NoResultsTextBlock.Inlines.Add(new LineBreak());
+
+		NoResultsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Contains a collection of entertaining and motivational messages to display when no results are available on the page.
+	/// </summary>
+	/// <remarks>
+	/// This collection is designed to engage the user in a playful and encouraging manner when the page has no data to show, such as
+	/// when songs have not been played enough to meet the ranking criteria. Each message consists of two parts separated by a newline
+	/// character and is intended to provide humor and incentive for deeper interaction with the music library.
+	/// </remarks>
+	private readonly List<string> NoResultsMessages = new()
+	{
+		"“Quick peeks don’t make history—listen like you mean it.”\nStay with a track, let the vibes settle in, and this page will start remembering.",
+		"“Your skip game is strong. So is our memory filter.”\nGive a song the courtesy of a full verse before expecting a shoutout.",
+		"“Music barely heard is music easily forgotten.”\nLet the track breathe. RecentlyPlayed only honors meaningful moments.",
+		"“You brushed past a few tunes. This page needs a proper handshake.”\nSpend quality time with your music and come back when it feels like friendship.",
+		"“This page rejects fleeting affairs.”\nLet something truly play—otherwise you’re just ghosting your own library.",
+		"“It’s not just what you play—it’s how deeply you listen.”\nCue something up, kick back, and let this page collect your sonic history.",
+		"“No bookmarks yet—your listening sessions haven’t left a trace.”\nHang out with a track long enough to form a memory. This page will respond.",
+		"“RecentlyPlayed doesn’t do first impressions.”\nGive it time. Let your playlist get familiar enough to register.",
+		"“We’re not here for elevator music.”\nPlay a track past the intros and into the soul—then check back.",
+		"“It takes more than background noise to earn a spot here.”\nTurn up the volume, sink in, and this page will start tracking your musical journey."
+	};
 }

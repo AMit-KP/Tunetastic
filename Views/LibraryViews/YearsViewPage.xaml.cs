@@ -54,6 +54,7 @@ public sealed partial class YearsViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		YearTileView.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
@@ -817,4 +818,54 @@ public sealed partial class YearsViewPage : Page
 	{
 		YearTileView_SizeChanged(null, null);
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“It’s 2025—but this page still thinks it’s waiting on 1983.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this turns into a time-travel paradox.",
+		"“The timeline went for coffee and never came back.”\nScan your tracks before it rewinds itself into the Stone Age.",
+		"“Historical hits? More like historical hints.”\nAdd your libraries or this page starts guessing what the 90s felt like.",
+		"“Decades of drama now condensed into ‘oops.’”\nCheck your settings before this page starts asking the calendar for therapy.",
+		"“The past is silent. The future is blank. The page is panicking.”\nScan your music or this page reenacts history using interpretive silence.",
+		"“It’s less chronology, more confusion.”\nAdd your libraries before this page starts using a sundial for navigation.",
+		"“Even your old flip phone remembers more songs than this.”\nScan your tracks before this page applies for early retirement.",
+		"“The timeline thought about loading—and chose sadness instead.”\nCheck your settings or this page starts arranging years by vibe alone.",
+		"“No hits by year. Just haunting ambiguity.”\nScan before this page starts spiraling into Gregorian chants.",
+		"“YearPage is throwing a decade party and no one's RSVP'd.”\nAdd your libraries or it starts baking a cake for 1987.",
+	};
 }

@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 
@@ -106,6 +107,7 @@ public sealed partial class PlayListTemplate : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		PlayListSongsListViewGrid.Visibility = Visibility.Collapsed;
 		PlayListSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
@@ -189,6 +191,7 @@ public sealed partial class PlayListTemplate : Page
 		else
 		{
 			NoResultsGrid.Visibility = Visibility.Visible;
+			AddNoResultsMessage();
 			MultiSelectButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
@@ -957,6 +960,7 @@ public sealed partial class PlayListTemplate : Page
 			}
 			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
 			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
+			AddNoResultsMessage();
 			GlobalNotification.Info("Playlist renamed to " + PlaylistHeader.Text + ".");
 		}
 		playLists = null;
@@ -1062,4 +1066,150 @@ public sealed partial class PlayListTemplate : Page
 
 		ExportDialog.IsPrimaryButtonEnabled = ErrorMessage.Text == "";
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“Your playlists are patiently waiting for music to exist.”\nCheck your settings—your library’s absence is making even silence hard to categorize.",
+		"“Nothing to compile, nothing to shuffle—just a curator with nothing to curate.”\nAdd your songs and let this page fulfill its destiny as a sonic librarian.",
+		"“We’d love to show your playlists—but the guest of honor (your tracks) hasn’t arrived.”\nScan your library or this page starts filing motivational quotes under ‘Jazz.’",
+		"“This isn’t a music drought—it’s a library blackout.”\nEnsure your songs are added before it starts building playlists out of system alerts.",
+		"“PlaylistPage is ready to organize your vibes. It just needs some actual vibes.”\nCheck your settings and give it something other than echo to alphabetize.",
+		"“So many categories. So few candidates.”\nScan your tracks or this page starts sorting daydreams into folders.",
+		"“The architecture is here. The records are missing.”\nAdd your songs before the page starts shelving empty labels with tragic optimism.",
+		"“This canvas craves music. Right now, it’s just humming confusion.”\nScan your songs—this blankness is starting to sound like accidental performance art.",
+		"“Playlists are lined up like shelves, waiting for meaning.”\nYour library needs scanning or this page starts labeling ambient voids as genres.",
+		"“This page is like a party planner with zero RSVPs.”\nCheck your settings to invite music to the playlist festivities.",
+	};
+
+	/// <summary>
+	/// Adds a formatted "No Results" message to the UI for scenarios where the most played songs list is empty.
+	/// </summary>
+	/// <remarks>
+	/// This method randomly selects a message from a predefined list of witty "No Results" messages.
+	/// It splits the selected message into lines, formats the first line with an italic font style,
+	/// and then displays both lines in corresponding text blocks within the UI. This serves to provide
+	/// a user-friendly notification while the data is unavailable or insufficient to populate the most played list.
+	/// </remarks>
+	private void AddNoResultsMessage()
+	{
+		string playlistName = PlaylistHeader.Text;
+		string message = NoResultsMessages[Random.Shared.Next(NoResultsMessages.Count)];
+		var lines = message.Split('\n');
+
+		NoResultsTextBlock.Inlines.Clear();
+
+		void AddFormattedLine(string line, Windows.UI.Text.FontStyle style)
+		{
+			const string placeholder = "{{PlaylistName}}";
+			int index = line.IndexOf(placeholder);
+
+			if (index == -1)
+			{
+				NoResultsTextBlock.Inlines.Add(new Run
+				{
+					Text = line,
+					FontStyle = style
+				});
+				return;
+			}
+
+			if (index > 0)
+			{
+				NoResultsTextBlock.Inlines.Add(new Run
+				{
+					Text = line.Substring(0, index),
+					FontStyle = style
+				});
+			}
+
+			NoResultsTextBlock.Inlines.Add(new Run
+			{
+				Text = playlistName,
+				FontWeight = FontWeights.ExtraBold,
+				FontStyle = style
+			});
+
+			string after = line.Substring(index + placeholder.Length);
+			if (!string.IsNullOrEmpty(after))
+			{
+				NoResultsTextBlock.Inlines.Add(new Run
+				{
+					Text = after,
+					FontStyle = style
+				});
+			}
+		}
+
+		AddFormattedLine(lines[0], Windows.UI.Text.FontStyle.Italic);
+		NoResultsTextBlock.Inlines.Add(new LineBreak());
+		AddFormattedLine(lines[1], Windows.UI.Text.FontStyle.Normal);
+	}
+
+	/// <summary>
+	/// Contains a collection of entertaining and motivational messages to display when no results are available on the page.
+	/// </summary>
+	/// <remarks>
+	/// This collection is designed to engage the user in a playful and encouraging manner when the page has no data to show, such as
+	/// when songs have not been played enough to meet the ranking criteria. Each message consists of two parts separated by a newline
+	/// character and is intended to provide humor and incentive for deeper interaction with the music library.
+	/// </remarks>
+	private readonly List<string> NoResultsMessages = new()
+	{
+		"“This playlist tried to manifest music. It got static instead.”\nToss something into {{PlaylistName}} before it starts charging crystals.",
+		"“This playlist is waiting like a puppy by the door.”\nDrop in a track before {{PlaylistName}} chews on your audio drivers out of boredom.",
+		"“Right now, this playlist is just a suspiciously well-designed void.”\nFeed {{PlaylistName}} a song—or it rebrands as minimalist confusion.",
+		"“This playlist currently identifies as ‘fictional.’”\nUpload a track before {{PlaylistName}} joins fantasy novels under ‘things that never happened.’",
+		"“The vibes are immaculate. The sound? Imaginary.”\nSend music to {{PlaylistName}} before it starts hallucinating beats.",
+		"“{{PlaylistName}} is technically a playlist. Emotionally, it’s a dating app profile with no matches.”\nSwipe in a song before it starts questioning its worth.",
+		"“Even tumbleweeds are too loud for this playlist.”\nSneak in a track before {{PlaylistName}} installs a volume limiter on life.",
+		"“This playlist dreams of greatness. It wakes up to awkward silence.”\nDrop a tune before {{PlaylistName}} writes a self-help book called Trackless But Trying.",
+		"“If silence were an Olympic sport, this playlist would medal.”\nBreak the streak before {{PlaylistName}} starts coaching quiet.",
+		"“This playlist got stood up by its own content.”\nRescue {{PlaylistName}} before it swipes left on every available genre.",
+		"“Right now, this playlist is just a blank canvas throwing side-eye.”\nAdd some spice before {{PlaylistName}} starts painting passive-aggressive lyrics.",
+		"“{{PlaylistName}} rehearsed its acceptance speech. There’s still no guest list.”\nInvite a few songs before it starts thanking imaginary fans.",
+		"“The playlist brought emotional depth. The songs ghosted.”\nSend backup before {{PlaylistName}} starts texting punctuation marks for company.",
+		"“There’s plenty of space. Just not enough courage to admit it’s lonely.”\nSlide a track into {{PlaylistName}} before it starts monologuing to loading indicators.",
+		"“{{PlaylistName}} updated its status to: Emotionally buffering.”\nHit it with a beat before it starts posting vague lyrics as cries for help.",
+		"“The playlist is holding auditions. Not a single artist showed.”\nSend talent before {{PlaylistName}} casts silence in a lead role.",
+		"“This playlist is staring at you with blank intensity.”\nOffer a track before {{PlaylistName}} starts blinking in Morse code for help.",
+		"“{{PlaylistName}} is dressed up, nowhere to go, and humming to itself.”\nFix that before it turns the ‘repeat’ button into a life philosophy.",
+		"“The playlist tried to play itself. Even that didn’t work.”\nAdd a track before {{PlaylistName}} starts writing apology notes to its own UI.",
+		"“It wanted drama, romance, and rhythm. It got abandoned at page one.”\nSend in something catchy before {{PlaylistName}} signs up for background actor roles in radio silence."
+	};
 }

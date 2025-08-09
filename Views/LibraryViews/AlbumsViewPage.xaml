@@ -159,12 +159,13 @@
 			            VerticalAlignment="Center"
 			            Orientation="Vertical"
 			            Spacing="30"
+			            ToolTipService.ToolTip="No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned."
 			            Visibility="Visible">
-				<TextBlock HorizontalAlignment="Center"
+				<TextBlock x:Name="GoToSettingsTextBlock"
+				           HorizontalAlignment="Center"
 				           VerticalAlignment="Center"
 				           HorizontalTextAlignment="Center"
 				           Style="{ThemeResource SubtitleTextBlockStyle}"
-				           Text="No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned."
 				           TextAlignment="Center"
 				           TextWrapping="WrapWholeWords" />
 				<Button HorizontalAlignment="Center"

@@ -62,6 +62,7 @@ public sealed partial class GenresViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		GenreTileView.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
@@ -1014,4 +1015,54 @@ public sealed partial class GenresViewPage : Page
 		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
 		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“All vibes, no tribe.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this page invents a genre called 'existential silence.'",
+		"“Genres are on strike due to lack of representation.”\nScan your music or this page hosts a peace summit between Jazz and EDM.",
+		"“Pop left. Rock couldn’t be bothered. Ambient is crying.”\nAdd libraries or this page starts humming lo-fi despair.",
+		"“Currently streaming: Genre confusion in high resolution.”\nCheck your settings before it starts assigning labels like ‘Vaguely Emotional.’",
+		"“The genre list just Googled itself out of boredom.”\nScan your tracks before this page registers ‘Vibe-core’ as an official style.",
+		"“Even Techno said ‘I need space.’”\nAdd your libraries or the page starts beatboxing anxiety.",
+		"“Genres used to mean something. Now they just stare blankly.”\nScan before this page starts giving personality tests to silence.",
+		"“This page thinks it’s a mood ring now.”\nCheck your metadata or it begins recommending playlists for ‘mild confusion.’",
+		"“No genres detected. Just ambient disappointment.”\nScan your tracks before the page gets replaced by interpretive shrugging.",
+		"“It tried to load ‘Jazz’ and got the sound of taxes.”\nAdd your songs or this page starts scatting financial anxiety."
+	};
 }

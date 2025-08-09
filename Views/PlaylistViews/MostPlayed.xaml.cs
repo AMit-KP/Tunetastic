@@ -56,6 +56,7 @@ public sealed partial class MostPlayed : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		MostPlayedSongsListViewGrid.Visibility = Visibility.Collapsed;
 		MostPlayedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
@@ -253,6 +254,7 @@ public sealed partial class MostPlayed : Page
 		else
 		{
 			NoResultsGrid.Visibility = Visibility.Visible;
+			AddNoResultsMessage();
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
 	}
@@ -778,4 +780,107 @@ public sealed partial class MostPlayed : Page
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“This is a popularity contest—and no one ran for office.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this page declares itself the winner by default.",
+		"“We tried ranking your favorites. The void won.”\nScan before this page starts replaying your last existential thought.",
+		"“We’d show your favorite tracks—if we had any.”\nCheck your settings to make sure your library’s been added and scanned.",
+		"“Analytics unavailable. Playlist potential: unlimited.”\nAdd your tracks so this page can stop pretending to be mysterious.",
+		"“Your top songs are trapped in limbo.”\nScan your library before this page hosts a séance for missing metadata.",
+		"“This was meant to be your personal Billboard. Now it's just bored.”\nEnsure libraries are added or the page keeps practicing jazz hands in silence.",
+		"“Most played metrics? Still waiting for their debut.”\nYour settings might need a tweak—because right now, even silence is outperforming.",
+		"“This space was meant to celebrate your jams, not meditate in emptiness.”\nScan some tracks before it starts whispering affirmations to itself.",
+		"“Without scanned songs, even your sneeze could top the charts.”\nHelp us help your music—before this page gives ‘Most Played’ to a notification sound.",
+		"“There’s nothing to rank but the silence between your clicks.”\nMake sure your libraries are added so this page can start throwing stars around.",
+		"“We have charts. We have algorithms. We just don’t have your songs.”\nTime to scan, or this becomes the Hall of Unplayed Potential.",
+		"“MostPlayed is ready for your listening history. It just has amnesia.”\nAdd and scan your library before it starts inventing fake stats to feel useful."
+	};
+
+	/// <summary>
+	/// Adds a formatted "No Results" message to the UI for scenarios where the most played songs list is empty.
+	/// </summary>
+	/// <remarks>
+	/// This method randomly selects a message from a predefined list of witty "No Results" messages.
+	/// It splits the selected message into lines, formats the first line with an italic font style,
+	/// and then displays both lines in corresponding text blocks within the UI. This serves to provide
+	/// a user-friendly notification while the data is unavailable or insufficient to populate the most played list.
+	/// </remarks>
+	private void AddNoResultsMessage()
+	{
+		string message = NoResultsMessages[Random.Shared.Next(NoResultsMessages.Count)];
+		var lines = message.Split('\n');
+
+		NoResultsTextBlock.Inlines.Clear();
+		NoResultsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		NoResultsTextBlock.Inlines.Add(new LineBreak());
+
+		NoResultsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Contains a collection of entertaining and motivational messages to display when no results are available on the page.
+	/// </summary>
+	/// <remarks>
+	/// This collection is designed to engage the user in a playful and encouraging manner when the page has no data to show, such as
+	/// when songs have not been played enough to meet the ranking criteria. Each message consists of two parts separated by a newline
+	/// character and is intended to provide humor and incentive for deeper interaction with the music library.
+	/// </remarks>
+	private readonly List<string> NoResultsMessages = new()
+	{
+		"“No top tracks yet—we’re still waiting on a rhythm worth ranking.”\nHit play, let it ride, and come back when your ears have had a proper workout.",
+		"“The algorithm won’t fall for your quick skips.”\nGive a track some real love. It only counts if your headphones get emotionally attached.",
+		"“You can't fast-forward your way to the hall of fame.”\nStay a while, vibe a bit, and let this page start building your legend.",
+		"“It’s not about pressing play—it’s about meaning it.”\nSpin a few tunes like you care and this page will reward your loyalty.",
+		"“We’ve got charts. Now we need heart.”\nListen deep. Once the groove hits critical mass, stats will bloom like fireworks.",
+		"“This page respects commitment. Not flings.”\nStick around for a few solid listens before claiming your sonic throne.",
+		"“Most played? We don’t count one-night stands.”\nFind your favorite banger and vibe like it’s the only song in the world.",
+		"“Data lives here—but only for real listeners.”\nPlay something long enough for this page to stop feeling existential dread.",
+		"“We only track relationships—not music speed dates.”\nLet your playlist woo you, and return with numbers worth bragging about.",
+		"“Your ears need a real moment. So does this page.”\nDon't just breeze through. Let a track leave an emotional dent."
+	};
 }

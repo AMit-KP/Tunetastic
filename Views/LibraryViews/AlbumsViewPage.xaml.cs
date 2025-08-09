@@ -56,6 +56,7 @@ public sealed partial class AlbumsViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		AlbumTileView.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
@@ -1062,4 +1063,58 @@ public sealed partial class AlbumsViewPage : Page
 		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
 		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“This gallery is brought to you by the number zero and the color nothing.”\nScan your tracks or watch album art morph into motivational quotes.",
+		"“We promised vinyl vibes and delivered echo chambers.”\nAdd your libraries or this page starts recommending imaginary jazz trios.",
+		"“No albums. Just deeply confused spacing.”\nUpdate settings before it starts hosting empty-shelf appreciation panels.",
+		"“It keeps refreshing and nothing happens. It’s basically dating in 2025.”\nScan music unless you want the page to develop emotional attachment to whitespace.",
+		"“No albums found. Just faint echoes of what could’ve been.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this page starts framing empty CD cases as modern art.",
+		"“The concept of ‘album’ has left to pursue a solo career.”\nScan your music or this page starts listing imaginary track names with emotional baggage.",
+		"“Cover art: none. Track list: nope. Release date: irrelevant.”\nAdd libraries or this page starts composing silence in concept albums.",
+		"“This page dreams of Grammy nominations for stillness.”\nCheck settings before it becomes a documentary on ‘The Absence of Sound.’",
+		"“No albums. Just quiet ambitions with blurry metadata.”\nScan your songs before this page files a noise complaint against itself.",
+		"“Vinyl? Cassette? Digital? Doesn’t matter. Still blank.”\nAdd libraries or this page invents the genre ‘Post-Everything.’",
+		"“The only thing released was your hope.”\nCheck your tracks or this page gets an endorsement deal with nihilism.",
+		"“Even concept albums need some concepts.”\nScan before the page starts building track lists from feelings alone.",
+		"“No cover art. No liner notes. Just empty divs with lofty ambitions.”\nAdd songs or this page starts asking a Shrink for emotional support.",
+		"“AlbumPage is like a record store with all the cases stolen.”\nScan your libraries or it turns into a jazz lounge where everyone forgot their instrument.",
+	};
 }

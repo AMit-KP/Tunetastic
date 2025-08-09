@@ -64,6 +64,7 @@ public sealed partial class AllSongsViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
 		AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
@@ -1014,4 +1015,59 @@ public sealed partial class AllSongsViewPage : Page
 		else
 			NavigationPanelEvaluate();
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“Even silence is asking for royalties.”\nAdd your tracks or this page starts selling ambient nothingness as NFTs.",
+		"“Currently vibing to the sound of disappointment.”\nCheck your settings or this page starts humming passive-aggressively.",
+		"“Even your fridge hums more rhythm than this.”\nAdd libraries before this page starts sampling appliance noises.",
+		"“The silence here is louder than your uncle’s political opinions.”\nScan your tracks or this page starts hosting awkward family dinners.",
+		"“This page is auditioning for the role of ‘nothing.’”\nCheck your settings before it wins an Oscar for best invisible performance.",
+		"“It’s so quiet, I can hear your existential dread.”\nScan your songs or this page starts narrating your inner monologue.",
+		"“Currently streaming: the sound of your hopes fading.”\nAdd libraries before this page starts writing breakup songs about you.",
+		"“Even your ringtone has more musical ambition.”\nScan your tracks or this page starts remixing notification sounds.",
+		"“The only thing playing here is your procrastination.”\nAdd libraries before this page starts giving productivity advice.",
+		"“This page is so empty, it’s considering a career in minimalism.”\nScan your songs or it starts selling inspirational posters.",
+		"“Even your cat walking across the keyboard made more noise.”\nCheck your settings before this page starts meowing in Morse code.",
+		"“This is less ‘All Songs’ and more ‘Nope, None.’”\nScan your libraries or this page starts gaslighting your memory.",
+		"“It’s so quiet, I thought I was in a museum.”\nAdd tracks before this page starts charging admission for silence.",
+		"“This page is currently starring in a silent film.”\nScan your music or it starts winning awards for dramatic stillness.",
+		"“Even your thoughts have a better beat.”\nCheck your settings before this page starts freestyle rapping your grocery list.",
+	};
 }
