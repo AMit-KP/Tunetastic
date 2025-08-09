@@ -54,6 +54,7 @@ public sealed partial class YearsViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		YearTileView.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
@@ -103,7 +104,7 @@ public sealed partial class YearsViewPage : Page
 	/// Updates the sorting preferences for the song list displayed on the YearsViewPage.
 	/// </summary>
 	/// <remarks>
-	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
+	/// This method determines the sorting criteria and order
 	/// based on the user's saved preferences in local settings. It also updates the selection status
 	/// of the UI elements corresponding to the sorting options and triggers the list update.
 	/// </remarks>
@@ -127,14 +128,17 @@ public sealed partial class YearsViewPage : Page
 	}
 
 	/// <summary>
-	/// Updates the list of songs based on the selected sorting criteria and order.
+	/// Updates the displayed song list and user interface according to the selected sorting criteria and order.
 	/// </summary>
 	/// <remarks>
-	/// This method processes the current sorting preferences, such as the column to sort by (e.g., Title, Artists, Album, or Duration)
-	/// and the order (Ascending or Descending). It modifies the displayed song list accordingly and ensures the current selection remains intact.
-	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
-	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
+	/// This method retrieves the current sorting preferences, such as ascending or descending order, and applies them to organize the songs grouped by year.
+	/// The updated list is displayed in the UI, with related elements, such as tooltips and dropdown content, being refreshed to reflect the new sorting order.
+	/// Additionally, the user's selection is preserved, and the UI scroll position is adjusted to maintain the focus on the previously selected year.
+	/// Sorting preferences are saved to local application settings to ensure they persist across sessions.
 	/// </remarks>
+	/// <returns>
+	/// A task representing the asynchronous operation of updating the song list, refreshing the user interface, and adjusting the scroll position.
+	/// </returns>
 	private async Task UpdateListBasedOnSorting()
 	{
 		var yearModel = YearTileView.SelectedItem as YearModel;
@@ -165,24 +169,6 @@ public sealed partial class YearsViewPage : Page
 		await ScrollToTile(yearModel);
 	}
 
-	/// <summary>
-	/// Handles the Loaded event for the YearTileList control, ensuring proper initialization of the associated panel.
-	/// </summary>
-	/// <remarks>
-	/// This method adjusts the behavior of the SmartWrapPanel used as the items panel for the YearTileView ListView control.
-	/// It sets the panel's <c>ListViewWidthSource</c> property to the <c>YearTileView</c> instance
-	/// and invalidates its layout, allowing the panel to adapt to the current dimensions and layout requirements.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the <c>YearTileView</c> object.</param>
-	/// <param name="e">Event data that provides additional information about the Loaded event.</param>
-	private void YearTileList_Loaded(object sender, RoutedEventArgs e)
-	{
-		if (YearTileView.ItemsPanelRoot is SmartWrapPanel panel)
-		{
-			panel.ListViewWidthSource = YearTileView;
-			panel.InvalidateMeasure();
-		}
-	}
 
 	/// <summary>
 	/// Handles the `Loaded` event for the YearsViewPage.
@@ -199,6 +185,9 @@ public sealed partial class YearsViewPage : Page
 			await Task.Delay(100);
 		}
 
+		YearTileView_SizeChanged(null, null);
+		YearTileView.ContainerContentChanging += YearTileView_ContainerContentChanging;
+
 		if (connectedAnimation)
 		{
 			var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
@@ -209,7 +198,7 @@ public sealed partial class YearsViewPage : Page
 			if (animation != null && selectedYearModel != null)
 			{
 				await Task.Delay(30);
-				await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+				await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
 
 				var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
 				if (container != null)
@@ -234,6 +223,8 @@ public sealed partial class YearsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		YearTileView.SizeChanged += YearTileView_SizeChanged;
+
 	}
 
 	/// <summary>
@@ -402,7 +393,7 @@ public sealed partial class YearsViewPage : Page
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 
-			GlobalNotification.Info($"All {songList.Count} songs/tracks of selected years, added to {playlist} playlist.");
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to {playlist} playlist.");
 		}
 		else
 		{
@@ -595,7 +586,7 @@ public sealed partial class YearsViewPage : Page
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} songs/tracks of selected years, added to queue.");
+		GlobalNotification.Info($"All {songList.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to queue.");
 	}
 
 	/// <summary>
@@ -671,7 +662,23 @@ public sealed partial class YearsViewPage : Page
 			{
 				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
 				if (yearTextBlock != null)
+				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, yearTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => yearTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
 			}
 
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)] = yearModel.Year;
@@ -709,16 +716,156 @@ public sealed partial class YearsViewPage : Page
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
-		var selectedYearModel = YearsGroup.Select(s => s).Where(s => s.Year == selectedYear).FirstOrDefault();
-
-		var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
-		if (container != null)
+		if (e.SourcePageType.Name == "YearDetailPage")
 		{
-			var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
-			if (yearTextBlock != null)
-				ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+			var selectedYear = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedYear)]?.ToString());
+			var selectedYearModel = YearsGroup.Select(s => s).Where(s => s.Year == selectedYear).FirstOrDefault();
+
+			var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
+			if (container != null)
+			{
+				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				if (yearTextBlock != null)
+				{
+					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, yearTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => yearTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
+			}
 		}
 	}
 
+	/// <summary>
+	/// Adjusts the layout and styling of items within the YearTileView control dynamically based on the available width.
+	/// </summary>
+	/// <param name="sender">The source of the event, usually the YearTileView control.</param>
+	/// <param name="e">Event data that provides information about the size changes.</param>
+	/// <remarks>
+	/// This method calculates the optimal dimensions for items in the YearTileView control,
+	/// ensuring that items are spaced appropriately and the layout adapts to different screen sizes.
+	/// The method determines the maximum number of items that can fit horizontally and adjusts item width and margins.
+	/// For wrapping layouts where all items cannot fit, the method redistributes the available space among visible items.
+	/// </remarks>
+	private void YearTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	{
+		const double baseContentWidth = 220;
+		const double baseMargin = 10;
+
+		double availableWidth = YearTileView.ActualWidth;
+		if (availableWidth <= 0 || YearTileView.ItemsPanelRoot is not ItemsWrapGrid grid)
+			return;
+
+		int itemCount = YearTileView.Items.Count;
+		if (itemCount <= 0) return;
+
+		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
+		int count = Math.Min(itemCount, maxFitCount);
+
+		double usedWidth = count * baseContentWidth + (count + 1) * baseMargin;
+		double remainingSpace = availableWidth - usedWidth;
+
+		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
+
+		double adjustedItemWidth = baseContentWidth;
+		double adjustedMargin = baseMargin;
+
+		if (layoutIsWrapping && count > 0)
+		{
+			double extraPerTile = remainingSpace / count;
+			adjustedItemWidth += extraPerTile;
+			adjustedMargin += extraPerTile * 0.5;
+		}
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			var container = YearTileView.ContainerFromItem(YearTileView.Items[i]) as ListViewItem;
+			if (container != null)
+			{
+				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
+			}
+		}
+
+		grid.ItemWidth = adjustedItemWidth;
+	}
+
+	/// <summary>
+	/// Occurs during the progressive content rendering of an year tile within the year list view, dynamically adapting the UI for items that are becoming visible.
+	/// </summary>
+	/// <param name="sender">
+	/// The ListViewBase control that triggered the event.
+	/// </param>
+	/// <param name="args">
+	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
+	/// </param>
+	/// <remarks>
+	/// This method is invoked whenever a container's UI content is about to change for a specific year tile in the <c>YearTileView</c>.
+	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
+	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the year view.
+	/// </remarks>
+	private void YearTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+	{
+		YearTileView_SizeChanged(null, null);
+	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“It’s 2025—but this page still thinks it’s waiting on 1983.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this turns into a time-travel paradox.",
+		"“The timeline went for coffee and never came back.”\nScan your tracks before it rewinds itself into the Stone Age.",
+		"“Historical hits? More like historical hints.”\nAdd your libraries or this page starts guessing what the 90s felt like.",
+		"“Decades of drama now condensed into ‘oops.’”\nCheck your settings before this page starts asking the calendar for therapy.",
+		"“The past is silent. The future is blank. The page is panicking.”\nScan your music or this page reenacts history using interpretive silence.",
+		"“It’s less chronology, more confusion.”\nAdd your libraries before this page starts using a sundial for navigation.",
+		"“Even your old flip phone remembers more songs than this.”\nScan your tracks before this page applies for early retirement.",
+		"“The timeline thought about loading—and chose sadness instead.”\nCheck your settings or this page starts arranging years by vibe alone.",
+		"“No hits by year. Just haunting ambiguity.”\nScan before this page starts spiraling into Gregorian chants.",
+		"“YearPage is throwing a decade party and no one's RSVP'd.”\nAdd your libraries or it starts baking a cake for 1987.",
+	};
 }

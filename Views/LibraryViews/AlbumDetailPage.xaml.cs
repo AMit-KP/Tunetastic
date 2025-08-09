@@ -6,21 +6,15 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Tunetastic.Views.LibraryViews;
-
 /// <summary>
-/// Represents the detail page for a specific genre in the music library.
+/// An empty page that can be used on its own or navigated to within a Frame.
 /// </summary>
-/// <remarks>
-/// This page is used within the application to display songs grouped by genre. It provides
-/// functionalities such as handling visual transitions during navigation, managing the genre group
-/// header, and interacting with the song collection related to a specific genre.
-/// </remarks>
-public sealed partial class GenreDetailPage : Page
+public sealed partial class AlbumDetailPage : Page
 {
 	/// <summary>
-	/// Gets or sets the collection of songs associated with a specific genre grouping.
+	/// Gets or sets the collection of songs associated with a specific album grouping.
 	/// </summary>
-	public ObservableCollection<Song> GenreGroupSongs
+	public ObservableCollection<Song> AlbumGroupSongs
 	{
 		get; set;
 	} = new();
@@ -28,7 +22,7 @@ public sealed partial class GenreDetailPage : Page
 	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
 
-	public GenreDetailPage()
+	public AlbumDetailPage()
 	{
 		this.InitializeComponent();
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -36,38 +30,38 @@ public sealed partial class GenreDetailPage : Page
 	}
 
 	/// <summary>
-	/// Called when the page is navigated to. Handles the setup of the genre group header and its associated animation.
+	/// Called when the page is navigated to. Handles the setup of the album group header and its associated animation.
 	/// </summary>
-	/// <param name="e">Navigation event arguments containing the genre parameter passed during navigation</param>
+	/// <param name="e">Navigation event arguments containing the album parameter passed during navigation</param>
 	/// <remarks>
 	/// This override performs three main tasks:
 	/// <br/>
-	/// 1. Sets the genre group header text based on the navigation parameter
+	/// 1. Sets the album group header text based on the navigation parameter
 	/// <br/>
-	/// 2. Applies a connected animation to the genre header for smooth visual transitions
+	/// 2. Applies a connected animation to the album header for smooth visual transitions
 	/// <br/>
-	/// 3. Triggers the genre selection in the navigation
+	/// 3. Triggers the album selection in the navigation
 	/// <br/>
 	/// <br/>
-	/// The genre parameter is expected to be passed during navigation, where "Unknown" is handled as a special case
-	/// and displayed as "Unknown Genre".
+	/// The album parameter is expected to be passed during navigation, where "Unknown" is handled as a special case
+	/// and displayed as "Unknown Album".
 	/// </remarks>
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
-		ActualGenreGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Genre" : e.Parameter.ToString());
-		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("GenreHeaderAnimation");
+		ActualAlbumGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Album" : e.Parameter.ToString());
+		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("AlbumHeaderAnimation");
 
 		if (animation != null)
 		{
-			await ActualGenreGroup.DispatcherQueue.EnqueueAsync(async () =>
+			await ActualAlbumGroup.DispatcherQueue.EnqueueAsync(async () =>
 			{
-				animation.TryStart(ActualGenreGroup);
+				animation.TryStart(ActualAlbumGroup);
 				await Task.Delay(1000);
 				AutoScrollHeader.IsPlaying = true;
 			});
 		}
 
-		SelectGenreOnNavigation();
+		SelectAlbumOnNavigation();
 	}
 
 	/// <summary>
@@ -77,19 +71,19 @@ public sealed partial class GenreDetailPage : Page
 	/// <remarks>
 	/// This method performs two main tasks:
 	/// <br/>
-	/// 1. Prepares a connected animation for the genre header to maintain visual continuity
+	/// 1. Prepares a connected animation for the album header to maintain visual continuity
 	/// <br/>
-	/// 2. Handles the visibility transition of the ActualGenreGroup element:
+	/// 2. Handles the visibility transition of the ActualAlbumGroup element:
 	/// <br/>
-	///    - When navigating to GenresViewPage: Applies a fade-out animation
+	///    - When navigating to AlbumsViewPage: Applies a fade-out animation
 	/// <br/>
 	///    - For other destinations: Immediately collapses the element
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		if (e.SourcePageType.Name == "GenresViewPage")
+		if (e.SourcePageType.Name == "AlbumsViewPage")
 		{
-			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimationBack", ActualGenreGroup);
+			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimationBack", ActualAlbumGroup);
 
 			var fadeOut = new DoubleAnimation
 			{
@@ -97,12 +91,12 @@ public sealed partial class GenreDetailPage : Page
 				Duration = TimeSpan.FromMilliseconds(30),
 				FillBehavior = FillBehavior.Stop
 			};
-			Storyboard.SetTarget(fadeOut, ActualGenreGroup);
+			Storyboard.SetTarget(fadeOut, ActualAlbumGroup);
 			Storyboard.SetTargetProperty(fadeOut, "Opacity");
 
 			var sb = new Storyboard();
 			sb.Children.Add(fadeOut);
-			sb.Completed += (_, __) => ActualGenreGroup.Visibility = Visibility.Collapsed;
+			sb.Completed += (_, __) => ActualAlbumGroup.Visibility = Visibility.Collapsed;
 			sb.Begin();
 		}
 	}
@@ -122,8 +116,8 @@ public sealed partial class GenreDetailPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
-		GenreDetailListViewGrid.Visibility = Visibility.Collapsed;
-		GenreDetailCompactViewGrid.Visibility = Visibility.Collapsed;
+		AlbumDetailListViewGrid.Visibility = Visibility.Collapsed;
+		AlbumDetailCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -153,7 +147,7 @@ public sealed partial class GenreDetailPage : Page
 			LoadingProgress.Visibility = Visibility.Collapsed;
 			await _dispatcherQueue.EnqueueAsync(() =>
 			{
-				this.Content = new GenreDetailPage();
+				this.Content = new AlbumDetailPage();
 			});
 			return;
 		}
@@ -169,7 +163,7 @@ public sealed partial class GenreDetailPage : Page
 	}
 
 	/// <summary>
-	/// Updates the sorting preferences for the song list displayed on the GenreDetailViewPage.
+	/// Updates the sorting preferences for the song list displayed on the AlbumDetailViewPage.
 	/// </summary>
 	/// <remarks>
 	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
@@ -179,8 +173,8 @@ public sealed partial class GenreDetailPage : Page
 	private void UpdateAsPerLastSorting()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var sortBy = localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title";
-		var sortOrder = localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending";
+		var sortBy = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title";
+		var sortOrder = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending";
 		switch (sortBy)
 		{
 			case "Artists":
@@ -225,7 +219,7 @@ public sealed partial class GenreDetailPage : Page
 	private void UpdateAsPerLastViewStyle()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var viewStyle = localSettings.Values[nameof(LocalSave.GenreDetailViewStyle)]?.ToString() ?? "Compact View";
+		var viewStyle = localSettings.Values[nameof(LocalSave.AlbumDetailViewStyle)]?.ToString() ?? "Compact View";
 		switch (viewStyle)
 		{
 			case "List View":
@@ -258,19 +252,19 @@ public sealed partial class GenreDetailPage : Page
 		switch (viewStyle)
 		{
 			case "List View":
-				GenreDetailListViewGrid.Visibility = Visibility.Visible;
-				GenreDetailCompactViewGrid.Visibility = Visibility.Collapsed;
+				AlbumDetailListViewGrid.Visibility = Visibility.Visible;
+				AlbumDetailCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
-				GenreDetailListViewGrid.Visibility = Visibility.Collapsed;
-				GenreDetailCompactViewGrid.Visibility = Visibility.Visible;
+				AlbumDetailListViewGrid.Visibility = Visibility.Collapsed;
+				AlbumDetailCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.GenreDetailViewStyle)] = viewStyle;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AlbumDetailViewStyle)] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
 		ToolTipService.SetToolTip(ViewButton, viewStyle);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
@@ -297,24 +291,24 @@ public sealed partial class GenreDetailPage : Page
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
 
-		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(sortBy), ascending: AscOrder, whereCondition: $"{SongProperty.Genre.ToString()} = '{ActualGenreGroup.Text.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
-		GenreGroupSongs.Clear();
-		GenreGroupSongs.AddRange(newList);
+		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(sortBy), ascending: AscOrder, whereCondition: $"{SongProperty.Album.ToString()} = '{ActualAlbumGroup.Text.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
+		AlbumGroupSongs.Clear();
+		AlbumGroupSongs.AddRange(newList);
 		newList = null;
 
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = GenreGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = GenreGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AlbumGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 			case "Artists":
-				availableLetters = GenreGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = GenreGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 			case "Album":
-				availableLetters = GenreGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = GenreGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AlbumGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 		}
 
@@ -333,13 +327,13 @@ public sealed partial class GenreDetailPage : Page
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
 
-		song = GenreGroupSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
+		song = AlbumGroupSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
 		await ScrollToSong(song);       //somehow this doesn't work
 		await Task.Delay(1000);
 		await ScrollToSong(song);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)] = sortBy;
-		localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)] = orderBy;
+		localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)] = sortBy;
+		localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)] = orderBy;
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
@@ -360,14 +354,14 @@ public sealed partial class GenreDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		return viewStyle switch
 		{
-			"List View" => GenreDetailListView,
-			"Compact View" => GenreDetailCompactView,
-			_ => GenreDetailCompactView
+			"List View" => AlbumDetailListView,
+			"Compact View" => AlbumDetailCompactView,
+			_ => AlbumDetailCompactView
 		};
 	}
 
 	/// <summary>
-	/// Handles the ItemClick event for the ListView control in the GenreDetailViewPage.
+	/// Handles the ItemClick event for the ListView control in the AlbumDetailViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ListView control.</param>
 	/// <param name="e">Provides data for the ItemClick event, including the clicked item.</param>
@@ -379,9 +373,9 @@ public sealed partial class GenreDetailPage : Page
 	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		var track = e.ClickedItem as Song;
-		List<string> songPaths = GenreGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"GenreGroup>{ActualGenreGroup.Text}";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
 	}
 
 	/// <summary>
@@ -400,16 +394,16 @@ public sealed partial class GenreDetailPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the GenreDetailViewPage.
+	/// Handles the Loaded event for the AlbumDetailViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the page itself.</param>
 	/// <param name="e">The event data associated with the Loaded event.</param>
 	/// <remarks>
-	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "GenreDetailViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AlbumDetailViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
-		while (GenreGroupSongs == null || GenreGroupSongs.Count == 0)
+		while (AlbumGroupSongs == null || AlbumGroupSongs.Count == 0)
 		{
 			await Task.Delay(100);
 		}
@@ -417,10 +411,10 @@ public sealed partial class GenreDetailPage : Page
 	}
 
 	/// <summary>
-	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "GenreDetailViewPage".
+	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "AlbumDetailViewPage".
 	/// </summary>
 	/// <remarks>
-	/// This method checks the local application settings to determine if the "GenreDetailViewPage" is the active playlist.
+	/// This method checks the local application settings to determine if the "AlbumDetailViewPage" is the active playlist.
 	/// If it is, the method retrieves the last played track based on its path from the saved settings and attempts to scroll
 	/// the page to that specific song within the song collection.
 	/// </remarks>
@@ -428,9 +422,9 @@ public sealed partial class GenreDetailPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
-		if (currentPlaylist.StartsWith("GenreGroup>") && currentPlaylist.Substring("GenreGroup>".Length) == ActualGenreGroup.Text)
+		if (currentPlaylist.StartsWith("AlbumGroup>") && currentPlaylist.Substring("AlbumGroup>".Length) == ActualAlbumGroup.Text)
 		{
-			var SelectedSong = GenreGroupSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+			var SelectedSong = AlbumGroupSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
 		}
 	}
@@ -445,9 +439,9 @@ public sealed partial class GenreDetailPage : Page
 		await UpdateListBasedOnSorting();
 		await AdjustAlphabetSize();
 		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
-		if (currentPlaylist.StartsWith("GenreGroup>") && currentPlaylist.Substring("GenreGroup>".Length) == ActualGenreGroup.Text)
+		if (currentPlaylist.StartsWith("AlbumGroup>") && currentPlaylist.Substring("AlbumGroup>".Length) == ActualAlbumGroup.Text)
 		{
-			List<string> songPaths = GenreGroupSongs.Select(s => s.Path).ToList();
+			List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 	}
@@ -485,14 +479,14 @@ public sealed partial class GenreDetailPage : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-		List<string> songPaths = GenreGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"GenreGroup>{ActualGenreGroup.Text}";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-		var SelectedSong = GenreGroupSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		var SelectedSong = AlbumGroupSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
 		await ScrollToSong(SelectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(SelectedSong);
@@ -513,11 +507,11 @@ public sealed partial class GenreDetailPage : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-		List<string> songPaths = GenreGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"GenreGroup>{ActualGenreGroup.Text}";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
-		await ScrollToSong(GenreGroupSongs[0]);
+		await ScrollToSong(AlbumGroupSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
 	}
 
@@ -556,9 +550,9 @@ public sealed partial class GenreDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = viewStyle switch
 		{
-			"List View" => GenreDetailListView.ActualHeight - 40,
-			"Compact View" => GenreDetailCompactView.ActualHeight,
-			_ => GenreDetailCompactView.ActualHeight
+			"List View" => AlbumDetailListView.ActualHeight - 40,
+			"Compact View" => AlbumDetailCompactView.ActualHeight,
+			_ => AlbumDetailCompactView.ActualHeight
 		};
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
@@ -614,24 +608,24 @@ public sealed partial class GenreDetailPage : Page
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? GenreGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenreGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? GenreGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenreGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? GenreGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenreGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
 				break;
 		}
 		if (targetSong != null)
 		{
 			var listView = GetCurrentViewStyle();
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == GenreDetailListView ? -40 : 0);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AlbumDetailListView ? -40 : 0);
 			listView.SelectedItem = targetSong;
 			await Task.Delay(500);
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == GenreDetailListView ? -40 : 0);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AlbumDetailListView ? -40 : 0);
 		}
 	}
 
@@ -650,9 +644,9 @@ public sealed partial class GenreDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = viewStyle switch
 		{
-			"List View" => GenreDetailListView.ActualHeight - 40,
-			"Compact View" => GenreDetailCompactView.ActualHeight,
-			_ => GenreDetailCompactView.ActualHeight
+			"List View" => AlbumDetailListView.ActualHeight - 40,
+			"Compact View" => AlbumDetailCompactView.ActualHeight,
+			_ => AlbumDetailCompactView.ActualHeight
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
@@ -744,7 +738,7 @@ public sealed partial class GenreDetailPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Unloaded event for the GenreDetailViewPage.
+	/// Handles the Unloaded event for the AlbumDetailViewPage.
 	/// </summary>
 	/// <remarks>
 	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
@@ -754,8 +748,8 @@ public sealed partial class GenreDetailPage : Page
 	/// <param name="e">The event arguments associated with the Unloaded event.</param>
 	private void Page_Unloaded(object sender, RoutedEventArgs e)
 	{
-		GenreGroupSongs.Clear();
-		GenreGroupSongs = null;
+		AlbumGroupSongs.Clear();
+		AlbumGroupSongs = null;
 		GC.Collect();
 	}
 
@@ -852,9 +846,9 @@ public sealed partial class GenreDetailPage : Page
 	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		List<string> songPaths = GenreGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"GenreGroup>{ActualGenreGroup.Text}";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
 	}
 
 	/// <summary>
@@ -910,7 +904,7 @@ public sealed partial class GenreDetailPage : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					GenreGroupSongs.Remove(songData);
+					AlbumGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
 					GlobalNotification.Info("Song/Track deleted." +
 											$"\nTitle: {songData.Title}" +
@@ -924,10 +918,10 @@ public sealed partial class GenreDetailPage : Page
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
 			}
-			if (GenreGroupSongs.Count <= 0)
+			if (AlbumGroupSongs.Count <= 0)
 			{
 				App.Current.NavService.GoBack();
-				MainPage._instance.RemovePageFromHistory(ActualGenreGroup.Text == "Unknown Genre" ? "Unknown" : ActualGenreGroup.Text);
+				MainPage._instance.RemovePageFromHistory(ActualAlbumGroup.Text == "Unknown Album" ? "Unknown" : ActualAlbumGroup.Text);
 			}
 		}
 	}
@@ -969,7 +963,7 @@ public sealed partial class GenreDetailPage : Page
 					uiElement.IsRightTapEnabled = false;
 				}
 			}
-			if (view.Name == "GenreDetailListView") Header.Margin = new Thickness(40, 0, 0, 0);
+			if (view.Name == "AlbumDetailListView") Header.Margin = new Thickness(40, 0, 0, 0);
 		}
 		else
 		{
@@ -990,7 +984,7 @@ public sealed partial class GenreDetailPage : Page
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
-			if (view.Name == "GenreDetailListView") Header.Margin = new Thickness(12, 0, 0, 0);
+			if (view.Name == "AlbumDetailListView") Header.Margin = new Thickness(12, 0, 0, 0);
 		}
 	}
 
@@ -1044,7 +1038,7 @@ public sealed partial class GenreDetailPage : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					GenreGroupSongs.Remove(songData);
+					AlbumGroupSongs.Remove(songData);
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
@@ -1055,33 +1049,33 @@ public sealed partial class GenreDetailPage : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
-		if (GenreGroupSongs.Count <= 0)
+		if (AlbumGroupSongs.Count <= 0)
 		{
 			App.Current.NavService.GoBack();
-			MainPage._instance.RemovePageFromHistory(ActualGenreGroup.Text == "Unknown Genre" ? "Unknown" : ActualGenreGroup.Text);
+			MainPage._instance.RemovePageFromHistory(ActualAlbumGroup.Text == "Unknown Album" ? "Unknown" : ActualAlbumGroup.Text);
 		}
 	}
 
 	/// <summary>
-	/// Handles the tapped event on a genre item, initiating navigation to the GenresViewPage and updating selection state.
+	/// Handles the tapped event on a album item, initiating navigation to the AlbumsViewPage and updating selection state.
 	/// </summary>
 	/// <param name="sender">The source of the tapped event, usually the UI element that was tapped.</param>
 	/// <param name="e">Provides data about the Tapped event, including event-specific properties.</param>
-	private void Genre_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+	private void Album_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
 	{
-		App.Current.NavService.NavigateTo(typeof(GenresViewPage), "Genres", false, new DrillInNavigationTransitionInfo());
-		SelectGenreOnNavigation();
+		App.Current.NavService.NavigateTo(typeof(AlbumsViewPage), "Albums", false, new DrillInNavigationTransitionInfo());
+		SelectAlbumOnNavigation();
 	}
 
 	/// <summary>
-	/// Sets the selection state of the navigation item associated with the GenresViewPage
+	/// Sets the selection state of the navigation item associated with the AlbumsViewPage
 	/// to ensure it is highlighted within the application's navigation view.
 	/// </summary>
-	private static void SelectGenreOnNavigation()
+	private static void SelectAlbumOnNavigation()
 	{
 		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
 
-		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.GenresViewPage");
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.AlbumsViewPage");
 		libraryNavigationItem.IsSelected = true;
 	}
 }

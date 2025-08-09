@@ -55,6 +55,7 @@ public sealed partial class RecentlyAdded : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		RecentlyAddedSongsListViewGrid.Visibility = Visibility.Collapsed;
 		RecentlyAddedSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
@@ -827,4 +828,54 @@ public sealed partial class RecentlyAdded : Page
 		}
 		UpdateTimeStyle();
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“We rolled out the red carpet, and no one stepped on it.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this page starts greeting tumbleweeds with confetti.",
+		"“Freshly added: nothing.”\nScan your tracks before this page starts labeling blank space as ‘avant-garde.’",
+		"“This was supposed to be a new era. Instead, it’s just an echo.”\nAdd libraries before the page retires early.",
+		"“The vibe check failed due to missing content.”\nCheck your settings or this page declares bankruptcy in excitement.",
+		"“Even the page title feels awkward now.”\nScan your music before it starts binge-watching its own emptiness.",
+		"“Recently added? Emotionally subtracted.”\nAdd data or this page starts airing reruns of your regret.",
+		"“New music: we thought about it. You didn’t.”\nCheck settings before this page takes up origami.",
+		"“No arrivals, just anxiety.”\nScan your tracks or this page starts setting deadlines for your feelings.",
+		"“Everything’s new except the silence.”\nAdd files before this page applies for emotional delivery service.",
+		"“The freshness expired before anything arrived.”\nCheck your library or the page starts playing ambient regret.",
+	};
 }

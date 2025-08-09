@@ -208,7 +208,8 @@
 									<FontIcon Glyph="&#xE8AC;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
-							<MenuFlyoutItem Click="ExportPlayList_Click"
+							<MenuFlyoutItem x:Name="ExportPlayList"
+							                Click="ExportPlayList_Click"
 							                Text="Export Playlist">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xEDE1;" />
@@ -269,12 +270,13 @@
 			            VerticalAlignment="Center"
 			            Orientation="Vertical"
 			            Spacing="30"
+			            ToolTipService.ToolTip="No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned."
 			            Visibility="Visible">
-				<TextBlock HorizontalAlignment="Center"
+				<TextBlock x:Name="GoToSettingsTextBlock"
+				           HorizontalAlignment="Center"
 				           VerticalAlignment="Center"
 				           HorizontalTextAlignment="Center"
 				           Style="{ThemeResource SubtitleTextBlockStyle}"
-				           Text="No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned."
 				           TextAlignment="Center"
 				           TextWrapping="WrapWholeWords" />
 				<Button HorizontalAlignment="Center"
@@ -285,18 +287,16 @@
 			<Grid x:Name="NoResultsGrid"
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center"
+			      ToolTipService.ToolTip="Add some songs or tracks to this playlist to see them here."
 			      Visibility="Collapsed">
-				<TextBlock HorizontalAlignment="Center"
+				<TextBlock x:Name="NoResultsTextBlock"
+				           HorizontalAlignment="Center"
 				           VerticalAlignment="Center"
 				           HorizontalTextAlignment="Center"
 				           Style="{ThemeResource SubtitleTextBlockStyle}"
 				           TextAlignment="Center"
 				           TextTrimming="CharacterEllipsis"
 				           TextWrapping="WrapWholeWords">
-					<Run Text="Add some songs or tracks to" />
-					<Run FontWeight="Bold"
-					     Text="{Binding ElementName=PlaylistHeader, Path=Text}" />
-					<Run Text="playlist to see them here." />
 				</TextBlock>
 			</Grid>
 			<StackPanel x:Name="LoadingProgress"

@@ -67,14 +67,20 @@
 		      Margin="15,10,45,10"
 		      ColumnSpacing="15">
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition />
+				<ColumnDefinition Width="*" />
 				<ColumnDefinition Width="Auto" />
 			</Grid.ColumnDefinitions>
 
-			<StackPanel Grid.Column="0"
-			            Orientation="Horizontal"
-			            Spacing="10">
-				<Grid BorderBrush="Transparent"
+			<Grid Grid.Column="0"
+			      HorizontalAlignment="Stretch"
+			      ColumnSpacing="10">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<Grid Grid.Column="0"
+				      BorderBrush="Transparent"
 				      Tapped="Genre_Tapped">
 					<TextBlock HorizontalAlignment="Left"
 					           VerticalAlignment="Center"
@@ -82,16 +88,21 @@
 					           Style="{ThemeResource TitleTextBlockStyle}"
 					           Text="Genres" />
 				</Grid>
-				<FontIcon Margin="0,4,0,0"
+				<FontIcon Grid.Column="1"
+				          Margin="0,4,0,0"
 				          HorizontalAlignment="Center"
 				          VerticalAlignment="Center"
 				          Glyph="&#xE974;" />
-				<TextBlock x:Name="ActualGenreGroup"
-				           HorizontalAlignment="Left"
-				           VerticalAlignment="Center"
-				           Style="{ThemeResource TitleTextBlockStyle}" />
-			</StackPanel>
-
+				<Grid Grid.Column="2">
+					<dev:AutoScrollView x:Name="AutoScrollHeader"
+					                    IsPlaying="False">
+						<TextBlock x:Name="ActualGenreGroup"
+						           HorizontalAlignment="Left"
+						           VerticalAlignment="Center"
+						           Style="{ThemeResource TitleTextBlockStyle}" />
+					</dev:AutoScrollView>
+				</Grid>
+			</Grid>
 
 			<StackPanel x:Name="PageButtons"
 			            Grid.Column="1"

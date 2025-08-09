@@ -59,13 +59,10 @@ public partial class App : Application
 	{
 		MainWindow = new MainWindow();
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
-		MainWindow.AppWindow.SetIcon("Assets/AppIcon.ico");
+		MainWindow.AppWindow.SetIcon("Assets/AppIcon.png");
 
 		var rootFrame = new Frame();
 		MainWindow.Content = rootFrame;
-		rootFrame.Navigate(typeof(SplashScreen));
-
-		MainWindow.Activate();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -73,7 +70,12 @@ public partial class App : Application
 		ThemeService.SetElementTheme(Enum.Parse<ElementTheme>(localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
 		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "DesktopAcrylic";
 		ThemeService.SetBackdropType(Enum.Parse<BackdropType>(backdrop));
-		ThemeService.UpdateCaptionButtons();
+		await Task.Delay(50);
+		App.Current.ThemeService.UpdateCaptionButtons();
+
+		rootFrame.Navigate(typeof(SplashScreen));
+
+		MainWindow.Activate();
 
 		if (backdrop == "Mica" && bool.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)]?.ToString() ?? "false"))
 		{
@@ -97,6 +99,7 @@ public partial class App : Application
 
 		RainbowFrame.Initialize(App.MainWindow);
 		InitializeApp();
+
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && !bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
 		{
 			RainbowFrame.StartRainbowFrame();

@@ -437,6 +437,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 					_vinylEffect?.Pause();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+					MainPage._instance.AnimateTitle(startAnimation: false);
+
 					await Task.Delay(500);
 
 					if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing)
@@ -455,6 +457,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					_vinylEffect?.Resume();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+					MainPage._instance.AnimateTitle(startAnimation: true);
 
 					if (!_isRainbowActive)
 					{

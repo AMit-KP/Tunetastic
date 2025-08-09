@@ -10,7 +10,6 @@
       xmlns:media="using:CommunityToolkit.WinUI.Media"
       xmlns:protos="using:Tunetastic.Generated.Protos"
       Loaded="Page_Loaded"
-      SizeChanged="Page_SizeChanged"
       mc:Ignorable="d">
 	<Grid>
 		<Grid HorizontalAlignment="Stretch"

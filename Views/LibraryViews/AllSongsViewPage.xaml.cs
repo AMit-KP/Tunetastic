@@ -64,6 +64,7 @@ public sealed partial class AllSongsViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		AllSongsListViewGrid.Visibility = Visibility.Collapsed;
 		AllSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
@@ -237,29 +238,12 @@ public sealed partial class AllSongsViewPage : Page
 		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
 		bool AscOrder = orderBy == "Ascending";
 
-		IOrderedEnumerable<string>? availableLetters = null;
-		bool hasSpecialCharacters = false;
-
 		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(Enum.Parse<SongProperty>(sortBy), AscOrder);
 		AllSongs.Clear();
 		AllSongs.AddRange(newList);
 		newList = null;
 
-		switch (sortBy)
-		{
-			case "Title":
-				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-			case "Artists":
-				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-			case "Album":
-				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-		}
+		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
@@ -284,8 +268,6 @@ public sealed partial class AllSongsViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)] = orderBy;
-
-		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -462,6 +444,41 @@ public sealed partial class AllSongsViewPage : Page
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
 		await ScrollToSong(AllSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
+	}
+
+	/// <summary>
+	/// Evaluates and updates the navigation panel based on the sorting and ordering preferences for the song list.
+	/// </summary>
+	/// <remarks>
+	/// This method determines the sort criteria and order (e.g., by "Title", "Artists", or "Album" in ascending or descending order),
+	/// evaluates the distinct starting characters of the relevant property for all songs, and identifies the presence of special characters.
+	/// It then populates the alphabet navigation panel accordingly.
+	/// </remarks>
+	private void NavigationPanelEvaluate()
+	{
+		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
+		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		bool AscOrder = orderBy == "Ascending";
+
+		IOrderedEnumerable<string>? availableLetters = null;
+		bool hasSpecialCharacters = false;
+		switch (sortBy)
+		{
+			case "Title":
+				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+			case "Artists":
+				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+			case "Album":
+				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				break;
+		}
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -867,6 +884,8 @@ public sealed partial class AllSongsViewPage : Page
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
 			}
+			else
+				NavigationPanelEvaluate();
 		}
 	}
 
@@ -993,5 +1012,62 @@ public sealed partial class AllSongsViewPage : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
+		else
+			NavigationPanelEvaluate();
 	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“Even silence is asking for royalties.”\nAdd your tracks or this page starts selling ambient nothingness as NFTs.",
+		"“Currently vibing to the sound of disappointment.”\nCheck your settings or this page starts humming passive-aggressively.",
+		"“Even your fridge hums more rhythm than this.”\nAdd libraries before this page starts sampling appliance noises.",
+		"“The silence here is louder than your uncle’s political opinions.”\nScan your tracks or this page starts hosting awkward family dinners.",
+		"“This page is auditioning for the role of ‘nothing.’”\nCheck your settings before it wins an Oscar for best invisible performance.",
+		"“It’s so quiet, I can hear your existential dread.”\nScan your songs or this page starts narrating your inner monologue.",
+		"“Currently streaming: the sound of your hopes fading.”\nAdd libraries before this page starts writing breakup songs about you.",
+		"“Even your ringtone has more musical ambition.”\nScan your tracks or this page starts remixing notification sounds.",
+		"“The only thing playing here is your procrastination.”\nAdd libraries before this page starts giving productivity advice.",
+		"“This page is so empty, it’s considering a career in minimalism.”\nScan your songs or it starts selling inspirational posters.",
+		"“Even your cat walking across the keyboard made more noise.”\nCheck your settings before this page starts meowing in Morse code.",
+		"“This is less ‘All Songs’ and more ‘Nope, None.’”\nScan your libraries or this page starts gaslighting your memory.",
+		"“It’s so quiet, I thought I was in a museum.”\nAdd tracks before this page starts charging admission for silence.",
+		"“This page is currently starring in a silent film.”\nScan your music or it starts winning awards for dramatic stillness.",
+		"“Even your thoughts have a better beat.”\nCheck your settings before this page starts freestyle rapping your grocery list.",
+	};
 }

@@ -62,6 +62,7 @@ public sealed partial class GenresViewPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
+		AddGoToSettingsMessage();
 		GenreTileView.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
@@ -111,7 +112,7 @@ public sealed partial class GenresViewPage : Page
 	/// Updates the sorting preferences for the song list displayed on the GenresViewPage.
 	/// </summary>
 	/// <remarks>
-	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
+	/// This method determines the sorting criteria and order
 	/// based on the user's saved preferences in local settings. It also updates the selection status
 	/// of the UI elements corresponding to the sorting options and triggers the list update.
 	/// </remarks>
@@ -135,14 +136,20 @@ public sealed partial class GenresViewPage : Page
 	}
 
 	/// <summary>
-	/// Updates the list of songs based on the selected sorting criteria and order.
+	/// Updates the displayed list of genres based on the selected sorting criteria and order.
 	/// </summary>
 	/// <remarks>
-	/// This method processes the current sorting preferences, such as the column to sort by (e.g., Title, Artists, Album, or Duration)
-	/// and the order (Ascending or Descending). It modifies the displayed song list accordingly and ensures the current selection remains intact.
-	/// Additional functionality includes updating the user interface with the sorting details and storing the preferences
-	/// in local application settings for persistence. The alphabet navigation is also refreshed with relevant data based on the sorting criteria.
+	/// This method retrieves the current sorting preferences, such as order (Ascending or Descending),
+	/// and updates the genre list accordingly. It modifies the user interface to reflect the selected
+	/// sorting criteria and adjusts elements like tooltips and dropdowns. Additionally, it manages
+	/// persistent storage of the sorting preferences and ensures smooth UI navigation by scrolling
+	/// to the currently selected genre tile. The genre grouping is refreshed to maintain consistency
+	/// with the defined sorting parameters.
 	/// </remarks>
+	/// <returns>
+	/// A task representing the asynchronous operation of updating the displayed genre list, refreshing the UI,
+	/// and performing relevant navigation actions.
+	/// </returns>
 	private async Task UpdateListBasedOnSorting()
 	{
 		var genreModel = GenreTileView.SelectedItem as GenreModel;
@@ -152,8 +159,9 @@ public sealed partial class GenresViewPage : Page
 		var groups = await DatabaseHelper.Instance.GetSongsGroupedByGenre(AscOrder);
 		GenresGroup.Clear();
 		GenresGroup.AddRange(groups);
-
 		groups = null;
+
+		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Order: " });
@@ -174,25 +182,6 @@ public sealed partial class GenresViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the GenreTileList control, ensuring proper initialization of the associated panel.
-	/// </summary>
-	/// <remarks>
-	/// This method adjusts the behavior of the SmartWrapPanel used as the items panel for the GenreTileView ListView control.
-	/// It sets the panel's <c>ListViewWidthSource</c> property to the <c>GenreTileView</c> instance
-	/// and invalidates its layout, allowing the panel to adapt to the current dimensions and layout requirements.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the <c>GenreTileView</c> object.</param>
-	/// <param name="e">Event data that provides additional information about the Loaded event.</param>
-	private void GenreTileList_Loaded(object sender, RoutedEventArgs e)
-	{
-		if (GenreTileView.ItemsPanelRoot is SmartWrapPanel panel)
-		{
-			panel.ListViewWidthSource = GenreTileView;
-			panel.InvalidateMeasure();
-		}
-	}
-
-	/// <summary>
 	/// Handles the `Loaded` event for the GenresViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, generally the page itself.</param>
@@ -207,6 +196,9 @@ public sealed partial class GenresViewPage : Page
 			await Task.Delay(100);
 		}
 
+		GenreTileView_SizeChanged(null, null);
+		GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
+
 		if (connectedAnimation)
 		{
 			var selectedGenre = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)]?.ToString());
@@ -217,7 +209,7 @@ public sealed partial class GenresViewPage : Page
 			if (animation != null && selectedGenreModel != null)
 			{
 				await Task.Delay(30);
-				await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
 
 				var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 				if (container != null)
@@ -242,6 +234,7 @@ public sealed partial class GenresViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		GenreTileView.SizeChanged += GenreTileView_SizeChanged;
 	}
 
 	/// <summary>
@@ -289,6 +282,7 @@ public sealed partial class GenresViewPage : Page
 	private async void SortButton_OnClick(object sender, RoutedEventArgs e)
 	{
 		await UpdateListBasedOnSorting();
+		await AdjustAlphabetSize();
 	}
 
 	/// <summary>
@@ -403,14 +397,14 @@ public sealed partial class GenresViewPage : Page
 			var genreModels = GenreTileView.SelectedItems;
 			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																		 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)}'"))})");
+																		 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 
 			var playlist = (sender as MenuFlyoutItem)?.Text;
 
 			if (playlist != null)
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 
-			GlobalNotification.Info($"All {songList.Count} songs/tracks of selected genres, added to {playlist} playlist.");
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to {playlist} playlist.");
 		}
 		else
 		{
@@ -421,7 +415,7 @@ public sealed partial class GenresViewPage : Page
 			{
 				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																			 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre)}'");
+																			 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Genre {genreModel.Genre} added to {playlist} playlist.");
 			}
@@ -443,8 +437,8 @@ public sealed partial class GenresViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)}'");
+																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"GenreGroup>{genreModel?.Genre}";
@@ -467,7 +461,7 @@ public sealed partial class GenresViewPage : Page
 		var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)}'");
+																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
@@ -495,7 +489,7 @@ public sealed partial class GenresViewPage : Page
 		var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)}'");
+																	 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel?.Genre == "Unknown" ? "Unknown Genre" : genreModel?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		if (songPaths?.Count > 0)
@@ -521,6 +515,10 @@ public sealed partial class GenresViewPage : Page
 			{
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
+			}
+			else
+			{
+				NavigationPanelEvaluate();
 			}
 		}
 	}
@@ -598,12 +596,12 @@ public sealed partial class GenresViewPage : Page
 		var genreModels = GenreTileView.SelectedItems;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
 																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)}'"))})");
+																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} songs/tracks of selected genres, added to queue.");
+		GlobalNotification.Info($"All {songList.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to queue.");
 	}
 
 	/// <summary>
@@ -622,8 +620,8 @@ public sealed partial class GenresViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var genreModels = GenreTileView.SelectedItems;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)}'"))})");
+																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
@@ -657,6 +655,10 @@ public sealed partial class GenresViewPage : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
+		else
+		{
+			NavigationPanelEvaluate();
+		}
 	}
 
 	/// <summary>
@@ -679,7 +681,23 @@ public sealed partial class GenresViewPage : Page
 			{
 				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
 				if (genreTextBlock != null)
+				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, genreTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => genreTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
 			}
 
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)] = genreModel.Genre;
@@ -717,16 +735,334 @@ public sealed partial class GenresViewPage : Page
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		var selectedGenre = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)]?.ToString());
-		var selectedGenreModel = GenresGroup.Select(s => s).Where(s => s.Genre == selectedGenre).FirstOrDefault();
-
-		var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
-		if (container != null)
+		if (e.SourcePageType.Name == "GenreDetailPage")
 		{
-			var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
-			if (genreTextBlock != null)
-				ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
+			var selectedGenre = (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedGenre)]?.ToString());
+			var selectedGenreModel = GenresGroup.Select(s => s).Where(s => s.Genre == selectedGenre).FirstOrDefault();
+
+			var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
+			if (container != null)
+			{
+				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+				if (genreTextBlock != null)
+				{
+					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
+
+					var fadeOut = new DoubleAnimation
+					{
+						To = 0,
+						Duration = TimeSpan.FromMilliseconds(30),
+						FillBehavior = FillBehavior.Stop
+					};
+					Storyboard.SetTarget(fadeOut, genreTextBlock);
+					Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+					var sb = new Storyboard();
+					sb.Children.Add(fadeOut);
+					sb.Completed += (_, __) => genreTextBlock.Visibility = Visibility.Collapsed;
+					sb.Begin();
+				}
+			}
 		}
 	}
 
+	/// <summary>
+	/// Adjusts the layout and styling of items within the GenreTileView control dynamically based on the available width.
+	/// </summary>
+	/// <param name="sender">The source of the event, usually the GenreTileView control.</param>
+	/// <param name="e">Event data that provides information about the size changes.</param>
+	/// <remarks>
+	/// This method calculates the optimal dimensions for items in the GenreTileView control,
+	/// ensuring that items are spaced appropriately and the layout adapts to different screen sizes.
+	/// The method determines the maximum number of items that can fit horizontally and adjusts item width and margins.
+	/// For wrapping layouts where all items cannot fit, the method redistributes the available space among visible items.
+	/// </remarks>
+	private void GenreTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	{
+		const double baseContentWidth = 220;
+		const double baseMargin = 10;
+
+		double availableWidth = GenreTileView.ActualWidth;
+		if (availableWidth <= 0 || GenreTileView.ItemsPanelRoot is not ItemsWrapGrid grid)
+			return;
+
+		int itemCount = GenreTileView.Items.Count;
+		if (itemCount <= 0) return;
+
+		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
+		int count = Math.Min(itemCount, maxFitCount);
+
+		double usedWidth = count * baseContentWidth + (count + 1) * baseMargin;
+		double remainingSpace = availableWidth - usedWidth;
+
+		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
+
+		double adjustedItemWidth = baseContentWidth;
+		double adjustedMargin = baseMargin;
+
+		if (layoutIsWrapping && count > 0)
+		{
+			double extraPerTile = remainingSpace / count;
+			adjustedItemWidth += extraPerTile;
+			adjustedMargin += extraPerTile * 0.5;
+		}
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			var container = GenreTileView.ContainerFromItem(GenreTileView.Items[i]) as ListViewItem;
+			if (container != null)
+			{
+				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
+			}
+		}
+
+		grid.ItemWidth = adjustedItemWidth;
+	}
+
+	/// <summary>
+	/// Occurs during the progressive content rendering of an genre tile within the genre list view, dynamically adapting the UI for items that are becoming visible.
+	/// </summary>
+	/// <param name="sender">
+	/// The ListViewBase control that triggered the event.
+	/// </param>
+	/// <param name="args">
+	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
+	/// </param>
+	/// <remarks>
+	/// This method is invoked whenever a container's UI content is about to change for a specific genre tile in the <c>GenreTileView</c>.
+	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
+	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the genre view.
+	/// </remarks>
+	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+	{
+		GenreTileView_SizeChanged(null, null);
+	}
+
+	/// <summary>
+	/// Updates the navigation panel based on the current state of the genre collection and the selected sorting order.
+	/// </summary>
+	/// <remarks>
+	/// This method evaluates the available genres and their initial characters, determines their order based on the current sorting criteria,
+	/// and assesses the presence of special characters. Using this information, it generates and updates the navigation panel to
+	/// reflect the available alphabet options for quick navigation within the genre view.
+	/// </remarks>
+	private void NavigationPanelEvaluate()
+	{
+		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		bool AscOrder = orderBy == "Ascending";
+
+		IOrderedEnumerable<string>? availableLetters = null;
+		availableLetters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
+	}
+
+	/// <summary>
+	/// Populates the alphabet navigation panel with letters and optionally a special character marker
+	/// for navigating sections of songs.
+	/// </summary>
+	/// <param name="availableLetters">
+	/// A collection of letters representing song sections to be included in navigation. Null indicates
+	/// all letters are marked as unavailable.
+	/// </param>
+	/// <param name="order">
+	/// A flag indicating whether the letters are ordered in ascending or descending order.
+	/// </param>
+	/// <param name="sortBy">
+	/// The sorting criterion to define navigation to specific column in the song collection.
+	/// </param>
+	/// <param name="hasSpecialCharacters">
+	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
+	/// </param>
+	/// <remarks>
+	/// This method clears all existing child elements in the alphabet navigation panel before creating
+	/// and adding dynamically generated navigation elements. Each letter element is configured based on
+	/// its validity from the provided collection. Additionally, it defines interaction behavior for
+	/// navigable elements to handle user input.
+	/// </remarks>
+	private async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, bool hasSpecialCharacters)
+	{
+		AlphabetNavigationPanel.Children.Clear();
+		if (availableLetters == null && !hasSpecialCharacters) return;
+
+		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
+		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
+		if (!order) fullAlphabet = fullAlphabet.Reverse();
+
+		double availableSpace = GenreTileView.ActualHeight;
+
+		double autoHeight = availableSpace / fullAlphabet.Count();
+
+		foreach (var letter in fullAlphabet)
+		{
+			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
+
+			var Button = new Button
+			{
+				Content = letter,
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Opacity = hasSongs ? 1 : 0.5,
+				Background = new SolidColorBrush(Colors.Transparent),
+				BorderBrush = new SolidColorBrush(Colors.Transparent),
+				BorderThickness = new Thickness(0),
+				IsHitTestVisible = hasSongs,
+				Margin = new Thickness(0),
+				HorizontalContentAlignment = HorizontalAlignment.Right,
+				VerticalContentAlignment = VerticalAlignment.Stretch,
+				Padding = new Thickness(0),
+				HorizontalAlignment = HorizontalAlignment.Right,
+				VerticalAlignment = VerticalAlignment.Stretch,
+				Height = autoHeight
+			};
+
+			if (hasSongs)
+			{
+				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
+				ToolTipService.SetToolTip(Button, letter);
+				Button.Tapped += (s, e) => ScrollToSection(letter);
+			}
+
+			AlphabetNavigationPanel.Children.Add(Button);
+			await Task.Delay(1);
+		}
+		_ = AdjustAlphabetSize();
+		availableLetters = null;
+	}
+
+	/// <summary>
+	/// Scrolls the view to a specific section of the song list based on the specified letter and sorting criteria.
+	/// </summary>
+	/// <param name="letter">The starting letter of the section to scroll to, or "#" to scroll to non-alphabetic entries.</param>
+	/// <param name="sortBy">The property by which the song list is currently sorted. Valid values include "Title", "Artists", and "Album".</param>
+	/// <remarks>
+	/// This method locates the first song in the collection that matches the specified starting letter and sorting property.
+	/// If a matching song is found, the view scrolls to bring the song into focus.
+	/// </remarks>
+	private async void ScrollToSection(string letter)
+	{
+		GenreModel? targetGenre = null;
+
+		targetGenre = letter != "#" ? GenresGroup.FirstOrDefault(genre => genre.Genre.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenresGroup.FirstOrDefault(genre => !char.IsLetter(genre.Genre[0]));
+
+		if (targetGenre != null)
+		{
+			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			GenreTileView.SelectedItem = targetGenre;
+			await Task.Delay(500);
+			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+		}
+	}
+
+	/// <summary>
+	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
+	/// </summary>
+	/// <remarks>
+	/// This method calculates the height for each element in the alphabet navigation panel dynamically, ensuring
+	/// that the elements are evenly spaced and fit within the available vertical space.
+	/// </remarks>
+	/// <returns>
+	/// A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.
+	/// </returns>
+	private Task<Task> AdjustAlphabetSize()
+	{
+		double availableSpace = GenreTileView.ActualHeight;
+
+		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
+
+		if (availableSpace <= 0) return Task.FromResult(Task.CompletedTask);
+
+		double totalLetters = AlphabetNavigationPanel.Children.Count;
+
+		double autoHeight = availableSpace / totalLetters;
+
+		foreach (var button in AlphabetNavigationPanel.Children.OfType<Button>())
+		{
+			button.Height = autoHeight;
+		}
+		return Task.FromResult(Task.CompletedTask);
+	}
+
+	/// <summary>
+	/// Handles the event triggered when the page's size changes.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the page.</param>
+	/// <param name="e">The event data containing information about the new size of the page.</param>
+	/// <remarks>
+	/// This method adjusts the layout or size of elements on the page whenever the size of the page changes.
+	/// It enqueues a task on the dispatcher queue to perform required layout updates asynchronously.
+	/// </remarks>
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+	{
+		var pageHeight = e.NewSize.Height;
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		{
+			await AdjustAlphabetSize();
+		});
+	}
+
+	/// <summary>
+	/// Handles the theme change event for the page.
+	/// </summary>
+	/// <param name="sender">The <see cref="FrameworkElement"/> that triggered the theme change event.</param>
+	/// <param name="args">The event data associated with the theme change event.</param>
+	/// <remarks>
+	/// This method updates the foreground color of visible text elements in the AlphabetNavigationPanel
+	/// based on the current theme of the page. If the theme is dark, white color is applied; otherwise, black color is applied.
+	/// </remarks>
+	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
+	{
+		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
+		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
+	}
+
+	/// <summary>
+	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
+	/// </summary>
+	/// <remarks>
+	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
+	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
+	/// are applied to enhance the appearance of the messages.
+	/// </remarks>
+	private void AddGoToSettingsMessage()
+	{
+		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
+		var lines = message.Split('\n');
+
+		GoToSettingsTextBlock.Inlines.Clear();
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[0],
+			FontStyle = Windows.UI.Text.FontStyle.Italic
+		});
+
+		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
+
+		GoToSettingsTextBlock.Inlines.Add(new Run
+		{
+			Text = lines[1]
+		});
+	}
+
+	/// <summary>
+	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
+	/// </summary>
+	/// <remarks>
+	/// The <c>GoToMessages</c> field contains a predefined list of strings, each consisting of two lines of text split by a newline character.
+	/// These messages are intended to provide a lighthearted and engaging user experience, encouraging users to either add tracks,
+	/// configure their settings, or scan their music libraries. Each usage randomly selects a message from this list.
+	/// </remarks>
+	private readonly List<string> GoToMessages = new()
+	{
+		"“All vibes, no tribe.”\nPlease, check your settings to ensure your libraries are added and songs/tracks have been scanned—or this page invents a genre called 'existential silence.'",
+		"“Genres are on strike due to lack of representation.”\nScan your music or this page hosts a peace summit between Jazz and EDM.",
+		"“Pop left. Rock couldn’t be bothered. Ambient is crying.”\nAdd libraries or this page starts humming lo-fi despair.",
+		"“Currently streaming: Genre confusion in high resolution.”\nCheck your settings before it starts assigning labels like ‘Vaguely Emotional.’",
+		"“The genre list just Googled itself out of boredom.”\nScan your tracks before this page registers ‘Vibe-core’ as an official style.",
+		"“Even Techno said ‘I need space.’”\nAdd your libraries or the page starts beatboxing anxiety.",
+		"“Genres used to mean something. Now they just stare blankly.”\nScan before this page starts giving personality tests to silence.",
+		"“This page thinks it’s a mood ring now.”\nCheck your metadata or it begins recommending playlists for ‘mild confusion.’",
+		"“No genres detected. Just ambient disappointment.”\nScan your tracks before the page gets replaced by interpretive shrugging.",
+		"“It tried to load ‘Jazz’ and got the sound of taxes.”\nAdd your songs or this page starts scatting financial anxiety."
+	};
 }
