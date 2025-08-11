@@ -1035,7 +1035,7 @@ public class DatabaseHelper
 	/// </returns>
 	public async Task<List<ArtistModel>> GetSongsGroupedByArtist(bool ascending = true)
 	{
-		var result = await _database.QueryAsync<ArtistModel>($@"SELECT A.Name AS Artist, COUNT(*) AS Count, SUM(S.Duration) AS TotalDuration
+		var result = await _database.QueryAsync<ArtistModel>($@"SELECT CASE WHEN TRIM(A.Name) = 'Unknown Artist' THEN 'Unknown' ELSE A.Name END AS Artist, COUNT(*) AS Count, SUM(S.Duration) AS TotalDuration
 																FROM Artists A
 																JOIN SongArtists SA ON SA.ArtistId = A.Id
 																JOIN Songs S ON S.Path = SA.SongPath
@@ -1056,11 +1056,64 @@ public class DatabaseHelper
 	/// </returns>
 	public async Task<List<Song>> GetSongsByArtist(string artistName, SongProperty orderBy = SongProperty.Title, bool ascending = true)
 	{
-		return await _database.QueryAsync<Song>($@"SELECT S.* FROM Songs S
-												   JOIN SongArtists SA ON SA.SongPath = S.Path
-												   JOIN Artists A ON A.Id = SA.ArtistId
-												   WHERE A.Name = ? COLLATE NOCASE
-												   ORDER BY S.{orderBy.ToString()} {(ascending ? "ASC" : "DESC")}", artistName);
+		return await GetSongsByArtists(new[] { artistName }, orderBy, ascending, matchAll: false);
+	}
+
+	/// <summary>
+	/// Retrieves a list of songs associated with the specified artist names.
+	/// Supports ordering, sorting direction, and matching either any or all artists.
+	/// </summary>
+	/// <param name="artistNames">
+	/// An enumerable collection of artist names to filter songs by. Names are normalized and deduplicated.
+	/// </param>
+	/// <param name="orderBy">
+	/// The property by which to order the results. Defaults to <see cref="SongProperty.Title"/>.
+	/// </param>
+	/// <param name="ascending">
+	/// If true, sorts results in ascending order; otherwise, sorts in descending order.
+	/// </param>
+	/// <param name="matchAll">
+	/// If true, only returns songs that match all provided artist names; if false, returns songs matching any of the names.
+	/// </param>
+	/// <returns>
+	/// A task representing the asynchronous operation. The result contains a list of <see cref="Song"/> objects matching the criteria.
+	/// </returns>
+	public async Task<List<Song>> GetSongsByArtists(IEnumerable<string> artistNames, SongProperty orderBy = SongProperty.Title, bool ascending = true, bool matchAll = false)
+	{
+		var names = (artistNames ?? Enumerable.Empty<string>()).Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+		if (names.Count == 0)
+			return new List<Song>();
+
+		var placeholders = string.Join(", ", Enumerable.Repeat("?", names.Count));
+
+		if (!matchAll)
+		{
+			var sql = $@"SELECT DISTINCT S.*
+						 FROM Songs S
+						 JOIN SongArtists SA ON SA.SongPath = S.Path
+						 JOIN Artists A ON A.Id = SA.ArtistId
+						 WHERE LOWER(A.Name) IN ({placeholders})
+						 ORDER BY S.{orderBy} {(ascending ? "ASC" : "DESC")}";
+
+			var args = names.Select(n => (object)n.ToLowerInvariant()).ToArray();
+			return await _database.QueryAsync<Song>(sql, args);
+		}
+		else
+		{
+			var sql = $@"SELECT S.*
+						 FROM Songs S
+						 JOIN SongArtists SA ON SA.SongPath = S.Path
+						 JOIN Artists A ON A.Id = SA.ArtistId
+						 WHERE LOWER(A.Name) IN ({placeholders})
+						 GROUP BY S.Path
+						 HAVING COUNT(DISTINCT LOWER(A.Name)) = ?
+						 ORDER BY S.{orderBy} {(ascending ? "ASC" : "DESC")}";
+
+			var argsList = names.Select(n => (object)n.ToLowerInvariant()).ToList();
+			argsList.Add(names.Count);
+			return await _database.QueryAsync<Song>(sql, argsList.ToArray());
+		}
 	}
 
 	/// <summary>
