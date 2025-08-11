@@ -698,7 +698,7 @@ public sealed partial class ArtistsViewPage : Page
 			}
 
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedArtist)] = artistModel.Artist;
-			//TODO: App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), artistModel.Artist, false, new DrillInNavigationTransitionInfo());
+			App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), artistModel.Artist, false, new DrillInNavigationTransitionInfo());
 		}
 	}
 
