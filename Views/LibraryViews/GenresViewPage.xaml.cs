@@ -494,7 +494,7 @@ public sealed partial class GenresViewPage : Page
 
 		if (songPaths?.Count > 0)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these songs/tracks" : "this song/track")} of Genre {genreModel?.Genre} from your system?";
+			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Genre {genreModel?.Genre} from your system?";
 
 			var result = await DeleteDialog.ShowAsync();
 			if (result == ContentDialogResult.Primary)
@@ -625,7 +625,7 @@ public sealed partial class GenresViewPage : Page
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these songs/tracks" : "this song/track")} of selected genres from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected genres from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 
@@ -890,7 +890,8 @@ public sealed partial class GenresViewPage : Page
 		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
 		if (!order) fullAlphabet = fullAlphabet.Reverse();
 
-		double availableSpace = GenreTileView.ActualHeight;
+		double availableSpace = ContentGrid.ActualHeight - 10;
+		if (availableSpace <= 0) return;
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
 
@@ -966,7 +967,7 @@ public sealed partial class GenresViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = GenreTileView.ActualHeight;
+		double availableSpace = ContentGrid.ActualHeight - 10;
 
 		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
 

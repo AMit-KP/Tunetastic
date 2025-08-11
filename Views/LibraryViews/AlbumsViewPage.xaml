@@ -58,7 +58,7 @@
 	<Grid Margin="10,10,10,0">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
-			<RowDefinition />
+			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0"
 		      Margin="15,10,45,10">

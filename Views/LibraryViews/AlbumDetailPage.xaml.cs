@@ -181,10 +181,6 @@ public sealed partial class AlbumDetailPage : Page
 				Artists.IsChecked = true;
 				break;
 
-			case "Album":
-				Album.IsChecked = true;
-				break;
-
 			case "Duration":
 				Duration.IsChecked = true;
 				break;
@@ -305,10 +301,6 @@ public sealed partial class AlbumDetailPage : Page
 			case "Artists":
 				availableLetters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
 				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
-				break;
-			case "Album":
-				availableLetters = AlbumGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 		}
 
@@ -548,12 +540,13 @@ public sealed partial class AlbumDetailPage : Page
 		if (!order) fullAlphabet = fullAlphabet.Reverse();
 
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
-		double availableSpace = viewStyle switch
+		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => AlbumDetailListView.ActualHeight - 40,
-			"Compact View" => AlbumDetailCompactView.ActualHeight,
-			_ => AlbumDetailCompactView.ActualHeight
+			"List View" => 50,
+			"Compact View" => 10,
+			_ => 10
 		};
+		if (availableSpace <= 0) return;
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
 
@@ -642,11 +635,11 @@ public sealed partial class AlbumDetailPage : Page
 	private Task<Task> AdjustAlphabetSize()
 	{
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
-		double availableSpace = viewStyle switch
+		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => AlbumDetailListView.ActualHeight - 40,
-			"Compact View" => AlbumDetailCompactView.ActualHeight,
-			_ => AlbumDetailCompactView.ActualHeight
+			"List View" => 50,
+			"Compact View" => 10,
+			_ => 10
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch

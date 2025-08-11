@@ -32,6 +32,7 @@ public sealed partial class YearsViewPage : Page
 
 	private readonly DispatcherQueue _dispatcherQueue;
 
+
 	public YearsViewPage()
 	{
 		this.InitializeComponent();
@@ -483,7 +484,7 @@ public sealed partial class YearsViewPage : Page
 
 		if (songPaths?.Count > 0)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these songs/tracks" : "this song/track")} of Year {yearModel?.Year} from your system?";
+			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Year {yearModel?.Year} from your system?";
 
 			var result = await DeleteDialog.ShowAsync();
 			if (result == ContentDialogResult.Primary)
@@ -610,7 +611,7 @@ public sealed partial class YearsViewPage : Page
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these songs/tracks" : "this song/track")} of selected years from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected years from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 

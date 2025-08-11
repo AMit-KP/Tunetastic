@@ -513,7 +513,7 @@ public sealed partial class AlbumsViewPage : Page
 
 		if (songPaths?.Count > 0)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these songs/tracks" : "this song/track")} of Album {albumModel?.Album} from your system?";
+			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Album {albumModel?.Album} from your system?";
 
 			var result = await DeleteDialog.ShowAsync();
 			if (result == ContentDialogResult.Primary)
@@ -644,7 +644,7 @@ public sealed partial class AlbumsViewPage : Page
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these songs/tracks" : "this song/track")} of selected albums from your system?";
+		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected albums from your system?";
 
 		var result = await DeleteDialog.ShowAsync();
 
@@ -936,7 +936,8 @@ public sealed partial class AlbumsViewPage : Page
 		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
 		if (!order) fullAlphabet = fullAlphabet.Reverse();
 
-		double availableSpace = AlbumTileView.ActualHeight;
+		double availableSpace = ContentGrid.ActualHeight - 10;
+		if (availableSpace <= 0) return;
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
 
@@ -1012,7 +1013,7 @@ public sealed partial class AlbumsViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = AlbumTileView.ActualHeight;
+		double availableSpace = ContentGrid.ActualHeight - 10;
 
 		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
 

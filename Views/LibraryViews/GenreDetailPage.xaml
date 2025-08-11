@@ -61,7 +61,7 @@
 	<Grid Margin="10,10,10,0">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
-			<RowDefinition />
+			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0"
 		      Margin="15,10,45,10"
@@ -223,7 +223,8 @@
 				</Button>
 			</StackPanel>
 		</Grid>
-		<Grid Grid.Row="1">
+		<Grid x:Name="ContentGrid"
+		      Grid.Row="1">
 			<StackPanel x:Name="GoToSettings"
 			            HorizontalAlignment="Center"
 			            VerticalAlignment="Center"

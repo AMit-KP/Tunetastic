@@ -514,12 +514,13 @@ public sealed partial class AllSongsViewPage : Page
 		if (!order) fullAlphabet = fullAlphabet.Reverse();
 
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
-		double availableSpace = viewStyle switch
+		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongsCompactView.ActualHeight,
-			_ => AllSongsCompactView.ActualHeight
+			"List View" => 50,
+			"Compact View" => 10,
+			_ => 10
 		};
+		if (availableSpace <= 0) return;
 
 		double autoHeight = availableSpace / fullAlphabet.Count();
 
@@ -608,11 +609,11 @@ public sealed partial class AllSongsViewPage : Page
 	private Task<Task> AdjustAlphabetSize()
 	{
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
-		double availableSpace = viewStyle switch
+		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => AllSongsListView.ActualHeight - 40,
-			"Compact View" => AllSongsCompactView.ActualHeight,
-			_ => AllSongsCompactView.ActualHeight
+			"List View" => 50,
+			"Compact View" => 10,
+			_ => 10
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
