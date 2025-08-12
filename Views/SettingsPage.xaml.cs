@@ -882,12 +882,23 @@ public sealed partial class SettingsPage : Page
 	{
 		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage");
+
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = ArtistsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-		if (!ArtistsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Artists");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ArtistsEnabled)] = ArtistsToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Artists")   //TODO: Change this
+
+		//TODO: Ask confirmation when currently playing from it
+
+		if (!ArtistsToggle.IsOn)
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			MainPage._instance.RemovePageFromHistory("Artists");
+			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.ArtistDetailPage");
+		}
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.ArtistsEnabled)] = ArtistsToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("ArtistGroup>") == true)
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}
@@ -904,12 +915,23 @@ public sealed partial class SettingsPage : Page
 	{
 		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage");
+
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = AlbumsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-		if (!AlbumsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Albums");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AlbumsEnabled)] = AlbumsToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Albums")   //TODO: Change this
+
+		//TODO: Ask confirmation when currently playing from it
+
+		if (!AlbumsToggle.IsOn)
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			MainPage._instance.RemovePageFromHistory("Albums");
+			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.AlbumDetailPage");
+		}
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.AlbumsEnabled)] = AlbumsToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AlbumGroup>")
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}
@@ -926,12 +948,23 @@ public sealed partial class SettingsPage : Page
 	{
 		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.GenresViewPage");
+
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = GenresToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-		if (!GenresToggle.IsOn) MainPage._instance.RemovePageFromHistory("Genres");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.GenresEnabled)] = GenresToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Genres")   //TODO: Change this
+
+		//TODO: Ask confirmation when currently playing from it
+
+		if (!GenresToggle.IsOn)
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			MainPage._instance.RemovePageFromHistory("Genres");
+			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.GenreDetailPage");
+		}
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.GenresEnabled)] = GenresToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "GenreGroup>")
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}
@@ -947,12 +980,23 @@ public sealed partial class SettingsPage : Page
 	{
 		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.YearsViewPage");
+
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = YearsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-		if (!YearsToggle.IsOn) MainPage._instance.RemovePageFromHistory("Years");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "Years")   //TODO: Change this
+
+		//TODO: Ask confirmation when currently playing from it
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (!YearsToggle.IsOn)
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			MainPage._instance.RemovePageFromHistory("Years");
+			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.YearDetailPage");
+		}
+
+		localSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "YearGroup>")
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}
@@ -969,12 +1013,19 @@ public sealed partial class SettingsPage : Page
 	{
 		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyAdded");
+
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyAddedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+
+		//TODO: Ask confirmation when currently playing from it
+
 		if (!RecentlyAddedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Added");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)] = RecentlyAddedToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyAdded")
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)] = RecentlyAddedToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyAdded")
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}
@@ -990,12 +1041,19 @@ public sealed partial class SettingsPage : Page
 	{
 		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyPlayed");
+
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+
+		//TODO: Ask confirmation when currently playing from it
+
 		if (!RecentlyPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Played");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)] = RecentlyPlayedToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)] = RecentlyPlayedToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyPlayed")
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}
@@ -1011,12 +1069,19 @@ public sealed partial class SettingsPage : Page
 	{
 		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.MostPlayed");
+
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = MostPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+
+		//TODO: Ask confirmation when currently playing from it
+
 		if (!MostPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Most Played");
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MostPlayedEnabled)] = MostPlayedToggle.IsOn;
-		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		localSettings.Values[nameof(LocalSave.MostPlayedEnabled)] = MostPlayedToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
 		{
-			MusicPlayer.Instance.CurrentSong = "";
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
 	}

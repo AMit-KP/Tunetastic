@@ -427,8 +427,8 @@ public sealed partial class YearsViewPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var yearModel = (sender as MenuFlyoutItem)?.DataContext as YearModel;
 		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
-			ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-			whereCondition: $"{SongProperty.Year.ToString()} = '{(yearModel?.Year == "Unknown" ? "Unknown Year" : yearModel?.Year)}'");
+																	 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Year.ToString()} = '{(yearModel?.Year == "Unknown" ? "Unknown Year" : yearModel?.Year)}'");
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"YearGroup>{yearModel?.Year}";
