@@ -460,7 +460,7 @@ public sealed partial class MainPage : Page
 		var history = NavFrame.BackStack;
 		for (int i = history.Count - 1; i >= 0; i--)
 		{
-			if (history[i].Parameter.ToString() == pageName)
+			if (history[i].Parameter.ToString() == pageName || history[i].SourcePageType.FullName == pageName)
 			{
 				history.RemoveAt(i);
 			}

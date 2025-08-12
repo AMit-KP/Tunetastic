@@ -399,7 +399,7 @@
 				</StackPanel>
 			</dev:SettingsCard>-->
 
-			<dev:SettingsExpander Description="Description"
+			<dev:SettingsExpander Description="Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that’s as unique, expressive and captivating as the music you love. 🎶"
 			                      Header="Tunetastic"
 			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
 			                      IsExpanded="False">
