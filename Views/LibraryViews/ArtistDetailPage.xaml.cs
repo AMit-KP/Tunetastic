@@ -6,15 +6,21 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Tunetastic.Views.LibraryViews;
+
 /// <summary>
-/// An empty page that can be used on its own or navigated to within a Frame.
+/// Represents the detail page for a specific artist in the music library.
 /// </summary>
-public sealed partial class AlbumDetailPage : Page
+/// <remarks>
+/// This page is used within the application to display songs grouped by artist. It provides
+/// functionalities such as handling visual transitions during navigation, managing the artist group
+/// header, and interacting with the song collection related to a specific artist.
+/// </remarks>
+public sealed partial class ArtistDetailPage : Page
 {
 	/// <summary>
-	/// Gets or sets the collection of songs associated with a specific album grouping.
+	/// Gets or sets the collection of songs associated with a specific artist grouping.
 	/// </summary>
-	public ObservableCollection<Song> AlbumGroupSongs
+	public ObservableCollection<Song> ArtistGroupSongs
 	{
 		get; set;
 	} = new();
@@ -22,7 +28,7 @@ public sealed partial class AlbumDetailPage : Page
 	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
 
-	public AlbumDetailPage()
+	public ArtistDetailPage()
 	{
 		this.InitializeComponent();
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -30,38 +36,38 @@ public sealed partial class AlbumDetailPage : Page
 	}
 
 	/// <summary>
-	/// Called when the page is navigated to. Handles the setup of the album group header and its associated animation.
+	/// Called when the page is navigated to. Handles the setup of the artist group header and its associated animation.
 	/// </summary>
-	/// <param name="e">Navigation event arguments containing the album parameter passed during navigation</param>
+	/// <param name="e">Navigation event arguments containing the artist parameter passed during navigation</param>
 	/// <remarks>
 	/// This override performs three main tasks:
 	/// <br/>
-	/// 1. Sets the album group header text based on the navigation parameter
+	/// 1. Sets the artist group header text based on the navigation parameter
 	/// <br/>
-	/// 2. Applies a connected animation to the album header for smooth visual transitions
+	/// 2. Applies a connected animation to the artist header for smooth visual transitions
 	/// <br/>
-	/// 3. Triggers the album selection in the navigation
+	/// 3. Triggers the artist selection in the navigation
 	/// <br/>
 	/// <br/>
-	/// The album parameter is expected to be passed during navigation, where "Unknown" is handled as a special case
-	/// and displayed as "Unknown Album".
+	/// The artist parameter is expected to be passed during navigation, where "Unknown" is handled as a special case
+	/// and displayed as "Unknown Artist".
 	/// </remarks>
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
-		ActualAlbumGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Album" : e.Parameter.ToString());
-		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("AlbumHeaderAnimation");
+		ActualArtistGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Artist" : e.Parameter.ToString());
+		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("ArtistHeaderAnimation");
 
 		if (animation != null)
 		{
-			await ActualAlbumGroup.DispatcherQueue.EnqueueAsync(async () =>
+			await ActualArtistGroup.DispatcherQueue.EnqueueAsync(async () =>
 			{
-				animation.TryStart(ActualAlbumGroup);
+				animation.TryStart(ActualArtistGroup);
 				await Task.Delay(1000);
 				AutoScrollHeader.IsPlaying = true;
 			});
 		}
 
-		SelectAlbumOnNavigation();
+		SelectArtistOnNavigation();
 	}
 
 	/// <summary>
@@ -71,19 +77,19 @@ public sealed partial class AlbumDetailPage : Page
 	/// <remarks>
 	/// This method performs two main tasks:
 	/// <br/>
-	/// 1. Prepares a connected animation for the album header to maintain visual continuity
+	/// 1. Prepares a connected animation for the artist header to maintain visual continuity
 	/// <br/>
-	/// 2. Handles the visibility transition of the ActualAlbumGroup element:
+	/// 2. Handles the visibility transition of the ActualArtistGroup element:
 	/// <br/>
-	///    - When navigating to AlbumsViewPage: Applies a fade-out animation
+	///    - When navigating to ArtistsViewPage: Applies a fade-out animation
 	/// <br/>
 	///    - For other destinations: Immediately collapses the element
 	/// </remarks>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		if (e.SourcePageType.Name == "AlbumsViewPage")
+		if (e.SourcePageType.Name == "ArtistsViewPage")
 		{
-			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimationBack", ActualAlbumGroup);
+			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistHeaderAnimationBack", ActualArtistGroup);
 
 			var fadeOut = new DoubleAnimation
 			{
@@ -91,12 +97,12 @@ public sealed partial class AlbumDetailPage : Page
 				Duration = TimeSpan.FromMilliseconds(30),
 				FillBehavior = FillBehavior.Stop
 			};
-			Storyboard.SetTarget(fadeOut, ActualAlbumGroup);
+			Storyboard.SetTarget(fadeOut, ActualArtistGroup);
 			Storyboard.SetTargetProperty(fadeOut, "Opacity");
 
 			var sb = new Storyboard();
 			sb.Children.Add(fadeOut);
-			sb.Completed += (_, __) => ActualAlbumGroup.Visibility = Visibility.Collapsed;
+			sb.Completed += (_, __) => ActualArtistGroup.Visibility = Visibility.Collapsed;
 			sb.Begin();
 		}
 	}
@@ -116,8 +122,8 @@ public sealed partial class AlbumDetailPage : Page
 	private async Task CheckScanning()
 	{
 		GoToSettings.Visibility = Visibility.Visible;
-		AlbumDetailListViewGrid.Visibility = Visibility.Collapsed;
-		AlbumDetailCompactViewGrid.Visibility = Visibility.Collapsed;
+		ArtistDetailListViewGrid.Visibility = Visibility.Collapsed;
+		ArtistDetailCompactViewGrid.Visibility = Visibility.Collapsed;
 		PageButtons.Visibility = Visibility.Collapsed;
 
 		if (GetMusicData.IsScanning)
@@ -147,7 +153,7 @@ public sealed partial class AlbumDetailPage : Page
 			LoadingProgress.Visibility = Visibility.Collapsed;
 			await _dispatcherQueue.EnqueueAsync(() =>
 			{
-				this.Content = new AlbumDetailPage();
+				this.Content = new ArtistDetailPage();
 			});
 			return;
 		}
@@ -163,7 +169,7 @@ public sealed partial class AlbumDetailPage : Page
 	}
 
 	/// <summary>
-	/// Updates the sorting preferences for the song list displayed on the AlbumDetailViewPage.
+	/// Updates the sorting preferences for the song list displayed on the ArtistDetailViewPage.
 	/// </summary>
 	/// <remarks>
 	/// This method determines the sorting criteria and order (e.g., by title, artist, album, duration.)
@@ -173,12 +179,12 @@ public sealed partial class AlbumDetailPage : Page
 	private void UpdateAsPerLastSorting()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var sortBy = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title";
-		var sortOrder = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending";
+		var sortBy = localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title";
+		var sortOrder = localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending";
 		switch (sortBy)
 		{
-			case "Artists":
-				Artists.IsChecked = true;
+			case "Album":
+				Album.IsChecked = true;
 				break;
 
 			case "Duration":
@@ -215,7 +221,7 @@ public sealed partial class AlbumDetailPage : Page
 	private void UpdateAsPerLastViewStyle()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var viewStyle = localSettings.Values[nameof(LocalSave.AlbumDetailViewStyle)]?.ToString() ?? "Compact View";
+		var viewStyle = localSettings.Values[nameof(LocalSave.ArtistDetailViewStyle)]?.ToString() ?? "Compact View";
 		switch (viewStyle)
 		{
 			case "List View":
@@ -248,19 +254,19 @@ public sealed partial class AlbumDetailPage : Page
 		switch (viewStyle)
 		{
 			case "List View":
-				AlbumDetailListViewGrid.Visibility = Visibility.Visible;
-				AlbumDetailCompactViewGrid.Visibility = Visibility.Collapsed;
+				ArtistDetailListViewGrid.Visibility = Visibility.Visible;
+				ArtistDetailCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
 				break;
 
 			case "Compact View":
 			default:
-				AlbumDetailListViewGrid.Visibility = Visibility.Collapsed;
-				AlbumDetailCompactViewGrid.Visibility = Visibility.Visible;
+				ArtistDetailListViewGrid.Visibility = Visibility.Collapsed;
+				ArtistDetailCompactViewGrid.Visibility = Visibility.Visible;
 				glyph = "\uE71D";
 				break;
 		}
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AlbumDetailViewStyle)] = viewStyle;
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ArtistDetailViewStyle)] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
 		ToolTipService.SetToolTip(ViewButton, viewStyle);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
@@ -287,20 +293,20 @@ public sealed partial class AlbumDetailPage : Page
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
 
-		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(sortBy), ascending: AscOrder, whereCondition: $"{SongProperty.Album.ToString()} = '{ActualAlbumGroup.Text.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
-		AlbumGroupSongs.Clear();
-		AlbumGroupSongs.AddRange(newList);
+		var newList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: ActualArtistGroup.Text, orderBy: Enum.Parse<SongProperty>(sortBy), ascending: AscOrder);
+		ArtistGroupSongs.Clear();
+		ArtistGroupSongs.AddRange(newList);
 		newList = null;
 
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = AlbumGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = ArtistGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = ArtistGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
-			case "Artists":
-				availableLetters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+			case "Album":
+				availableLetters = ArtistGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
+				hasSpecialCharacters = ArtistGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
 				break;
 		}
 
@@ -319,13 +325,13 @@ public sealed partial class AlbumDetailPage : Page
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
 
-		song = AlbumGroupSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
+		song = ArtistGroupSongs.Select(s => s).Where(s => s.Path == song?.Path).FirstOrDefault();
 		await ScrollToSong(song);       //somehow this doesn't work
 		await Task.Delay(1000);
 		await ScrollToSong(song);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)] = sortBy;
-		localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)] = orderBy;
+		localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)] = sortBy;
+		localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)] = orderBy;
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
@@ -346,14 +352,14 @@ public sealed partial class AlbumDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		return viewStyle switch
 		{
-			"List View" => AlbumDetailListView,
-			"Compact View" => AlbumDetailCompactView,
-			_ => AlbumDetailCompactView
+			"List View" => ArtistDetailListView,
+			"Compact View" => ArtistDetailCompactView,
+			_ => ArtistDetailCompactView
 		};
 	}
 
 	/// <summary>
-	/// Handles the ItemClick event for the ListView control in the AlbumDetailViewPage.
+	/// Handles the ItemClick event for the ListView control in the ArtistDetailViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ListView control.</param>
 	/// <param name="e">Provides data for the ItemClick event, including the clicked item.</param>
@@ -365,9 +371,9 @@ public sealed partial class AlbumDetailPage : Page
 	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		var track = e.ClickedItem as Song;
-		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"ArtistGroup>{ActualArtistGroup.Text}";
 	}
 
 	/// <summary>
@@ -386,16 +392,16 @@ public sealed partial class AlbumDetailPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the AlbumDetailViewPage.
+	/// Handles the Loaded event for the ArtistDetailViewPage.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the page itself.</param>
 	/// <param name="e">The event data associated with the Loaded event.</param>
 	/// <remarks>
-	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "AlbumDetailViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
+	/// This method is responsible for managing the initialization operations required when the page is loaded. It checks whether the current playlist corresponds to the "ArtistDetailViewPage" and retrieves the last played song from the application's local settings, if available. It then attempts to scroll to the position of the last played song in the song collection asynchronously with a minor delay.
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
-		while (AlbumGroupSongs == null || AlbumGroupSongs.Count == 0)
+		while (ArtistGroupSongs == null || ArtistGroupSongs.Count == 0)
 		{
 			await Task.Delay(100);
 		}
@@ -403,10 +409,10 @@ public sealed partial class AlbumDetailPage : Page
 	}
 
 	/// <summary>
-	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "AlbumDetailViewPage".
+	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "ArtistDetailViewPage".
 	/// </summary>
 	/// <remarks>
-	/// This method checks the local application settings to determine if the "AlbumDetailViewPage" is the active playlist.
+	/// This method checks the local application settings to determine if the "ArtistDetailViewPage" is the active playlist.
 	/// If it is, the method retrieves the last played track based on its path from the saved settings and attempts to scroll
 	/// the page to that specific song within the song collection.
 	/// </remarks>
@@ -414,9 +420,9 @@ public sealed partial class AlbumDetailPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
-		if (currentPlaylist.StartsWith("AlbumGroup>") && currentPlaylist.Substring("AlbumGroup>".Length) == ActualAlbumGroup.Text)
+		if (currentPlaylist.StartsWith("ArtistGroup>") && currentPlaylist.Substring("ArtistGroup>".Length) == ActualArtistGroup.Text)
 		{
-			var SelectedSong = AlbumGroupSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
+			var SelectedSong = ArtistGroupSongs.Select(s => s).Where(s => s.Path == localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString()).FirstOrDefault();
 			_ = ScrollToSong(SelectedSong);
 		}
 	}
@@ -431,9 +437,9 @@ public sealed partial class AlbumDetailPage : Page
 		await UpdateListBasedOnSorting();
 		await AdjustAlphabetSize();
 		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
-		if (currentPlaylist.StartsWith("AlbumGroup>") && currentPlaylist.Substring("AlbumGroup>".Length) == ActualAlbumGroup.Text)
+		if (currentPlaylist.StartsWith("ArtistGroup>") && currentPlaylist.Substring("ArtistGroup>".Length) == ActualArtistGroup.Text)
 		{
-			List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
+			List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 	}
@@ -471,14 +477,14 @@ public sealed partial class AlbumDetailPage : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"ArtistGroup>{ActualArtistGroup.Text}";
 
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-		var SelectedSong = AlbumGroupSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		var SelectedSong = ArtistGroupSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
 		await ScrollToSong(SelectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(SelectedSong);
@@ -499,11 +505,11 @@ public sealed partial class AlbumDetailPage : Page
 	{
 		ShuffleAndPlay.IsEnabled = false;
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
+		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"ArtistGroup>{ActualArtistGroup.Text}";
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
-		await ScrollToSong(AlbumGroupSongs[0]);
+		await ScrollToSong(ArtistGroupSongs[0]);
 		ShuffleAndPlay.IsEnabled = true;
 	}
 
@@ -601,24 +607,24 @@ public sealed partial class AlbumDetailPage : Page
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
 				break;
 		}
 		if (targetSong != null)
 		{
 			var listView = GetCurrentViewStyle();
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AlbumDetailListView ? -40 : 0);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == ArtistDetailListView ? -40 : 0);
 			listView.SelectedItem = targetSong;
 			await Task.Delay(500);
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == AlbumDetailListView ? -40 : 0);
+			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == ArtistDetailListView ? -40 : 0);
 		}
 	}
 
@@ -731,7 +737,7 @@ public sealed partial class AlbumDetailPage : Page
 	}
 
 	/// <summary>
-	/// Handles the Unloaded event for the AlbumDetailViewPage.
+	/// Handles the Unloaded event for the ArtistDetailViewPage.
 	/// </summary>
 	/// <remarks>
 	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
@@ -741,8 +747,8 @@ public sealed partial class AlbumDetailPage : Page
 	/// <param name="e">The event arguments associated with the Unloaded event.</param>
 	private void Page_Unloaded(object sender, RoutedEventArgs e)
 	{
-		AlbumGroupSongs.Clear();
-		AlbumGroupSongs = null;
+		ArtistGroupSongs.Clear();
+		ArtistGroupSongs = null;
 		GC.Collect();
 	}
 
@@ -839,9 +845,9 @@ public sealed partial class AlbumDetailPage : Page
 	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
+		List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
 		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"AlbumGroup>{ActualAlbumGroup.Text}";
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"ArtistGroup>{ActualArtistGroup.Text}";
 	}
 
 	/// <summary>
@@ -897,7 +903,7 @@ public sealed partial class AlbumDetailPage : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					AlbumGroupSongs.Remove(songData);
+					ArtistGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
 					GlobalNotification.Info("Song/Track deleted." +
 											$"\nTitle: {songData.Title}" +
@@ -911,10 +917,10 @@ public sealed partial class AlbumDetailPage : Page
 				GoToSettings.Visibility = Visibility.Visible;
 				PageButtons.Visibility = Visibility.Collapsed;
 			}
-			if (AlbumGroupSongs.Count <= 0)
+			if (ArtistGroupSongs.Count <= 0)
 			{
 				App.Current.NavService.GoBack();
-				MainPage._instance.RemovePageFromHistory(ActualAlbumGroup.Text == "Unknown Album" ? "Unknown" : ActualAlbumGroup.Text);
+				MainPage._instance.RemovePageFromHistory(ActualArtistGroup.Text == "Unknown Artist" ? "Unknown" : ActualArtistGroup.Text);
 			}
 		}
 	}
@@ -956,7 +962,7 @@ public sealed partial class AlbumDetailPage : Page
 					uiElement.IsRightTapEnabled = false;
 				}
 			}
-			if (view.Name == "AlbumDetailListView") Header.Margin = new Thickness(40, 0, 0, 0);
+			if (view.Name == "ArtistDetailListView") Header.Margin = new Thickness(40, 0, 0, 0);
 		}
 		else
 		{
@@ -977,7 +983,7 @@ public sealed partial class AlbumDetailPage : Page
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
-			if (view.Name == "AlbumDetailListView") Header.Margin = new Thickness(12, 0, 0, 0);
+			if (view.Name == "ArtistDetailListView") Header.Margin = new Thickness(12, 0, 0, 0);
 		}
 	}
 
@@ -1031,7 +1037,7 @@ public sealed partial class AlbumDetailPage : Page
 				{
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					AlbumGroupSongs.Remove(songData);
+					ArtistGroupSongs.Remove(songData);
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
@@ -1042,33 +1048,33 @@ public sealed partial class AlbumDetailPage : Page
 			GoToSettings.Visibility = Visibility.Visible;
 			PageButtons.Visibility = Visibility.Collapsed;
 		}
-		if (AlbumGroupSongs.Count <= 0)
+		if (ArtistGroupSongs.Count <= 0)
 		{
 			App.Current.NavService.GoBack();
-			MainPage._instance.RemovePageFromHistory(ActualAlbumGroup.Text == "Unknown Album" ? "Unknown" : ActualAlbumGroup.Text);
+			MainPage._instance.RemovePageFromHistory(ActualArtistGroup.Text == "Unknown Artist" ? "Unknown" : ActualArtistGroup.Text);
 		}
 	}
 
 	/// <summary>
-	/// Handles the tapped event on a album item, initiating navigation to the AlbumsViewPage and updating selection state.
+	/// Handles the tapped event on a artist item, initiating navigation to the ArtistsViewPage and updating selection state.
 	/// </summary>
 	/// <param name="sender">The source of the tapped event, usually the UI element that was tapped.</param>
 	/// <param name="e">Provides data about the Tapped event, including event-specific properties.</param>
-	private void Album_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+	private void Artist_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
 	{
-		App.Current.NavService.NavigateTo(typeof(AlbumsViewPage), "Albums", false, new DrillInNavigationTransitionInfo());
-		SelectAlbumOnNavigation();
+		App.Current.NavService.NavigateTo(typeof(ArtistsViewPage), "Artists", false, new DrillInNavigationTransitionInfo());
+		SelectArtistOnNavigation();
 	}
 
 	/// <summary>
-	/// Sets the selection state of the navigation item associated with the AlbumsViewPage
+	/// Sets the selection state of the navigation item associated with the ArtistsViewPage
 	/// to ensure it is highlighted within the application's navigation view.
 	/// </summary>
-	private static void SelectAlbumOnNavigation()
+	private static void SelectArtistOnNavigation()
 	{
 		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
 
-		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.AlbumsViewPage");
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.ArtistsViewPage");
 		libraryNavigationItem.IsSelected = true;
 	}
 }

@@ -366,7 +366,7 @@ public sealed partial class MainPage : Page
 	/// This method retrieves the library visibility preferences stored in application settings and hides the corresponding libraries in the UI.
 	/// It checks whether libraries such as "Artists", "Albums", "Genres", and "Years" are enabled, and if not, calls the <c>HideLibrary</c> method to remove them from view.
 	/// </remarks>
-	private void HidePreDefinedLibraries()
+	private void HidePreDefinedLibraries()//TODO: remove detail pages
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 

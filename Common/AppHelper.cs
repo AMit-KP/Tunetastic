@@ -85,4 +85,9 @@ public enum LocalSave
 	AlbumDetailViewSortOrder,
 	AlbumDetailViewStyle,
 	SelectedAlbum,
+	ArtistsViewSortOrder,
+	ArtistDetailViewSortBy,
+	ArtistDetailViewSortOrder,
+	ArtistDetailViewStyle,
+	SelectedArtist
 }
