@@ -219,8 +219,7 @@ public class MusicPlayer
 
 	/// <summary>
 	/// Loads a music playlist based on the user's configuration and preferences.
-	/// The method determines the appropriate playlist such as all songs, most played, recently played, recently added,
-	/// or custom playlists and prepares it for playback. Optionally, starts playback from the specified starting song.
+	/// The method determines the appropriate playlist or custom playlists and prepares it for playback. Optionally, starts playback from the specified starting song.
 	/// </summary>
 	/// <param name="startingSong">The path of the song to start playback from, or null to start with the default song.</param>
 	/// <param name="play">Indicates whether to start playback automatically after loading the playlist. Default is true.</param>
@@ -231,12 +230,36 @@ public class MusicPlayer
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		List<string> list = new();
-		//TODO: Add others later
+
 		switch (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString())
 		{
 			case "AllSongsViewPage":
 				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AllSongViewSortBy)]?.ToString() ?? "Title"),
-					ascending: (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending")).Select(s => s.Path).ToList();
+																	  ascending: (localSettings.Values[nameof(LocalSave.AllSongViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending")).Select(s => s.Path).ToList();
+				break;
+
+			case var artist when artist?.StartsWith("ArtistGroup>") == true:
+				list = (await DatabaseHelper.Instance.GetSongsByArtist(artistName: artist?.Substring("ArtistGroup>".Length) == "Unknown" ? "Unknown Artist" : artist?.Substring("ArtistGroup>".Length),
+																	   orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
+																	   ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending")).Select(s => s.Path).ToList();
+				break;
+
+			case var album when album?.StartsWith("AlbumGroup>") == true:
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
+																	  ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	  whereCondition: $"{SongProperty.Album.ToString()} = '{(album?.Substring("AlbumGroup>".Length) == "Unknown" ? "Unknown Album" : album?.Substring("AlbumGroup>".Length))?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'")).Select(s => s.Path).ToList();
+				break;
+
+			case var genre when genre?.StartsWith("GenreGroup>") == true:
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
+																	  ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	  whereCondition: $"{SongProperty.Genre.ToString()} = '{(genre?.Substring("GenreGroup>".Length) == "Unknown" ? "Unknown Genre" : genre?.Substring("GenreGroup>".Length))?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'")).Select(s => s.Path).ToList();
+				break;
+
+			case var year when year?.StartsWith("YearGroup>") == true:
+				list = (await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
+																	  ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	  whereCondition: $"{SongProperty.Year.ToString()} = '{(year?.Substring("YearGroup>".Length) == "Unknown" ? "Unknown Year" : year?.Substring("YearGroup>".Length))}'")).Select(s => s.Path).ToList();
 				break;
 
 			case "MostPlayed":
