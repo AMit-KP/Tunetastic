@@ -20,6 +20,7 @@ public static class GlobalNotification
 			Title = "Tunetastic",
 			Message = message
 		});
+		MainWindow._instance.BringToFront();
 	}
 
 	/// <summary>

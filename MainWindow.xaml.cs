@@ -95,10 +95,11 @@ public sealed partial class MainWindow : WindowEx
 	/// <remarks>
 	/// This method ensures that the application window is made visible and activated when it's restored from the system tray. It is typically invoked through the system tray context menu to allow the user to reopen the main window after minimizing it to the tray.
 	/// </remarks>
-	private void RestoreFromTray()
+	public void RestoreFromTray()
 	{
 		this.Show();
 		this.Activate();
+		this.BringToFront();
 	}
 
 	/// <summary>
@@ -270,7 +271,7 @@ public sealed partial class MainWindow : WindowEx
 /// It extends <see cref="ToolStripRenderer"/> to override default rendering behavior and apply a modern visual style.
 /// </remarks>
 public class ModernMenuRenderer : ToolStripRenderer
-{
+{   //TODO: Needs work
 	private bool IsDarkMode => App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark;
 
 	protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)

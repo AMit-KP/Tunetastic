@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.18.10.1662</AssemblyVersion>
-    <FileVersion>1.18.10.1662</FileVersion>
+    <AssemblyVersion>1.19.11.1676</AssemblyVersion>
+    <FileVersion>1.19.11.1676</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -242,6 +242,10 @@
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
+  <PropertyGroup>
+  <DefineConstants>DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+  <StartupObject>Tunetastic.Startup</StartupObject>
+</PropertyGroup>
   <Target Name="TransformAllT4Templates" BeforeTargets="BeforeBuild">
     <ItemGroup>
       <!-- This picks up all T4 templates in the project -->

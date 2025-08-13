@@ -16,15 +16,15 @@
   IgnorableNamespaces="uap rescap uap18">
 
 	<Identity
-	  Name="Tunetastic"
-	  Publisher="CN=amitkp"
-	  Version="1.13.1186.0"/>
+	  Name="AMit-KP.Tunetastic"
+	  Publisher="CN=amitp"
+	  Version="1.18.1663.0"/>
 
-	<mp:PhoneIdentity PhoneProductId="00030270-7a9c-4963-87f4-7b9361cb17a0" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+	<mp:PhoneIdentity PhoneProductId="fbcf13fc-2512-4b2d-8b9e-3258f0535742" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
 	<Properties>
 		<DisplayName>Tunetastic</DisplayName>
-		<PublisherDisplayName>AMit_KP</PublisherDisplayName>
+		<PublisherDisplayName>AMit-KP</PublisherDisplayName>
 		<Logo>Assets\Store\StoreLogo.png</Logo>
 <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
     <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>

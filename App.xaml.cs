@@ -1,4 +1,7 @@
-﻿namespace Tunetastic;
+﻿using System.IO.Pipes;
+using WinUIEx;
+
+namespace Tunetastic;
 
 public partial class App : Application
 {
@@ -51,10 +54,10 @@ public partial class App : Application
 	}
 
 	/// <summary>
-	/// Handles the launch of the application, initializing window properties, navigation,
-	/// theme settings, and system services.
+	/// Handles the application's launch process by setting up the main window, initializing services, applying user-defined theme and backdrop settings,
+	/// starting necessary background tasks, and navigating to the initial page.
 	/// </summary>
-	/// <param name="args">Event arguments related to the application's launch event.</param>
+	/// <param name="args">Contains event data related to the application's launch event.</param>
 	protected override async void OnLaunched(LaunchActivatedEventArgs args)
 	{
 		MainWindow = new MainWindow();
@@ -73,7 +76,7 @@ public partial class App : Application
 		await Task.Delay(50);
 		App.Current.ThemeService.UpdateCaptionButtons();
 
-		rootFrame.Navigate(typeof(SplashScreen));
+		rootFrame.Navigate(typeof(Views.SplashScreen));
 
 		MainWindow.Activate();
 
@@ -106,6 +109,43 @@ public partial class App : Application
 			RainbowFrame.UpdateEffectSpeed(51 - int.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31"));
 		}
 		MainWindow.Closed += (s, e) => MusicPlayer.Instance.SavePlayBackPosition();
+
+		StartInstanceListener();
+	}
+
+	/// <summary>
+	/// Initiates a listener for external instances of the application communicating through
+	/// a named pipe. This ensures that only one instance of the application remains active,
+	/// and restores the main window if another instance attempts to launch.
+	/// </summary>
+	private static void StartInstanceListener()
+	{
+		_ = Task.Run(async () =>
+		{
+			while (true)
+			{
+				try
+				{
+					using var server = new NamedPipeServerStream("Tunetastic.InstancePing", PipeDirection.In);
+					await server.WaitForConnectionAsync().ConfigureAwait(false);
+
+					using var reader = new StreamReader(server);
+					var message = await reader.ReadLineAsync().ConfigureAwait(false);
+
+					if (message == "PING" && MainWindow is not null)
+					{
+						MainWindow.DispatcherQueue.TryEnqueue(() =>
+						{
+							MainWindow.Restore();
+						});
+					}
+				}
+				catch
+				{
+					//Ignore
+				}
+			}
+		});
 	}
 
 	/// <summary>

@@ -9,7 +9,6 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:media="using:CommunityToolkit.WinUI.Media"
       xmlns:protos="using:Tunetastic.Generated.Protos"
-      Loaded="Page_Loaded"
       mc:Ignorable="d">
 	<Grid>
 		<Grid HorizontalAlignment="Stretch"

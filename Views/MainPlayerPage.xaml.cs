@@ -22,6 +22,9 @@ public sealed partial class MainPlayerPage : Page
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 	private readonly DispatcherQueue _dispatcherQueue;
 	private double pageHeight = 0;
+	private double coverArtAspectRatio = 1.0;
+	private double coverArtImagePixelWidth = 500;
+	private double coverArtImagePixelHeight = 500;
 
 	public MainPlayerPage()
 	{
@@ -85,16 +88,9 @@ public sealed partial class MainPlayerPage : Page
 
 							BackgroundImage.Source = bitmapImage;
 
-							int width = bitmapImage.PixelWidth;
-							int height = bitmapImage.PixelHeight;
-
-							double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
-							var aspectRatio = (double)bitmapImage.PixelWidth / bitmapImage.PixelHeight;
-							var targetWidth = aspectRatio * targetHeight;
-
-							CoverArt.Width = targetWidth;
-							CoverArt.Height = targetHeight;
-							CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
+							coverArtImagePixelWidth = bitmapImage.PixelWidth;
+							coverArtImagePixelHeight = bitmapImage.PixelHeight;
+							coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
 
 							CoverArtImage.Source = bitmapImage;
 						}
@@ -112,6 +108,8 @@ public sealed partial class MainPlayerPage : Page
 						updater.MusicProperties.AlbumArtist = Artist.Text;
 						updater.MusicProperties.AlbumTrackCount = 1;
 						updater.Update();
+
+						UpdateCoverArtSize();
 
 						return Task.CompletedTask;
 					}
@@ -136,28 +134,39 @@ public sealed partial class MainPlayerPage : Page
 
 		MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
 		BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
-		CoverArt.Width = 500;
-		CoverArt.Height = 500;
-		CoverArt.CornerRadius = new CornerRadius(50);
+		coverArtAspectRatio = 1.0;
+		coverArtImagePixelWidth = 500;
+		coverArtImagePixelHeight = 500;
+		UpdateCoverArtSize();
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		Title.Text = "Please select a song";
 		return Task.CompletedTask;
 	}
 
 	/// <summary>
-	/// Handles the Loaded event for the page. This method is triggered after the page's visual elements have been loaded.
-	/// Performs UI updates and layout operations to ensure the user interface is initialized correctly.
+	/// Updates the dimensions of the cover art on the main player page.
+	/// This method adjusts the width, height, and corner radius of the cover art based on the current page height and the aspect ratio of the cover art.
 	/// </summary>
-	/// <param name="sender">The source of the event. This is typically the page itself.</param>
-	/// <param name="e">Event arguments containing information about the Loaded event.</param>
-	private void Page_Loaded(object sender, RoutedEventArgs e)
+	private void UpdateCoverArtSize()
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, async () =>
-		{
-			await Task.Delay(200);
-			await UpdateUI();
-			this.SizeChanged += Page_SizeChanged;
-		});
+		double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
+		double targetWidth = coverArtAspectRatio * targetHeight;
+		CoverArt.Width = targetWidth;
+		CoverArt.Height = targetHeight;
+		CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
+	}
+
+	/// <summary>
+	/// Executes tasks when navigation to the MainPlayerPage occurs.
+	/// This method ensures the page's UI and data are properly initialized and updated based on navigation context.
+	/// </summary>
+	/// <param name="e">Provides data for the navigation event, including mode and parameters associated with the navigation request.</param>
+	protected override async void OnNavigatedTo(NavigationEventArgs e)
+	{
+		base.OnNavigatedTo(e);
+		await Task.Delay(e.NavigationMode == NavigationMode.Back ? 450 : 200);
+		await UpdateUI();
+		this.SizeChanged += Page_SizeChanged;
 	}
 
 	/// <summary>
@@ -169,10 +178,7 @@ public sealed partial class MainPlayerPage : Page
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
 		pageHeight = e.NewSize.Height;
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
-		{
-			await UpdateUI(false);
-		});
+		UpdateCoverArtSize();
 	}
 
 	/// <summary>
