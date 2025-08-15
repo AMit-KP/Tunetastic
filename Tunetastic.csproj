@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.19.11.1676</AssemblyVersion>
-    <FileVersion>1.19.11.1676</FileVersion>
+    <AssemblyVersion>1.19.26.1691</AssemblyVersion>
+    <FileVersion>1.19.26.1691</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -136,10 +136,6 @@
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
-  <ItemGroup>
-    <Protobuf Include="Protos\LibraryPaths.proto" GrpcServices="None" OutputDir="Generated" />
-    <Protobuf Include="Protos\Formats.proto" GrpcServices="None" OutputDir="Generated" />
-  </ItemGroup>
 
   <!-- 
 	Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
@@ -185,8 +181,7 @@
     <PackageReference Include="DevWinUI" Version="8.9.0" />
     <PackageReference Include="DevWinUI.ContextMenu" Version="8.4.0" />
     <PackageReference Include="DevWinUI.Controls" Version="8.9.0" />
-    <PackageReference Include="Downloader" Version="4.0.2" />
-    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
+    <PackageReference Include="Downloader" Version="4.0.3" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

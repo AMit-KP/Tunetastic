@@ -1,6 +1,4 @@
-﻿using Google.Protobuf.Collections;
-using Tunetastic.Generated.Protos;
-using Windows.Media.Core;
+﻿using Windows.Media.Core;
 using Windows.Media.Playback;
 
 namespace Tunetastic.Common;
@@ -84,29 +82,6 @@ public class GetMusicData
 		MusicPlayer.Instance.ResetOrReloadPlayer();
 	}
 
-
-	/// <summary>
-	/// Retrieves all music libraries stored in the system as a collection of <see cref="Library"/> objects.
-	/// </summary>
-	/// <returns>
-	/// A <see cref="Task{TResult}"/> that represents the asynchronous operation and contains
-	/// a <see cref="RepeatedField{Library}"/> collection of all libraries.
-	/// If an exception occurs, an empty collection is returned.
-	/// </returns>
-	private Task<RepeatedField<Library>> GetAllLibrariesAsync()
-	{
-		try
-		{
-			var LibrariesData = ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries;
-
-			return Task.FromResult(LibrariesData);
-		}
-		catch (Exception)
-		{
-			return Task.FromResult(new RepeatedField<Library>());
-		}
-	}
-
 	/// <summary>
 	/// Scans the music libraries to identify and process audio files, applying filters such as
 	/// file format and optional configurations for ignoring duplicates or tracks below a certain duration.
@@ -122,7 +97,7 @@ public class GetMusicData
 
 		var libraries = new List<string>();
 
-		foreach (var library in await GetAllLibrariesAsync())
+		foreach (LibraryModel library in await DatabaseHelper.Instance.GetAllLibraries())
 		{
 			libraries.Add(library.Path);
 		}
@@ -131,7 +106,7 @@ public class GetMusicData
 		var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 		var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
 
-		var formatList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
+		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();
 
 		List<string>? extensions = new();
 

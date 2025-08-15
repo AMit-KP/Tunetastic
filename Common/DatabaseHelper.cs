@@ -28,25 +28,82 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Initializes the database by setting up the required SQLite tables if they do not already exist.
-	/// This method creates the following tables:
+	/// <pre>
+	/// Initializes the database by creating all required SQLite tables if they do not already exist.
+	/// The following tables are created, each with their purpose and column details:
 	/// <br/>
-	/// - `Songs`: Stores information related to songs, such as path, title, artists, album, and more.
 	/// <br/>
-	/// - `Playlists`: Stores playlist names and their associated IDs.
+	/// <b>Library</b>: Stores user-added music library locations.<br/>
+	///   Columns:<br/>
+	///     - Name (TEXT, NOT NULL): The display name of the library.<br/>
+	///     - Path (TEXT, NOT NULL, COLLATE NOCASE, UNIQUE): The file system path to the library. Uniqueness ensures no duplicate libraries.<br/>
 	/// <br/>
-	/// - `PlaylistSongs`: Stores the relationship between playlists and songs, along with foreign key constraints.
+	/// <b>MusicFormats</b>: Stores supported music file formats.<br/>
+	///   Columns:<br/>
+	///     - Extension (TEXT, PRIMARY KEY, COLLATE NOCASE): File extension, unique and case-insensitive.<br/>
+	///     - Description (TEXT, NOT NULL): Description of the format.<br/>
+	///     - Enabled (INTEGER, NOT NULL): Indicates if the format is enabled (1) or not (0).<br/>
 	/// <br/>
-	/// - `QueuedPlayingList`: A table for managing a queue of songs to be played.
+	/// <b>Songs</b>: Stores metadata for each song.<br/>
+	///   Columns:<br/>
+	///     - Path (TEXT, PRIMARY KEY): Unique file path for the song.<br/>
+	///     - Title (TEXT): Song title.<br/>
+	///     - Artists (TEXT): Raw artist string.<br/>
+	///     - Album (TEXT): Album name.<br/>
+	///     - Genre (TEXT): Genre name.<br/>
+	///     - Year (TEXT): Year of release.<br/>
+	///     - PlayCount (INTEGER): Number of times played.<br/>
+	///     - Cover (TEXT): Path or URI to cover image.<br/>
+	///     - Duration (REAL): Song duration in seconds.<br/>
+	///     - DateAdded (DATETIME): When the song was added.<br/>
+	///     - DateLastPlayed (DATETIME, DEFAULT NULL): Last played timestamp.<br/>
+	///     - Extension (TEXT): File extension.<br/>
 	/// <br/>
-	/// - 'Artists': Stores artist metadata
+	/// <b>Playlists</b>: Stores user playlists.<br/>
+	///   Columns:<br/>
+	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique playlist ID.<br/>
+	///     - Name (TEXT): Playlist name.<br/>
 	/// <br/>
-	/// - 'SongArtists': Maps songs to artists with foreign key relationships
+	/// <b>PlaylistSongs</b>: Maps songs to playlists and their order.<br/>
+	///   Columns:<br/>
+	///     - PlaylistId (INTEGER): Foreign key to Playlists.Id.<br/>
+	///     - SongPath (TEXT): Foreign key to Songs.Path.<br/>
+	///     - Position (INTEGER, DEFAULT 0): Order of the song in the playlist.<br/>
+	///   Primary key is (PlaylistId, SongPath). Foreign keys ensure referential integrity and cascade deletes.<br/>
 	/// <br/>
-	/// - 'ArtistSplitRules': Add Splitter and Exception Rules for Artists
+	/// <b>QueuedPlayingList</b>: Stores the current play queue.<br/>
+	///   Columns:<br/>
+	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique queue entry ID.<br/>
+	///     - Path (TEXT, NOT NULL): Foreign key to Songs.Path.<br/>
+	///     - Position (INTEGER): Order in the queue.<br/>
+	///   Foreign key ensures only valid songs are queued and cascades on delete.<br/>
 	/// <br/>
-	/// Also creates required indexes and ensures artist links are populated.
-	/// The database is located in the local folder of the application's storage space.
+	/// <b>Artists</b>: Stores unique artist metadata.<br/>
+	///   Columns:<br/>
+	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique artist ID.<br/>
+	///     - Name (TEXT, NOT NULL, COLLATE NOCASE, UNIQUE): Artist name, unique and case-insensitive.<br/>
+	///     - ArtistImage (TEXT): Path or URI to artist image.<br/>
+	///     - ArtistDescription (TEXT): Artist description.<br/>
+	/// <br/>
+	/// <b>SongArtists</b>: Maps songs to artists.<br/>
+	///   Columns:<br/>
+	///     - SongPath (TEXT, NOT NULL): Foreign key to Songs.Path.<br/>
+	///     - ArtistId (INTEGER, NOT NULL): Foreign key to Artists.Id.<br/>
+	///   Primary key is (SongPath, ArtistId). Foreign keys ensure referential integrity and cascade deletes.<br/>
+	///   Indexes on ArtistId and SongPath for efficient lookups.<br/>
+	/// <br/>
+	/// <b>ArtistSplitRules</b>: Stores rules for splitting or preserving artist names.<br/>
+	///   Columns:<br/>
+	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique rule ID.<br/>
+	///     - Type (TEXT, NOT NULL, CHECK IN ('Splitter','Exception')): Rule type.<br/>
+	///     - Pattern (TEXT, NOT NULL): Pattern to match.<br/>
+	///     - IsRegex (INTEGER, NOT NULL, DEFAULT 0): Whether the pattern is a regex.<br/>
+	///     - Active (INTEGER, NOT NULL, DEFAULT 1): Whether the rule is active.<br/>
+	///     - IsBuiltIn (INTEGER, NOT NULL, DEFAULT 0): Whether the rule is built-in.<br/>
+	///   Unique constraint on (Type, Pattern, IsRegex). Index on (Active, Type) for fast filtering.<br/>
+	/// <br/>
+	/// The database is located in the application's local storage folder.
+	/// </pre>
 	/// </summary>
 	/// <returns>
 	/// A task that represents the asynchronous operation of initializing the database.
@@ -57,6 +114,15 @@ public class DatabaseHelper
 		_database = new SQLiteAsyncConnection(dbPath);
 
 		await _database.ExecuteAsync("PRAGMA foreign_keys = ON");
+
+		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Library (
+									   Name TEXT NOT NULL,
+									   Path TEXT NOT NULL COLLATE NOCASE UNIQUE)");
+
+		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS MusicFormats (
+									   Extension TEXT PRIMARY KEY COLLATE NOCASE,
+									   Description TEXT NOT NULL,
+									   Enabled INTEGER NOT NULL)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Songs (
 									   Path TEXT PRIMARY KEY,
@@ -117,10 +183,149 @@ public class DatabaseHelper
 
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_ArtistSplitRules_ActiveType ON ArtistSplitRules(Active, Type)");
 
-		await EnsureDefaultArtistRulesAsync();
-		await ReloadArtistSplitRulesAsync();
+		await PopulateMusicFormatTable();
+
+		await EnsureDefaultArtistRules();
+		await ReloadArtistSplitRules();
 
 		await EnsureArtistLinksPopulated();
+	}
+
+	/// <summary>
+	/// Retrieves all saved library entries from the database.
+	/// This method queries the 'Library' table and fetches the name and path of each library,
+	/// sorted in ascending order based on the row ID.
+	/// If an error occurs during the query execution, an empty list is returned.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation of fetching all libraries.
+	/// The task result contains a list of <see cref="LibraryModel"/> objects representing the retrieved library entries.
+	/// </returns>
+	public async Task<List<LibraryModel>> GetAllLibraries()
+	{
+		try
+		{
+			return await _database.QueryAsync<LibraryModel>("SELECT Name, Path FROM Library ORDER BY rowid ASC");
+		}
+		catch (Exception)
+		{
+			return new List<LibraryModel>();
+		}
+	}
+
+	/// <summary>
+	/// Adds new libraries or updates existing ones in the database based on their paths.
+	/// This method ensures that libraries with the same path are updated with new names,
+	/// while new libraries are inserted.
+	/// </summary>
+	/// <param name="libraries">A collection of libraries to add or update, each represented by a <see cref="LibraryModel"/>.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of adding or updating libraries in the database.
+	/// </returns>
+	public async Task AddOrUpdateLibraries(IEnumerable<LibraryModel> libraries)
+	{
+		if (libraries == null) return;
+
+		const string sql = @"INSERT INTO Library (Name, Path)
+							 VALUES (?, ?)
+							 ON CONFLICT(Path) DO UPDATE SET
+							 Name = excluded.Name;";
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var lib in libraries)
+			{
+				if (lib == null) continue;
+				conn.Execute(sql, lib.Name, lib.Path);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Removes a specified library from the database based on its path.
+	/// This operation performs a deletion in the 'Library' table for the given library model.
+	/// </summary>
+	/// <param name="model">
+	/// The <see cref="LibraryModel"/> object representing the library to be removed.
+	/// The model must have a non-null, non-empty, and non-whitespace Path property.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of removing a library from the database.
+	/// </returns>
+	public async Task RemoveLibrary(LibraryModel model)
+	{
+		if (model == null || string.IsNullOrWhiteSpace(model.Path))
+			return;
+
+		await _database.ExecuteAsync("DELETE FROM Library WHERE Path = ?", model.Path);
+	}
+
+	/// <summary>
+	/// Populates the 'MusicFormat' table with predefined data containing various audio format information.
+	/// This includes details such as format names, file extensions, and descriptions relevant for music files.
+	/// Ensures consistency by avoiding duplicate entries and standardizing the data required for application functionality.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation of populating the 'MusicFormat' table.
+	/// </returns>
+	private async Task PopulateMusicFormatTable()
+	{
+		var mfCount = await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM MusicFormats");
+		if (mfCount == 0)
+		{
+			await _database.RunInTransactionAsync(conn =>
+			{
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".mp3", "MPEG-1 Audio Layer 3 – The compression that saves valuable space while maintaining near-flawless quality of the original source of sound.", 1);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".m4a", "MPEG-4 Audio - An audio file format developed by Apple, designed to store high-quality sound efficiently.", 1);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".flac", "Free Lossless Audio Codec – This lossless audio format compresses audio data without losing any quality, making it perfect for preserving the original sound.", 1);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".alac", "Apple Lossless Audio Codec – Developed by Apple, this lossless audio format is designed for use on Apple devices, ensuring high-quality audio playback.", 0);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".wav", "Waveform Audio File Format – An uncompressed audio format that stores audio data in its raw waveform, offering pristine sound quality.", 0);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".wma", "Windows Media Audio – Windows audio format known for its lossless compression, retaining high audio quality throughout all types of restructuring processes.", 0);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".aac", "Advanced Audio Coding - An audio format that delivers decently high-quality sound and is enhanced using advanced coding.", 0);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".ogg", "Ogg Vorbis – An open-source digital multimedia container format designed to provide for efficient streaming and manipulation of digital multimedia.", 0);
+				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
+					".aiff", "Audio Interchange File Format – An uncompressed CD-quality audio format developed by Apple, commonly used in professional audio environments.", 0);
+			});
+		}
+	}
+
+	/// <summary>
+	/// Updates the enabled status of a specific music file format in the database.
+	/// This method modifies the 'MusicFormats' table, changing the 'Enabled' state of the specified file extension.
+	/// </summary>
+	/// <param name="extension">
+	/// The file extension representing the music format (e.g., ".mp3", ".flac").
+	/// If the provided extension is null, empty, or contains only whitespace, the method exits without making updates.
+	/// </param>
+	/// <param name="enabled">
+	/// A boolean indicating the desired enabled status for the music format.
+	/// Pass <c>true</c> to enable the music format, or <c>false</c> to disable it.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation of updating the enabled status.
+	/// </returns>
+	public async Task SetMusicFormatEnabled(string extension, bool enabled)
+	{
+		if (string.IsNullOrWhiteSpace(extension))
+			return;
+
+		var ext = extension.Trim();
+		if (!ext.StartsWith(".")) ext = "." + ext;
+
+		await _database.ExecuteAsync("UPDATE MusicFormats SET Enabled = ? WHERE Extension = ? COLLATE NOCASE", enabled ? 1 : 0, ext);
+	}
+
+	public async Task<List<MusicFormatModel>> GetAllMusicFormats()
+	{
+		return await _database.QueryAsync<MusicFormatModel>("SELECT Extension, Description, Enabled FROM MusicFormats ORDER BY rowid ASC");
 	}
 
 	/// <summary>
@@ -149,7 +354,7 @@ public class DatabaseHelper
 				SyncSongArtistsForSong(conn, song);
 			}
 		});
-		await PruneUnusedArtistsAsync();
+		await PruneUnusedArtists();
 	}
 
 	/// <summary>
@@ -199,7 +404,7 @@ public class DatabaseHelper
 			}
 		});
 
-		await PruneUnusedArtistsAsync();
+		await PruneUnusedArtists();
 	}
 
 	/// <summary>
@@ -212,7 +417,7 @@ public class DatabaseHelper
 	public async Task DeleteAllSongsFromDB()
 	{
 		await _database.ExecuteAsync("DELETE FROM Songs");
-		await PruneUnusedArtistsAsync();
+		await PruneUnusedArtists();
 	}
 
 	/// <summary>
@@ -228,7 +433,7 @@ public class DatabaseHelper
 	public async Task DeleteSongFromDB(string path)
 	{
 		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", path);
-		await PruneUnusedArtistsAsync();
+		await PruneUnusedArtists();
 	}
 
 	/// <summary>
@@ -836,7 +1041,7 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task representing the asynchronous operation to ensure default artist splitting rules.
 	/// </returns>
-	private async Task EnsureDefaultArtistRulesAsync()
+	private async Task EnsureDefaultArtistRules()
 	{
 		var defaults = new (string Pattern, bool IsRegex)[]
 		{
@@ -867,7 +1072,7 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation of reloading the artist split rules and exception patterns.
 	/// </returns>
-	private async Task ReloadArtistSplitRulesAsync()
+	private async Task ReloadArtistSplitRules()
 	{
 		var splitters = await _database.QueryAsync<ArtistSplitRule>("SELECT Pattern, IsRegex FROM ArtistSplitRules WHERE Active = 1 AND Type = 'Splitter'");
 
@@ -1015,7 +1220,7 @@ public class DatabaseHelper
 	/// A task that represents the asynchronous operation of pruning unused artist entries
 	/// from the `Artists` table.
 	/// </returns>
-	private async Task PruneUnusedArtistsAsync()
+	private async Task PruneUnusedArtists()
 	{
 		await _database.ExecuteAsync(@"DELETE FROM Artists WHERE Id NOT IN (SELECT DISTINCT ArtistId FROM SongArtists)");
 	}
@@ -1152,7 +1357,7 @@ public class DatabaseHelper
 	/// A task that represents the asynchronous operation. The result is a list of
 	/// <see cref="ArtistSplitRule"/> objects containing the retrieved artist split rules.
 	/// </returns>
-	public async Task<List<ArtistSplitRule>> GetArtistSplitRulesAsync(bool includeInactive = true)
+	public async Task<List<ArtistSplitRule>> GetArtistSplitRules(bool includeInactive = true)
 	{
 		if (includeInactive)
 			return await _database.Table<ArtistSplitRule>().OrderBy(r => r.Id).ToListAsync();
@@ -1235,7 +1440,7 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation. The task result contains the unique ID of the rule in the database.
 	/// </returns>
-	public async Task<int> AddOrEnableArtistRuleAsync(ArtistRuleType type, string pattern, bool? isRegexOverride = null)
+	public async Task<int> AddOrEnableArtistRule(ArtistRuleType type, string pattern, bool? isRegexOverride = null)
 	{
 		if (string.IsNullOrWhiteSpace(pattern))
 			throw new ArgumentException("Pattern is required", nameof(pattern));
@@ -1267,7 +1472,7 @@ public class DatabaseHelper
 
 		var id = await _database.ExecuteScalarAsync<int>(@"SELECT Id FROM ArtistSplitRules WHERE Type = ? AND Pattern = ? AND IsRegex = ?", typeStr, finalPattern, isRegexInt);
 
-		await ReloadArtistSplitRulesAsync();
+		await ReloadArtistSplitRules();
 
 		return id;
 	}
@@ -1280,10 +1485,10 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation of removing the artist split rule.
 	/// </returns>
-	public async Task RemoveArtistRuleAsync(int id)
+	public async Task RemoveArtistRule(int id)
 	{
 		await _database.ExecuteAsync("UPDATE ArtistSplitRules SET Active = 0 WHERE Id = ?", id);
-		await ReloadArtistSplitRulesAsync();
+		await ReloadArtistSplitRules();
 	}
 
 	/// <summary>
@@ -1303,7 +1508,7 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation. The task completes once the rule has been removed from the database.
 	/// </returns>
-	public async Task RemoveArtistRuleAsync(ArtistRuleType type, string pattern, bool isRegex = false)
+	public async Task RemoveArtistRule(ArtistRuleType type, string pattern, bool isRegex = false)
 	{
 		var typeStr = type.ToString();
 		int isRegexInt = (type == ArtistRuleType.Splitter && isRegex) ? 1 : 0;
@@ -1319,11 +1524,11 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation of restoring the default artist rules.
 	/// </returns>
-	public async Task RestoreDefaultArtistRulesAsync()
+	public async Task RestoreDefaultArtistRules()
 	{
-		await EnsureDefaultArtistRulesAsync();
+		await EnsureDefaultArtistRules();
 		await _database.ExecuteAsync("UPDATE ArtistSplitRules SET Active = 1 WHERE IsBuiltIn = 1 AND Type = 'Splitter'");
-		await ReloadArtistSplitRulesAsync();
+		await ReloadArtistSplitRules();
 	}
 
 	/// <summary>
@@ -1335,7 +1540,7 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation of rebuilding all song-artist links.
 	/// </returns>
-	private async Task RebuildAllSongArtistLinksAsync()
+	private async Task RebuildAllSongArtistLinks()
 	{
 		var songs = await _database.QueryAsync<(string Path, string Artists)>("SELECT Path, Artists FROM Songs");
 
@@ -1345,7 +1550,7 @@ public class DatabaseHelper
 				SyncSongArtistsForSong(conn, s.Path, s.Artists);
 		});
 
-		await PruneUnusedArtistsAsync();
+		await PruneUnusedArtists();
 	}
 
 	/// <summary>
@@ -1357,11 +1562,11 @@ public class DatabaseHelper
 	/// <returns>
 	/// A task that represents the asynchronous operation of applying changes to artist rules.
 	/// </returns>
-	public async Task ApplyArtistRulesChangesAsync(bool rebuild = false)
+	public async Task ApplyArtistRulesChanges(bool rebuild = false)
 	{
-		await ReloadArtistSplitRulesAsync();
+		await ReloadArtistSplitRules();
 		if (rebuild)
-			await RebuildAllSongArtistLinksAsync();
+			await RebuildAllSongArtistLinks();
 	}
 
 	/// <summary>
@@ -1398,6 +1603,33 @@ public class Song
 	public DateTime DateAdded { get; set; }
 	public DateTime? DateLastPlayed { get; set; }
 	public string Extension { get; set; }
+}
+
+/// <summary>
+/// Represents a library resource within the Tunetastic application.
+/// This model is mapped to the "Library" database table and is used to store information
+/// such as the library's name and its file path.
+/// </summary>
+[Table("Library")]
+public class LibraryModel
+{
+	public string Name { get; set; }
+	[PrimaryKey]
+	public string Path { get; set; }
+}
+
+/// <summary>
+/// Represents a data model for storing music format information in the database.
+/// This class is mapped to the 'MusicFormats' table and is used to manage and retrieve information
+/// about supported music file formats, including their extensions, descriptions, and whether they are enabled.
+/// </summary>
+[Table("MusicFormats")]
+public class MusicFormatModel
+{
+	[PrimaryKey]
+	public string Extension { get; set; }
+	public string Description { get; set; }
+	public bool Enabled { get; set; }
 }
 
 /// <summary>

@@ -164,9 +164,8 @@ public sealed partial class MainPlayerPage : Page
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
 		base.OnNavigatedTo(e);
-		await Task.Delay(e.NavigationMode == NavigationMode.Back ? 450 : 200);
+		await Task.Delay(e.NavigationMode == NavigationMode.Back ? 400 : 200);
 		await UpdateUI();
-		this.SizeChanged += Page_SizeChanged;
 	}
 
 	/// <summary>

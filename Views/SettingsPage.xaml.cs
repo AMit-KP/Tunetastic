@@ -2,7 +2,6 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
-using Tunetastic.Generated.Protos;
 using Windows.UI;
 
 namespace Tunetastic.Views;
@@ -28,7 +27,7 @@ public sealed partial class SettingsPage : Page
 	/// Data for Libraries is initially loaded from a binary file serialized as a LibraryList object.
 	/// Changes to the Libraries collection are also persisted back to the binary file.
 	/// </remarks>
-	public ObservableCollection<Library> Libraries
+	public ObservableCollection<LibraryModel> Libraries
 	{
 		get; set;
 	} = new();
@@ -48,7 +47,7 @@ public sealed partial class SettingsPage : Page
 	/// `FormatList` object. Changes made to the collection are persisted back to the binary file
 	/// to ensure consistency across application sessions.
 	/// </remarks>
-	public ObservableCollection<Format> AllFormats
+	public ObservableCollection<MusicFormatModel> AllFormats
 	{
 		get; set;
 	} = new();
@@ -106,23 +105,22 @@ public sealed partial class SettingsPage : Page
 
 		var musicfolders = await picker.PickMultipleFoldersAsync();
 
-		List<Library> uniqueFolders = new();
-		uniqueFolders.AddRange(Libraries);
+		List<LibraryModel> addedLibraryFolders = new();
 
 		foreach (var musicfolder in musicfolders)
 		{
-			var libraryData = new Library
+			var libraryModel = new LibraryModel
 			{
 				Name = musicfolder.Name,
 				Path = musicfolder.Path
 			};
-			uniqueFolders.Add(libraryData);
+			addedLibraryFolders.Add(libraryModel);
 		}
-		uniqueFolders = uniqueFolders.DistinctBy(p => p.Path).ToList();
+
+		await DatabaseHelper.Instance.AddOrUpdateLibraries(addedLibraryFolders);
 
 		Libraries?.Clear();
-		Libraries.AddRange(uniqueFolders);
-		ProtobufData.SaveToBin<LibraryList>(DataFile.AllLibraries, new LibraryList() { Libraries = { uniqueFolders } });
+		Libraries.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
 	}
 
 	/// <summary>
@@ -132,14 +130,15 @@ public sealed partial class SettingsPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically a Button control.</param>
 	/// <param name="e">The event data associated with the button click event.</param>
-	private void RemoveFolder_ButtonClick(object sender, RoutedEventArgs e)
+	private async void RemoveFolder_ButtonClick(object sender, RoutedEventArgs e)
 	{
 		var button = sender as Button;
 
-		if (button!.CommandParameter is Library library)
+		if (button!.CommandParameter is LibraryModel library)
+		{
+			await DatabaseHelper.Instance.RemoveLibrary(library);
 			Libraries.Remove(library);
-
-		ProtobufData.SaveToBin<LibraryList>(DataFile.AllLibraries, new LibraryList() { Libraries = { Libraries } });
+		}
 	}
 
 	/// <summary>
@@ -255,73 +254,49 @@ public sealed partial class SettingsPage : Page
 	});
 
 	/// <summary>
-	/// Updates the list of file format extensions on the user interface.
-	/// This method loads the list of allowed file formats from a binary file,
-	/// updates the internal data structure, and refreshes the UI to reflect
-	/// the currently enabled file extension settings.
-	/// If no file extensions are enabled, an appropriate message is set
-	/// in the description.
+	/// Updates the list of file format extensions displayed on the user interface.
+	/// This method retrieves the list of supported music file formats from the database,
+	/// updates the internal collection of formats, and refreshes the UI description to
+	/// reflect the enabled file extensions. If no file extensions are enabled, a default
+	/// message indicating this is displayed on the UI.
 	/// </summary>
-	private void UpdateExtentionListOnUI()
+	private async void UpdateExtentionListOnUI()
 	{
-		var foramtList = ProtobufData.LoadFromBin<FormatList>(DataFile.FormatsAllowed).Formatlist;
-		if (foramtList.Count == 0)
-		{
-			foramtList.Add(new Format() { Extension = ".mp3", Enabled = true, Description = "MPEG-1 Audio Layer 3 – The compression that saves valuable space while maintaining near-flawless quality of the original source of sound." });
-			foramtList.Add(new Format() { Extension = ".m4a", Enabled = true, Description = "MPEG-4 Audio - An audio file format developed by Apple, designed to store high-quality sound efficiently." });
-			foramtList.Add(new Format() { Extension = ".flac", Enabled = true, Description = "Free Lossless Audio Codec – This lossless audio format compresses audio data without losing any quality, making it perfect for preserving the original sound." });
-			foramtList.Add(new Format() { Extension = ".alac", Enabled = false, Description = "Apple Lossless Audio Codec – Developed by Apple, this lossless audio format is designed for use on Apple devices, ensuring high-quality audio playback." });
-			foramtList.Add(new Format() { Extension = ".wav", Enabled = false, Description = "Waveform Audio File Format – An uncompressed audio format that stores audio data in its raw waveform, offering pristine sound quality." });
-			foramtList.Add(new Format() { Extension = ".wma", Enabled = false, Description = "Windows Media Audio – Windows audio format known for its lossless compression, retaining high audio quality throughout all types of restructuring processes." });
-			foramtList.Add(new Format() { Extension = ".aac", Enabled = false, Description = "Advanced Audio Coding - An audio format that delivers decently high-quality sound and is enhanced using advanced coding." });
-			foramtList.Add(new Format() { Extension = ".ogg", Enabled = false, Description = "Ogg Vorbis – An open-source digital multimedia container format designed to provide for efficient streaming and manipulation of digital multimedia." });
-			foramtList.Add(new Format() { Extension = ".aiff", Enabled = false, Description = "Audio Interchange File Format – An uncompressed CD-quality audio format developed by Apple, commonly used in professional audio environments." });
-		}
+		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();
+
 		AllFormats.Clear();
-		AllFormats.AddRange(foramtList);
-		ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { foramtList } });
+		AllFormats.AddRange(formatList);
 
-		var enabledExtensions = AllFormats
-			.Where(f => f.Enabled)
-			.Select(f => f.Extension.TrimStart('.')).ToList();
+		var enabledExtensions = AllFormats.Where(f => f.Enabled).Select(f => f.Extension.TrimStart('.')).ToList();
 
-		var description = enabledExtensions.Any()
-			? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}"
-			: "No file extensions enabled for scanning tracks";
+		var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
 
 		FileExt.Description = description;
-		//TODO live update without scan
 	}
 
 	/// <summary>
 	/// Handles the toggled event for the file extension toggle switches on the settings page.
-	/// This method updates the enabled state of the corresponding file format, ensures at least one format is enabled,
-	/// updates the global description, and saves the updated list of enabled file formats to the binary data file.
+	/// This method updates the state of the relevant file format, ensures that at least one
+	/// format is enabled, updates the global description, and persists the changes to the binary data file.
 	/// </summary>
-	/// <param name="sender">The toggle switch that triggered the event.</param>
-	/// <param name="e">Event data providing context for the toggled event.</param>
-	private void Ext_ToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
+	/// <param name="sender">The source of the event, representing the toggle switch being toggled.</param>
+	/// <param name="e">Event data that provides information about the toggled event.</param>
+	private async void Ext_ToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
 	{
 		var toggle = sender as ToggleSwitch;
 		if (toggle != null)
 		{
-			var formatUpdate = AllFormats.FirstOrDefault(e => e.Extension == toggle.Name);
-			if (formatUpdate != null) formatUpdate.Enabled = toggle.IsOn;
+			await DatabaseHelper.Instance.SetMusicFormatEnabled(extension: toggle.Name, enabled: toggle.IsOn);
 
 			if (AllFormats.All(e => e.Enabled == false))
 				GlobalNotification.Warning("At least one format must be enabled");
 
-			ProtobufData.SaveToBin<FormatList>(DataFile.FormatsAllowed, new FormatList() { Formatlist = { AllFormats } });
+			var enabledExtensions = AllFormats.Where(f => f.Enabled).Select(f => f.Extension.TrimStart('.')).ToList();
 
-			var enabledExtensions = AllFormats
-				.Where(f => f.Enabled)
-				.Select(f => f.Extension.TrimStart('.')).ToList();
-
-			var description = enabledExtensions.Any()
-				? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}"
-				: "No file extensions enabled for scanning tracks";
+			var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
 
 			FileExt.Description = description;
+			//TODO: live update without scan
 		}
 	}
 
@@ -699,11 +674,11 @@ public sealed partial class SettingsPage : Page
 	/// for options such as ignoring duplicate tracks and scanning libraries at startup,
 	/// and updating UI components to reflect these settings.
 	/// </summary>
-	private void LoadLibrarySettings()
+	private async Task LoadLibrarySettings()
 	{
 		try
 		{
-			Libraries.AddRange(ProtobufData.LoadFromBin<LibraryList>(DataFile.AllLibraries).Libraries);
+			Libraries.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
 		}
 		catch (Exception)
 		{
