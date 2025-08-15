@@ -8,7 +8,6 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       Loaded="Page_Loaded"
       Unloaded="Page_Unloaded">

@@ -10,7 +10,6 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:labs="using:CommunityToolkit.Labs.WinUI"
       xmlns:libraryviews="using:Tunetastic.Views.LibraryViews"
-      xmlns:local="using:Tunetastic.Generated.Protos"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       ActualThemeChanged="Page_ActualThemeChanged"
       Loaded="Page_Loaded"
