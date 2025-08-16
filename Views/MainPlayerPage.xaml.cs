@@ -138,7 +138,9 @@ public sealed partial class MainPlayerPage : Page
 		}
 
 		MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
-		BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+		BGbitmapImage = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+		if (!backNavigation)
+			BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		coverArtAspectRatio = 1.0;
 		coverArtImagePixelWidth = 500;
 		coverArtImagePixelHeight = 500;
@@ -173,6 +175,7 @@ public sealed partial class MainPlayerPage : Page
 		await UpdateUI(backNavigation: e.NavigationMode == NavigationMode.Back);
 		if (e.NavigationMode == NavigationMode.Back)
 		{
+			await Task.Delay(500);
 			BackgroundImage.Source = BGbitmapImage;
 			await BackgroundImage.AnimateDoublePropertyAsync("Opacity", 0, 1, 3000);
 		}

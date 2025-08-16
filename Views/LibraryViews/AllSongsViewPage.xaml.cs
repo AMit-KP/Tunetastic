@@ -964,7 +964,7 @@ public sealed partial class AllSongsViewPage : Page
 	private async void MenuFlyoutMultiItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songs = GetCurrentViewStyle().SelectedItems;
-		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
+		List<string> songPaths = songs.Cast<Song>().Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 

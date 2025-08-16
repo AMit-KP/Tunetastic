@@ -39,7 +39,7 @@ public class DurationConverter : IValueConverter
 				return string.Format("{0:00}:{1:00}", duration.Minutes, duration.Seconds);
 			}
 		}
-		return value;
+		return string.Empty;
 	}
 
 	/// <summary>

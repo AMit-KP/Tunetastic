@@ -10,8 +10,8 @@ namespace Tunetastic.Common;
 /// </summary>
 public class DatabaseHelper
 {
-	private static DatabaseHelper _instance;
-	private SQLiteAsyncConnection _database;
+	private static DatabaseHelper _instance = null!;
+	private SQLiteAsyncConnection _database = null!;
 
 	private DatabaseHelper() { }
 
@@ -1466,7 +1466,7 @@ public class DatabaseHelper
 			}
 		}
 
-		await _database.ExecuteAsync(@"INSERT OR IGNORE INTO ArtistSplitRules (Type, Pattern, IsRegex, Active, IsBuiltIn) VALUES (?, ?, ?, 1, 0)", typeStr, finalPattern, isRegexInt);
+		await _database.ExecuteAsync(@"INSERT OR IGNORE INTO ArtistSplitRules (Type, Pattern, IsRegex, Active, IsBuiltIn) VALUES ('Splitter', ?, ?, 1, 1)", finalPattern, isRegexInt);
 
 		await _database.ExecuteAsync(@"UPDATE ArtistSplitRules SET Active = 1 WHERE Type = ? AND Pattern = ? AND IsRegex = ?", typeStr, finalPattern, isRegexInt);
 
@@ -1591,18 +1591,18 @@ public class DatabaseHelper
 public class Song
 {
 	[PrimaryKey]
-	public string Path { get; set; }
-	public string Title { get; set; }
-	public string Artists { get; set; }
-	public string Album { get; set; }
-	public string Genre { get; set; }
-	public string Year { get; set; }
+	public string Path { get; set; } = string.Empty;
+	public string Title { get; set; } = string.Empty;
+	public string Artists { get; set; } = string.Empty;
+	public string Album { get; set; } = string.Empty;
+	public string Genre { get; set; } = string.Empty;
+	public string Year { get; set; } = string.Empty;
 	public int PlayCount { get; set; }
-	public string Cover { get; set; }
+	public string Cover { get; set; } = string.Empty;
 	public double Duration { get; set; }
 	public DateTime DateAdded { get; set; }
 	public DateTime? DateLastPlayed { get; set; }
-	public string Extension { get; set; }
+	public string Extension { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -1613,9 +1613,9 @@ public class Song
 [Table("Library")]
 public class LibraryModel
 {
-	public string Name { get; set; }
+	public string Name { get; set; } = string.Empty;
 	[PrimaryKey]
-	public string Path { get; set; }
+	public string Path { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -1627,8 +1627,8 @@ public class LibraryModel
 public class MusicFormatModel
 {
 	[PrimaryKey]
-	public string Extension { get; set; }
-	public string Description { get; set; }
+	public string Extension { get; set; } = string.Empty;
+	public string Description { get; set; } = string.Empty;
 	public bool Enabled { get; set; }
 }
 
@@ -1642,7 +1642,7 @@ public class PlaylistName
 {
 	[PrimaryKey, AutoIncrement]
 	public int Id { get; set; }
-	public string Name { get; set; }
+	public string Name { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -1655,9 +1655,9 @@ public class Artist
 {
 	[PrimaryKey, AutoIncrement]
 	public int Id { get; set; }
-	public string Name { get; set; }
-	public string ArtistImage { get; set; }
-	public string ArtistDescription { get; set; }
+	public string Name { get; set; } = string.Empty;
+	public string ArtistImage { get; set; } = string.Empty;
+	public string ArtistDescription { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -1668,7 +1668,7 @@ public class Artist
 /// </summary>
 public class YearModel
 {
-	public string Year { get; set; }
+	public string Year { get; set; } = string.Empty;
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
 }
@@ -1681,10 +1681,10 @@ public class YearModel
 /// </summary>
 public class AlbumModel
 {
-	public string Album { get; set; }
+	public string Album { get; set; } = string.Empty;
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
-	public string Cover { get; set; }
+	public string Cover { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -1694,7 +1694,7 @@ public class AlbumModel
 /// </summary>
 public class GenreModel
 {
-	public string Genre { get; set; }
+	public string Genre { get; set; } = string.Empty;
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
 }
@@ -1706,7 +1706,7 @@ public class GenreModel
 /// </summary>
 public class ArtistModel
 {
-	public string Artist { get; set; }
+	public string Artist { get; set; } = string.Empty;
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
 }
@@ -1723,10 +1723,8 @@ public class ArtistSplitRule
 {
 	[PrimaryKey, AutoIncrement]
 	public int Id { get; set; }
-
-	public string Type { get; set; }
-
-	public string Pattern { get; set; }
+	public string Type { get; set; } = string.Empty;
+	public string Pattern { get; set; } = string.Empty;
 	public bool IsRegex { get; set; }
 	public bool Active { get; set; } = true;
 	public bool IsBuiltIn { get; set; } = false;
