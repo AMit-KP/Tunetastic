@@ -21,6 +21,7 @@ public sealed partial class MainPlayerPage : Page
 {
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 	private readonly DispatcherQueue _dispatcherQueue;
+	BitmapImage? BGbitmapImage = null;
 	private double pageHeight = 0;
 	private double coverArtAspectRatio = 1.0;
 	private double coverArtImagePixelWidth = 500;
@@ -29,6 +30,8 @@ public sealed partial class MainPlayerPage : Page
 	public MainPlayerPage()
 	{
 		this.InitializeComponent();
+		this.NavigationCacheMode = NavigationCacheMode.Required;
+
 		BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 		_musicPlayer.CurrentSongChanged += OnCurrentSongChanged;
@@ -55,7 +58,7 @@ public sealed partial class MainPlayerPage : Page
 	/// </summary>
 	/// <param name="notify">A boolean value indicating whether a notification should be displayed after updating the UI. Default is true.</param>
 	/// <returns>A <see cref="Task"/> that represents the asynchronous operation of updating the UI.</returns>
-	private async Task<Task> UpdateUI(bool notify = true)
+	private async Task<Task> UpdateUI(bool notify = true, bool backNavigation = false)
 	{
 		try
 		{
@@ -86,7 +89,9 @@ public sealed partial class MainPlayerPage : Page
 							BitmapImage bitmapImage = new BitmapImage();
 							await bitmapImage.SetSourceAsync(stream);
 
-							BackgroundImage.Source = bitmapImage;
+							BGbitmapImage = bitmapImage;
+							if (!backNavigation)
+								BackgroundImage.Source = bitmapImage;
 
 							coverArtImagePixelWidth = bitmapImage.PixelWidth;
 							coverArtImagePixelHeight = bitmapImage.PixelHeight;
@@ -158,15 +163,35 @@ public sealed partial class MainPlayerPage : Page
 
 	/// <summary>
 	/// Executes tasks when navigation to the MainPlayerPage occurs.
-	/// This method ensures the page's UI and data are properly initialized and updated based on navigation context.
+	/// This method ensures the page's UI components and data are initialized or updated appropriately based on the navigation event context.
 	/// </summary>
-	/// <param name="e">Provides data for the navigation event, including mode and parameters associated with the navigation request.</param>
+	/// <param name="e">The navigation event arguments containing details such as navigation mode and parameter data.</param>
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
+		BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
+		BackgroundImage.Opacity = 0;
+		await UpdateUI(backNavigation: e.NavigationMode == NavigationMode.Back);
+		if (e.NavigationMode == NavigationMode.Back)
+		{
+			BackgroundImage.Source = BGbitmapImage;
+			await BackgroundImage.AnimateDoublePropertyAsync("Opacity", 0, 1, 3000);
+		}
+		else
+			BackgroundImage.Source = BGbitmapImage;
+
+		BackgroundImage.Opacity = 1;
 		base.OnNavigatedTo(e);
-		await Task.Delay(e.NavigationMode == NavigationMode.Back ? 450 : 200);
-		await UpdateUI();
-		this.SizeChanged += Page_SizeChanged;
+	}
+
+	/// <summary>
+	/// Executes tasks when navigation away from the MainPlayerPage occurs.
+	/// This method clears resources and resets the page state to improve performance and free up memory.
+	/// </summary>
+	/// <param name="e">Provides data for the navigation event, including mode and parameters associated with the navigation request.</param>
+	protected override void OnNavigatedFrom(NavigationEventArgs e)
+	{
+		BGbitmapImage = null;
+		BackgroundImage.Source = null;
 	}
 
 	/// <summary>
@@ -175,7 +200,7 @@ public sealed partial class MainPlayerPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event. Typically, this is the page whose size has changed.</param>
 	/// <param name="e">The event data containing information about the new size of the page.</param>
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
+	private void Page_SizeChanged(object? sender, SizeChangedEventArgs? e)
 	{
 		pageHeight = e.NewSize.Height;
 		UpdateCoverArtSize();

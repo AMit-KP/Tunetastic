@@ -30,7 +30,7 @@ public sealed partial class MusicControl : Page
 	{
 		var storyboard = CreateStoryBoard();
 		ViewModel.UpdateStoryBoard(storyboard);
-		if (MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing) storyboard?.Pause();
+		if (MusicPlayer.Instance.MediaPlayer.PlaybackState != MediaPlaybackState.Playing) storyboard?.Pause();
 	}
 
 	public MusicControlViewModel ViewModel

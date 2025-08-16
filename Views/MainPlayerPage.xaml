@@ -8,13 +8,16 @@
       xmlns:local="using:Tunetastic"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:media="using:CommunityToolkit.WinUI.Media"
+      SizeChanged="Page_SizeChanged"
       mc:Ignorable="d">
 	<Grid>
 		<Grid HorizontalAlignment="Stretch"
 		      VerticalAlignment="Stretch">
 			<Image x:Name="BackgroundImage"
+			       Opacity="0"
 			       Stretch="Fill" />
-			<Border HorizontalAlignment="Stretch"
+			<Border x:Name="BlurBorder"
+			        HorizontalAlignment="Stretch"
 			        VerticalAlignment="Stretch"
 			        BorderBrush="Transparent"
 			        BorderThickness="0">

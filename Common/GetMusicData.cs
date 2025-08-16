@@ -1,5 +1,4 @@
-﻿using Windows.Media.Core;
-using Windows.Media.Playback;
+﻿using LibVLCSharp.Shared;
 
 namespace Tunetastic.Common;
 
@@ -179,6 +178,21 @@ public class GetMusicData
 							Extension = fileInfo.Extension
 						};
 
+						if (song.Duration <= 0)
+						{
+							Core.Initialize();
+							var _libVLC = new LibVLC();
+							var media = new Media(_libVLC, filePath, FromType.FromPath);
+							var VlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
+							VlcMediaPlayer.Media = media;
+							VlcMediaPlayer.Volume = 0;
+							VlcMediaPlayer.Mute = true;
+							VlcMediaPlayer.Play();
+							song.Duration = VlcMediaPlayer.Length / 1000.0;
+							VlcMediaPlayer.Dispose();
+							_libVLC.Dispose();
+						}
+
 						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
 							songsContainer.Add(song);
 					}
@@ -189,11 +203,17 @@ public class GetMusicData
 					double duration = 0;
 					try
 					{
-						var mediaPlayer = new MediaPlayer();
-						mediaPlayer.AutoPlay = false;
-						mediaPlayer.Source = MediaSource.CreateFromUri(new Uri(filePath));
-						duration = mediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
-						mediaPlayer = null;
+						Core.Initialize();
+						var _libVLC = new LibVLC();
+						var media = new Media(_libVLC, filePath, FromType.FromPath);
+						var VlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
+						VlcMediaPlayer.Media = media;
+						VlcMediaPlayer.Volume = 0;
+						VlcMediaPlayer.Mute = true;
+						VlcMediaPlayer.Play();
+						duration = VlcMediaPlayer.Length / 1000.0;
+						VlcMediaPlayer.Dispose();
+						_libVLC.Dispose();
 					}
 					catch (Exception)
 					{

@@ -857,7 +857,7 @@ public sealed partial class PlayListTemplate : Page
 				}
 
 				List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
-				MusicPlayer.Instance.LoadPlaylist(songPaths, track, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+				MusicPlayer.Instance.LoadPlaylist(songPaths, track, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 			}
 			else
 			{
@@ -902,7 +902,7 @@ public sealed partial class PlayListTemplate : Page
 		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
 		}
 
 		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted.");
