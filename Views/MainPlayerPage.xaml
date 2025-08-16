@@ -14,8 +14,10 @@
 		<Grid HorizontalAlignment="Stretch"
 		      VerticalAlignment="Stretch">
 			<Image x:Name="BackgroundImage"
+			       Opacity="0"
 			       Stretch="Fill" />
-			<Border HorizontalAlignment="Stretch"
+			<Border x:Name="BlurBorder"
+			        HorizontalAlignment="Stretch"
 			        VerticalAlignment="Stretch"
 			        BorderBrush="Transparent"
 			        BorderThickness="0">

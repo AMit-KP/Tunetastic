@@ -268,13 +268,13 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-		_musicPlayer.MediaPlayer.PlaybackSession.PlaybackStateChanged += PlaybackSession_PlaybackStateChanged;
+		_musicPlayer.MediaPlayer.PlaybackStateChanged += (s, e) => PlaybackSession_PlaybackStateChanged();
 
-		_musicPlayer.MediaPlayer.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
+		_musicPlayer.MediaPlayer.PositionChanged += PlaybackSession_PositionChanged;
 
-		_musicPlayer.MediaPlayer.MediaOpened += PlaybackSession_MediaOpenedAsync;
+		_musicPlayer.MediaPlayer.MediaOpened += (s, e) => PlaybackSession_MediaOpenedAsync();
 
-		//_musicPlayer.MediaPlayer.VolumeChanged += PlaybackSession_VolumeChanged;  //TODO pause on mute
+		//TODO pause on mute
 
 		_musicPlayer.ShuffleStatusChanged += _musicPlayer_ShuffleStatusChanged;
 
@@ -290,22 +290,25 @@ public partial class MusicControlViewModel : ObservableRecipient
 			}
 		};
 
-		_musicPlayer.SMTC.ButtonPressed += (s, e) =>
+		if (_musicPlayer.SMTC != null)
 		{
-			switch (e.Button)
+			_musicPlayer.SMTC.ButtonPressed += (s, e) =>
 			{
-				case SystemMediaTransportControlsButton.Play:
-				case SystemMediaTransportControlsButton.Pause:
-					TogglePlayPause();
-					break;
-				case SystemMediaTransportControlsButton.Next:
-					NextSong();
-					break;
-				case SystemMediaTransportControlsButton.Previous:
-					PreviousSong();
-					break;
-			}
-		};
+				switch (e.Button)
+				{
+					case SystemMediaTransportControlsButton.Play:
+					case SystemMediaTransportControlsButton.Pause:
+						_dispatcherQueue.TryEnqueue(() => TogglePlayPause());
+						break;
+					case SystemMediaTransportControlsButton.Next:
+						_dispatcherQueue.TryEnqueue(() => NextSong());
+						break;
+					case SystemMediaTransportControlsButton.Previous:
+						_dispatcherQueue.TryEnqueue(() => PreviousSong());
+						break;
+				}
+			};
+		}
 
 		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
 		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
@@ -385,9 +388,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 				return;
 			}
 
-			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"));
+			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
 
-			ProgressBarValue = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
+			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
+
+			DurationOfSong = double.Parse(track.Duration.ToString());
+			ProgressBarValue = position;
 		}
 	}
 
@@ -397,9 +403,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// If the current playback state is 'Paused', the method resumes playback.
 	/// </summary>
 	[RelayCommand]
-	private void TogglePlayPause()
+	private async Task TogglePlayPause()
 	{
-		switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
+		switch (_musicPlayer.MediaPlayer.PlaybackState)
 		{
 			case MediaPlaybackState.Playing:
 				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
@@ -407,9 +413,14 @@ public partial class MusicControlViewModel : ObservableRecipient
 				_playbackTracker.PausePlayback();
 				break;
 			case MediaPlaybackState.Paused:
+			case MediaPlaybackState.None:
 				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
-				_musicPlayer.Play();
+				_musicPlayer.MediaPlayer.PositionChanged -= PlaybackSession_PositionChanged;
+				await Task.Delay(10);
+				_musicPlayer.Play(playBackPosition: ProgressBarValue);
 				_playbackTracker.StartPlayback();
+				await Task.Delay(400);
+				_musicPlayer.MediaPlayer.PositionChanged += PlaybackSession_PositionChanged;
 				break;
 		}
 	}
@@ -421,11 +432,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </summary>
 	/// <param name="sender">The MediaPlaybackSession that triggered the state change event.</param>
 	/// <param name="args">An object containing event data for the playback state change.</param>
-	private void PlaybackSession_PlaybackStateChanged(MediaPlaybackSession sender, object args)
+	private void PlaybackSession_PlaybackStateChanged()
 	{
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
-			switch (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState)
+			switch (_musicPlayer.MediaPlayer.PlaybackState)
 			{
 				case MediaPlaybackState.Paused:
 				case MediaPlaybackState.None:
@@ -441,7 +452,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 					await Task.Delay(500);
 
-					if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing)
+					if (_musicPlayer.MediaPlayer.PlaybackState != MediaPlaybackState.Playing)
 					{
 						StopRainbow();
 						_isRainbowActive = false;
@@ -623,11 +634,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </summary>
 	/// <param name="sender">The MediaPlaybackSession that raised the event.</param>
 	/// <param name="args">The event data associated with the PositionChanged event.</param>
-	private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+	private void PlaybackSession_PositionChanged(object? sender, TimeSpan e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
 	{
 		isUpdatingProgressBar = true;
-		ProgressBarValue = sender.Position.TotalSeconds;
-		await Task.Delay(1);
+		ProgressBarValue = _musicPlayer.MediaPlayer.Position.TotalSeconds;
+		//await Task.Delay(1);
 		//TODO TaskBAr smooth progress
 		isUpdatingProgressBar = false;
 	});
@@ -641,10 +652,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
 		{
-			_musicPlayer.MediaPlayer.IsMuted = true;
-			_musicPlayer.MediaPlayer.PlaybackSession.Position = TimeSpan.FromSeconds(ProgressBarValue);
+			_musicPlayer.MediaPlayer.Volume = 0;
+			_musicPlayer.MediaPlayer.Position = TimeSpan.FromSeconds(ProgressBarValue);
 			await Task.Delay(500);
-			_musicPlayer.MediaPlayer.IsMuted = false;
+			_musicPlayer.MediaPlayer.Volume = 1;
 		});
 	}
 
@@ -655,29 +666,29 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </summary>
 	/// <param name="sender">The MediaPlayer instance that triggered the event.</param>
 	/// <param name="args">Event data associated with the MediaOpened event.</param>
-	private async void PlaybackSession_MediaOpenedAsync(MediaPlayer sender, object args)
+	private async void PlaybackSession_MediaOpenedAsync()
 	{
-		await Task.Delay(10);
+		await Task.Delay(50);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
-			DurationOfSong = _musicPlayer.MediaPlayer.PlaybackSession.NaturalDuration.TotalSeconds;
-
-			_playbackTracker.Reset();
-			_thresoldDuration = TimeSpan.FromSeconds(DurationOfSong * 0.6);
-			_midpointTimer?.Stop();
-
-			if (_musicPlayer.MediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
-			{
-				_playbackTracker.StartPlayback();
-			}
-
-			_midpointTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-			_midpointTimer.Tick += MidpointTimer_Tick;
-			_midpointTimer.Start();
-
 			var track = await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong);
 			if (track != null)
 			{
+				DurationOfSong = double.Parse(track.Duration.ToString());
+
+				_playbackTracker.Reset();
+				_thresoldDuration = TimeSpan.FromSeconds(DurationOfSong * 0.6);
+				_midpointTimer?.Stop();
+
+				if (_musicPlayer.MediaPlayer.PlaybackState == MediaPlaybackState.Playing)
+				{
+					_playbackTracker.StartPlayback();
+				}
+
+				_midpointTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+				_midpointTimer.Tick += MidpointTimer_Tick;
+				_midpointTimer.Start();
+
 				Title = track.Title;
 				Artist = track.Artists;
 				Cover = track.Cover;
@@ -685,7 +696,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			track = null;
 
 			_vinylEffect?.Begin();
-			if (MusicPlayer.Instance.MediaPlayer.PlaybackSession.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
+			if (MusicPlayer.Instance.MediaPlayer.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
 			MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);
 			MusicControl._instance.SlideInDown();
 		});
@@ -693,7 +704,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	private async void MidpointTimer_Tick(object sender, object e)
 	{
-		var session = _musicPlayer.MediaPlayer.PlaybackSession;
+		var session = _musicPlayer.MediaPlayer;
 
 		if (_playbackTracker.AlreadyCounted)
 		{

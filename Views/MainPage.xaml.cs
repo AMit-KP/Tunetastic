@@ -140,7 +140,7 @@ public sealed partial class MainPage : Page
 	/// This method determines the tag of the selected NavigationViewItem and updates the state of the IsMainPlayerPageOpened property accordingly.
 	/// It ensures that the application correctly tracks whether the MainPlayerPage is opened based on the selection.
 	/// </remarks>
-	private async void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+	private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
 	{
 		if (args.SelectedItem is NavigationViewItem selectedItem)
 		{
