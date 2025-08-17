@@ -46,7 +46,8 @@ public class DatabaseHelper
 	/// <br/>
 	/// <b>Songs</b>: Stores metadata for each song.<br/>
 	///   Columns:<br/>
-	///     - Path (TEXT, PRIMARY KEY): Unique file path for the song.<br/>
+	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique song ID.<br/>
+	///     - Path (TEXT, UNIQUE): Unique file path for the song.<br/>
 	///     - Title (TEXT): Song title.<br/>
 	///     - Artists (TEXT): Raw artist string.<br/>
 	///     - Album (TEXT): Album name.<br/>
@@ -102,6 +103,21 @@ public class DatabaseHelper
 	///     - IsBuiltIn (INTEGER, NOT NULL, DEFAULT 0): Whether the rule is built-in.<br/>
 	///   Unique constraint on (Type, Pattern, IsRegex). Index on (Active, Type) for fast filtering.<br/>
 	/// <br/>
+	/// <br/>
+	/// <b>SongFTS</b>: Virtual FTS5 table for full-text search across song metadata.<br/>
+	///   Columns:<br/>
+	///     - Title (TEXT): Song title for searching.<br/>
+	///     - Album (TEXT): Album name for searching.<br/>
+	///     - Genre (TEXT): Genre for searching.<br/>
+	///     - Year (TEXT): Release year for searching.<br/>
+	///     - Artists (TEXT): Artists for searching.<br/>
+	///     - Path (TEXT, UNINDEXED): Song path reference.<br/>
+	///   Uses unicode61 tokenizer for better search capabilities.<br/>
+	/// <br/>
+	/// <b>ArtistFTS</b>: Virtual FTS5 table for full-text search across artist names.<br/>
+	///   Columns:<br/>
+	///     - Name (TEXT): Artist name for searching.<br/>
+	///   Uses unicode61 tokenizer for better search capabilities.<br/>
 	/// The database is located in the application's local storage folder.
 	/// </pre>
 	/// </summary>
@@ -127,7 +143,8 @@ public class DatabaseHelper
 									   Enabled INTEGER NOT NULL)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Songs (
-									   Path TEXT PRIMARY KEY,
+									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
+									   Path TEXT UNIQUE,
 									   Title TEXT,
 									   Artists TEXT,
 									   Album TEXT,
@@ -194,6 +211,29 @@ public class DatabaseHelper
 									   UNIQUE(Type, Pattern, IsRegex))");
 
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_ArtistSplitRules_ActiveType ON ArtistSplitRules(Active, Type)");
+
+		await _database.ExecuteAsync(@"CREATE VIRTUAL TABLE IF NOT EXISTS SongFTS
+									   USING fts5(
+									   Title,
+									   Album,
+									   Genre,
+									   Year,
+									   Artists,
+									   Path UNINDEXED,
+									   content='Songs',
+									   content_rowid='Id',
+									   tokenize='unicode61')");
+
+		await _database.ExecuteAsync("INSERT INTO SongFTS(SongFTS) VALUES('rebuild')");
+
+		await _database.ExecuteAsync(@"CREATE VIRTUAL TABLE IF NOT EXISTS ArtistFTS
+									   USING fts5(
+									   Name,
+									   content='Artists',
+									   content_rowid='Id',
+									   tokenize='unicode61')");
+
+		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
 
 		await PopulateMusicFormatTable();
 
@@ -359,7 +399,19 @@ public class DatabaseHelper
 			{
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
 							(Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
-							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+							ON CONFLICT(Path) DO UPDATE SET
+							Title = excluded.Title,
+							Artists = excluded.Artists,
+							Album = excluded.Album,
+							Genre = excluded.Genre,
+							Year = excluded.Year,
+							PlayCount = excluded.PlayCount,
+							Cover = excluded.Cover,
+							Duration = excluded.Duration,
+							DateAdded = excluded.DateAdded,
+							DateLastPlayed = excluded.DateLastPlayed,
+							Extension = excluded.Extension;",
 							song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
 							0, song.Cover, song.Duration, song.DateAdded, null, song.Extension);
 
@@ -370,20 +422,22 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Updates the database with the provided list of songs. This method performs the following operations:
+	/// Updates the database with the provided list of songs. This process includes:
 	/// <br/>
-	/// - Retrieves existing song data in the database, including play count and last played date.
+	/// - Retrieving existing song data along with play count and last played date.
 	/// <br/>
-	/// - Retrieves existing playlist-to-song links from the database.
+	/// - Retrieving existing playlist-to-song relationships.
 	/// <br/>
-	/// - Deletes all records from the `Songs` table.
+	/// - Clearing all records from the `Songs` table.
 	/// <br/>
-	/// - Inserts the provided songs into the `Songs` table, preserving the play count and last played date if a song already existed.
+	/// - Inserting the provided songs into the database, preserving play count and last played date for existing entries.
 	/// <br/>
-	/// - Restores the playlist-to-song relationships in the `PlaylistSongs` table.
+	/// - Restoring playlist-to-song relationships in the `PlaylistSongs` table.
+	/// <br/>
+	/// - Cleaning up unused artist records and rebuilding the full-text search (FTS) indexing.
 	/// </summary>
-	/// <param name="songs">A list of songs to be added to or updated in the database.</param>
-	/// <returns>A task that represents the asynchronous operation of updating the songs in the database.</returns>
+	/// <param name="songs">A collection of song objects to be saved into or updated within the database.</param>
+	/// <returns>A task representing the asynchronous operation of updating the songs database.</returns>
 	public async Task UpdateSongsDatabase(List<Song> songs)
 	{
 		var existingSongData = await _database.QueryAsync<Song>("SELECT Path, PlayCount, DateLastPlayed FROM Songs");
@@ -399,10 +453,22 @@ public class DatabaseHelper
 				DateTime? lastPlayed = existingSongData.FirstOrDefault(s => s.Path == song.Path)?.DateLastPlayed;
 
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							(Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
-							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-							song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
-							existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed, song.Extension);
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
+							   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+							   ON CONFLICT(Path) DO UPDATE SET
+							   Title = excluded.Title,
+							   Artists = excluded.Artists,
+							   Album = excluded.Album,
+							   Genre = excluded.Genre,
+							   Year = excluded.Year,
+							   PlayCount = excluded.PlayCount,
+							   Cover = excluded.Cover,
+							   Duration = excluded.Duration,
+							   DateAdded = excluded.DateAdded,
+							   DateLastPlayed = excluded.DateLastPlayed,
+							   Extension = excluded.Extension;",
+							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
+							   existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed, song.Extension);
 
 				SyncSongArtistsForSong(conn, song);
 			}
@@ -417,6 +483,7 @@ public class DatabaseHelper
 		});
 
 		await PruneUnusedArtists();
+		await RebuildFts();
 	}
 
 	/// <summary>
@@ -429,23 +496,31 @@ public class DatabaseHelper
 	public async Task DeleteAllSongsFromDB()
 	{
 		await _database.ExecuteAsync("DELETE FROM Songs");
-		await PruneUnusedArtists();
 	}
 
 	/// <summary>
 	/// Deletes a song entry from the database using the specified file path.
-	/// This method removes the corresponding record from the `Songs` table.
+	/// This method removes the corresponding record from the `Songs` table
+	/// and optionally from the `SongFTS` table, if it exists.
 	/// </summary>
 	/// <param name="path">
 	/// The file path of the song to be deleted from the database.
 	/// </param>
 	/// <returns>
-	/// A task that represents the asynchronous operation of deleting the song from the database.
+	/// A task that represents the asynchronous operation of deleting the song entry from the database.
 	/// </returns>
 	public async Task DeleteSongFromDB(string path)
 	{
 		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", path);
 		await PruneUnusedArtists();
+		try
+		{
+			await _database.ExecuteAsync("DELETE FROM SongFTS WHERE Path = ?", path);
+		}
+		catch (Exception)
+		{
+			//ignored
+		}
 	}
 
 	/// <summary>
@@ -1224,17 +1299,25 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Removes any artist entries from the database that are no longer linked to any songs.
-	/// This ensures that the `Artists` table remains consistent and free from unused entries,
-	/// maintaining database integrity and reducing unnecessary storage.
+	/// Removes any artist entries from the database that are no longer linked to any songs or related data.
+	/// This operation ensures that the `Artists` table and its related full-text search table
+	/// only contain artists currently associated with existing songs, maintaining database consistency and optimization.
 	/// </summary>
 	/// <returns>
 	/// A task that represents the asynchronous operation of pruning unused artist entries
-	/// from the `Artists` table.
+	/// from the `Artists` table and its associated full-text search table.
 	/// </returns>
 	private async Task PruneUnusedArtists()
 	{
 		await _database.ExecuteAsync(@"DELETE FROM Artists WHERE Id NOT IN (SELECT DISTINCT ArtistId FROM SongArtists)");
+		try
+		{
+			await _database.ExecuteAsync(@"DELETE FROM ArtistFTS WHERE Name NOT IN (SELECT Name FROM Artists)");
+		}
+		catch (Exception)
+		{
+			//ignored
+		}
 	}
 
 	/// <summary>
@@ -1395,7 +1478,7 @@ public class DatabaseHelper
 
 	/// <summary>
 	/// Ensures that a provided regex pattern is properly wrapped with word boundaries (`\b`) only when applicable.
-	/// This method validates the pattern for existing anchors, boundaries, or special characters and avoids
+	/// This method validates the pattern for existing anchors, boundaries or special characters and avoids
 	/// redundant or incorrect boundary additions.
 	/// </summary>
 	/// <param name="pattern">The regex pattern to evaluate and optionally modify with word boundaries.</param>
@@ -1593,6 +1676,606 @@ public class DatabaseHelper
 	{
 		return SplitArtists(artistField).ToList();
 	}
+
+	/// <summary>
+	/// Rebuilds the Full-Text Search (FTS) indexes for the Songs and Artists tables in the database.
+	/// This method ensures that the FTS indexes are up-to-date by performing the following operations:
+	/// <br/>
+	/// - Deletes existing entries from the SongFTS table to clear previous index data.
+	/// <br/>
+	/// - Deletes existing entries from the ArtistFTS table to clear previous index data.
+	/// <br/>
+	/// - Initiates a rebuild of the SongFTS index by inserting a special rebuild command entry.
+	/// <br/>
+	/// - Initiates a rebuild of the ArtistFTS index by inserting a special rebuild command entry.
+	/// <br/>
+	/// Errors during individual delete operations are caught and ignored to prevent interruption of the rebuild process.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation of rebuilding the FTS indexes.</returns>
+	public async Task RebuildFts()
+	{
+		try
+		{
+			await _database.ExecuteAsync("DELETE FROM SongFTS");
+		}
+		catch (Exception)
+		{
+			//ignored
+		}
+		try
+		{
+			await _database.ExecuteAsync("DELETE FROM ArtistFTS");
+		}
+		catch (Exception)
+		{
+			//ignored
+		}
+		await _database.ExecuteAsync("INSERT INTO SongFTS(SongFTS) VALUES('rebuild')");
+		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
+	}
+
+	/// <summary>
+	/// Parses the user-provided search input into groups of terms for advanced search functionality.
+	/// The input is split into <b>OR</b> groups using the <b>';'</b> delimiter, and within each group, <b>AND</b> terms are identified using the <b>'+'</b> delimiter.
+	/// This allows complex search queries to be processed for further operations, such as database lookups.
+	/// </summary>
+	/// <param name="input">
+	/// The raw search string provided by the user. Delimiters (';' and '+') are used to define OR and AND groupings in the query.
+	/// </param>
+	/// <returns>
+	/// A list of OR groups, where each group is a list of AND terms. Each inner list represents terms that must all match within an OR grouping.
+	/// </returns>
+	private static List<List<string>> ParseSearchInput(string input)
+	{
+		var groups = new List<List<string>>();
+		foreach (var orPart in input.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+		{
+			var andTerms = orPart.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+								 .Where(t => !string.IsNullOrWhiteSpace(t))
+								 .ToList();
+			if (andTerms.Count > 0) groups.Add(andTerms);
+		}
+		return groups;
+	}
+
+	/// <summary>
+	/// Escapes a string for use in a Full-Text Search (FTS) query by processing special characters.
+	/// Specifically, doubles any embedded quotes in the input string to maintain correct FTS query syntax
+	/// while ensuring proper handling of word boundaries as defined by the Unicode61 tokenizer.
+	/// </summary>
+	/// <param name="s">The input string to be escaped for use in an FTS context. This string may contain special characters requiring escaping.</param>
+	/// <returns>An escaped string suitable for FTS queries. If the input string is null or contains only whitespace, an empty string is returned.</returns>
+	private static string EscapeFts(string s)
+	{
+		if (string.IsNullOrWhiteSpace(s))
+			return string.Empty;
+
+		var escaped = s.Replace("\"", "\"\"");
+		return $"\"{escaped}\"";
+	}
+
+	/// <summary>
+	/// Constructs a full-text search (FTS) query by processing a list of search terms
+	/// and appending a wildcard '*' to each term. The terms are then combined
+	/// with an "AND" logical operator, creating a query that matches all given terms.
+	/// </summary>
+	/// <param name="terms">A list of terms to be included in the query. These terms are first escaped and then appended with wildcards.</param>
+	/// <returns>
+	/// A string representing the constructed FTS query. If there is only one term, the resulting query
+	/// consists of that term with the wildcard. If there are multiple terms, they are joined with "AND".
+	/// </returns>
+	public static string BuildAndPrefix(List<string> terms)
+	{
+		var escaped = terms.Select(t => $"{EscapeFts(t)}*").ToList();
+		return escaped.Count == 1 ? escaped[0] : string.Join(" AND ", escaped);
+	}
+
+	/// <summary>
+	/// Constructs a column-specific match query for a group of search terms, tailored to the specified search scope.
+	/// This method generates a Full-Text Search (FTS) match string intended for use in querying a database for songs.
+	/// Depending on the search scope, the generated match string targets specific columns (e.g., title, artist, album)
+	/// or performs a broader search across multiple fields.
+	/// </summary>
+	/// <param name="andTerms">A list of terms to be combined with an AND logic. These terms are matched within a column or across columns based on the scope.</param>
+	/// <param name="scope">The search scope determining which database columns are matched. Possible values include Title, Artist, Album, or All.</param>
+	/// <returns>A string representing the match query formatted according to the specified scope and terms. For example, a scope of Title will return a match string targeting only the title column, while a scope of All matches across multiple columns.</returns>
+	private static string BuildSongFtsMatchForGroup(List<string> andTerms, SearchScope scope)
+	{
+		var andExpr = BuildAndPrefix(andTerms);
+
+		return scope switch
+		{
+			SearchScope.Title => $"title:({andExpr})",
+			SearchScope.Artist => $"artists:({andExpr})",
+			SearchScope.Album => $"album:({andExpr})",
+			_ => $"title:({andExpr}) OR album:({andExpr}) OR artists:({andExpr}) OR genre:({andExpr}) OR year:({andExpr})"
+		};
+	}
+
+	/// <summary>
+	/// Constructs an artist-specific full-text search (FTS) query for a group of terms.
+	/// This method generates a search expression targeting the "name" field in the database by combining the given terms
+	/// with logical operators and applying FTS-specific formatting. If there is only one term, it is suffixed with '*'
+	/// to allow prefix matching. If multiple terms are provided, they are combined as a logical conjunction within parentheses.
+	/// </summary>
+	/// <param name="andTerms">A list of search terms to be combined in the FTS query for the artist match.</param>
+	/// <returns>A formatted string representing an FTS query for matching artist names.</returns>
+	private static string BuildArtistFtsMatchForGroup(List<string> andTerms)
+	{
+		var andExpr = BuildAndPrefix(andTerms);
+		return andTerms.Count == 1
+			? $"name:{EscapeFts(andTerms[0])}*"
+			: $"name:({andExpr})";
+	}
+
+
+	/// <summary>
+	/// Detects and returns the primary search category based on the search query structure and scope.
+	/// <br/>
+	/// The method analyzes the search pattern using several heuristic rules:
+	/// <br/>
+	/// 1. Honors explicitly provided search scope if specified (not 'All')
+	/// <br/>
+	/// 2. Defaults to Title category for queries with multiple AND terms, unless matching the year pattern
+	/// <br/>
+	/// 3. For single terms, tries to match common patterns:
+	/// <br/>
+	/// - Year pattern (4 digits)
+	/// <br/>
+	/// - Artist name existence
+	/// <br/>
+	/// - Album title existence
+	/// <br/>
+	/// - Song title existence
+	/// <br/>
+	/// 4. Falls back to 'All' category if no specific matches found
+	/// </summary>
+	/// <param name="groups">The parsed search query organized as groups of terms</param>
+	/// <param name="scope">The search scope preference provided by the user</param>
+	/// <returns>The detected primary <see cref="SearchCategory"/> for organizing results</returns>
+	private async Task<SearchCategory> DetectPrimaryCategory(List<List<string>> groups, SearchScope scope)
+	{
+		if (scope != SearchScope.All)
+		{
+			return scope switch
+			{
+				SearchScope.Artist => SearchCategory.Artist,
+				SearchScope.Album => SearchCategory.Album,
+				SearchScope.Title => SearchCategory.Title,
+				_ => SearchCategory.All
+			};
+		}
+
+		if (groups.Any(g => g.Count >= 2))
+		{
+			bool isSingleYear =
+				groups.Count == 1 &&
+				groups[0].Count == 1 &&
+				Regex.IsMatch(groups[0][0].Trim(), @"^\d{4}$");
+
+			if (!isSingleYear)
+				return SearchCategory.Title;
+		}
+
+		var first = groups.FirstOrDefault()?.FirstOrDefault();
+		if (string.IsNullOrWhiteSpace(first)) return SearchCategory.All;
+
+		var term = first.Trim();
+		if (Regex.IsMatch(term, @"^\d{4}$")) return SearchCategory.Year;
+
+		var artistHits = await _database.ExecuteScalarAsync<int>(
+			"SELECT COUNT(*) FROM ArtistFTS WHERE ArtistFTS MATCH ? LIMIT 1", $"name:({EscapeFts(term)}*)");
+		if (artistHits > 0) return SearchCategory.Artist;
+
+		var albumHits = await _database.ExecuteScalarAsync<int>(
+			"SELECT COUNT(*) FROM SongFTS WHERE SongFTS MATCH ? LIMIT 1", $"album:({EscapeFts(term)}*)");
+		if (albumHits > 0) return SearchCategory.Album;
+
+		var titleHits = await _database.ExecuteScalarAsync<int>(
+			"SELECT COUNT(*) FROM SongFTS WHERE SongFTS MATCH ? LIMIT 1", $"title:({EscapeFts(term)}*)");
+		if (titleHits > 0) return SearchCategory.Title;
+
+		return SearchCategory.All;
+	}
+
+	/// <summary>
+	/// Checks if all provided artist terms exist in the database.
+	/// The function queries the ArtistFTS table to determine if each term has a match.
+	/// </summary>
+	/// <param name="terms">A collection of terms to verify against the ArtistFTS table. Each term should be non-empty and trimmed.</param>
+	/// <returns>A task that represents the asynchronous operation. The task result is <c>true</c> if all terms are found in the database, otherwise <c>false</c>.</returns>
+	private async Task<bool> AreAllArtistTerms(IEnumerable<string> terms)
+	{
+		foreach (var t in terms)
+		{
+			if (string.IsNullOrWhiteSpace(t)) return false;
+			var hits = await _database.ExecuteScalarAsync<int>(
+				"SELECT COUNT(*) FROM ArtistFTS WHERE ArtistFTS MATCH ? LIMIT 1", $"name:({EscapeFts(t.Trim())}*)");
+			if (hits == 0) return false;
+		}
+		return true;
+	}
+
+	/// <summary>
+	/// Extracts unique 4-digit numeric tokens from a given collection of strings.
+	/// This method identifies and returns all distinct year-like tokens (e.g., "2011") that consist of exactly four digits.
+	/// Tokens are filtered, trimmed of surrounding whitespace, and compared case-insensitively to ensure uniqueness.
+	/// </summary>
+	/// <param name="terms">A collection of strings to parse and extract year-like tokens.</param>
+	/// <returns>A list of unique 4-digit tokens extracted from the input collection.</returns>
+	private static List<string> ExtractYearTokens(IEnumerable<string> terms)
+	{
+		return terms
+			.Select(t => t.Trim())
+			.Where(t => Regex.IsMatch(t, @"^\d{4}$"))
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.ToList();
+	}
+
+	/// <summary>
+	/// Represents a database row containing an artist's name in the Tunetastic application.
+	/// This class is used for querying and retrieving artist-related data from the database.
+	/// </summary>
+	private sealed class ArtistNameRow
+	{
+		public string Name { get; set; }
+	}
+
+	/// <summary>
+	/// Represents a database row mapping for album names used within the Tunetastic application.
+	/// This class serves as a lightweight data structure for querying and processing album information
+	/// from the database, specifically in scenarios involving album search operations.
+	/// </summary>
+	private sealed class AlbumNameRow
+	{
+		public string Album { get; set; }
+	}
+
+	/// <summary>
+	/// Defines the various categories used for organizing and prioritizing search results
+	/// in the Tunetastic application.
+	/// </summary>
+	/// <remarks>
+	/// This enumeration represents the primary classifications to filter or group music searches.
+	/// Categories include titles, artists, albums, genres, years, or encompassing all available data.
+	/// It aids in structuring search algorithms and refining results for user queries.
+	/// </remarks>
+	private enum SearchCategory
+	{
+		All,
+		Title,
+		Artist,
+		Album,
+		Genre,
+		Year
+	}
+
+	/// <summary>
+	/// Performs an asynchronous search operation across songs, artists, and albums in the database based on user input.
+	/// This comprehensive search method employs sophisticated categorization, prioritization, and filtering mechanisms to deliver relevant results.
+	/// <br/><br/>
+	/// Key Features:
+	/// <br/>
+	/// - Supports single and multi-term queries with AND/OR logic using '+' and ';' delimiters<br/>
+	/// - Detects and prioritizes primary search categories (Title, Artist, Album, Year)<br/>
+	/// - Handles special cases like artist conjunction searches and year-only queries<br/>
+	/// - Uses full-text search (FTS) for efficient text matching<br/>
+	/// - Enforces search scopes for targeted results<br/>
+	/// - Implements fallback logic when primary category yields no results<br/>
+	/// <br/>
+	/// Implementation Details:
+	/// <br/>
+	/// 1. Input Validation and Parsing<br/>
+	/// 2. Primary Category Detection<br/>
+	/// 3. Artist Conjunction Handling<br/>
+	/// 4. Full-Text Search (FTS) for Songs<br/>
+	/// 5. Artist Name Matching<br/>
+	/// 6. Album Search and Hydration<br/>
+	/// 7. Year-Only Override Logic<br/>
+	/// 8. Scope Enforcement<br/>
+	/// 9. Primary Category Fallbacks<br/>
+	/// 10. Results Ordering and Assembly<br/>
+	/// </summary>
+	/// <param name="input">The search query string. Supports AND/OR logic using '+' and ';' delimiters.</param>
+	/// <param name="scope">The search scope to limit results to specific categories (All, Title, Artist, Album).</param>
+	/// <param name="limitPerCategory">Maximum number of results to return per category.</param>
+	/// <returns>A SearchResults object containing matched songs, artists, and albums, along with primary category information.</returns>
+	public async Task<SearchResults> Search(string input, SearchScope scope = SearchScope.All, int limitPerCategory = 5)
+	{
+		var results = new SearchResults();
+		if (string.IsNullOrWhiteSpace(input)) return results;
+
+		var groups = ParseSearchInput(input);
+		if (groups.Count == 0) return results;
+
+		bool preferArtistConjunction = false;
+		List<string> artistAndTerms = new();
+		if (groups.Count == 1 && groups[0].Count >= 2)
+		{
+			var terms = groups[0].Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList();
+			if (await AreAllArtistTerms(terms))
+			{
+				preferArtistConjunction = true;
+				artistAndTerms = terms;
+			}
+		}
+
+		var primary = await DetectPrimaryCategory(groups, scope);
+		results.PrimaryCategory = primary.ToString();
+
+		var songGroupMatches = groups.Select(g => BuildSongFtsMatchForGroup(g, scope)).ToList();
+		var artistGroupMatches = groups.Select(BuildArtistFtsMatchForGroup).ToList();
+		var groupYears = groups.Select(g => ExtractYearTokens(g)).ToList();
+
+		bool filledTitlesViaArtistConjunction = false;
+		if (preferArtistConjunction)
+		{
+			var songs = await GetSongsByArtists(artistAndTerms, orderBy: SongProperty.Title, ascending: true, matchAll: true);
+			if (songs.Count > 0)
+			{
+				results.Titles = songs.Take(limitPerCategory).ToList();
+				results.PrimaryCategory = "Title";
+				filledTitlesViaArtistConjunction = true;
+			}
+		}
+
+		if (!filledTitlesViaArtistConjunction &&
+			(scope == SearchScope.All || scope == SearchScope.Title || scope == SearchScope.Album || scope == SearchScope.Artist))
+		{
+			var songSubs = new List<string>();
+			var songArgs = new List<object>();
+
+			for (int i = 0; i < songGroupMatches.Count; i++)
+			{
+				var match = songGroupMatches[i];
+				var years = groupYears[i];
+				var yearClause = years.Count > 0
+					? $" AND S.Year IN ({string.Join(", ", Enumerable.Repeat("?", years.Count))})"
+					: string.Empty;
+
+				songSubs.Add(@"SELECT S.*, bm25(SongFTS) AS Score
+							   FROM SongFTS
+							   JOIN Songs S ON S.Path = SongFTS.Path
+							   WHERE SongFTS MATCH ?" + yearClause);
+
+				songArgs.Add(match);
+				if (years.Count > 0)
+					songArgs.AddRange(years);
+			}
+
+			if (songSubs.Count > 0)
+			{
+				var songSql = $@"WITH matches AS MATERIALIZED (
+								 {string.Join("\nUNION ALL\n", songSubs)})
+								 SELECT Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension
+								 FROM matches
+								 GROUP BY Path
+								 ORDER BY MIN(Score) ASC
+								 LIMIT {limitPerCategory}";
+
+				results.Titles = await _database.QueryAsync<Song>(songSql, songArgs.ToArray());
+			}
+		}
+
+		if (scope == SearchScope.All || scope == SearchScope.Artist)
+		{
+			var artistSubs = new List<string>();
+			var artistArgs = new List<object>();
+			foreach (var m in artistGroupMatches)
+			{
+				artistSubs.Add(@"SELECT Name, bm25(ArtistFTS) AS Score
+								 FROM ArtistFTS
+								 WHERE ArtistFTS MATCH ?");
+				artistArgs.Add(m);
+			}
+
+			if (artistSubs.Count > 0)
+			{
+				var artistSql = $@"WITH matches(Name, Score) AS MATERIALIZED (
+								   {string.Join("\nUNION ALL\n", artistSubs)})
+								   SELECT Name
+								   FROM matches
+								   GROUP BY Name
+								   ORDER BY MIN(Score) ASC
+								   LIMIT {limitPerCategory}";
+
+				var rows = await _database.QueryAsync<ArtistNameRow>(artistSql, artistArgs.ToArray());
+				results.Artists = rows.Select(r => r.Name).ToList();
+			}
+		}
+
+		if (scope == SearchScope.All || scope == SearchScope.Album)
+		{
+			var albumSubs = new List<string>();
+			var albumArgs = new List<object>();
+
+			for (int i = 0; i < songGroupMatches.Count; i++)
+			{
+				var match = songGroupMatches[i];
+				var years = groupYears[i];
+				var yearClause = years.Count > 0
+					? $" AND S.Year IN ({string.Join(", ", Enumerable.Repeat("?", years.Count))})"
+					: string.Empty;
+
+				albumSubs.Add(@"SELECT SongFTS.Album AS Album, bm25(SongFTS) AS Score
+								FROM SongFTS
+								JOIN Songs S ON S.Path = SongFTS.Path
+								WHERE SongFTS MATCH ?
+								AND TRIM(SongFTS.Album) != ''" + yearClause);
+
+				albumArgs.Add(match);
+				if (years.Count > 0)
+					albumArgs.AddRange(years);
+			}
+
+			if (albumSubs.Count > 0)
+			{
+				var albumSql = $@"WITH matches(Album, Score) AS MATERIALIZED (
+								  {string.Join("\nUNION ALL\n", albumSubs)})
+								  SELECT Album
+								  FROM matches
+								  WHERE TRIM(Album) != ''
+								  GROUP BY Album
+								  ORDER BY MIN(Score) ASC
+								  LIMIT {limitPerCategory}";
+
+				var rows = await _database.QueryAsync<AlbumNameRow>(albumSql, albumArgs.ToArray());
+				var albumNames = rows
+					.Select(r => r.Album)
+					.Where(a => !string.IsNullOrWhiteSpace(a))
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.ToList();
+
+				if (albumNames.Count > 0)
+				{
+					var values = string.Join(", ", albumNames.Select((n, i) => $"(?, {i})"));
+					var rankArgs = albumNames.Cast<object>().ToList();
+
+					var hydrateSql = $@"WITH ranks(Name, Ord) AS (VALUES {values})
+										SELECT
+										CASE WHEN TRIM(S.Album) = 'Unknown Album' THEN 'Unknown' ELSE S.Album END AS Album,
+										COUNT(*) AS Count,
+										SUM(S.Duration) AS TotalDuration,
+										COALESCE(MAX(S.Cover), '') AS Cover
+										FROM Songs S
+										JOIN ranks R ON R.Name = S.Album
+										GROUP BY S.Album
+										ORDER BY MIN(R.Ord) ASC
+										LIMIT {limitPerCategory}";
+
+					results.Albums = await _database.QueryAsync<AlbumModel>(hydrateSql, rankArgs.ToArray());
+				}
+			}
+		}
+
+		var singleYear = groups.Count == 1 && groups[0].Count == 1 && Regex.IsMatch(groups[0][0], @"^\d{4}$");
+		if (singleYear)
+		{
+			var y = groups[0][0].Trim();
+
+			results.Titles = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Year = ? ORDER BY Title COLLATE NOCASE ASC LIMIT ?", y, limitPerCategory);
+
+			results.Albums = await _database.QueryAsync<AlbumModel>(@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, COALESCE(MAX(Cover), '') AS Cover
+																	  FROM Songs
+																	  WHERE Year = ? AND TRIM(Album) != ''
+																	  GROUP BY Album
+																	  ORDER BY Album COLLATE NOCASE ASC
+																	  LIMIT ?", y, limitPerCategory);
+
+			results.PrimaryCategory = SearchCategory.Year.ToString();
+		}
+
+		if (scope == SearchScope.Title)
+		{
+			results.Artists.Clear();
+			results.Albums.Clear();
+			results.PrimaryCategory = SearchCategory.Title.ToString();
+		}
+		else if (scope == SearchScope.Artist)
+		{
+			results.Titles.Clear();
+			results.Albums.Clear();
+			results.PrimaryCategory = SearchCategory.Artist.ToString();
+		}
+		else if (scope == SearchScope.Album)
+		{
+			results.Titles.Clear();
+			results.Artists.Clear();
+			results.PrimaryCategory = SearchCategory.Album.ToString();
+		}
+
+		if (results.PrimaryCategory == SearchCategory.Artist.ToString() && results.Artists.Count == 0)
+		{
+			if (results.Titles.Count > 0) results.PrimaryCategory = SearchCategory.Title.ToString();
+			else if (results.Albums.Count > 0) results.PrimaryCategory = SearchCategory.Album.ToString();
+			else results.PrimaryCategory = SearchCategory.All.ToString();
+		}
+		else if (results.PrimaryCategory == SearchCategory.Album.ToString() && results.Albums.Count == 0)
+		{
+			if (results.Titles.Count > 0) results.PrimaryCategory = SearchCategory.Title.ToString();
+			else if (results.Artists.Count > 0) results.PrimaryCategory = SearchCategory.Artist.ToString();
+			else results.PrimaryCategory = SearchCategory.All.ToString();
+		}
+		else if (results.PrimaryCategory == SearchCategory.Title.ToString() && results.Titles.Count == 0)
+		{
+			if (results.Albums.Count > 0) results.PrimaryCategory = SearchCategory.Album.ToString();
+			else if (results.Artists.Count > 0) results.PrimaryCategory = SearchCategory.Artist.ToString();
+			else results.PrimaryCategory = SearchCategory.All.ToString();
+		}
+
+		results.Items = BuildOrderedItems(results);
+		return results;
+	}
+
+	/// <summary>
+	/// Builds an ordered list of search items based on the provided search results and primary category.
+	/// </summary>
+	/// <param name="results">
+	/// The search results containing titles, artists and albums to be ordered. Contains a PrimaryCategory
+	/// property that determines the ordering of items.
+	/// </param>
+	/// <returns>
+	/// A list of SearchItems containing the search results ordered based on the primary category:
+	/// <br/>
+	/// - For "Title" category: Titles first, followed by Artists then Albums
+	/// <br/>
+	/// - For "Artist" category: Artists first, followed by Titles then Albums
+	/// <br/>
+	/// - For "Album" category: Albums first, followed by Titles then Artists
+	/// <br/>
+	/// - For "All/Unknown": Natural ordering of Titles, Artists then Albums is maintained
+	/// </returns>
+	private List<SearchItem> BuildOrderedItems(SearchResults results)
+	{
+		var items = new List<SearchItem>();
+
+		void AddSongs(IEnumerable<Song>? src)
+		{
+			if (src == null) return;
+			foreach (var s in src) items.Add(new SearchItem { Type = SearchItemType.Title, Title = s });
+		}
+		void AddArtists(IEnumerable<string>? src)
+		{
+			if (src == null) return;
+			foreach (var a in src) items.Add(new SearchItem { Type = SearchItemType.Artist, Artist = a });
+		}
+		void AddAlbums(IEnumerable<AlbumModel>? src)
+		{
+			if (src == null) return;
+			foreach (var a in src) items.Add(new SearchItem { Type = SearchItemType.Album, Album = a });
+		}
+
+		var primary = results?.PrimaryCategory?.Trim() ?? string.Empty;
+		bool Is(string name) => primary.Equals(name, StringComparison.OrdinalIgnoreCase);
+
+		if (Is("Title"))
+		{
+			AddSongs(results.Titles);
+			AddArtists(results.Artists);
+			AddAlbums(results.Albums);
+		}
+		else if (Is("Artist"))
+		{
+			AddArtists(results.Artists);
+			AddSongs(results.Titles);
+			AddAlbums(results.Albums);
+		}
+		else if (Is("Album"))
+		{
+			AddAlbums(results.Albums);
+			AddSongs(results.Titles);
+			AddArtists(results.Artists);
+		}
+		else
+		{
+			// All/Unknown: keep your natural per-category ordering
+			AddSongs(results.Titles);
+			AddArtists(results.Artists);
+			AddAlbums(results.Albums);
+		}
+
+		return items;
+	}
 }
 
 /// <summary>
@@ -1676,7 +2359,7 @@ public class Artist
 /// Represents data aggregation for a specific year, used for displaying and managing
 /// year-based song statistics within the Tunetastic application.
 /// This model includes properties to represent the year, the number of songs recorded
-/// for that year, and the total playback duration of those songs.
+/// for that year and the total playback duration of those songs.
 /// </summary>
 public class YearModel
 {
@@ -1743,6 +2426,72 @@ public class ArtistSplitRule
 }
 
 /// <summary>
+/// Represents the categories of items that can be searched in the Tunetastic application.
+/// This enumeration is used to specify the type of a search item, allowing differentiation
+/// between titles, artists, and albums during search operations and result categorization.
+/// </summary>
+public enum SearchItemType
+{
+	Title,
+	Artist,
+	Album
+}
+
+/// <summary>
+/// Represents an item within a search result, categorized by type.
+/// The type determines whether the item corresponds to a song title, artist, or album.
+/// </summary>
+public sealed class SearchItem
+{
+	public SearchItemType Type { get; set; }
+
+	public Song? Title { get; set; }
+	public string? Artist { get; set; }
+	public AlbumModel? Album { get; set; }
+}
+
+/// <summary>
+/// Encapsulates categorized search results returned from the database.
+/// </summary>
+public class SearchResults
+{
+	/// <summary>
+	/// Songs matched by the query (titles), ordered by relevance or other criteria.
+	/// </summary>
+	public List<Song> Titles { get; set; } = new();
+
+	/// <summary>
+	/// Matched artist names (string only for lighter payload).
+	/// </summary>
+	public List<string> Artists { get; set; } = new();
+
+	/// <summary>
+	/// Albums matched by the query with metadata.
+	/// </summary>
+	public List<AlbumModel> Albums { get; set; } = new();
+
+	/// <summary>
+	/// Indicates which category is most relevant for prioritizing in the UI.
+	/// </summary>
+	public string PrimaryCategory { get; set; } = string.Empty;
+
+	/// <summary>
+	/// True if there were no matches across any category.
+	/// </summary>
+	public bool IsEmpty =>
+		(Titles == null || Titles.Count == 0) &&
+		(Artists == null || Artists.Count == 0) &&
+		(Albums == null || Albums.Count == 0);
+
+	/// <summary>
+	/// A collection of search items representing the combined result set from the search query.
+	/// This property aggregates items such as songs, artists, and albums into a unified list
+	/// for easier handling and display.
+	/// </summary>
+	public List<SearchItem> Items { get; set; } = new();
+}
+
+/// <summary>
 /// Represents the properties of a song that can be used for sorting or filtering operations.
 /// </summary>
 public enum SongProperty
@@ -1770,4 +2519,11 @@ public enum ArtistRuleType
 {
 	Splitter,
 	Exception
+}
+public enum SearchScope
+{
+	All,
+	Title,
+	Artist,
+	Album
 }
