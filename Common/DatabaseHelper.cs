@@ -114,6 +114,8 @@ public class DatabaseHelper
 		_database = new SQLiteAsyncConnection(dbPath);
 
 		await _database.ExecuteAsync("PRAGMA foreign_keys = ON");
+		await _database.ExecuteAsync("ANALYZE");
+		await _database.ExecuteAsync("PRAGMA optimize");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Library (
 									   Name TEXT NOT NULL,
@@ -138,6 +140,11 @@ public class DatabaseHelper
 									   DateLastPlayed DATETIME DEFAULT NULL,
 									   Extension TEXT)");
 
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Title_nocase ON Songs(Title COLLATE NOCASE)");
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Album_nonempty ON Songs(Album) WHERE Album IS NOT NULL AND TRIM(Album) != ''");
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Genre_nonempty ON Songs(Genre) WHERE Genre IS NOT NULL AND TRIM(Genre) != ''");
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Year_nonempty  ON Songs(Year)  WHERE Year  IS NOT NULL AND TRIM(Year)  != ''");
+
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Playlists (
 									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
 									   Name TEXT)");
@@ -150,11 +157,16 @@ public class DatabaseHelper
 									   FOREIGN KEY (PlaylistId) REFERENCES Playlists(Id) ON DELETE CASCADE,
 									   FOREIGN KEY (SongPath) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_PlaylistSongs_PlaylistId_Position ON PlaylistSongs(PlaylistId, Position)");
+
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS QueuedPlayingList (
 									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
 									   Path TEXT NOT NULL,
 									   Position INTEGER,
 									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
+
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_QueuedPlayingList_Path_Position ON QueuedPlayingList(Path, Position)");
+		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_QueuedPlayingList_Position ON QueuedPlayingList(Position)");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Artists (
 									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1298,7 +1310,7 @@ public class DatabaseHelper
 						 FROM Songs S
 						 JOIN SongArtists SA ON SA.SongPath = S.Path
 						 JOIN Artists A ON A.Id = SA.ArtistId
-						 WHERE LOWER(A.Name) IN ({placeholders})
+						 WHERE A.Name IN ({placeholders}) COLLATE NOCASE
 						 ORDER BY S.{orderBy} {(ascending ? "ASC" : "DESC")}";
 
 			var args = names.Select(n => (object)n.ToLowerInvariant()).ToArray();
@@ -1310,9 +1322,9 @@ public class DatabaseHelper
 						 FROM Songs S
 						 JOIN SongArtists SA ON SA.SongPath = S.Path
 						 JOIN Artists A ON A.Id = SA.ArtistId
-						 WHERE LOWER(A.Name) IN ({placeholders})
+						 WHERE A.Name IN ({placeholders}) COLLATE NOCASE
 						 GROUP BY S.Path
-						 HAVING COUNT(DISTINCT LOWER(A.Name)) = ?
+						 HAVING COUNT(DISTINCT A.Id) = ?
 						 ORDER BY S.{orderBy} {(ascending ? "ASC" : "DESC")}";
 
 			var argsList = names.Select(n => (object)n.ToLowerInvariant()).ToList();
