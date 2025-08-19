@@ -1981,7 +1981,7 @@ public class DatabaseHelper
 	/// <param name="limitPerCategory">Maximum number of results to return per category.</param>
 	/// <returns>A SearchResults object containing matched songs, artists, and albums, along with primary category information.</returns>
 	public async Task<SearchResults> Search(string input, SearchScope scope = SearchScope.All, int limitPerCategory = 5)
-	{
+	{   //TODO: + for AND doesnt work
 		var results = new SearchResults();
 		if (string.IsNullOrWhiteSpace(input)) return results;
 

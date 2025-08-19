@@ -3,9 +3,9 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using WinRT.Interop;
-using AutoSuggestBoxHelper = DevWinUI.AutoSuggestBoxHelper;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
@@ -121,14 +121,96 @@ public sealed partial class MainPage : Page
 		App.Current.ThemeService.UpdateCaptionButtons();
 	}
 
-	private void OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+	/// <summary>
+	/// Handles changes in the text input of the AutoSuggestBox and updates its item source with relevant suggestions.
+	/// </summary>
+	/// <param name="sender">The AutoSuggestBox control that triggered the event.</param>
+	/// <param name="args">Provides data about the TextChanged event, including the reason for the text change.</param>
+	private async void OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
 	{
-		AutoSuggestBoxHelper.OnITitleBarAutoSuggestBoxTextChangedEvent(sender, args, NavFrame);
+		sender.ItemsSource = await GetSuggestions(sender.Text);
 	}
 
-	private void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+	/// <summary>
+	/// Handles the query submitted event from the AutoSuggestBox control.
+	/// This method is triggered when the user finalizes their query, either by pressing enter or selecting a suggested item.
+	/// </summary>
+	/// <param name="sender">The source AutoSuggestBox control that triggered the event.</param>
+	/// <param name="args">The event data containing the user's query text and details about the submitted query.</param>
+	private async void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
 	{
-		AutoSuggestBoxHelper.OnITitleBarAutoSuggestBoxQuerySubmittedEvent(sender, args, NavFrame);
+		sender.ItemsSource = await GetSuggestions(args.QueryText);
+	}
+
+	/// <summary>
+	/// Handles the event when a suggestion is selected from the AutoSuggestBox.
+	/// </summary>
+	/// <param name="sender">The AutoSuggestBox control triggering the event.</param>
+	/// <param name="args">Contains details about the selected suggestion, including its type and value.</param>
+	/// <remarks>
+	/// This method determines the type of the selected suggestion (e.g., title, artist, or album) and navigates
+	/// the application to the corresponding detail page. After navigation, the search box's text is updated
+	/// or cleared to maintain the search functionality's state.
+	/// </remarks>
+	private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+	{
+		if (args.SelectedItem is KeyValuePair<SearchItemType, string> keyValuePair)
+		{
+			switch (keyValuePair.Key)
+			{
+				case SearchItemType.Title:
+					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AllSongsViewPage")).IsSelected = true;
+					App.Current.NavService.NavigateTo("Tunetastic.Views.LibraryViews.AllSongsViewPage", keyValuePair.Value);
+					break;
+
+				case SearchItemType.Artist:
+					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage")).IsSelected = true;
+					App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Artist" : keyValuePair.Value, false);
+					break;
+
+				case SearchItemType.Album:
+					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage")).IsSelected = true;
+					App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Album" : keyValuePair.Value, false);
+					break;
+			}
+			sender.Text = keyValuePair.Value;
+		}
+		else
+			sender.Text = String.Empty;
+	}
+
+	/// <summary>
+	/// Retrieves a list of search suggestions based on the provided search text.
+	/// </summary>
+	/// <param name="searchText">The text input used to generate search suggestions.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains
+	/// a list of key-value pairs where the key is the type of the search item and the value is its corresponding name or details.
+	/// </returns>
+	private static async Task<List<KeyValuePair<SearchItemType, string>>> GetSuggestions(string searchText)
+	{
+		var SuggestionList = new List<KeyValuePair<SearchItemType, string>>();
+
+		var result = await DatabaseHelper.Instance.Search(searchText, limitPerCategory: 3);
+		foreach (var item in result.Items)
+		{
+			switch (item.Type)
+			{
+				case SearchItemType.Title:
+					SuggestionList.Add(new(SearchItemType.Title, item.Title.Title + "\n" + item.Title.Artists));
+					break;
+
+				case SearchItemType.Artist:
+					SuggestionList.Add(new(SearchItemType.Artist, item.Artist));
+					break;
+
+				case SearchItemType.Album:
+					SuggestionList.Add(new(SearchItemType.Album, item.Album.Album));
+					break;
+			}
+		}
+
+		return SuggestionList;
 	}
 
 	/// <summary>

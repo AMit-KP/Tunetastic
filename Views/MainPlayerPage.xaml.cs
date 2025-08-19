@@ -238,23 +238,23 @@ public sealed partial class MainPlayerPage : Page
 					break;
 
 				case var artist when artist?.StartsWith("ArtistGroup>") == true:
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.ArtistsViewPage");
 					App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), artist?.Substring("ArtistGroup>".Length) == "Unknown" ? "Unknown Artist" : artist?.Substring("ArtistGroup>".Length), false);
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage")).IsSelected = true;
 					break;
 
 				case var album when album?.StartsWith("AlbumGroup>") == true:
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AlbumsViewPage");
 					App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), album?.Substring("AlbumGroup>".Length) == "Unknown" ? "Unknown Album" : album?.Substring("AlbumGroup>".Length), false);
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage")).IsSelected = true;
 					break;
 
 				case var genre when genre?.StartsWith("GenreGroup>") == true:
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.GenresViewPage");
 					App.Current.NavService.NavigateTo(typeof(GenreDetailPage), genre?.Substring("GenreGroup>".Length) == "Unknown" ? "Unknown Genre" : genre?.Substring("GenreGroup>".Length), false);
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.GenresViewPage")).IsSelected = true;
 					break;
 
 				case var year when year?.StartsWith("YearGroup>") == true:
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.YearsViewPage");
 					App.Current.NavService.NavigateTo(typeof(YearDetailPage), year?.Substring("YearGroup>".Length) == "Unknown" ? "Unknown Year" : year?.Substring("YearGroup>".Length), false);
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.YearsViewPage")).IsSelected = true;
 					break;
 
 				case "AllSongsViewPage":

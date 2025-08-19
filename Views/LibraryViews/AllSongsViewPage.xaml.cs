@@ -33,6 +33,7 @@ public sealed partial class AllSongsViewPage : Page
 
 	private Song? selectedSong;
 	private readonly DispatcherQueue _dispatcherQueue;
+	private string? _searchResult = null;
 
 	/// <summary>
 	/// Represents a page for displaying and managing all available songs in the application.
@@ -339,8 +340,28 @@ public sealed partial class AllSongsViewPage : Page
 		{
 			await Task.Delay(100);
 		}
-		ScrollToCurrentPlayingTrack();
+		if (_searchResult is not null)
+		{
+			var split = _searchResult.Split("\n");
+			var searchedSong = AllSongs.Select(s => s).Where(s => s.Title == split[0].Trim() && s.Artists == split[1].Trim()).FirstOrDefault();
+			await ScrollToSong(searchedSong);
+			await Task.Delay(1000);
+			await ScrollToSong(searchedSong);
+		}
+		else
+			ScrollToCurrentPlayingTrack();
 	}
+
+	protected override void OnNavigatedTo(NavigationEventArgs e)
+	{
+		base.OnNavigatedTo(e);
+
+		if (e.Parameter is string param)
+			_searchResult = param;
+		else
+			_searchResult = null;
+	}
+
 
 	/// <summary>
 	/// Scrolls the view to the currently playing track if the current playlist corresponds to the "AllSongsViewPage".
