@@ -760,7 +760,7 @@ public sealed partial class ArtistDetailPage : Page
 	/// If no playlists exist, a single "No Playlists created" item is added to the submenu with a red text color.
 	/// The method ensures that all items in the submenu are cleared before adding new items.
 	/// </remarks>
-	/// <param name="sender">The source object where the event is triggered.</param>
+	/// <param name="sender">The source of the event, typically the menu flyout control.</param>
 	/// <param name="e">An object containing event data related to the 'Opened' event.</param>
 	private async void MenuFlyout_Opened(object sender, object e)
 	{
@@ -999,7 +999,7 @@ public sealed partial class ArtistDetailPage : Page
 	private async void MenuFlyoutMultiItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songs = GetCurrentViewStyle().SelectedItems;
-		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
+		List<string> songPaths = songs.Cast<Song>().Select(s => s.Path).ToList();
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 

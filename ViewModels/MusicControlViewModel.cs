@@ -378,7 +378,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
 		{
 			var song = localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
-			var track = await DatabaseHelper.Instance.GetSongByPath(song);
+			if (string.IsNullOrEmpty(song)) return;
+			var track = await DatabaseHelper.Instance.GetSongByPath(song!);
 
 			if (track == null)
 			{
@@ -671,7 +672,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 		await Task.Delay(50);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
-			var track = await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong);
+			var songPath = _musicPlayer.CurrentSong;
+			if (string.IsNullOrEmpty(songPath)) return;
+			var track = await DatabaseHelper.Instance.GetSongByPath(songPath!);
 			if (track != null)
 			{
 				DurationOfSong = double.Parse(track.Duration.ToString());
@@ -693,16 +696,16 @@ public partial class MusicControlViewModel : ObservableRecipient
 				Artist = track.Artists;
 				Cover = track.Cover;
 			}
-			track = null;
+			//track = null; // not needed
 
 			_vinylEffect?.Begin();
 			if (MusicPlayer.Instance.MediaPlayer.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
-			MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);
-			MusicControl._instance.SlideInDown();
+			MusicControl._instance?.FloatingPlayer(null, MainPage._instance?.IsMainPlayerPageOpened ?? false);
+			MusicControl._instance?.SlideInDown();
 		});
 	}
 
-	private async void MidpointTimer_Tick(object sender, object e)
+	private async void MidpointTimer_Tick(object? sender, object e)
 	{
 		var session = _musicPlayer.MediaPlayer;
 
@@ -759,7 +762,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_vinylEffect?.Stop();
 		await Task.Delay(50);
 		DurationOfSong = 0;
-		MusicControl._instance.FloatingPlayer(null, MainPage._instance.IsMainPlayerPageOpened);
+		MusicControl._instance?.FloatingPlayer(null, MainPage._instance?.IsMainPlayerPageOpened ?? false);
 	}
 }
 

@@ -11,7 +11,7 @@ public sealed partial class MainWindow : WindowEx
 {
 	private OverlappedPresenter overlappedPresenter;
 	public AppWindow CurrentAppWindow { get; }
-	public static MainWindow _instance;
+	public static MainWindow _instance = null!;
 
 	/// <summary>
 	/// Represents the primary window of the application and initializes its components and settings.

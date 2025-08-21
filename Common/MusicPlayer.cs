@@ -19,7 +19,7 @@ public class MusicPlayer : IDisposable
 	/// </summary>
 	private static MusicPlayer? _instance;
 
-	public Windows.Media.Playback.MediaPlayer SMTCPlayer { get; private set; }
+	public Windows.Media.Playback.MediaPlayer SMTCPlayer { get; private set; } = null!;
 
 	/// <summary>
 	/// The LibVLC core instance used for media playback functionality.
@@ -37,7 +37,7 @@ public class MusicPlayer : IDisposable
 	/// Compatibility wrapper that exposes the LibVLC MediaPlayer with a similar interface
 	/// to the original Windows MediaPlayer for backward compatibility.
 	/// </summary>
-	public IMediaPlayerWrapper MediaPlayer { get; private set; }
+	public IMediaPlayerWrapper MediaPlayer { get; private set; } = null!;
 
 	/// <summary>
 	/// A private field that stores the original list of songs in the playlist, as loaded by the user.
@@ -84,7 +84,7 @@ public class MusicPlayer : IDisposable
 	/// </summary>
 	public event EventHandler<string>? CurrentSongChanged;
 
-	private string _currentSong = "";
+	private string _currentSong = string.Empty;
 
 	/// <summary>
 	/// Gets or sets the identifier or name of the currently playing song.
@@ -147,7 +147,7 @@ public class MusicPlayer : IDisposable
 	/// music player using hardware or software controls such as play, pause, next, and previous buttons.
 	/// It is configured to handle button press events and update playback status.
 	/// </summary>
-	public SystemMediaTransportControls? SMTC = null;
+	public SystemMediaTransportControls? SMTC { get; private set; }
 
 	/// <summary>
 	/// A private field indicating whether the music player is currently performing a fade operation

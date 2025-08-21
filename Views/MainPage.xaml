@@ -2,6 +2,7 @@
 <Page x:Class="Tunetastic.Views.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:common="using:Tunetastic.Common"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
       xmlns:local="using:Tunetastic"
@@ -51,10 +52,40 @@
 				<AutoSuggestBox x:Name="SearchBox"
 				                MinWidth="320"
 				                VerticalAlignment="Center"
-				                PlaceholderText="Search"
+				                PlaceholderText="Quick Search"
 				                QueryIcon="Find"
 				                QuerySubmitted="OnQuerySubmitted"
-				                TextChanged="OnTextChanged" />
+				                SuggestionChosen="SearchBox_SuggestionChosen"
+				                TextChanged="OnTextChanged">
+					<AutoSuggestBox.ItemTemplate>
+						<DataTemplate>
+							<StackPanel Orientation="Horizontal"
+							            Spacing="8">
+								<dev:SwitchPresenter TargetType="common:SearchItemType"
+								                     Value="{Binding Key, Mode=OneWay}">
+									<dev:Case Value="Artist">
+										<FontIcon VerticalAlignment="Center"
+										          FontFamily="Segoe MDL2 Assets"
+										          Glyph="&#xE77B;" />
+									</dev:Case>
+									<dev:Case Value="Album">
+										<FontIcon VerticalAlignment="Center"
+										          FontFamily="Segoe MDL2 Assets"
+										          Glyph="&#xE93C;" />
+									</dev:Case>
+									<dev:Case Value="Title">
+										<FontIcon VerticalAlignment="Center"
+										          FontFamily="Segoe MDL2 Assets"
+										          Glyph="&#xE8D6;" />
+									</dev:Case>
+								</dev:SwitchPresenter>
+								<TextBlock VerticalAlignment="Center"
+								           Text="{Binding Value}"
+								           TextTrimming="CharacterEllipsis" />
+							</StackPanel>
+						</DataTemplate>
+					</AutoSuggestBox.ItemTemplate>
+				</AutoSuggestBox>
 				<TitleBar.RightHeader>
 					<Button x:Name="ThemeButton"
 					        Height="32"

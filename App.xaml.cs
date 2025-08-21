@@ -6,7 +6,7 @@ namespace Tunetastic;
 public partial class App : Application
 {
 	public new static App Current => (App)Application.Current;
-	public static Window MainWindow = Window.Current;
+	public static Window MainWindow = null!;
 	public static IntPtr Hwnd => WinRT.Interop.WindowNative.GetWindowHandle(MainWindow);
 	public IServiceProvider Services { get; }
 	public IJsonNavigationService NavService => GetService<IJsonNavigationService>();

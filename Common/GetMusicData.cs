@@ -168,11 +168,11 @@ public class GetMusicData
 						{
 							Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
 							Album = audioModel.Tag.Album ?? "Unknown Album",
-							Artists = (audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
+							Artists = (audioModel.Tag.Performers != null && audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
 							Duration = audioModel.Properties.Duration.TotalSeconds,
 							Path = filePath,
 							Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
-							Genre = audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre",
+							Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
 							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
 							DateAdded = fileInfo.LastWriteTime,
 							Extension = fileInfo.Extension
@@ -256,12 +256,12 @@ public class GetMusicData
 
 			var librariesCount = libraries.Count;
 			var songsCount = songsContainer.Count;
-			extensions = null;
-			formatList = null;
-			uniqueFolders = null;
-			songsContainer = null;
-			uniqueMetadata = null;
-			libraries = null;
+			extensions = null!;
+			formatList = null!;
+			uniqueFolders = null!;
+			songsContainer = null!;
+			uniqueMetadata = null!;
+			libraries = null!;
 
 			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {DateTime.Now}";
 			ScanProgress = 100;
