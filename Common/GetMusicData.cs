@@ -160,10 +160,10 @@ public class GetMusicData
 			{
 				try
 				{
-					//TODO some songs have unsupported codecs
 					using (var audioModel = TagLib.File.Create(filePath))
 					{
 						var fileInfo = new FileInfo(filePath);
+
 						var song = new Song
 						{
 							Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
@@ -175,7 +175,30 @@ public class GetMusicData
 							Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
 							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
 							DateAdded = fileInfo.LastWriteTime,
-							Extension = fileInfo.Extension
+							Extension = fileInfo.Extension,
+							AudioCodecDescription = audioModel.Properties.Description,
+							AudioSampleRate = audioModel.Properties.AudioSampleRate != 0 ? audioModel.Properties.AudioSampleRate.ToString() + " Hz" : null,
+							AudioBitrate = audioModel.Properties.AudioBitrate != 0 ? audioModel.Properties.AudioBitrate.ToString() + " kbps" : null,
+							AudioChannels = audioModel.Properties.AudioChannels switch
+							{
+								1 => "Mono",
+								2 => "Stereo",
+								4 => "Quadraphonic",
+								5 => "Surround 5.0",
+								6 => "Surround 5.1",
+								7 => "Surround 6.1",
+								8 => "Surround 7.1",
+								>= 9 => "Immersive",
+								_ => null
+							},
+							FileSize = fileInfo.Length switch
+							{
+								>= 1L << 40 => $"{fileInfo.Length / Math.Pow(1024, 4):0.##} TB",
+								>= 1L << 30 => $"{fileInfo.Length / Math.Pow(1024, 3):0.##} GB",
+								>= 1L << 20 => $"{fileInfo.Length / Math.Pow(1024, 2):0.##} MB",
+								>= 1L << 10 => $"{fileInfo.Length / 1024d:0.##} KB",
+								_ => $"{fileInfo.Length} B"
+							}
 						};
 
 						if (song.Duration <= 0)
@@ -188,6 +211,7 @@ public class GetMusicData
 							VlcMediaPlayer.Volume = 0;
 							VlcMediaPlayer.Mute = true;
 							VlcMediaPlayer.Play();
+							await Task.Delay(50);
 							song.Duration = VlcMediaPlayer.Length / 1000.0;
 							VlcMediaPlayer.Dispose();
 							_libVLC.Dispose();
@@ -263,7 +287,7 @@ public class GetMusicData
 			uniqueMetadata = null!;
 			libraries = null!;
 
-			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {DateTime.Now}";
+			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
 			ScanProgress = 100;
 			await Task.Delay(10);
 			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount);

@@ -59,6 +59,12 @@ public class DatabaseHelper
 	///     - DateAdded (DATETIME): When the song was added.<br/>
 	///     - DateLastPlayed (DATETIME, DEFAULT NULL): Last played timestamp.<br/>
 	///     - Extension (TEXT): File extension.<br/>
+	///     - AudioBitrate (TEXT, DEFAULT NULL): Audio bitrate information.<br/>
+	///     - AudioChannels (TEXT, DEFAULT NULL): Audio channels information.<br/>
+	///     - AudioSampleRate (TEXT, DEFAULT NULL): Audio sample rate information.<br/>
+	///     - AudioDescription (TEXT, DEFAULT NULL): Audio description information.<br/>
+	///     - FileSize (TEXT): File size information.<br/>
+	///     - Lyrics (TEXT, DEFAULT NULL): Song Lyrics.<br/>
 	/// <br/>
 	/// <b>Playlists</b>: Stores user playlists.<br/>
 	///   Columns:<br/>
@@ -155,7 +161,13 @@ public class DatabaseHelper
 									   Duration REAL,
 									   DateAdded DATETIME,
 									   DateLastPlayed DATETIME DEFAULT NULL,
-									   Extension TEXT)");
+									   Extension TEXT,
+									   AudioBitrate TEXT DEFAULT NULL,
+									   AudioChannels TEXT DEFAULT NULL,
+									   AudioSampleRate TEXT DEFAULT NULL,
+									   AudioCodecDescription TEXT DEFAULT NULL,
+									   FileSize TEXT,
+									   Lyrics TEXT DEFAULT NULL)");
 
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Title_nocase ON Songs(Title COLLATE NOCASE)");
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Album_nonempty ON Songs(Album) WHERE Album IS NOT NULL AND TRIM(Album) != ''");
@@ -398,27 +410,35 @@ public class DatabaseHelper
 			foreach (var song in songs)
 			{
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							(Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
-							VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-							ON CONFLICT(Path) DO UPDATE SET
-							Title = excluded.Title,
-							Artists = excluded.Artists,
-							Album = excluded.Album,
-							Genre = excluded.Genre,
-							Year = excluded.Year,
-							PlayCount = excluded.PlayCount,
-							Cover = excluded.Cover,
-							Duration = excluded.Duration,
-							DateAdded = excluded.DateAdded,
-							DateLastPlayed = excluded.DateLastPlayed,
-							Extension = excluded.Extension;",
-							song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
-							0, song.Cover, song.Duration, song.DateAdded, null, song.Extension);
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize)
+							   VALUES
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?)
+							   ON CONFLICT(Path) DO UPDATE SET
+							   Title = excluded.Title,
+							   Artists = excluded.Artists,
+							   Album = excluded.Album,
+							   Genre = excluded.Genre,
+							   Year = excluded.Year,
+							   PlayCount = excluded.PlayCount,
+							   Cover = excluded.Cover,
+							   Duration = excluded.Duration,
+							   DateAdded = excluded.DateAdded,
+							   DateLastPlayed = excluded.DateLastPlayed,
+							   Extension = excluded.Extension,
+							   AudioBitrate = excluded.AudioBitrate,
+							   AudioChannels = excluded.AudioChannels,
+							   AudioCodecDescription = excluded.AudioCodecDescription,
+							   AudioSampleRate = excluded.AudioSampleRate,
+							   Lyrics = excluded.Lyrics;",
+							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
+							   0, song.Cover, song.Duration, song.DateAdded, null,
+							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize);
 
 				SyncSongArtistsForSong(conn, song);
 			}
 		});
 		await PruneUnusedArtists();
+		await RebuildFts();
 	}
 
 	/// <summary>
@@ -453,8 +473,9 @@ public class DatabaseHelper
 				DateTime? lastPlayed = existingSongData.FirstOrDefault(s => s.Path == song.Path)?.DateLastPlayed;
 
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension)
-							   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize)
+							   VALUES
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -466,9 +487,15 @@ public class DatabaseHelper
 							   Duration = excluded.Duration,
 							   DateAdded = excluded.DateAdded,
 							   DateLastPlayed = excluded.DateLastPlayed,
-							   Extension = excluded.Extension;",
+							   Extension = excluded.Extension,
+							   AudioBitrate = excluded.AudioBitrate,
+							   AudioChannels = excluded.AudioChannels,
+							   AudioCodecDescription = excluded.AudioCodecDescription,
+							   AudioSampleRate = excluded.AudioSampleRate,
+							   Lyrics = excluded.Lyrics;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
-							   existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed, song.Extension);
+							   existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed,
+							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize);
 
 				SyncSongArtistsForSong(conn, song);
 			}
@@ -2298,6 +2325,12 @@ public class Song
 	public DateTime DateAdded { get; set; }
 	public DateTime? DateLastPlayed { get; set; }
 	public string Extension { get; set; } = string.Empty;
+	public string? AudioBitrate { get; set; }
+	public string? AudioChannels { get; set; }
+	public string? AudioSampleRate { get; set; }
+	public string? AudioCodecDescription { get; set; }
+	public string? Lyrics { get; set; }
+	public string? FileSize { get; set; }
 }
 
 /// <summary>
