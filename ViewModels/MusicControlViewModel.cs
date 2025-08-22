@@ -659,7 +659,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_musicPlayer.MediaPlayer.Volume = 0;
 			_musicPlayer.MediaPlayer.Position = TimeSpan.FromSeconds(ProgressBarValue);
 			await Task.Delay(500);
-			_musicPlayer.MediaPlayer.Volume = 1;
+			_musicPlayer.MediaPlayer.Volume = 0.7;
 		});
 	}
 

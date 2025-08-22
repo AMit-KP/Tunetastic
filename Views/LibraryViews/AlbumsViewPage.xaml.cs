@@ -205,7 +205,13 @@ public sealed partial class AlbumsViewPage : Page
 			if (animation != null && selectedAlbumModel != null)
 			{
 				await Task.Delay(30);
-				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(selectedAlbumModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await AlbumTileView.SmoothScrollIntoViewWithItemAsync(selectedAlbumModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 				await Task.Delay(100);
 
 				var container = AlbumTileView.ContainerFromItem(selectedAlbumModel) as ListViewItem;
@@ -267,7 +273,13 @@ public sealed partial class AlbumsViewPage : Page
 		if (tile != null)
 		{
 			AlbumTileView.SelectedItem = tile;
-			await AlbumTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -994,10 +1006,22 @@ public sealed partial class AlbumsViewPage : Page
 
 		if (targetAlbum != null)
 		{
-			await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			AlbumTileView.SelectedItem = targetAlbum;
 			await Task.Delay(500);
-			await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 

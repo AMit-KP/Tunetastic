@@ -392,7 +392,13 @@ public sealed partial class YearDetailPage : Page
 		var listView = GetCurrentViewStyle();
 		if (song != null)
 		{
-			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			listView.SelectedItem = song;
 		}
 	}
@@ -627,10 +633,22 @@ public sealed partial class YearDetailPage : Page
 		if (targetSong != null)
 		{
 			var listView = GetCurrentViewStyle();
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == YearDetailListView ? -40 : 0);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == YearDetailListView ? -40 : 0);
+			}
+			catch (Exception)
+			{
+			}
 			listView.SelectedItem = targetSong;
 			await Task.Delay(500);
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == YearDetailListView ? -40 : 0);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == YearDetailListView ? -40 : 0);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 

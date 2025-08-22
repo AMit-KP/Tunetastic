@@ -199,7 +199,13 @@ public sealed partial class YearsViewPage : Page
 			if (animation != null && selectedYearModel != null)
 			{
 				await Task.Delay(30);
-				await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 
 				var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
 				if (container != null)
@@ -261,7 +267,13 @@ public sealed partial class YearsViewPage : Page
 		if (tile != null)
 		{
 			YearTileView.SelectedItem = tile;
-			await YearTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await YearTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 

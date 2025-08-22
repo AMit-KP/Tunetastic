@@ -203,7 +203,13 @@ public sealed partial class ArtistsViewPage : Page
 			if (animation != null && selectedArtistModel != null)
 			{
 				await Task.Delay(30);
-				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(selectedArtistModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await ArtistTileView.SmoothScrollIntoViewWithItemAsync(selectedArtistModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 
 				var container = ArtistTileView.ContainerFromItem(selectedArtistModel) as ListViewItem;
 				if (container != null)
@@ -264,7 +270,13 @@ public sealed partial class ArtistsViewPage : Page
 		if (tile != null)
 		{
 			ArtistTileView.SelectedItem = tile;
-			await ArtistTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -945,10 +957,22 @@ public sealed partial class ArtistsViewPage : Page
 
 		if (targetArtist != null)
 		{
-			await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			ArtistTileView.SelectedItem = targetArtist;
 			await Task.Delay(500);
-			await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 

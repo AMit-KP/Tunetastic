@@ -102,25 +102,33 @@ public sealed partial class SettingsPage : Page
 		picker.Title = "Choose Library Folder(s)";
 		picker.CommitButtonText = "Add Folder(s)";
 		picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
+		picker.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
 
-		var musicfolders = await picker.PickMultipleFoldersAsync();
-
-		List<LibraryModel> addedLibraryFolders = new();
-
-		foreach (var musicfolder in musicfolders)
+		try
 		{
-			var libraryModel = new LibraryModel
+			var musicfolders = await picker.PickMultipleFoldersAsync();
+
+			List<LibraryModel> addedLibraryFolders = new();
+
+			foreach (var musicfolder in musicfolders)
 			{
-				Name = musicfolder.Name,
-				Path = musicfolder.Path
-			};
-			addedLibraryFolders.Add(libraryModel);
+				var libraryModel = new LibraryModel
+				{
+					Name = musicfolder.Name,
+					Path = musicfolder.Path
+				};
+				addedLibraryFolders.Add(libraryModel);
+			}
+
+			await DatabaseHelper.Instance.AddOrUpdateLibraries(addedLibraryFolders);
+
+			Libraries?.Clear();
+			Libraries.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
 		}
-
-		await DatabaseHelper.Instance.AddOrUpdateLibraries(addedLibraryFolders);
-
-		Libraries?.Clear();
-		Libraries.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
+		catch (Exception)
+		{
+			GlobalNotification.Error("Error Adding the folder(s). Make sure the folder path doesn't contain any shortcuts. It's better to provide complete folder path.");
+		}
 	}
 
 	/// <summary>

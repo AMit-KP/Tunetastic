@@ -296,7 +296,13 @@ public sealed partial class RecentlyAdded : Page
 		var listView = GetCurrentViewStyle();
 		if (song != null)
 		{
-			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			listView.SelectedItem = song;
 		}
 	}

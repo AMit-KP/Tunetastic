@@ -209,7 +209,13 @@ public sealed partial class GenresViewPage : Page
 			if (animation != null && selectedGenreModel != null)
 			{
 				await Task.Delay(30);
-				await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 
 				var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 				if (container != null)
@@ -270,7 +276,13 @@ public sealed partial class GenresViewPage : Page
 		if (tile != null)
 		{
 			GenreTileView.SelectedItem = tile;
-			await GenreTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -948,10 +960,22 @@ public sealed partial class GenresViewPage : Page
 
 		if (targetGenre != null)
 		{
-			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			GenreTileView.SelectedItem = targetGenre;
 			await Task.Delay(500);
-			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
