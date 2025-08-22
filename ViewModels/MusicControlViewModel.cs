@@ -450,6 +450,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 					MainPage._instance.AnimateTitle(startAnimation: false);
+					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
 
 					await Task.Delay(500);
 
@@ -470,6 +471,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 					MainPage._instance.AnimateTitle(startAnimation: true);
+					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 
 					if (!_isRainbowActive)
 					{
@@ -640,7 +642,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 		isUpdatingProgressBar = true;
 		ProgressBarValue = _musicPlayer.MediaPlayer.Position.TotalSeconds;
 		//await Task.Delay(1);
-		//TODO TaskBAr smooth progress
+		//TODO smooth progress
+		TaskbarHelper.SetProgressValue(App.Hwnd, ProgressBarValue / DurationOfSong * 100, 100);
 		isUpdatingProgressBar = false;
 	});
 

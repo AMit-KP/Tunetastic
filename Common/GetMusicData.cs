@@ -79,6 +79,7 @@ public class GetMusicData
 
 		_isScanning = false;
 		MusicPlayer.Instance.ResetOrReloadPlayer();
+		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.NoProgress);
 	}
 
 	/// <summary>
@@ -91,7 +92,9 @@ public class GetMusicData
 	/// </returns>
 	private async Task<(string, string)> ScanLibraries()
 	{
+		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 		ScanProgress = 0;
+		TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 		var audioFiles = new HashSet<string>();
 
 		var libraries = new List<string>();
@@ -154,6 +157,7 @@ public class GetMusicData
 			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
 
 			ScanProgress = 1;
+			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			int processedFiles = 0;
 
 			foreach (var filePath in audioFiles)
@@ -263,6 +267,7 @@ public class GetMusicData
 
 				processedFiles++;
 				ScanProgress = Math.Round((2 + ((double)(processedFiles * 97) / audioFiles.Count)), 2);
+				TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 				await Task.Delay(10);
 			}
 
@@ -274,6 +279,7 @@ public class GetMusicData
 			{
 				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
 				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
+				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 				return ("Error", "No tracks could be added");
 			}
 
@@ -289,6 +295,7 @@ public class GetMusicData
 
 			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
 			ScanProgress = 100;
+			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
 			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount);
 		}
@@ -296,6 +303,7 @@ public class GetMusicData
 		{
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
+			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 			return ("Warning", "No libraries found. Please add atleast one library.");
 		}
 	}
