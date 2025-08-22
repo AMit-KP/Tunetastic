@@ -604,9 +604,19 @@ public sealed partial class RecentlyPlayed : Page
 		GlobalNotification.Info($"{songData?.Title} added to queue.");
 	}
 
-	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event for the "Info/Tag" menu flyout item, displaying detailed song information.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the MenuFlyoutItem.</param>
+	/// <param name="e">The event data associated with the click action.</param>
+	/// <remarks>
+	/// This method retrieves the song associated with the selected menu item, queries the song data from
+	/// the database, and invokes the main page to display the song's detailed information.
+	/// </remarks>
+	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
-		//TODO add Card Display
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>

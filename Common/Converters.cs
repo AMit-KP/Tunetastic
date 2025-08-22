@@ -79,7 +79,7 @@ public class DurationToFullTimeConverter : IValueConverter
 	/// <param name="parameter">Additional parameter for the converter. Not used in this implementation.</param>
 	/// <param name="language">The culture or language information for conversion. Not used in this implementation.</param>
 	/// <returns>A detailed time representation in the format "X hours Y mins Z secs", "Y mins Z secs", or "Z secs", depending on the duration length.</returns>
-	public object Convert(object value, Type targetType, object parameter, string language)
+	public object Convert(object value, Type? targetType, object? parameter, string? language)
 	{
 		if (value is double seconds && seconds >= 0)
 		{
@@ -140,7 +140,7 @@ public class DateFormatConverter : IValueConverter
 	/// <param name="parameter">An optional format string to define how the <see cref="DateTime"/> should be formatted.</param>
 	/// <param name="language">A string representing the language information for the conversion. This parameter is not used in the implementation.</param>
 	/// <returns>A formatted string representing the date, using either the specified format or the system's short date pattern if the format is not provided or invalid.</returns>
-	public object Convert(object value, Type targetType, object parameter, string language)
+	public object Convert(object value, Type? targetType, object parameter, string? language)
 	{
 		if (value is DateTime dt)
 		{

@@ -472,6 +472,7 @@ public class MusicPlayer : IDisposable
 	public async void Play(double playBackPosition = 0)
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		_vlcMediaPlayer.Mute = false;
 
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false") && !isFading)
 		{

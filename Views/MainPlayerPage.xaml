@@ -72,6 +72,18 @@
 				</StackPanel>
 			</Border>
 		</Grid>
+		<Grid Width="Auto"
+		      Height="Auto"
+		      HorizontalAlignment="Right"
+		      VerticalAlignment="Bottom">
+			<Button x:Name="MusicInfoButton"
+			        Margin="5"
+			        Padding="3"
+			        Click="MusicInfoButton_Click"
+			        ToolTipService.ToolTip="Song/Track Info">
+				<FontIcon Glyph="&#xE90B;" />
+			</Button>
+		</Grid>
 	</Grid>
 </Page>
 

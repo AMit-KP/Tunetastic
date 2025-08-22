@@ -115,6 +115,7 @@ public sealed partial class MainPlayerPage : Page
 						updater.Update();
 
 						UpdateCoverArtSize();
+						MusicInfoButton.Visibility = Visibility.Visible;
 
 						return Task.CompletedTask;
 					}
@@ -147,6 +148,7 @@ public sealed partial class MainPlayerPage : Page
 		UpdateCoverArtSize();
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		Title.Text = "Please select a song";
+		MusicInfoButton.Visibility = Visibility.Collapsed;
 		return Task.CompletedTask;
 	}
 
@@ -267,5 +269,16 @@ public sealed partial class MainPlayerPage : Page
 		{
 			App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 		}
+	}
+
+	/// <summary>
+	/// Handles the click event for the music information button.
+	/// Retrieves the currently playing song's information and displays it within the main page.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the button being clicked.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	private async void MusicInfoButton_Click(object sender, RoutedEventArgs e)
+	{
+		MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong));
 	}
 }

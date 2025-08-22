@@ -651,6 +651,16 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Resets the play count of a specific song to zero in the database.
+	/// </summary>
+	/// <param name="songPath">The file path of the song whose play count is to be reset.</param>
+	/// <returns>A task representing the asynchronous operation.</returns>
+	public async Task ResetPlayCount(string songPath)
+	{
+		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = 0 WHERE Path = ?", songPath);
+	}
+
+	/// <summary>
 	/// Updates the `DateLastPlayed` field of a song in the database to the current date and time.
 	/// This method queries the `Songs` table and modifies the corresponding row with the provided song path.
 	/// </summary>
@@ -663,6 +673,16 @@ public class DatabaseHelper
 	public async Task UpdateDateLastPlayed(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET DateLastPlayed = ? WHERE Path = ?", DateTime.Now, songPath);
+	}
+
+	/// <summary>
+	/// Resets the date a song was last played by setting the DateLastPlayed field to NULL for the specified song in the database.
+	/// </summary>
+	/// <param name="songPath">The file path of the song for which the last played date needs to be reset.</param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
+	public async Task ResetDateLastPlayed(string songPath)
+	{
+		await _database.ExecuteAsync("UPDATE Songs SET DateLastPlayed = NULL WHERE Path = ?", songPath);
 	}
 
 	/// <summary>

@@ -40,6 +40,13 @@
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
+			<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
+			                Text="Info/Tag">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE946;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
 			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
 			                Text="Delete"
 			                ToolTipService.ToolTip="Delete this song/track">

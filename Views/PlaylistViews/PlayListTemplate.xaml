@@ -38,13 +38,13 @@
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
-			<!--<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
+			<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
 			                Text="Info/Tag">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE946;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
-			<MenuFlyoutSeparator />-->
+			<MenuFlyoutSeparator />
 			<MenuFlyoutItem Click="MenuFlyoutItemRemove_OnClick"
 			                Text="Remove"
 			                ToolTipService.ToolTip="Remove this song/track from the playlist">

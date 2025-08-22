@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.Storage;
+using Windows.Storage.Streams;
 using WinRT.Interop;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
@@ -448,7 +450,7 @@ public sealed partial class MainPage : Page
 	/// This method retrieves the library visibility preferences stored in application settings and hides the corresponding libraries in the UI.
 	/// It checks whether libraries such as "Artists", "Albums", "Genres", and "Years" are enabled, and if not, calls the <c>HideLibrary</c> method to remove them from view.
 	/// </remarks>
-	private void HidePreDefinedLibraries()//TODO: remove detail pages
+	private void HidePreDefinedLibraries()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -628,5 +630,50 @@ public sealed partial class MainPage : Page
 	{
 		AppTitle.StrokeThickness = startAnimation ? 1 : 0;
 		AppTitle.Animate = startAnimation;
+	}
+
+	public async void ShowSongInfo(Song? songData)
+	{
+		if (songData != null)
+		{
+			SongTitle.Text = songData.Title;
+			SongArtists.Text = songData.Artists;
+			SongAlbum.Text = songData.Album;
+			StorageFile file = await StorageFile.GetFileFromPathAsync(songData.Cover);
+			using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+			{
+				BitmapImage bitmapImage = new BitmapImage();
+				await bitmapImage.SetSourceAsync(stream);
+				SongCoverImage.Source = bitmapImage;
+			}
+			SongGenre.Text = songData.Genre;
+			SongYear.Text = songData.Year;
+			SongDuration.Text = new DurationToFullTimeConverter().Convert(songData.Duration, null, null, null).ToString();
+			SongSize.Text = songData.FileSize;
+			SongAdded.Text = new DateFormatConverter().Convert(songData.DateAdded, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateAdded, null, "T", null).ToString();
+			SongPath.Text = songData.Path;
+			SongChannel.Text = songData.AudioChannels;
+			SongBitrate.Text = songData.AudioBitrate ?? string.Empty;
+			SongSampleRate.Text = songData.AudioSampleRate ?? string.Empty;
+			SongCodecDescription.Text = songData.AudioCodecDescription ?? string.Empty;
+			SongPlayCount.Text = songData.PlayCount.ToString() ?? "0";
+			if (songData.DateLastPlayed != null)
+				SongLastPlayed.Text = new DateFormatConverter().Convert(songData.DateLastPlayed, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateLastPlayed, null, "T", null).ToString();
+			else
+				SongLastPlayed.Text = "Never";
+
+			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
+
+			await SongInfo.ShowAsync();
+		}
+	}
+
+	private async void ClearButton_Click(object sender, RoutedEventArgs e)
+	{
+		await DatabaseHelper.Instance.ResetPlayCount(SongPath.Text);
+		await DatabaseHelper.Instance.ResetDateLastPlayed(SongPath.Text);
+		SongPlayCount.Text = "0";
+		SongLastPlayed.Text = "Never";
+		ClearButton.IsEnabled = false;
 	}
 }
