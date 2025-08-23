@@ -1,4 +1,4 @@
-﻿using LibVLCSharp.Shared;
+﻿using FlyleafLib.MediaPlayer;
 
 namespace Tunetastic.Common;
 
@@ -207,18 +207,14 @@ public class GetMusicData
 
 						if (song.Duration <= 0)
 						{
-							Core.Initialize();
-							var _libVLC = new LibVLC();
-							var media = new Media(_libVLC, filePath, FromType.FromPath);
-							var VlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
-							VlcMediaPlayer.Media = media;
-							VlcMediaPlayer.Volume = 0;
-							VlcMediaPlayer.Mute = true;
-							VlcMediaPlayer.Play();
-							await Task.Delay(50);
-							song.Duration = VlcMediaPlayer.Length / 1000.0;
-							VlcMediaPlayer.Dispose();
-							_libVLC.Dispose();
+							FlyleafLib.Config config = new FlyleafLib.Config();
+							config.Video.Enabled = false;
+							config.Audio.Enabled = true;
+							config.Player.AutoPlay = false;
+							var tempPlayer = new Player(config);
+							tempPlayer.Open(filePath);
+							song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+							tempPlayer.Dispose();
 						}
 
 						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
@@ -231,17 +227,14 @@ public class GetMusicData
 					double duration = 0;
 					try
 					{
-						Core.Initialize();
-						var _libVLC = new LibVLC();
-						var media = new Media(_libVLC, filePath, FromType.FromPath);
-						var VlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
-						VlcMediaPlayer.Media = media;
-						VlcMediaPlayer.Volume = 0;
-						VlcMediaPlayer.Mute = true;
-						VlcMediaPlayer.Play();
-						duration = VlcMediaPlayer.Length / 1000.0;
-						VlcMediaPlayer.Dispose();
-						_libVLC.Dispose();
+						FlyleafLib.Config config = new FlyleafLib.Config();
+						config.Video.Enabled = false;
+						config.Audio.Enabled = true;
+						config.Player.AutoPlay = false;
+						var tempPlayer = new Player(config);
+						tempPlayer.Open(filePath);
+						duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+						tempPlayer.Dispose();
 					}
 					catch (Exception)
 					{

@@ -371,7 +371,7 @@ public sealed partial class MostPlayed : Page
 		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "MostPlayed")
 		{
 			List<string> songPaths = MostPlayedSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 

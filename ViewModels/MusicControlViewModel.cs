@@ -2,7 +2,6 @@
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Media;
-using Windows.Media.Playback;
 
 
 namespace Tunetastic.ViewModels;
@@ -268,11 +267,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-		_musicPlayer.MediaPlayer.PlaybackStateChanged += (s, e) => PlaybackSession_PlaybackStateChanged();
+		_musicPlayer.MediaPlayer.PropertyChanged += MediaPlayer_PropertyChanged;
 
-		_musicPlayer.MediaPlayer.PositionChanged += PlaybackSession_PositionChanged;
-
-		_musicPlayer.MediaPlayer.MediaOpened += (s, e) => PlaybackSession_MediaOpenedAsync();
+		_musicPlayer.MediaPlayer.OpenCompleted += (s, e) => PlaybackSession_MediaOpenedAsync();
 
 		//TODO pause on mute
 
@@ -312,6 +309,27 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
 		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
+	}
+
+	/// <summary>
+	/// Handles property change notifications from the MediaPlayer instance.
+	/// Updates the state of the ViewModel in response to changes in playback state or position.
+	/// </summary>
+	/// <param name="sender">The source of the property change event, typically the MediaPlayer instance.</param>
+	/// <param name="e">Contains information about the property that changed.</param>
+	private void MediaPlayer_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+	{
+
+		switch (e.PropertyName)
+		{
+			case nameof(_musicPlayer.MediaPlayer.Status):
+				PlaybackSession_PlaybackStateChanged();
+				break;
+
+			case nameof(_musicPlayer.MediaPlayer.CurTime):
+				PlaybackSession_PositionChanged();
+				break;
+		}
 	}
 
 	/// <summary>
@@ -393,7 +411,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 
-			DurationOfSong = double.Parse(track.Duration.ToString());
+			DurationOfSong = track.Duration;
 			ProgressBarValue = position;
 		}
 	}
@@ -406,23 +424,17 @@ public partial class MusicControlViewModel : ObservableRecipient
 	[RelayCommand]
 	private async Task TogglePlayPause()
 	{
-		switch (_musicPlayer.MediaPlayer.PlaybackState)
+		if (_musicPlayer.MediaPlayer.IsPlaying)
 		{
-			case MediaPlaybackState.Playing:
-				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
-				_musicPlayer.Pause();
-				_playbackTracker.PausePlayback();
-				break;
-			case MediaPlaybackState.Paused:
-			case MediaPlaybackState.None:
-				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
-				_musicPlayer.MediaPlayer.PositionChanged -= PlaybackSession_PositionChanged;
-				await Task.Delay(10);
-				_musicPlayer.Play(playBackPosition: ProgressBarValue);
-				_playbackTracker.StartPlayback();
-				await Task.Delay(400);
-				_musicPlayer.MediaPlayer.PositionChanged += PlaybackSession_PositionChanged;
-				break;
+			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+			_musicPlayer.Pause();
+			_playbackTracker.PausePlayback();
+		}
+		else
+		{
+			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+			_musicPlayer.Play(playBackPosition: ProgressBarValue);
+			_playbackTracker.StartPlayback();
 		}
 	}
 
@@ -433,54 +445,55 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </summary>
 	/// <param name="sender">The MediaPlaybackSession that triggered the state change event.</param>
 	/// <param name="args">An object containing event data for the playback state change.</param>
-	private void PlaybackSession_PlaybackStateChanged()
+	private async void PlaybackSession_PlaybackStateChanged()
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		switch (_musicPlayer.MediaPlayer.Status)
 		{
-			switch (_musicPlayer.MediaPlayer.PlaybackState)
-			{
-				case MediaPlaybackState.Paused:
-				case MediaPlaybackState.None:
-					FontIconPlayPause = "\uE768";
-					ToolTipTextPlayPause = "Play";
+			case FlyleafLib.MediaPlayer.Status.Paused:
+			case FlyleafLib.MediaPlayer.Status.Stopped:
+				FontIconPlayPause = "\uE768";
+				ToolTipTextPlayPause = "Play";
 
-					_playbackTracker.PausePlayback();
+				_playbackTracker.PausePlayback();
 
-					_vinylEffect?.Pause();
+				_vinylEffect?.Pause();
 
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
-					MainPage._instance.AnimateTitle(startAnimation: false);
-					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
+				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+				MainPage._instance.AnimateTitle(startAnimation: false);
+				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
 
-					await Task.Delay(500);
+				await Task.Delay(500);
 
-					if (_musicPlayer.MediaPlayer.PlaybackState != MediaPlaybackState.Playing)
-					{
-						StopRainbow();
-						_isRainbowActive = false;
-					}
-					break;
+				if (_musicPlayer.MediaPlayer.IsPlaying)
+				{
+					StopRainbow();
+					_isRainbowActive = false;
+				}
+				break;
 
-				case MediaPlaybackState.Playing:
-					FontIconPlayPause = "\uE769";
-					ToolTipTextPlayPause = "Pause";
+			case FlyleafLib.MediaPlayer.Status.Playing:
+				FontIconPlayPause = "\uE769";
+				ToolTipTextPlayPause = "Pause";
 
-					_playbackTracker.StartPlayback();
+				_playbackTracker.StartPlayback();
 
-					_vinylEffect?.Resume();
+				_vinylEffect?.Resume();
 
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
-					MainPage._instance.AnimateTitle(startAnimation: true);
-					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
+				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+				MainPage._instance.AnimateTitle(startAnimation: true);
+				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 
-					if (!_isRainbowActive)
-					{
-						StartRainbow();
-						_isRainbowActive = true;
-					}
-					break;
-			}
-		});
+				if (!_isRainbowActive)
+				{
+					StartRainbow();
+					_isRainbowActive = true;
+				}
+				break;
+
+			case FlyleafLib.MediaPlayer.Status.Ended:
+				_musicPlayer.Next(autoChange: true);
+				break;
+		}
 	}
 
 	/// <summary>
@@ -631,17 +644,14 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	/// <summary>
-	/// Handles the PositionChanged event for the MediaPlaybackSession.
-	/// This event occurs when the position within the currently playing media changes.
-	/// Updates UI components or internal states to reflect the new playback position.
+	/// Handles updates to the playback position of the currently playing media.
+	/// This method is triggered when the playback position changes, allowing
+	/// synchronization of UI elements or internal state to match the updated position.
 	/// </summary>
-	/// <param name="sender">The MediaPlaybackSession that raised the event.</param>
-	/// <param name="args">The event data associated with the PositionChanged event.</param>
-	private void PlaybackSession_PositionChanged(object? sender, TimeSpan e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+	private void PlaybackSession_PositionChanged() => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
 	{
 		isUpdatingProgressBar = true;
-		ProgressBarValue = _musicPlayer.MediaPlayer.Position.TotalSeconds;
-		//await Task.Delay(1);
+		ProgressBarValue = TimeSpan.FromTicks(_musicPlayer.MediaPlayer.CurTime).TotalSeconds;
 		//TODO smooth progress
 		TaskbarHelper.SetProgressValue(App.Hwnd, ProgressBarValue / DurationOfSong * 100, 100);
 		isUpdatingProgressBar = false;
@@ -656,10 +666,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
 		{
-			_musicPlayer.MediaPlayer.Volume = 0;
-			_musicPlayer.MediaPlayer.Position = TimeSpan.FromSeconds(ProgressBarValue);
-			await Task.Delay(500);
-			_musicPlayer.MediaPlayer.Volume = 0.7;
+			_musicPlayer.MediaPlayer.Audio.Volume = 0;
+			_musicPlayer.MediaPlayer.CurTime = TimeSpan.FromSeconds(ProgressBarValue).Ticks;
+			await Task.Delay(100);
+			_musicPlayer.MediaPlayer.Audio.Volume = 75;
 		});
 	}
 
@@ -686,7 +696,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				_thresoldDuration = TimeSpan.FromSeconds(DurationOfSong * 0.6);
 				_midpointTimer?.Stop();
 
-				if (_musicPlayer.MediaPlayer.PlaybackState == MediaPlaybackState.Playing)
+				if (_musicPlayer.MediaPlayer.IsPlaying)
 				{
 					_playbackTracker.StartPlayback();
 				}
@@ -699,10 +709,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 				Artist = track.Artists;
 				Cover = track.Cover;
 			}
-			//track = null; // not needed
 
 			_vinylEffect?.Begin();
-			if (MusicPlayer.Instance.MediaPlayer.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
+			if (!MusicPlayer.Instance.MediaPlayer.IsPlaying) _vinylEffect?.Pause();
 			MusicControl._instance?.FloatingPlayer(null, MainPage._instance?.IsMainPlayerPageOpened ?? false);
 			MusicControl._instance?.SlideInDown();
 		});
@@ -718,8 +727,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 			return;
 		}
 
-		if (session.PlaybackState == MediaPlaybackState.Playing &&
-			session.Position >= _thresoldDuration &&
+		if (session.IsPlaying &&
+			TimeSpan.FromTicks(session.CurTime) >= _thresoldDuration &&
 			_playbackTracker.GetTotalPlayTime() >= _thresoldDuration)
 		{
 			_midpointTimer?.Stop();

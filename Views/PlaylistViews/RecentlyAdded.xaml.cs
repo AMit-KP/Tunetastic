@@ -358,7 +358,7 @@ public sealed partial class RecentlyAdded : Page
 		if (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "RecentlyAdded")
 		{
 			List<string> songPaths = RecentlyAddedSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 

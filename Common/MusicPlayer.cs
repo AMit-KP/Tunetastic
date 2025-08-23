@@ -1,4 +1,5 @@
-﻿using LibVLCSharp.Shared;
+﻿using FlyleafLib;
+using FlyleafLib.MediaPlayer;
 using Windows.Media;
 using Windows.Media.Playback;
 
@@ -9,7 +10,7 @@ namespace Tunetastic.Common;
 /// It supports features like play, pause, next, previous, queue management,
 /// shuffle, repeat modes, and playlist loading.
 /// </summary>
-public class MusicPlayer : IDisposable
+public class MusicPlayer
 {
 	/// <summary>
 	/// A private static field representing the single instance of the MusicPlayer class.
@@ -19,25 +20,19 @@ public class MusicPlayer : IDisposable
 	/// </summary>
 	private static MusicPlayer? _instance;
 
-	public Windows.Media.Playback.MediaPlayer SMTCPlayer { get; private set; } = null!;
+	/// <summary>
+	/// A media player instance used to interact with system-wide media transport controls.
+	/// This player manages audio playback and integrates with the operating system's media session APIs,
+	/// allowing control from external sources such as hardware media keys or system media interfaces.
+	/// </summary>
+	public MediaPlayer SMTCPlayer { get; private set; } = null!;
 
 	/// <summary>
-	/// The LibVLC core instance used for media playback functionality.
-	/// This provides the underlying VLC media framework capabilities.
+	/// An instance of the FlyleafLib MediaPlayer class used to manage audio playback.
+	/// This property facilitates playback control, allowing operations such as play, pause, load, and navigate
+	/// through audio streams. It is a central component in the MusicPlayer class for handling media playback in the application.
 	/// </summary>
-	private readonly LibVLC _libVLC;
-
-	/// <summary>
-	/// The LibVLCSharp MediaPlayer instance that replaces Windows.Media.Playback.MediaPlayer.
-	/// This provides cross-platform media playback with extensive codec support.
-	/// </summary>
-	private readonly LibVLCSharp.Shared.MediaPlayer _vlcMediaPlayer;
-
-	/// <summary>
-	/// Compatibility wrapper that exposes the LibVLC MediaPlayer with a similar interface
-	/// to the original Windows MediaPlayer for backward compatibility.
-	/// </summary>
-	public IMediaPlayerWrapper MediaPlayer { get; private set; } = null!;
+	public Player MediaPlayer;
 
 	/// <summary>
 	/// A private field that stores the original list of songs in the playlist, as loaded by the user.
@@ -161,17 +156,22 @@ public class MusicPlayer : IDisposable
 	/// This value is used as the base volume level when fading in or out during playback transitions.
 	/// It ensures a consistent starting point for audio volume across various playback scenarios.
 	/// </summary>
-	private const double initialVolume = 1.0;
+	private const int initialVolume = 75;
 
 	private MusicPlayer()
 	{
-		Core.Initialize();
-		_libVLC = new LibVLC();
-		_vlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
+		var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
+		Engine.Start(new EngineConfig
+		{
+			UIRefresh = false,
+			FFmpegPath = ffmpegPath,
+		});
 
-		MediaPlayer = new MediaPlayerWrapper(_vlcMediaPlayer);
-
-		_vlcMediaPlayer.EndReached += (s, e) => HandleTrackEnd();
+		FlyleafLib.Config config = new FlyleafLib.Config();
+		config.Video.Enabled = false;
+		config.Audio.Enabled = true;
+		config.Player.AutoPlay = false;
+		MediaPlayer = new Player(config);
 
 		SMTCSetup();
 	}
@@ -363,7 +363,7 @@ public class MusicPlayer : IDisposable
 
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-			bool isPlaying = MediaPlayer.PlaybackState == MediaPlaybackState.Playing;
+			bool isPlaying = MediaPlayer.IsPlaying;
 
 			var position = MusicControl._instance.ViewModel.ProgressBarValue;
 
@@ -412,9 +412,7 @@ public class MusicPlayer : IDisposable
 			#endregion
 
 			SMTCPlayer.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(songPath));
-			// Create LibVLC Media object from file path
-			var media = new Media(_libVLC, songPath, FromType.FromPath);
-			_vlcMediaPlayer.Media = media;
+			MediaPlayer.Open(songPath);
 
 			if (play) Play(startup ? position : 0);
 
@@ -447,7 +445,7 @@ public class MusicPlayer : IDisposable
 				for (int i = 0; i <= steps; i++)
 				{
 					double progress = (double)i / steps;
-					_vlcMediaPlayer.Volume = (int)(100 * initialVolume * Math.Pow((1 - progress), 2));
+					MediaPlayer.Audio.Volume = (int)(initialVolume * Math.Pow((1 - progress), 2));
 					await Task.Delay(10);
 				}
 			}
@@ -460,7 +458,7 @@ public class MusicPlayer : IDisposable
 				isFading = false;
 			}
 		}
-		_vlcMediaPlayer.Pause();
+		MediaPlayer.Pause();
 		SMTCPlayer.Pause();
 	}
 
@@ -472,16 +470,16 @@ public class MusicPlayer : IDisposable
 	public async void Play(double playBackPosition = 0)
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		_vlcMediaPlayer.Mute = false;
+		MediaPlayer.Audio.Mute = false;
 
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false") && !isFading)
 		{
 			isFading = true;
 			try
 			{
-				_vlcMediaPlayer.Volume = 0;
-				_vlcMediaPlayer.Play();
-				_vlcMediaPlayer.Time = (long)(playBackPosition * 1000);
+				MediaPlayer.Audio.Volume = 0;
+				MediaPlayer.Play();
+				MediaPlayer.CurTime = TimeSpan.FromSeconds(playBackPosition).Ticks;
 				SMTCPlayer.Play();
 
 				var fadeTime = int.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)]?.ToString() ?? "700");
@@ -490,7 +488,7 @@ public class MusicPlayer : IDisposable
 				for (int i = 0; i <= steps; i++)
 				{
 					double progress = (double)i / steps;
-					_vlcMediaPlayer.Volume = (int)(100 * initialVolume * Math.Pow(progress, 2));
+					MediaPlayer.Audio.Volume = (int)(initialVolume * Math.Pow(progress, 2));
 					await Task.Delay(10);
 				}
 			}
@@ -499,15 +497,15 @@ public class MusicPlayer : IDisposable
 			}
 			finally
 			{
-				_vlcMediaPlayer.Volume = (int)(100 * initialVolume);
+				MediaPlayer.Audio.Volume = initialVolume;
 				isFading = false;
 			}
 		}
 		else
 		{
-			_vlcMediaPlayer.Volume = (int)(100 * initialVolume);
-			_vlcMediaPlayer.Play();
-			_vlcMediaPlayer.Time = (long)(playBackPosition * 1000);
+			MediaPlayer.Audio.Volume = initialVolume;
+			MediaPlayer.Play();
+			MediaPlayer.CurTime = TimeSpan.FromSeconds(playBackPosition).Ticks;
 			SMTCPlayer.Play();
 		}
 	}
@@ -547,7 +545,7 @@ public class MusicPlayer : IDisposable
 
 				string? songToPlay = null;
 
-				if (!restartOnPrevious || MediaPlayer.Position.TotalSeconds < 5)
+				if (!restartOnPrevious || TimeSpan.FromTicks(MediaPlayer.CurTime).TotalSeconds < 5)
 				{
 					currentIndex = !SongQueue ? currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1 : currentIndex;
 					songToPlay = ActualPlaylist[currentIndex];
@@ -557,7 +555,7 @@ public class MusicPlayer : IDisposable
 					songToPlay = CurrentSong;
 				}
 
-				bool isPlaying = MediaPlayer.PlaybackState == MediaPlaybackState.Playing;
+				bool isPlaying = MediaPlayer.IsPlaying;
 				bool manualCrossfadeEnabled = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
 
 				await LoadSong(songToPlay, isPlaying, isPlaying && manualCrossfadeEnabled ? FadeType.Manual : FadeType.None);
@@ -585,7 +583,7 @@ public class MusicPlayer : IDisposable
 		if (GetMusicData.IsScanning) return;
 		try
 		{
-			bool isPlaying = autoChange ? autoChange : MediaPlayer.PlaybackState == MediaPlaybackState.Playing;
+			bool isPlaying = autoChange ? autoChange : MediaPlayer.IsPlaying;
 
 			var queuedList = await DatabaseHelper.Instance.GetQueuedPlayingList();
 
@@ -648,16 +646,6 @@ public class MusicPlayer : IDisposable
 			GlobalNotification.Error("Could not load next song.");
 			Next(autoChange);
 		}
-	}
-
-	/// <summary>
-	/// Handles the end of the current track playback by advancing to the next track in the queue.
-	/// This method is triggered when the MediaPlayer's MediaEnded event occurs,
-	/// ensuring a seamless transition to the next song when auto-change is enabled.
-	/// </summary>
-	private void HandleTrackEnd()
-	{
-		Next(autoChange: true);
 	}
 
 	/// <summary>
@@ -740,7 +728,7 @@ public class MusicPlayer : IDisposable
 	public void SavePlayBackPosition()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MediaPlayer.Position.TotalSeconds.ToString();
+		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = (TimeSpan.FromTicks(MediaPlayer.CurTime).TotalSeconds).ToString();
 	}
 
 	/// <summary>
@@ -760,8 +748,8 @@ public class MusicPlayer : IDisposable
 			OriginalPlaylist = null;
 			ActualPlaylist = OriginalPlaylist = new List<string>();
 			CurrentSong = "";
-			MediaPlayer.Position = TimeSpan.Zero;
-			_vlcMediaPlayer.Media = null;
+			MediaPlayer.CurTime = 0;
+			MediaPlayer.Stop();
 			SMTCPlayer.Source = null;
 			localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
 			localSettings.Values.Remove(nameof(LocalSave.PlayBackPosition));
@@ -772,7 +760,7 @@ public class MusicPlayer : IDisposable
 		}
 		else
 		{
-			LoadPlaylist(track.Path, MediaPlayer.PlaybackState == MediaPlaybackState.Playing, dontReloadCurrent: true);
+			LoadPlaylist(track.Path, MediaPlayer.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 
@@ -810,192 +798,6 @@ public class MusicPlayer : IDisposable
 			}
 		}
 		ResetOrReloadPlayer(track);
-	}
-
-	/// <summary>
-	/// Releases all resources used by the MusicPlayer instance.
-	/// This includes disposing of the internal LibVLCSharp media player instance (_vlcMediaPlayer)
-	/// and the LibVLC core instance (_libVLC) to free up resources and avoid memory leaks.
-	/// </summary>
-	public void Dispose()
-	{
-		_vlcMediaPlayer?.Dispose();
-		_libVLC?.Dispose();
-	}
-}
-
-/// <summary>
-/// Interface that provides a compatibility layer between LibVLC MediaPlayer and the original Windows MediaPlayer interface
-/// </summary>
-public interface IMediaPlayerWrapper
-{
-	MediaPlaybackState PlaybackState { get; }
-	TimeSpan Position { get; set; }
-	TimeSpan Duration { get; }
-	double Volume { get; set; }
-
-	event EventHandler? MediaOpened;
-	event EventHandler<MediaPlaybackState>? PlaybackStateChanged;
-	event EventHandler<TimeSpan>? PositionChanged;
-}
-
-/// <summary>
-/// Wrapper class that adapts LibVLC MediaPlayer to provide compatibility with Windows MediaPlayer interface
-/// </summary>
-public class MediaPlayerWrapper : IMediaPlayerWrapper
-{
-	private readonly LibVLCSharp.Shared.MediaPlayer _vlcPlayer;
-	private MediaPlaybackState _currentState = MediaPlaybackState.None;
-	private System.Threading.Timer? _positionTimer;
-
-	public event EventHandler? MediaOpened;
-	public event EventHandler<MediaPlaybackState>? PlaybackStateChanged;
-	public event EventHandler<TimeSpan>? PositionChanged;
-
-	public MediaPlayerWrapper(LibVLCSharp.Shared.MediaPlayer vlcPlayer)
-	{
-		_vlcPlayer = vlcPlayer;
-
-		_vlcPlayer.Playing += OnVlcPlaying;
-		_vlcPlayer.Paused += OnVlcPaused;
-		_vlcPlayer.Stopped += OnVlcStopped;
-		_vlcPlayer.MediaChanged += OnVlcMediaChanged;
-
-		_positionTimer = new System.Threading.Timer(UpdatePosition, null, 0, 100);
-	}
-
-	/// <summary>
-	/// Represents the current playback state of the media player.
-	/// This property provides a mapping between the internal VLC player states and the standardized <see cref="MediaPlaybackState"/>
-	/// values, ensuring compatibility with the Windows MediaPlayer interface.
-	/// Possible states include Playing, Paused, Stopped, Opening, Buffering, or None.
-	/// </summary>
-	public MediaPlaybackState PlaybackState
-	{
-		get => _vlcPlayer.State switch
-		{
-			VLCState.Playing => MediaPlaybackState.Playing,
-			VLCState.Paused => MediaPlaybackState.Paused,
-			VLCState.Stopped => MediaPlaybackState.None,
-			VLCState.Opening => MediaPlaybackState.Opening,
-			VLCState.Buffering => MediaPlaybackState.Buffering,
-			_ => MediaPlaybackState.None
-		};
-	}
-
-	/// <summary>
-	/// Gets or sets the current playback position of the media.
-	/// The position is represented as a <see cref="System.TimeSpan"/> indicating the elapsed time
-	/// in the media playback. Setting this property seeks to the specified position within the media.
-	/// </summary>
-	public TimeSpan Position
-	{
-		get
-		{
-			try
-			{
-				return TimeSpan.FromMilliseconds(_vlcPlayer.Time);
-			}
-			catch (Exception)
-			{
-				return TimeSpan.FromMilliseconds(0);
-			}
-		}
-
-		set => _vlcPlayer.Time = (long)value.TotalMilliseconds;
-	}
-
-	/// <summary>
-	/// Gets the total duration of the currently loaded media in the player.
-	/// This value is represented as a <see cref="TimeSpan"/> and reflects the full playback length
-	/// of the media. If no media is loaded, the duration will typically return a default value (e.g., zero).
-	/// </summary>
-	public TimeSpan Duration => TimeSpan.FromMilliseconds(_vlcPlayer.Media.Duration);
-
-	/// <summary>
-	/// Gets or sets the volume level of the media player.
-	/// The value is represented as a double between 0.0 (mute) and 1.0 (maximum volume).
-	/// Changing this property adjusts the playback volume accordingly.
-	/// </summary>
-	public double Volume
-	{
-		get => _vlcPlayer.Volume / 100.0;
-		set => _vlcPlayer.Volume = (int)(value * 100);
-	}
-
-	/// <summary>
-	/// Handles the event when the VLC media player transitions to the "Playing" state.
-	/// This updates the current playback state to "Playing" and triggers the PlaybackStateChanged event
-	/// if the state has changed.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the VLC media player instance.</param>
-	/// <param name="e">Event data associated with the "Playing" event.</param>
-	private void OnVlcPlaying(object? sender, EventArgs e)
-	{
-		var newState = MediaPlaybackState.Playing;
-		if (_currentState != newState)
-		{
-			_currentState = newState;
-			PlaybackStateChanged?.Invoke(this, newState);
-		}
-	}
-
-	/// <summary>
-	/// Handles the event when the LibVLC MediaPlayer transitions to the paused state.
-	/// This method updates the current playback state to Paused and invokes the <see cref="PlaybackStateChanged"/> event
-	/// to notify any subscribers about the state change.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the LibVLC MediaPlayer instance.</param>
-	/// <param name="e">The event data associated with the LibVLC paused event.</param>
-	private void OnVlcPaused(object? sender, EventArgs e)
-	{
-		var newState = MediaPlaybackState.Paused;
-		if (_currentState != newState)
-		{
-			_currentState = newState;
-			PlaybackStateChanged?.Invoke(this, newState);
-		}
-	}
-
-	/// <summary>
-	/// Handles the event triggered when the LibVLC media player enters the "Stopped" state.
-	/// This method ensures that the playback state is updated to "None" in the wrapper and raises the
-	/// <see cref="IMediaPlayerWrapper.PlaybackStateChanged"/> event if the state changes.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the LibVLC media player instance.</param>
-	/// <param name="e">An object that contains the event data.</param>
-	private void OnVlcStopped(object? sender, EventArgs e)
-	{
-		var newState = MediaPlaybackState.None;
-		if (_currentState != newState)
-		{
-			_currentState = newState;
-			PlaybackStateChanged?.Invoke(this, newState);
-		}
-	}
-
-	/// <summary>
-	/// Handles the event triggered when the media associated with the LibVLC MediaPlayer changes.
-	/// This method invokes the <see cref="MediaOpened"/> event to notify listeners about the new media being loaded or prepared.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the LibVLC MediaPlayer.</param>
-	/// <param name="e">The event data containing information about the media change.</param>
-	private async void OnVlcMediaChanged(object? sender, MediaPlayerMediaChangedEventArgs e)
-	{
-		MediaOpened?.Invoke(this, EventArgs.Empty);
-	}
-
-	/// <summary>
-	/// Periodically updates the current playback position of the media player and triggers the PositionChanged event if the media is playing.
-	/// This method ensures that the position tracking is kept in sync with the playback state.
-	/// </summary>
-	/// <param name="state">Optional state object passed by the timer which invokes this method.</param>
-	private void UpdatePosition(object? state)
-	{
-		if (_vlcPlayer.State == VLCState.Playing)
-		{
-			PositionChanged?.Invoke(this, Position);
-		}
 	}
 }
 

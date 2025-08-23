@@ -440,7 +440,7 @@ public sealed partial class AlbumDetailPage : Page
 		if (currentPlaylist.StartsWith("AlbumGroup>") && currentPlaylist.Substring("AlbumGroup>".Length) == ActualAlbumGroup.Text)
 		{
 			List<string> songPaths = AlbumGroupSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 

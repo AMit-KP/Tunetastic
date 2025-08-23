@@ -446,7 +446,7 @@ public sealed partial class ArtistDetailPage : Page
 		if (currentPlaylist.StartsWith("ArtistGroup>") && currentPlaylist.Substring("ArtistGroup>".Length) == ActualArtistGroup.Text)
 		{
 			List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 
