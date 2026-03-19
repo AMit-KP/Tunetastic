@@ -210,7 +210,7 @@ public sealed partial class YearsViewPage : Page
 				var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
 				if (container != null)
 				{
-					var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+					var yearTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "YearTextBlock");
 					if (yearTextBlock != null)
 						animation.TryStart(yearTextBlock);
 				}
@@ -547,7 +547,7 @@ public sealed partial class YearsViewPage : Page
 			YearTileView.IsItemClickEnabled = false;
 			YearTileView.IsMultiSelectCheckBoxEnabled = true;
 			YearTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(YearTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(YearTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -566,7 +566,7 @@ public sealed partial class YearsViewPage : Page
 			YearTileView.IsItemClickEnabled = true;
 			YearTileView.IsMultiSelectCheckBoxEnabled = false;
 			YearTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(YearTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(YearTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -673,7 +673,7 @@ public sealed partial class YearsViewPage : Page
 			var container = YearTileView.ContainerFromItem(yearModel) as ListViewItem;
 			if (container != null)
 			{
-				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				var yearTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "YearTextBlock");
 				if (yearTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
@@ -737,7 +737,7 @@ public sealed partial class YearsViewPage : Page
 			var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
 			if (container != null)
 			{
-				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				var yearTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "YearTextBlock");
 				if (yearTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);

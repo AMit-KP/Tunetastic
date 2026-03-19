@@ -700,7 +700,7 @@ public sealed partial class MostPlayed : Page
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -721,7 +721,7 @@ public sealed partial class MostPlayed : Page
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{

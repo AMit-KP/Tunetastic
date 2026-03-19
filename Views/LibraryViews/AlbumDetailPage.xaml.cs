@@ -563,7 +563,7 @@ public sealed partial class AlbumDetailPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),
@@ -975,7 +975,7 @@ public sealed partial class AlbumDetailPage : Page
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -996,7 +996,7 @@ public sealed partial class AlbumDetailPage : Page
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{

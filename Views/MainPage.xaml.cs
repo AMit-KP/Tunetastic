@@ -3,6 +3,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using Windows.Storage;
@@ -118,9 +119,7 @@ public sealed partial class MainPage : Page
 	/// <param name="e">The event data associated with the button click.</param>
 	private async void ThemeButton_Click(object sender, RoutedEventArgs e)
 	{
-		ThemeService.ChangeThemeWithoutSave(App.MainWindow);
-		await Task.Delay(100);
-		App.Current.ThemeService.UpdateCaptionButtons();
+		await App.Current.ThemeService.SetElementThemeWithoutSaveAsync();
 	}
 
 	/// <summary>
@@ -265,7 +264,7 @@ public sealed partial class MainPage : Page
 	private async void ShowAddPlaylistDialog()
 	{
 		AddPlaylistDialog.Visibility = Visibility.Visible;
-		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = string.Empty;
 		ErrorMessage.Text = "";
 		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
@@ -575,12 +574,16 @@ public sealed partial class MainPage : Page
 	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
 	{
 		//TODO: Drag n Drop
-		var picker = new FilePicker(WindowNative.GetWindowHandle(App.MainWindow));
-		picker.FileTypeChoices = new Dictionary<string, IList<string>>
-		{
-			{ "Playlists", new List<string> { "*.m3u", "*.m3u8", "*.pls", "*.wpl", "*.zpl" } },
-		};
-		picker.ShowAllFilesOption = false;
+		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		
+		picker.FileTypeFilter.Add("*.m3u");
+		picker.FileTypeFilter.Add("*.m3u8");
+		picker.FileTypeFilter.Add("*.pls");
+		picker.FileTypeFilter.Add("*.wpl");
+		picker.FileTypeFilter.Add("*.zpl");
+
+		picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+		picker.CommitButtonText = "Import Playlist";
 
 		var file = await picker.PickSingleFileAsync();
 		if (file != null)
@@ -613,7 +616,6 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
 	{
-		App.Current.ThemeService.UpdateCaptionButtons();
 		AppIcon.Source = new BitmapImage(new Uri(sender.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
 	}
 

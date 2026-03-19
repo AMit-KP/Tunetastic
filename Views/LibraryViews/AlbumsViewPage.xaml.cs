@@ -217,7 +217,7 @@ public sealed partial class AlbumsViewPage : Page
 				var container = AlbumTileView.ContainerFromItem(selectedAlbumModel) as ListViewItem;
 				if (container != null)
 				{
-					var albumTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumTextBlock");
+					var albumTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "AlbumTextBlock");
 					if (albumTextBlock != null)
 						animation.TryStart(albumTextBlock);
 				}
@@ -580,7 +580,7 @@ public sealed partial class AlbumsViewPage : Page
 			AlbumTileView.IsItemClickEnabled = false;
 			AlbumTileView.IsMultiSelectCheckBoxEnabled = true;
 			AlbumTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AlbumTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(AlbumTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -599,7 +599,7 @@ public sealed partial class AlbumsViewPage : Page
 			AlbumTileView.IsItemClickEnabled = true;
 			AlbumTileView.IsMultiSelectCheckBoxEnabled = false;
 			AlbumTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AlbumTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(AlbumTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -710,7 +710,7 @@ public sealed partial class AlbumsViewPage : Page
 			var container = AlbumTileView.ContainerFromItem(albumModel) as ListViewItem;
 			if (container != null)
 			{
-				var albumTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumTextBlock");
+				var albumTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "AlbumTextBlock");
 				if (albumTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimation", albumTextBlock);
@@ -780,7 +780,7 @@ public sealed partial class AlbumsViewPage : Page
 			var container = AlbumTileView.ContainerFromItem(selectedAlbumModel) as ListViewItem;
 			if (container != null)
 			{
-				var albumTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumTextBlock");
+				var albumTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "AlbumTextBlock");
 				if (albumTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimation", albumTextBlock);
@@ -960,7 +960,7 @@ public sealed partial class AlbumsViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),

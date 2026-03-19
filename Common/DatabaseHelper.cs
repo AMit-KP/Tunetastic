@@ -278,17 +278,17 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Adds new libraries or updates existing ones in the database based on their paths.
-	/// This method ensures that libraries with the same path are updated with new names,
-	/// while new libraries are inserted.
+	/// Adds new library or updates existing ones in the database based on its paths.
+	/// This method ensures that library with the same path is updated with new names,
+	/// while new library is inserted.
 	/// </summary>
-	/// <param name="libraries">A collection of libraries to add or update, each represented by a <see cref="LibraryModel"/>.</param>
+	/// <param name="library">A model of <see cref="LibraryModel"/> containing the library's name and path.</param>
 	/// <returns>
-	/// A task that represents the asynchronous operation of adding or updating libraries in the database.
+	/// A task that represents the asynchronous operation of adding or updating library in the database.
 	/// </returns>
-	public async Task AddOrUpdateLibraries(IEnumerable<LibraryModel> libraries)
+	public async Task AddOrUpdateLibrary(LibraryModel library)
 	{
-		if (libraries == null) return;
+		if (library == null) return;
 
 		const string sql = @"INSERT INTO Library (Name, Path)
 							 VALUES (?, ?)
@@ -297,11 +297,7 @@ public class DatabaseHelper
 
 		await _database.RunInTransactionAsync(conn =>
 		{
-			foreach (var lib in libraries)
-			{
-				if (lib == null) continue;
-				conn.Execute(sql, lib.Name, lib.Path);
-			}
+			conn.Execute(sql, library.Name, library.Path);
 		});
 	}
 

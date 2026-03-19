@@ -214,7 +214,7 @@ public sealed partial class ArtistsViewPage : Page
 				var container = ArtistTileView.ContainerFromItem(selectedArtistModel) as ListViewItem;
 				if (container != null)
 				{
-					var artistTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "ArtistTextBlock");
+					var artistTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "ArtistTextBlock");
 					if (artistTextBlock != null)
 						animation.TryStart(artistTextBlock);
 				}
@@ -556,7 +556,7 @@ public sealed partial class ArtistsViewPage : Page
 			ArtistTileView.IsItemClickEnabled = false;
 			ArtistTileView.IsMultiSelectCheckBoxEnabled = true;
 			ArtistTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(ArtistTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(ArtistTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -575,7 +575,7 @@ public sealed partial class ArtistsViewPage : Page
 			ArtistTileView.IsItemClickEnabled = true;
 			ArtistTileView.IsMultiSelectCheckBoxEnabled = false;
 			ArtistTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(ArtistTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(ArtistTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -688,7 +688,7 @@ public sealed partial class ArtistsViewPage : Page
 			var container = ArtistTileView.ContainerFromItem(artistModel) as ListViewItem;
 			if (container != null)
 			{
-				var artistTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "ArtistTextBlock");
+				var artistTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "ArtistTextBlock");
 				if (artistTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistHeaderAnimation", artistTextBlock);
@@ -752,7 +752,7 @@ public sealed partial class ArtistsViewPage : Page
 			var container = ArtistTileView.ContainerFromItem(selectedArtistModel) as ListViewItem;
 			if (container != null)
 			{
-				var artistTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "ArtistTextBlock");
+				var artistTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "ArtistTextBlock");
 				if (artistTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistHeaderAnimation", artistTextBlock);
@@ -911,7 +911,7 @@ public sealed partial class ArtistsViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),

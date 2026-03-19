@@ -687,7 +687,7 @@ public sealed partial class PlayListTemplate : Page
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -709,7 +709,7 @@ public sealed partial class PlayListTemplate : Page
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -939,7 +939,7 @@ public sealed partial class PlayListTemplate : Page
 	private async void RenamePlayList_Click(object sender, RoutedEventArgs e)
 	{
 		RenamePlaylistDialog.Visibility = Visibility.Visible;
-		RenamePlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		RenamePlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = PlaylistHeader.Text;
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 		OnPlaylistNameChanged(null, null);
@@ -1038,7 +1038,7 @@ public sealed partial class PlayListTemplate : Page
 	private async void ExportPlayList_Click(object sender, RoutedEventArgs e)
 	{
 		ExportDialog.Visibility = Visibility.Visible;
-		ExportDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		ExportDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		ExportTextBox.Text = SanitizeFileName(PlaylistHeader.Text);
 		OnPlaylistExportNameChanged(null, null);
 		ExportFormat.SelectedIndex = 0;

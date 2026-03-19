@@ -220,7 +220,7 @@ public sealed partial class GenresViewPage : Page
 				var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 				if (container != null)
 				{
-					var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+					var genreTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "GenreTextBlock");
 					if (genreTextBlock != null)
 						animation.TryStart(genreTextBlock);
 				}
@@ -561,7 +561,7 @@ public sealed partial class GenresViewPage : Page
 			GenreTileView.IsItemClickEnabled = false;
 			GenreTileView.IsMultiSelectCheckBoxEnabled = true;
 			GenreTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(GenreTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(GenreTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -580,7 +580,7 @@ public sealed partial class GenresViewPage : Page
 			GenreTileView.IsItemClickEnabled = true;
 			GenreTileView.IsMultiSelectCheckBoxEnabled = false;
 			GenreTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(GenreTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(GenreTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -691,7 +691,7 @@ public sealed partial class GenresViewPage : Page
 			var container = GenreTileView.ContainerFromItem(genreModel) as ListViewItem;
 			if (container != null)
 			{
-				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+				var genreTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "GenreTextBlock");
 				if (genreTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
@@ -755,7 +755,7 @@ public sealed partial class GenresViewPage : Page
 			var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 			if (container != null)
 			{
-				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+				var genreTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "GenreTextBlock");
 				if (genreTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
@@ -914,7 +914,7 @@ public sealed partial class GenresViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),

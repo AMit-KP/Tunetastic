@@ -2,6 +2,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.Storage.Pickers;
 using Windows.UI;
 
 namespace Tunetastic.Views;
@@ -98,36 +99,28 @@ public sealed partial class SettingsPage : Page
 	private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
 	{
 		var Hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
-		var picker = new DevWinUI.FolderPicker(Hwnd);
-		picker.Title = "Choose Library Folder(s)";
-		picker.CommitButtonText = "Add Folder(s)";
-		picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.MusicLibrary;
-		picker.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
+		var picker = new FolderPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		picker.CommitButtonText = "Add Folder";
+		picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
 
 		try
 		{
-			var musicfolders = await picker.PickMultipleFoldersAsync();
+			var musicfolder = await picker.PickSingleFolderAsync();
 
-			List<LibraryModel> addedLibraryFolders = new();
-
-			foreach (var musicfolder in musicfolders)
+			var libraryModel = new LibraryModel
 			{
-				var libraryModel = new LibraryModel
-				{
-					Name = musicfolder.Name,
-					Path = musicfolder.Path
-				};
-				addedLibraryFolders.Add(libraryModel);
-			}
+				Name = Path.GetFileName(musicfolder.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+				Path = musicfolder.Path
+			};
 
-			await DatabaseHelper.Instance.AddOrUpdateLibraries(addedLibraryFolders);
+			await DatabaseHelper.Instance.AddOrUpdateLibrary(libraryModel);
 
 			Libraries?.Clear();
 			Libraries.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Error Adding the folder(s). Make sure the folder path doesn't contain any shortcuts. It's better to provide complete folder path.");
+			GlobalNotification.Error("Error Adding the folder. Make sure the folder path doesn't contain any shortcuts. It's better to provide complete folder path.");
 		}
 	}
 
@@ -533,12 +526,9 @@ public sealed partial class SettingsPage : Page
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.Theme)] = ThemeItem.Tag?.ToString();
 		}
 
-		await Task.Delay(100);
-		App.Current.ThemeService.UpdateCaptionButtons();
-
 		if (TintSettings.Visibility == Visibility.Visible)
 		{
-			var actualTheme = App.Current.ThemeService.GetActualTheme();
+			var actualTheme = App.Current.ThemeService.ActualTheme;
 			Color color = actualTheme switch
 			{
 				ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
@@ -568,7 +558,7 @@ public sealed partial class SettingsPage : Page
 
 			if (TintSettings.Visibility == Visibility.Visible)
 			{
-				var actualTheme = App.Current.ThemeService.GetActualTheme();
+				var actualTheme = App.Current.ThemeService.ActualTheme;
 				Color color = actualTheme switch
 				{
 					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
@@ -620,7 +610,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="color">The color to be applied as the background tint.</param>
 	private void ApplyAndSaveTint(Color color)
 	{
-		App.Current.ThemeService.SetBackdropTintColor(color);
+		App.Current.ThemeService.GetMicaSystemBackdrop().TintColor = color;
 		TintBox.Fill = new SolidColorBrush(color);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)] = true.ToString();
@@ -654,11 +644,11 @@ public sealed partial class SettingsPage : Page
 										   r: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorR)]?.ToString() ?? "32"),
 										   g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
 										   b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
-				App.Current.ThemeService.SetBackdropTintColor(color);
+				App.Current.ThemeService.GetMicaSystemBackdrop().TintColor = color;
 			}
 			else
 			{
-				var actualTheme = App.Current.ThemeService.GetActualTheme();
+				var actualTheme = App.Current.ThemeService.ActualTheme;
 				color = actualTheme switch
 				{
 					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
