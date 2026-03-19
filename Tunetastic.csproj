@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.24.60.1937</AssemblyVersion>
-    <FileVersion>1.24.60.1937</FileVersion>
+    <AssemblyVersion>1.24.84.1961</AssemblyVersion>
+    <FileVersion>1.24.84.1961</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -157,11 +157,11 @@
     <None Include="ViewModels\SettingViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Common" Version="8.4.0" />
-    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.Common" Version="8.4.1" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.1" />
     <PackageReference Include="CommunityToolkit.Labs.WinUI.Controls.DataTable" Version="0.1.250811-build.2202" />
     <PackageReference Include="CommunityToolkit.Labs.WinUI.Shimmer" Version="0.1.250811-build.2202" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Collections" Version="8.2.251219" />
@@ -190,13 +190,12 @@
     <PackageReference Include="DevWinUI.ContextMenu" Version="9.9.0" />
     <PackageReference Include="DevWinUI.Controls" Version="9.9.3" />
     <PackageReference Include="Downloader" Version="5.1.0" />
-    <PackageReference Include="Flyleaf.FFmpeg" Version="8.0.0.1" />
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.0.1" />
     <PackageReference Include="FlyleafLib" Version="3.10.3" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NotifyIconEx" Version="1.1.2" />

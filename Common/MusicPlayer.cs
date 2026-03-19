@@ -171,6 +171,10 @@ public class MusicPlayer
 		config.Video.Enabled = false;
 		config.Audio.Enabled = true;
 		config.Player.AutoPlay = false;
+
+		config.Player.ThreadPriority = System.Threading.ThreadPriority.AboveNormal;
+		config.Player.MinBufferDuration = TimeSpan.FromSeconds(6).Ticks;
+		config.Demuxer.BufferDuration = TimeSpan.FromSeconds(10).Ticks;
 		MediaPlayer = new Player(config);
 
 		SMTCSetup();
@@ -412,11 +416,17 @@ public class MusicPlayer
 			#endregion
 
 			SMTCPlayer.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(songPath));
-			MediaPlayer.Open(songPath);
 
-			if (play) Play(startup ? position : 0);
+			// Open on a background thread — FlyleafLib's Open() initialises the demuxer,
+			// codecs and audio buffers which is CPU-heavy and must not block the UI thread.
+			var capturedSong = songPath;
+			var capturedPlay = play;
+			var capturedPosition = startup ? position : 0.0;
+			await Task.Run(() => MediaPlayer.Open(capturedSong));
 
-			CurrentSong = songPath;
+			if (capturedPlay) Play(capturedPosition);
+
+			CurrentSong = capturedSong;
 			localSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
 		}
 		catch (Exception)

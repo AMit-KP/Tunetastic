@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
@@ -190,8 +190,10 @@ public sealed partial class ArtistsViewPage : Page
 			await Task.Delay(100);
 		}
 
-		ArtistTileView_SizeChanged(null, null);
-		ArtistTileView.ContainerContentChanging += ArtistTileView_ContainerContentChanging;
+		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
+		// per-item from ContainerContentChanging caused severe UI thread stalls.
+		// Layout recalculation still happens correctly via the SizeChanged event.
+		// ContainerContentChanging subscription removed — handler was empty after O(n) fix
 
 		if (connectedAnimation)
 		{
@@ -234,6 +236,7 @@ public sealed partial class ArtistsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		ArtistTileView.SizeChanged -= ArtistTileView_SizeChanged;
 		ArtistTileView.SizeChanged += ArtistTileView_SizeChanged;
 	}
 
@@ -321,22 +324,6 @@ public sealed partial class ArtistsViewPage : Page
 		{
 			MoreButton.IsEnabled = ArtistTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the ArtistsViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		ArtistsGroup.Clear();
-		ArtistsGroup = null;
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -844,7 +831,9 @@ public sealed partial class ArtistsViewPage : Page
 	/// </remarks>
 	private void ArtistTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
-		ArtistTileView_SizeChanged(null, null);
+		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
+		// per-item from ContainerContentChanging caused severe UI thread stalls.
+		// Layout recalculation still happens correctly via the SizeChanged event.
 	}
 
 	/// <summary>
@@ -934,7 +923,6 @@ public sealed partial class ArtistsViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;

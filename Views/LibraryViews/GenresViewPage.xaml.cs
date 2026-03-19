@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
@@ -196,8 +196,10 @@ public sealed partial class GenresViewPage : Page
 			await Task.Delay(100);
 		}
 
-		GenreTileView_SizeChanged(null, null);
-		GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
+		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
+		// per-item from ContainerContentChanging caused severe UI thread stalls.
+		// Layout recalculation still happens correctly via the SizeChanged event.
+		// ContainerContentChanging subscription removed — handler was empty after O(n) fix
 
 		if (connectedAnimation)
 		{
@@ -240,6 +242,7 @@ public sealed partial class GenresViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		GenreTileView.SizeChanged -= GenreTileView_SizeChanged;
 		GenreTileView.SizeChanged += GenreTileView_SizeChanged;
 	}
 
@@ -327,22 +330,6 @@ public sealed partial class GenresViewPage : Page
 		{
 			MoreButton.IsEnabled = GenreTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the GenresViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		GenresGroup.Clear();
-		GenresGroup = null;
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -847,7 +834,9 @@ public sealed partial class GenresViewPage : Page
 	/// </remarks>
 	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
-		GenreTileView_SizeChanged(null, null);
+		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
+		// per-item from ContainerContentChanging caused severe UI thread stalls.
+		// Layout recalculation still happens correctly via the SizeChanged event.
 	}
 
 	/// <summary>
@@ -937,7 +926,6 @@ public sealed partial class GenresViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;

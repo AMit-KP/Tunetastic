@@ -1,10 +1,9 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Foundation;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -192,8 +191,10 @@ public sealed partial class AlbumsViewPage : Page
 			await Task.Delay(100);
 		}
 
-		AlbumTileView_SizeChanged(null, null);
-		AlbumTileView.ContainerContentChanging += AlbumTileView_ContainerContentChanging;
+		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
+		// per-item from ContainerContentChanging caused severe UI thread stalls.
+		// Layout recalculation still happens correctly via the SizeChanged event.
+		// ContainerContentChanging subscription removed — handler was empty after O(n) fix
 
 		if (connectedAnimation)
 		{
@@ -237,6 +238,7 @@ public sealed partial class AlbumsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		AlbumTileView.SizeChanged -= AlbumTileView_SizeChanged;
 		AlbumTileView.SizeChanged += AlbumTileView_SizeChanged;
 	}
 
@@ -324,44 +326,6 @@ public sealed partial class AlbumsViewPage : Page
 		{
 			MoreButton.IsEnabled = AlbumTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the AlbumsViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is invoked when the AlbumsViewPage is unloaded. It performs a series of cleanup tasks, including clearing album collections,
-	/// nullifying resources associated with the album tile view, collapsing its visibility, and triggering garbage collection to
-	/// free up memory resources. These operations ensure efficient memory management and improve application performance.
-	/// </remarks>
-	/// <param name="sender">The source of the Unloaded event, typically the AlbumsViewPage instance.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private async void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		foreach (var item in AlbumsGroup)
-		{
-			var container = AlbumTileView.ContainerFromItem(item) as ListViewItem;
-			if (container != null)
-			{
-				var image = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumCover") as Image;
-				if (image != null)
-				{
-					var bmp = image.Source as BitmapImage;
-					if (bmp != null) bmp.UriSource = null;
-					image.Source = null;
-				}
-			}
-		}
-
-		AlbumsGroup.Clear();
-		AlbumsGroup = null;
-		AlbumTileView.ItemsSource = null;
-		AlbumTileView.ItemTemplate = null;
-		AlbumTileView.ItemsPanel = null;
-		AlbumTileView.Visibility = Visibility.Collapsed;
-		GC.Collect();
-		GC.WaitForPendingFinalizers();
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -893,7 +857,9 @@ public sealed partial class AlbumsViewPage : Page
 	/// </remarks>
 	private void AlbumTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
-		AlbumTileView_SizeChanged(null, null);
+		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
+		// per-item from ContainerContentChanging caused severe UI thread stalls.
+		// Layout recalculation still happens correctly via the SizeChanged event.
 	}
 
 	/// <summary>
@@ -983,7 +949,6 @@ public sealed partial class AlbumsViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;

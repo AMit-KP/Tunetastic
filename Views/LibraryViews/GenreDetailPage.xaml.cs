@@ -600,7 +600,6 @@ public sealed partial class GenreDetailPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;
@@ -760,22 +759,6 @@ public sealed partial class GenreDetailPage : Page
 		}
 		else
 			selectedSong = listView.SelectedItem as Song;
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the GenreDetailViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		GenreGroupSongs.Clear();
-		GenreGroupSongs = null;
-		GC.Collect();
 	}
 
 	/// <summary>

@@ -1,5 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.PlaylistViews.RecentlyAdded"
+      NavigationCacheMode="Required"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
@@ -10,8 +11,7 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       x:Name="RecentlyAddedPage"
-      Loaded="Page_Loaded"
-      Unloaded="Page_Unloaded">
+      Loaded="Page_Loaded">
 
 	<Page.Resources>
 		<MenuFlyout x:Key="RightClickMenu"

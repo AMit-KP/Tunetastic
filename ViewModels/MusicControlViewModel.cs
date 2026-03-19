@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Dispatching;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Media;
@@ -27,6 +27,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private PlaybackTracker _playbackTracker = new();
 
 	private DispatcherTimer? _midpointTimer;
+
+	// Throttle progress bar updates to max once per second.
+	// FlyleafLib fires CurTime PropertyChanged many times per second — enqueuing
+	// High-priority UI work that frequently causes audio stutter during navigation.
+	private long _lastPositionUpdateTick = 0;
+	private static readonly long _positionUpdateIntervalTicks = TimeSpan.FromMilliseconds(950).Ticks;
 
 	private TimeSpan _thresoldDuration = TimeSpan.Zero;
 
@@ -84,17 +90,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 		{
 			if (_progressBarValue != value)
 			{
-				_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
-				{
-					_progressBarValue = value;
-					try
-					{
-						OnPropertyChanged(nameof(ProgressBarValue));
-					}
-					catch (Exception)
-					{
-					}
-				});
+				// Set directly — callers already marshal to UI thread via TryEnqueue(Normal).
+				// Wrapping in another High-priority enqueue causes a priority inversion that
+				// starves navigation/layout work during page transitions.
+				_progressBarValue = value;
+				try { OnPropertyChanged(nameof(ProgressBarValue)); } catch (Exception) { }
 
 				if (!isUpdatingProgressBar)
 				{
@@ -648,14 +648,24 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// This method is triggered when the playback position changes, allowing
 	/// synchronization of UI elements or internal state to match the updated position.
 	/// </summary>
-	private void PlaybackSession_PositionChanged() => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+	private void PlaybackSession_PositionChanged()
 	{
-		isUpdatingProgressBar = true;
-		ProgressBarValue = TimeSpan.FromTicks(_musicPlayer.MediaPlayer.CurTime).TotalSeconds;
-		//TODO smooth progress
-		TaskbarHelper.SetProgressValue(App.Hwnd, ProgressBarValue / DurationOfSong * 100, 100);
-		isUpdatingProgressBar = false;
-	});
+		// Throttle: only update the UI progress bar at most ~once per second.
+		// FlyleafLib fires this many times per second; each call enqueues High-priority
+		// work on the UI thread which starves navigation/layout and causes audio stutter.
+		long now = System.Diagnostics.Stopwatch.GetTimestamp();
+		long elapsed = (now - _lastPositionUpdateTick) * (TimeSpan.TicksPerSecond / System.Diagnostics.Stopwatch.Frequency);
+		if (elapsed < _positionUpdateIntervalTicks) return;
+		_lastPositionUpdateTick = now;
+
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+		{
+			isUpdatingProgressBar = true;
+			ProgressBarValue = TimeSpan.FromTicks(_musicPlayer.MediaPlayer.CurTime).TotalSeconds;
+			TaskbarHelper.SetProgressValue(App.Hwnd, ProgressBarValue / DurationOfSong * 100, 100);
+			isUpdatingProgressBar = false;
+		});
+	}
 
 	/// <summary>
 	/// Updates the playback position of the media player to reflect the current value of the progress bar.
@@ -664,7 +674,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </summary>
 	private void UpdatePlaybackPosition()
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+		// Use Normal priority so seek operations don't preempt navigation/layout work.
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			_musicPlayer.MediaPlayer.Audio.Volume = 0;
 			_musicPlayer.MediaPlayer.CurTime = TimeSpan.FromSeconds(ProgressBarValue).Ticks;

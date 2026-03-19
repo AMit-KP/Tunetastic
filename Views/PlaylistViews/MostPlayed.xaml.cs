@@ -479,22 +479,6 @@ public sealed partial class MostPlayed : Page
 	}
 
 	/// <summary>
-	/// Handles the Unloaded event for the MostPlayedPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		MostPlayedSongs.Clear();
-		MostPlayedSongs = null;
-		GC.Collect();
-	}
-
-	/// <summary>
 	/// Handles the 'Opened' event of the <see cref="MenuFlyout"/> control in the context menu.
 	/// </summary>
 	/// <remarks>
