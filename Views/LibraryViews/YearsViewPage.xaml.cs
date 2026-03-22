@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
@@ -186,10 +186,8 @@ public sealed partial class YearsViewPage : Page
 			await Task.Delay(100);
 		}
 
-		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
-		// per-item from ContainerContentChanging caused severe UI thread stalls.
-		// Layout recalculation still happens correctly via the SizeChanged event.
-		// ContainerContentChanging subscription removed — handler was empty after O(n) fix
+		YearTileView_SizeChanged(null, null);
+		//YearTileView.ContainerContentChanging += YearTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
@@ -816,9 +814,7 @@ public sealed partial class YearsViewPage : Page
 	/// </remarks>
 	private void YearTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
-		// SizeChanged recalculates ALL item widths in an O(n) loop — calling it
-		// per-item from ContainerContentChanging caused severe UI thread stalls.
-		// Layout recalculation still happens correctly via the SizeChanged event.
+		YearTileView_SizeChanged(null, null);
 	}
 
 	/// <summary>

@@ -167,7 +167,8 @@ public class DatabaseHelper
 									   AudioSampleRate TEXT DEFAULT NULL,
 									   AudioCodecDescription TEXT DEFAULT NULL,
 									   FileSize TEXT,
-									   Lyrics TEXT DEFAULT NULL)");
+									   Lyrics TEXT DEFAULT NULL,
+									   PlayerType TEXT NOT NULL DEFAULT 'Flyleaf')");
 
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Title_nocase ON Songs(Title COLLATE NOCASE)");
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Album_nonempty ON Songs(Album) WHERE Album IS NOT NULL AND TRIM(Album) != ''");
@@ -406,9 +407,9 @@ public class DatabaseHelper
 			foreach (var song in songs)
 			{
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize)
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType)
 							   VALUES
-							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?)
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?, ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -425,10 +426,11 @@ public class DatabaseHelper
 							   AudioChannels = excluded.AudioChannels,
 							   AudioCodecDescription = excluded.AudioCodecDescription,
 							   AudioSampleRate = excluded.AudioSampleRate,
-							   Lyrics = excluded.Lyrics;",
+							   Lyrics = excluded.Lyrics,
+							   PlayerType = excluded.PlayerType;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
 							   0, song.Cover, song.Duration, song.DateAdded, null,
-							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize);
+							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType);
 
 				SyncSongArtistsForSong(conn, song);
 			}
@@ -469,9 +471,9 @@ public class DatabaseHelper
 				DateTime? lastPlayed = existingSongData.FirstOrDefault(s => s.Path == song.Path)?.DateLastPlayed;
 
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize)
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType)
 							   VALUES
-							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?)
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?, ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -488,10 +490,11 @@ public class DatabaseHelper
 							   AudioChannels = excluded.AudioChannels,
 							   AudioCodecDescription = excluded.AudioCodecDescription,
 							   AudioSampleRate = excluded.AudioSampleRate,
-							   Lyrics = excluded.Lyrics;",
+							   Lyrics = excluded.Lyrics,
+							   PlayerType = excluded.PlayerType;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
 							   existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed,
-							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize);
+							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType);
 
 				SyncSongArtistsForSong(conn, song);
 			}
@@ -600,6 +603,28 @@ public class DatabaseHelper
 		{
 			var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ?", path);
 			return result.Count() > 0 ? result.FirstOrDefault() : null;
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Retrieves the PlayerType value for a song based on its file path.
+	/// This method queries the Songs table and returns the PlayerType associated with the specified path.
+	/// </summary>
+	/// <param name="path">The file path of the song whose PlayerType is to be retrieved.</param>
+	/// <returns>
+	/// A task representing the asynchronous operation. The task result contains the PlayerType as a string,
+	/// or null if the song is not found or an error occurs.
+	/// </returns>
+	public async Task<string?> GetPlayerTypeByPath(string path)
+	{
+		try
+		{
+			return await _database.ExecuteScalarAsync<string>(
+				"SELECT PlayerType FROM Songs WHERE Path = ?", path);
 		}
 		catch (Exception)
 		{
@@ -2090,7 +2115,7 @@ public class DatabaseHelper
 			{
 				var songSql = $@"WITH matches AS MATERIALIZED (
 								 {string.Join("\nUNION ALL\n", songSubs)})
-								 SELECT Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension
+								 SELECT Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, PlayerType
 								 FROM matches
 								 GROUP BY Path
 								 ORDER BY MIN(Score) ASC
@@ -2347,6 +2372,7 @@ public class Song
 	public string? AudioCodecDescription { get; set; }
 	public string? Lyrics { get; set; }
 	public string? FileSize { get; set; }
+	public string PlayerType { get; set; } = "Flyleaf";
 }
 
 /// <summary>

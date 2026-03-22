@@ -205,6 +205,8 @@ public class GetMusicData
 							}
 						};
 
+						song.PlayerType = DeterminePlayerType(song.AudioCodecDescription, filePath);
+
 						if (song.Duration <= 0)
 						{
 							FlyleafLib.Config config = new FlyleafLib.Config();
@@ -214,7 +216,8 @@ public class GetMusicData
 							var tempPlayer = new Player(config);
 							tempPlayer.Open(filePath);
 							song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-							tempPlayer.Dispose();
+							tempPlayer.Dispose();                           // Flyleaf opened it — it owns this file regardless of extension
+							song.PlayerType = "Flyleaf";
 						}
 
 						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
@@ -298,6 +301,111 @@ public class GetMusicData
 			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
 			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 			return ("Warning", "No libraries found. Please add atleast one library.");
+		}
+	}
+
+	/// <summary>
+	/// Determines the appropriate player type ("Windows" or "Flyleaf") for a given audio file,
+	/// based on its file extension and codec description.
+	/// </summary>
+	/// <param name="codecDescription">
+	/// The codec description string, typically obtained from TagLib, which provides information about the audio codec.
+	/// </param>
+	/// <param name="filePath">
+	/// The full path to the audio file whose player type is to be determined.
+	/// </param>
+	/// <returns>
+	/// Returns "Windows" if the file is best handled by the Windows-native player, or "Flyleaf" if it requires the Flyleaf player.
+	/// </returns>
+	private static string DeterminePlayerType(string? codecDescription, string filePath)
+	{
+		var ext = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+
+		switch (ext)
+		{
+			// Unambiguous Windows-native extensions
+			case ".mp3":
+			case ".mp2":
+			case ".wma":
+			case ".asf":
+			case ".mid":
+			case ".midi":
+			case ".kar":
+			case ".rmi":
+				return "Windows";
+
+			// Unambiguous Flyleaf-only extensions
+			case ".ogg":
+			case ".oga":
+			case ".ogx":
+			case ".opus":
+			case ".ape":
+			case ".wv":
+			case ".tta":
+			case ".mka":
+			case ".webm":
+			case ".ac3":
+			case ".dts":
+			case ".ra":
+			case ".rm":
+			case ".rmvb":
+			case ".flac":
+				return "Flyleaf";
+		}
+
+		// Ambiguous extensions — resolve using codec description from TagLib
+		if (!string.IsNullOrWhiteSpace(codecDescription))
+		{
+			var codec = codecDescription.ToLowerInvariant();
+
+			// Flyleaf-only codecs
+			if (codec.Contains("apple lossless") ||
+				codec.Contains("alac") ||
+				codec.Contains("opus") ||
+				codec.Contains("vorbis") ||
+				codec.Contains("wavpack") ||
+				codec.Contains("monkey") ||
+				codec.Contains("g.711") ||
+				codec.Contains("g711") ||
+				codec.Contains("g.726") ||
+				codec.Contains("g726") ||
+				codec.Contains("rf64") ||
+				codec.Contains("dolby") ||
+				codec.Contains("xhe") ||
+				codec.Contains("eld") ||
+				codec.Contains("usac"))
+			{
+				return "Flyleaf";
+			}
+
+			// Windows-native codecs
+			if (codec.Contains("mpeg audio") ||
+				codec.Contains("aac") ||
+				codec.Contains("mpeg-4 audio") ||
+				codec.Contains("pcm") ||
+				codec.Contains("windows media audio") ||
+				codec.Contains("wma") ||
+				codec.Contains("he-aac") ||
+				codec.Contains("he aac"))
+			{
+				return "Windows";
+			}
+		}
+
+		// No codec info or unrecognized — extension last resort
+		switch (ext)
+		{
+			case ".m4a":
+			case ".m4b":
+			case ".m4r":
+			case ".mp4":
+			case ".aac":
+			case ".wav":
+			case ".bwf":
+				// The Duration=0 path above will override to Flyleaf if needed.
+				return "Windows";
+			default:
+				return "Flyleaf";
 		}
 	}
 

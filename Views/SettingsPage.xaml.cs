@@ -631,7 +631,7 @@ public sealed partial class SettingsPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
 		Theme.SelectedItem = Theme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
-		var backdrop = (localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "DesktopAcrylic");
+		var backdrop = (localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Acrylic");
 		Backdrop.SelectedItem = Backdrop.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == backdrop);
 
 		if (backdrop == "Mica")

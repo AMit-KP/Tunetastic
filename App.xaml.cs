@@ -71,7 +71,7 @@ public partial class App : Application
 
 		ThemeService.Initialize(MainWindow);
 		await ThemeService.SetElementThemeAsync(Enum.Parse<ElementTheme>(localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
-		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "DesktopAcrylic";
+		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Acrylic";
 		await ThemeService.SetBackdropTypeAsync(Enum.Parse<BackdropType>(backdrop));
 
 		rootFrame.Navigate(typeof(Views.SplashScreen));

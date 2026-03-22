@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.SettingsPage"
       NavigationCacheMode="Required"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -265,10 +265,8 @@
 					              Tag="Mica" />
 					<ComboBoxItem Content="Mica Alt"
 					              Tag="MicaAlt" />
-					<ComboBoxItem Content="Desktop Acrylic"
-					              Tag="DesktopAcrylic" />
-					<ComboBoxItem Content="Acrylic Base"
-					              Tag="AcrylicBase" />
+					<ComboBoxItem Content="Acrylic"
+					              Tag="Acrylic" />
 					<ComboBoxItem Content="Acrylic Thin"
 					              Tag="AcrylicThin" />
 					<ComboBoxItem Content="Transparent"

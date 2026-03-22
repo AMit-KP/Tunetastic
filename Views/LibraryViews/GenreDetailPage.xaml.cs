@@ -454,7 +454,7 @@ public sealed partial class GenreDetailPage : Page
 		if (currentPlaylist.StartsWith("GenreGroup>") && currentPlaylist.Substring("GenreGroup>".Length) == ActualGenreGroup.Text)
 		{
 			List<string> songPaths = GenreGroupSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.IsPlaying, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 

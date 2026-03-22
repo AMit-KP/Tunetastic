@@ -452,7 +452,7 @@ public sealed partial class YearDetailPage : Page
 		if (currentPlaylist.StartsWith("YearGroup>") && currentPlaylist.Substring("YearGroup>".Length) == ActualYearGroup.Text)
 		{
 			List<string> songPaths = YearGroupSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.IsPlaying, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 
