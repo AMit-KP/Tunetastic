@@ -972,7 +972,7 @@ public sealed partial class ArtistsViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = ContentGrid.ActualHeight - 10;
+		double availableSpace = ContentGrid.ActualHeight - 20;
 
 		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
 

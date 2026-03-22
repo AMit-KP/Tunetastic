@@ -34,8 +34,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.25.20.1981</AssemblyVersion>
-    <FileVersion>1.25.20.1981</FileVersion>
+    <AssemblyVersion>1.25.31.1992</AssemblyVersion>
+    <FileVersion>1.25.31.1992</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -279,6 +279,7 @@
   <AppxBundlePlatforms>x64</AppxBundlePlatforms>
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxPackageDir>C:\Users\amitp\source\repos\Tunetastic\AppPackages\</AppxPackageDir>
+  <CreateMSIXPackage>True</CreateMSIXPackage>
 </PropertyGroup>
   <Target Name="TransformAllT4Templates" BeforeTargets="BeforeBuild">
     <ItemGroup>

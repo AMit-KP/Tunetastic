@@ -560,9 +560,9 @@ public sealed partial class YearDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => 50,
-			"Compact View" => 10,
-			_ => 10
+			"List View" => 60,
+			"Compact View" => 20,
+			_ => 20
 		};
 		if (availableSpace <= 0) return;
 
@@ -666,9 +666,9 @@ public sealed partial class YearDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => 50,
-			"Compact View" => 10,
-			_ => 10
+			"List View" => 60,
+			"Compact View" => 20,
+			_ => 20
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
