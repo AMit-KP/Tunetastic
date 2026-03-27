@@ -12,18 +12,19 @@
   xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
   xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
   xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
-  IgnorableNamespaces="uap rescap">
+  xmlns:uap18="http://schemas.microsoft.com/appx/manifest/uap/windows10/18"
+  IgnorableNamespaces="uap rescap uap18">
 
 	<Identity
-	  Name="00030270-7a9c-4963-87f4-7b9361cb17a0"
+	  Name="AMit-KP.Tunetastic"
 	  Publisher="CN=amitp"
-	  Version="1.0.0.0"/>
+	  Version="1.23.4.0"/>
 
-	<mp:PhoneIdentity PhoneProductId="00030270-7a9c-4963-87f4-7b9361cb17a0" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+	<mp:PhoneIdentity PhoneProductId="fbcf13fc-2512-4b2d-8b9e-3258f0535742" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
 	<Properties>
 		<DisplayName>Tunetastic</DisplayName>
-		<PublisherDisplayName>amitp</PublisherDisplayName>
+		<PublisherDisplayName>AMit-KP</PublisherDisplayName>
 		<Logo>Assets\Store\StoreLogo.png</Logo>
 <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
     <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
@@ -41,13 +42,12 @@
 	<Applications>
 		<Application Id="App"
 		  Executable="$targetnametoken$.exe"
-		  EntryPoint="$targetentrypoint$">
+		  EntryPoint="$targetentrypoint$" uap18:TrustLevel="mediumIL" uap18:RuntimeBehavior="packagedClassicApp">
 			<uap:VisualElements
 			  DisplayName="Tunetastic"
-			  Description="Tunetastic"
 			  BackgroundColor="transparent"
 			  Square150x150Logo="Assets\Store\Square150x150Logo.png"
-			  Square44x44Logo="Assets\Store\Square44x44Logo.png">
+			  Square44x44Logo="Assets\Store\Square44x44Logo.png" Description="Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that’s as unique, expressive and captivating as the music you love. 🎶">
 				<uap:DefaultTile Wide310x150Logo="Assets\Store\Wide310x150Logo.png" Square71x71Logo="Assets\Store\SmallTile.png" Square310x310Logo="Assets\Store\LargeTile.png">
 					<uap:ShowNameOnTiles>
 						<uap:ShowOn Tile="square150x150Logo"/>
@@ -55,6 +55,11 @@
 					</uap:ShowNameOnTiles>
 				</uap:DefaultTile >
 				<uap:SplashScreen Image="Assets\Store\SplashScreen.png"/>
+				<uap:InitialRotationPreference>
+					<uap:Rotation Preference="landscape"/>
+					<uap:Rotation Preference="portrait"/>
+					<uap:Rotation Preference="landscapeFlipped"/>
+					<uap:Rotation Preference="portraitFlipped"/></uap:InitialRotationPreference>
 			</uap:VisualElements>
 			<Extensions>
 				<desktop4:Extension Category="windows.fileExplorerContextMenus">
@@ -85,6 +90,20 @@
         <uap5:Extension Category="windows.startupTask">
           <uap5:StartupTask TaskId="TunetasticStartOnLoginTask" Enabled="false" DisplayName="Tunetastic" />
         </uap5:Extension>
+				<uap:Extension Category="windows.mediaPlayback">
+					<uap:MediaPlayback>
+						<uap:Codec Name="mp3"/>
+						<uap:Codec Name="m4a"/>
+						<uap:Codec Name="flac"/>
+						<uap:Codec Name="alac"/>
+						<uap:Codec Name="wav"/>
+						<uap:Codec Name="wma"/>
+						<uap:Codec Name="aac"/>
+						<uap:Codec Name="ogg"/>
+						<uap:Codec Name="aiff"/>
+						<uap:Codec Name="opus"/>
+					</uap:MediaPlayback>
+				</uap:Extension>
       </Extensions>
 		</Application>
 	</Applications>
@@ -92,5 +111,7 @@
 	<Capabilities>
 		<rescap:Capability Name="runFullTrust"/>
     <rescap:Capability Name="unvirtualizedResources" />
+		<uap3:Capability Name="backgroundMediaPlayback"/>
+		<uap:Capability Name="musicLibrary"/>
 	</Capabilities>
 </Package>

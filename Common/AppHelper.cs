@@ -6,23 +6,88 @@ using Nucs.JsonSettings.Modulation.Recovery;
 namespace Tunetastic.Common;
 public static partial class AppHelper
 {
-    public static AppConfig Settings = JsonSettings.Configure<AppConfig>()
-                               .WithRecovery(RecoveryAction.RenameAndLoadDefault)
-                               .WithVersioning(VersioningResultAction.RenameAndLoadDefault)
-                               .LoadNow();
+	public static AppConfig Settings = JsonSettings.Configure<AppConfig>()
+							   .WithRecovery(RecoveryAction.RenameAndLoadDefault)
+							   .WithVersioning(VersioningResultAction.RenameAndLoadDefault)
+							   .LoadNow();
 }
 
-public class LibrarySettings : JsonSettings
+/// <summary>
+/// Enum representing the keys for storing and retrieving local settings or preferences within the application.
+/// These values are utilized to save user-defined configurations and application data in persistent storage.
+/// </summary>
+public enum LocalSave
 {
-    public override string FileName { get; set; } = Constants.LibrariesSettingsDataPath;
-
-    public virtual bool IgnoreDuplicateEnabled { get; set; }
-
-    public virtual bool ScanAtStartup { get; set; }
-
-    public virtual double ignoreTracksBelowDuration { get; set; }
-
-    public virtual string ScanResult { get; set; }
-
-    public virtual int totalTracks { get; set; }
+	IgnoreDuplicateEnabled,
+	ScanAtStartup,
+	IgnoreTracksBelowDuration,
+	ScanResult,
+	PlayPauseStopFadeStatus,
+	PlayPauseStopFadeValue,
+	AutoAdvanceStatus,
+	AutoAdvanceValue,
+	ManualTrackChangeStatus,
+	ManualTrackChangeValue,
+	PreviousResetStatus,
+	RestartTrackOnSelectionStatus,
+	UseSystemVolumeStatus,
+	PauseOnMuteStatus,
+	AutoStartStatus,
+	MainPlayerBGBlurValue,
+	LastPlayedTrack,
+	PlayBackPosition,
+	CurrentIndex,
+	CurrentPlayinglist,
+	ShuffleStatus,
+	RepeatStatus,
+	Backdrop,
+	Theme,
+	BackdropTintColorStatus,
+	BackdropTintColorA,
+	BackdropTintColorR,
+	BackdropTintColorG,
+	BackdropTintColorB,
+	RainbowFrameStatus,
+	RainbowFrameSpeed,
+	RainbowOnlyDuringPlayback,
+	AllSongViewSortBy,
+	AllSongViewSortOrder,
+	AllSongViewStyle,
+	MinimizeToTray,
+	RecentlyAddedSongViewStyle,
+	RecentlyAddedMaxLimit,
+	MostPlayedSongViewStyle,
+	MostPlayedMaxLimit,
+	RecentlyAddedSongTimeStyle,
+	duplicateQueueAllowed,
+	RecentlyPlayedSongViewStyle,
+	RecentlyPlayedMaxLimit,
+	RecentlyPlayedSongTimeStyle,
+	ArtistsEnabled,
+	AlbumsEnabled,
+	GenresEnabled,
+	YearsEnabled,
+	RecentlyAddedEnabled,
+	RecentlyPlayedEnabled,
+	MostPlayedEnabled,
+	YearsViewSortOrder,
+	YearDetailViewSortBy,
+	YearDetailViewSortOrder,
+	YearDetailViewStyle,
+	SelectedYear,
+	GenresViewSortOrder,
+	GenreDetailViewSortBy,
+	GenreDetailViewSortOrder,
+	GenreDetailViewStyle,
+	SelectedGenre,
+	AlbumsViewSortOrder,
+	AlbumDetailViewSortBy,
+	AlbumDetailViewSortOrder,
+	AlbumDetailViewStyle,
+	SelectedAlbum,
+	ArtistsViewSortOrder,
+	ArtistDetailViewSortBy,
+	ArtistDetailViewSortOrder,
+	ArtistDetailViewStyle,
+	SelectedArtist
 }

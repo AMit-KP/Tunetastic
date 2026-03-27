@@ -1,0 +1,111 @@
+﻿using Windows.Foundation;
+
+namespace Tunetastic.Common;
+
+public class SmartWrapVirtualizingLayout : VirtualizingLayout
+{
+	public double TileWidth { get; set; } = 160;
+	public double TileHeight { get; set; } = 100;
+	public double MinGap { get; set; } = 8;
+	public double RowGap { get; set; } = 12;
+
+	private double _calculatedGap = 8;
+	private int _columnCount = 1;
+	private double _finalLayoutWidth;
+
+	protected override void InitializeForContextCore(VirtualizingLayoutContext context)
+	{
+		base.InitializeForContextCore(context);
+		context.LayoutState = new LayoutState();
+	}
+
+	protected override Size MeasureOverride(VirtualizingLayoutContext context, Size availableSize)
+	{
+		CalculateLayout(context, availableSize);
+		int itemCount = context.ItemCount;
+
+		if (itemCount == 0)
+		{
+			return new Size(_finalLayoutWidth, 0);
+		}
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			var element = context.GetOrCreateElementAt(i);
+			element.Measure(new Size(TileWidth, TileHeight));
+		}
+
+		int rows = (int)Math.Ceiling((double)itemCount / _columnCount);
+		double totalHeight = rows * TileHeight + (rows - 1) * RowGap;
+
+		return new Size(_finalLayoutWidth, totalHeight);
+	}
+
+	protected override Size ArrangeOverride(VirtualizingLayoutContext context, Size finalSize)
+	{
+		CalculateLayout(context, finalSize);
+		int itemCount = context.ItemCount;
+		if (itemCount == 0)
+		{
+			return new Size(_finalLayoutWidth, 0);
+		}
+
+		for (int index = 0; index < itemCount; index++)
+		{
+			int row = index / _columnCount;
+			int col = index % _columnCount;
+
+			double x = _calculatedGap + col * (TileWidth + _calculatedGap);
+			double y = row * (TileHeight + RowGap);
+
+			var rect = new Rect(new Point(x, y), new Size(TileWidth, TileHeight));
+			var element = context.GetOrCreateElementAt(index);
+			element.Arrange(rect);
+		}
+
+		int rows = (int)Math.Ceiling((double)itemCount / _columnCount);
+		double totalHeight = rows * TileHeight + (rows - 1) * RowGap;
+
+
+		return new Size(_finalLayoutWidth, totalHeight);
+	}
+
+	private void CalculateLayout(VirtualizingLayoutContext context, Size size)
+	{
+		double containerWidth = size.Width;
+		_finalLayoutWidth = containerWidth;
+
+		_finalLayoutWidth = containerWidth;
+
+		int bestColumnCount = 1;
+		double bestGap = MinGap;
+
+		for (int cols = 1; cols < 100; cols++)
+		{
+			double tileSpace = TileWidth * cols;
+			double gapSpace = containerWidth - tileSpace;
+			double testGap = gapSpace / (cols + 1);
+
+			if (testGap < MinGap)
+				break;
+
+			bestColumnCount = cols;
+			bestGap = testGap;
+		}
+
+		_columnCount = bestColumnCount;
+		_calculatedGap = bestGap;
+	}
+
+	private double GetHorizontalPadding(FrameworkElement element)
+	{
+		if (element is Control control)
+		{
+			var padding = control.Padding;
+			return padding.Left + padding.Right;
+		}
+		return 0;
+	}
+
+	private class LayoutState { } // Reserved for future layout caching, if needed
+}

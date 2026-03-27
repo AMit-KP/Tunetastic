@@ -4,127 +4,143 @@ using Windows.System;
 namespace Tunetastic.ViewModels;
 public partial class SettingViewModel : ObservableObject
 {
-    [ObservableProperty]
-    public string currentVersion;
+	[ObservableProperty]
+	public string currentVersion;
 
-    [ObservableProperty]
-    public string lastUpdateCheck;
+	[ObservableProperty]
+	public string lastUpdateCheck;
 
-    [ObservableProperty]
-    public bool isUpdateAvailable;
+	[ObservableProperty]
+	public bool isUpdateAvailable;
 
-    [ObservableProperty]
-    public bool isLoading;
+	[ObservableProperty]
+	public bool isLoading;
 
-    [ObservableProperty]
-    public bool isCheckButtonEnabled = true;
+	[ObservableProperty]
+	public bool isCheckButtonEnabled = true;
 
-    [ObservableProperty]
-    public string loadingStatus = "Status";
+	[ObservableProperty]
+	public string loadingStatus = "Status";
 
-    private string ChangeLog = string.Empty;
+	private string ChangeLog = string.Empty;
 
-    public SettingViewModel()
-    {
-        CurrentVersion = $"Current Version {ProcessInfoHelper.VersionWithPrefix}";
-        LastUpdateCheck = Settings.LastUpdateCheck;
-    }
+	public SettingViewModel()
+	{
+		CurrentVersion = $"Current Version {ProcessInfoHelper.Version}";
+		LastUpdateCheck = Settings.LastUpdateCheck;
+	}
 
-    [RelayCommand]
-    private async Task CheckForUpdateAsync()
-    {
-        IsLoading = true;
-        IsUpdateAvailable = false;
-        IsCheckButtonEnabled = false;
-        LoadingStatus = "Checking for new version";
-        if (NetworkHelper.IsNetworkAvailable())
-        {
-            try
-            {
-                //Todo: Fix UserName and Repo
-                string username = "";
-                string repo = "";
-                LastUpdateCheck = DateTime.Now.ToShortDateString();
-                Settings.LastUpdateCheck = DateTime.Now.ToShortDateString();
-                var update = await UpdateHelper.CheckUpdateAsync(username, repo, new Version(ProcessInfoHelper.Version));
-                if (update.StableRelease.IsExistNewVersion)
-                {
-                    IsUpdateAvailable = true;
-                    ChangeLog = update.StableRelease.Changelog;
-                    LoadingStatus = $"We found a new version {update.StableRelease.TagName} Created at {update.StableRelease.CreatedAt} and Published at {update.StableRelease.PublishedAt}";
-                }
-                else if (update.PreRelease.IsExistNewVersion)
-                {
-                    IsUpdateAvailable = true;
-                    ChangeLog = update.PreRelease.Changelog;
-                    LoadingStatus = $"We found a new PreRelease Version {update.PreRelease.TagName} Created at {update.PreRelease.CreatedAt} and Published at {update.PreRelease.PublishedAt}";
-                }
-                else
-                {
-                    LoadingStatus = "You are using latest version";
-                }
-            }
-            catch (Exception ex)
-            {
-                LoadingStatus = ex.Message;
-                IsLoading = false;
-                IsCheckButtonEnabled = true;
-            }
-        }
-        else
-        {
-            LoadingStatus = "Error Connection";
-        }
-        IsLoading = false;
-        IsCheckButtonEnabled = true;
-    }
+	[RelayCommand]
+	private async Task CheckForUpdateAsync()
+	{
+		IsLoading = true;
+		IsUpdateAvailable = false;
+		IsCheckButtonEnabled = false;
+		LoadingStatus = "Checking for new version";
+		if (NetworkHelper.IsNetworkAvailable())
+		{
+			try
+			{
+				//Todo: Fix UserName and Repo
+				string username = "";
+				string repo = "";
+				LastUpdateCheck = DateTime.Now.ToShortDateString();
+				Settings.LastUpdateCheck = DateTime.Now.ToShortDateString();
+				var update = await UpdateHelper.CheckUpdateAsync(username, repo, new Version(ProcessInfoHelper.Version));
+				if (update.StableRelease.IsExistNewVersion)
+				{
+					IsUpdateAvailable = true;
+					ChangeLog = update.StableRelease.Changelog;
+					LoadingStatus = $"We found a new version {update.StableRelease.TagName} Created at {update.StableRelease.CreatedAt} and Published at {update.StableRelease.PublishedAt}";
+				}
+				else if (update.PreRelease.IsExistNewVersion)
+				{
+					IsUpdateAvailable = true;
+					ChangeLog = update.PreRelease.Changelog;
+					LoadingStatus = $"We found a new PreRelease Version {update.PreRelease.TagName} Created at {update.PreRelease.CreatedAt} and Published at {update.PreRelease.PublishedAt}";
+				}
+				else
+				{
+					LoadingStatus = "You are using latest version";
+				}
+			}
+			catch (Exception ex)
+			{
+				LoadingStatus = ex.Message;
+				IsLoading = false;
+				IsCheckButtonEnabled = true;
+			}
+		}
+		else
+		{
+			LoadingStatus = "Error Connection";
+		}
+		IsLoading = false;
+		IsCheckButtonEnabled = true;
+	}
 
-    [RelayCommand]
-    private async Task GoToUpdateAsync()
-    {
-        //Todo: Change Uri
-        await Launcher.LaunchUriAsync(new Uri(""));
-    }
+	[RelayCommand]
+	private async Task GoToUpdateAsync()
+	{
+		//Todo: Change Uri
+		await Launcher.LaunchUriAsync(new Uri(""));
+	}
 
-    [RelayCommand]
-    private async Task GetReleaseNotesAsync()
-    {
-        ContentDialog dialog = new ContentDialog()
-        {
-            Title = "Release Note",
-            CloseButtonText = "Close",
-            Content = new ScrollViewer
-            {
-                Content = new TextBlock
-                {
-                    Text = ChangeLog,
-                    Margin = new Thickness(10)
-                },
-                Margin = new Thickness(10)
-            },
-            Margin = new Thickness(10),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = App.MainWindow.Content.XamlRoot
-        };
+	[RelayCommand]
+	private async Task GetReleaseNotesAsync()
+	{
+		ContentDialog dialog = new ContentDialog()
+		{
+			Title = "Release Note",
+			CloseButtonText = "Close",
+			Content = new ScrollViewer
+			{
+				Content = new TextBlock
+				{
+					Text = ChangeLog,
+					Margin = new Thickness(10)
+				},
+				Margin = new Thickness(10)
+			},
+			Margin = new Thickness(10),
+			DefaultButton = ContentDialogButton.Close,
+			XamlRoot = App.MainWindow.Content.XamlRoot
+		};
 
-        await dialog.ShowAsync();
-    }
+		await dialog.ShowAsync();
+	}
 
-    [RelayCommand]
-    void Reset()
-    {
-        _ = ResetAllSettings();
-        RestartApp();
-    }
+	/// <summary>
+	/// Initiates a reset of all application settings and restarts the application.
+	/// This method clears user preferences and persistent data, then triggers an application restart
+	/// to apply the changes and reinitialize the app with default settings.
+	/// </summary>
+	[RelayCommand]
+	void Reset()
+	{
+		_ = ResetAllSettings();
+		RestartApp();
+	}
 
-    public async Task ResetAllSettings()
-    {
-        ApplicationData.Current.LocalSettings.Values.Clear();
-        await ApplicationData.Current.ClearAsync();
-    }
+	/// <summary>
+	/// Resets all application settings to their default values.
+	/// This method clears both local settings and persistent application data storage.
+	/// It is commonly used when a complete reset of user preferences and stored data is required.
+	/// </summary>
+	/// <returns>A Task that represents the asynchronous operation.</returns>
+	public async Task ResetAllSettings()
+	{
+		ApplicationData.Current.LocalSettings.Values.Clear();
+		await ApplicationData.Current.ClearAsync();
+	}
 
-    private void RestartApp()
-    {
-        Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
-    }
+	/// <summary>
+	/// Restarts the application. This method leverages the AppInstance.Restart method,
+	/// allowing the application to terminate and relaunch with a blank argument or state.
+	/// Primarily used after resetting application settings or applying critical updates.
+	/// </summary>
+	private void RestartApp()
+	{
+		Microsoft.Windows.AppLifecycle.AppInstance.Restart("");
+	}
 }
