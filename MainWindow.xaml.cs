@@ -272,7 +272,7 @@ public sealed partial class MainWindow : WindowEx
 /// </remarks>
 public class ModernMenuRenderer : ToolStripRenderer
 {   //TODO: Needs work
-	private bool IsDarkMode => App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark;
+	private bool IsDarkMode => App.Current.ThemeService.ActualTheme == ElementTheme.Dark;
 
 	protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
 	{

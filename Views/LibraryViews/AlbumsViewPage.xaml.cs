@@ -4,7 +4,6 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Media.Imaging;
 using Windows.Foundation;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -193,7 +192,7 @@ public sealed partial class AlbumsViewPage : Page
 		}
 
 		AlbumTileView_SizeChanged(null, null);
-		AlbumTileView.ContainerContentChanging += AlbumTileView_ContainerContentChanging;
+		//AlbumTileView.ContainerContentChanging += AlbumTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
@@ -205,13 +204,19 @@ public sealed partial class AlbumsViewPage : Page
 			if (animation != null && selectedAlbumModel != null)
 			{
 				await Task.Delay(30);
-				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(selectedAlbumModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await AlbumTileView.SmoothScrollIntoViewWithItemAsync(selectedAlbumModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 				await Task.Delay(100);
 
 				var container = AlbumTileView.ContainerFromItem(selectedAlbumModel) as ListViewItem;
 				if (container != null)
 				{
-					var albumTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumTextBlock");
+					var albumTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "AlbumTextBlock");
 					if (albumTextBlock != null)
 						animation.TryStart(albumTextBlock);
 				}
@@ -231,6 +236,7 @@ public sealed partial class AlbumsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		AlbumTileView.SizeChanged -= AlbumTileView_SizeChanged;
 		AlbumTileView.SizeChanged += AlbumTileView_SizeChanged;
 	}
 
@@ -267,7 +273,13 @@ public sealed partial class AlbumsViewPage : Page
 		if (tile != null)
 		{
 			AlbumTileView.SelectedItem = tile;
-			await AlbumTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -312,44 +324,6 @@ public sealed partial class AlbumsViewPage : Page
 		{
 			MoreButton.IsEnabled = AlbumTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the AlbumsViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is invoked when the AlbumsViewPage is unloaded. It performs a series of cleanup tasks, including clearing album collections,
-	/// nullifying resources associated with the album tile view, collapsing its visibility, and triggering garbage collection to
-	/// free up memory resources. These operations ensure efficient memory management and improve application performance.
-	/// </remarks>
-	/// <param name="sender">The source of the Unloaded event, typically the AlbumsViewPage instance.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private async void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		foreach (var item in AlbumsGroup)
-		{
-			var container = AlbumTileView.ContainerFromItem(item) as ListViewItem;
-			if (container != null)
-			{
-				var image = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumCover") as Image;
-				if (image != null)
-				{
-					var bmp = image.Source as BitmapImage;
-					if (bmp != null) bmp.UriSource = null;
-					image.Source = null;
-				}
-			}
-		}
-
-		AlbumsGroup.Clear();
-		AlbumsGroup = null;
-		AlbumTileView.ItemsSource = null;
-		AlbumTileView.ItemTemplate = null;
-		AlbumTileView.ItemsPanel = null;
-		AlbumTileView.Visibility = Visibility.Collapsed;
-		GC.Collect();
-		GC.WaitForPendingFinalizers();
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -568,7 +542,7 @@ public sealed partial class AlbumsViewPage : Page
 			AlbumTileView.IsItemClickEnabled = false;
 			AlbumTileView.IsMultiSelectCheckBoxEnabled = true;
 			AlbumTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AlbumTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(AlbumTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -587,7 +561,7 @@ public sealed partial class AlbumsViewPage : Page
 			AlbumTileView.IsItemClickEnabled = true;
 			AlbumTileView.IsMultiSelectCheckBoxEnabled = false;
 			AlbumTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(AlbumTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(AlbumTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -698,7 +672,7 @@ public sealed partial class AlbumsViewPage : Page
 			var container = AlbumTileView.ContainerFromItem(albumModel) as ListViewItem;
 			if (container != null)
 			{
-				var albumTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumTextBlock");
+				var albumTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "AlbumTextBlock");
 				if (albumTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimation", albumTextBlock);
@@ -768,7 +742,7 @@ public sealed partial class AlbumsViewPage : Page
 			var container = AlbumTileView.ContainerFromItem(selectedAlbumModel) as ListViewItem;
 			if (container != null)
 			{
-				var albumTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "AlbumTextBlock");
+				var albumTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "AlbumTextBlock");
 				if (albumTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("AlbumHeaderAnimation", albumTextBlock);
@@ -948,7 +922,7 @@ public sealed partial class AlbumsViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),
@@ -971,7 +945,6 @@ public sealed partial class AlbumsViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;
@@ -994,10 +967,22 @@ public sealed partial class AlbumsViewPage : Page
 
 		if (targetAlbum != null)
 		{
-			await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			AlbumTileView.SelectedItem = targetAlbum;
 			await Task.Delay(500);
-			await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await AlbumTileView.SmoothScrollIntoViewWithItemAsync(targetAlbum, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -1013,7 +998,7 @@ public sealed partial class AlbumsViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = ContentGrid.ActualHeight - 10;
+		double availableSpace = ContentGrid.ActualHeight - 20;
 
 		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
 

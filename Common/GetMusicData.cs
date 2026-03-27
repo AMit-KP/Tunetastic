@@ -1,4 +1,4 @@
-﻿using LibVLCSharp.Shared;
+﻿using FlyleafLib.MediaPlayer;
 
 namespace Tunetastic.Common;
 
@@ -79,6 +79,7 @@ public class GetMusicData
 
 		_isScanning = false;
 		MusicPlayer.Instance.ResetOrReloadPlayer();
+		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.NoProgress);
 	}
 
 	/// <summary>
@@ -91,7 +92,9 @@ public class GetMusicData
 	/// </returns>
 	private async Task<(string, string)> ScanLibraries()
 	{
+		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 		ScanProgress = 0;
+		TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 		var audioFiles = new HashSet<string>();
 
 		var libraries = new List<string>();
@@ -154,16 +157,17 @@ public class GetMusicData
 			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
 
 			ScanProgress = 1;
+			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			int processedFiles = 0;
 
 			foreach (var filePath in audioFiles)
 			{
 				try
 				{
-					//TODO some songs have unsupported codecs
 					using (var audioModel = TagLib.File.Create(filePath))
 					{
 						var fileInfo = new FileInfo(filePath);
+
 						var song = new Song
 						{
 							Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
@@ -175,22 +179,45 @@ public class GetMusicData
 							Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
 							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
 							DateAdded = fileInfo.LastWriteTime,
-							Extension = fileInfo.Extension
+							Extension = fileInfo.Extension,
+							AudioCodecDescription = audioModel.Properties.Description,
+							AudioSampleRate = audioModel.Properties.AudioSampleRate != 0 ? audioModel.Properties.AudioSampleRate.ToString() + " Hz" : null,
+							AudioBitrate = audioModel.Properties.AudioBitrate != 0 ? audioModel.Properties.AudioBitrate.ToString() + " kbps" : null,
+							AudioChannels = audioModel.Properties.AudioChannels switch
+							{
+								1 => "Mono",
+								2 => "Stereo",
+								4 => "Quadraphonic",
+								5 => "Surround 5.0",
+								6 => "Surround 5.1",
+								7 => "Surround 6.1",
+								8 => "Surround 7.1",
+								>= 9 => "Immersive",
+								_ => null
+							},
+							FileSize = fileInfo.Length switch
+							{
+								>= 1L << 40 => $"{fileInfo.Length / Math.Pow(1024, 4):0.##} TB",
+								>= 1L << 30 => $"{fileInfo.Length / Math.Pow(1024, 3):0.##} GB",
+								>= 1L << 20 => $"{fileInfo.Length / Math.Pow(1024, 2):0.##} MB",
+								>= 1L << 10 => $"{fileInfo.Length / 1024d:0.##} KB",
+								_ => $"{fileInfo.Length} B"
+							}
 						};
+
+						song.PlayerType = DeterminePlayerType(song.AudioCodecDescription, filePath);
 
 						if (song.Duration <= 0)
 						{
-							Core.Initialize();
-							var _libVLC = new LibVLC();
-							var media = new Media(_libVLC, filePath, FromType.FromPath);
-							var VlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
-							VlcMediaPlayer.Media = media;
-							VlcMediaPlayer.Volume = 0;
-							VlcMediaPlayer.Mute = true;
-							VlcMediaPlayer.Play();
-							song.Duration = VlcMediaPlayer.Length / 1000.0;
-							VlcMediaPlayer.Dispose();
-							_libVLC.Dispose();
+							FlyleafLib.Config config = new FlyleafLib.Config();
+							config.Video.Enabled = false;
+							config.Audio.Enabled = true;
+							config.Player.AutoPlay = false;
+							var tempPlayer = new Player(config);
+							tempPlayer.Open(filePath);
+							song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+							tempPlayer.Dispose();                           // Flyleaf opened it — it owns this file regardless of extension
+							song.PlayerType = "Flyleaf";
 						}
 
 						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
@@ -203,17 +230,14 @@ public class GetMusicData
 					double duration = 0;
 					try
 					{
-						Core.Initialize();
-						var _libVLC = new LibVLC();
-						var media = new Media(_libVLC, filePath, FromType.FromPath);
-						var VlcMediaPlayer = new LibVLCSharp.Shared.MediaPlayer(_libVLC);
-						VlcMediaPlayer.Media = media;
-						VlcMediaPlayer.Volume = 0;
-						VlcMediaPlayer.Mute = true;
-						VlcMediaPlayer.Play();
-						duration = VlcMediaPlayer.Length / 1000.0;
-						VlcMediaPlayer.Dispose();
-						_libVLC.Dispose();
+						FlyleafLib.Config config = new FlyleafLib.Config();
+						config.Video.Enabled = false;
+						config.Audio.Enabled = true;
+						config.Player.AutoPlay = false;
+						var tempPlayer = new Player(config);
+						tempPlayer.Open(filePath);
+						duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+						tempPlayer.Dispose();
 					}
 					catch (Exception)
 					{
@@ -239,6 +263,7 @@ public class GetMusicData
 
 				processedFiles++;
 				ScanProgress = Math.Round((2 + ((double)(processedFiles * 97) / audioFiles.Count)), 2);
+				TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 				await Task.Delay(10);
 			}
 
@@ -250,6 +275,7 @@ public class GetMusicData
 			{
 				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
 				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
+				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 				return ("Error", "No tracks could be added");
 			}
 
@@ -263,8 +289,9 @@ public class GetMusicData
 			uniqueMetadata = null!;
 			libraries = null!;
 
-			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {DateTime.Now}";
+			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
 			ScanProgress = 100;
+			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
 			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount);
 		}
@@ -272,7 +299,113 @@ public class GetMusicData
 		{
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
+			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 			return ("Warning", "No libraries found. Please add atleast one library.");
+		}
+	}
+
+	/// <summary>
+	/// Determines the appropriate player type ("Windows" or "Flyleaf") for a given audio file,
+	/// based on its file extension and codec description.
+	/// </summary>
+	/// <param name="codecDescription">
+	/// The codec description string, typically obtained from TagLib, which provides information about the audio codec.
+	/// </param>
+	/// <param name="filePath">
+	/// The full path to the audio file whose player type is to be determined.
+	/// </param>
+	/// <returns>
+	/// Returns "Windows" if the file is best handled by the Windows-native player, or "Flyleaf" if it requires the Flyleaf player.
+	/// </returns>
+	private static string DeterminePlayerType(string? codecDescription, string filePath)
+	{
+		var ext = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
+
+		switch (ext)
+		{
+			// Unambiguous Windows-native extensions
+			case ".mp3":
+			case ".mp2":
+			case ".wma":
+			case ".asf":
+			case ".mid":
+			case ".midi":
+			case ".kar":
+			case ".rmi":
+				return "Windows";
+
+			// Unambiguous Flyleaf-only extensions
+			case ".ogg":
+			case ".oga":
+			case ".ogx":
+			case ".opus":
+			case ".ape":
+			case ".wv":
+			case ".tta":
+			case ".mka":
+			case ".webm":
+			case ".ac3":
+			case ".dts":
+			case ".ra":
+			case ".rm":
+			case ".rmvb":
+			case ".flac":
+				return "Flyleaf";
+		}
+
+		// Ambiguous extensions — resolve using codec description from TagLib
+		if (!string.IsNullOrWhiteSpace(codecDescription))
+		{
+			var codec = codecDescription.ToLowerInvariant();
+
+			// Flyleaf-only codecs
+			if (codec.Contains("apple lossless") ||
+				codec.Contains("alac") ||
+				codec.Contains("opus") ||
+				codec.Contains("vorbis") ||
+				codec.Contains("wavpack") ||
+				codec.Contains("monkey") ||
+				codec.Contains("g.711") ||
+				codec.Contains("g711") ||
+				codec.Contains("g.726") ||
+				codec.Contains("g726") ||
+				codec.Contains("rf64") ||
+				codec.Contains("dolby") ||
+				codec.Contains("xhe") ||
+				codec.Contains("eld") ||
+				codec.Contains("usac"))
+			{
+				return "Flyleaf";
+			}
+
+			// Windows-native codecs
+			if (codec.Contains("mpeg audio") ||
+				codec.Contains("aac") ||
+				codec.Contains("mpeg-4 audio") ||
+				codec.Contains("pcm") ||
+				codec.Contains("windows media audio") ||
+				codec.Contains("wma") ||
+				codec.Contains("he-aac") ||
+				codec.Contains("he aac"))
+			{
+				return "Windows";
+			}
+		}
+
+		// No codec info or unrecognized — extension last resort
+		switch (ext)
+		{
+			case ".m4a":
+			case ".m4b":
+			case ".m4r":
+			case ".mp4":
+			case ".aac":
+			case ".wav":
+			case ".bwf":
+				// The Duration=0 path above will override to Flyleaf if needed.
+				return "Windows";
+			default:
+				return "Flyleaf";
 		}
 	}
 

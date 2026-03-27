@@ -2,47 +2,29 @@
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.Media;
-using Windows.Media.Playback;
 
 
 namespace Tunetastic.ViewModels;
 
 /// <summary>
-/// Represents the ViewModel for controlling music playback in the application.
+/// ViewModel for music playback control. All MediaPlayer/FlyleafLib references
+/// have been replaced with the unified MusicPlayer surface (IsPlaying, CurTimeTicks,
+/// PlaybackStateChanged, OpenCompleted, PositionChanged).
 /// </summary>
-/// <remarks>
-/// This class provides properties and methods to manage playback state, user interface updates,
-/// and interaction with the underlying media player. It handles playback controls such as play,
-/// pause, shuffle, repeat, and also manages progress and duration of the currently playing song.
-/// </remarks>
 public partial class MusicControlViewModel : ObservableRecipient
 {
 	private readonly DispatcherQueue _dispatcherQueue;
 
 	private bool isUpdatingProgressBar = false;
-
 	private bool _isRainbowActive = false;
 
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
-
 	private PlaybackTracker _playbackTracker = new();
-
 	private DispatcherTimer? _midpointTimer;
 
 	private TimeSpan _thresoldDuration = TimeSpan.Zero;
 
 	private string _fontIconPlayPause = "\uE768";
-
-	/// <summary>
-	/// Gets or sets the glyph representation for the play/pause icon.
-	/// </summary>
-	/// <remarks>
-	/// This property updates the visual icon displayed in the user interface to represent
-	/// the current playback state. The value is mapped to specific Unicode glyphs
-	/// ("\uE768" for play and "\uE769" for pause). Updates to this property occur
-	/// dynamically based on the media playback state changes, ensuring synchronization between
-	/// the displayed icon and the player state.
-	/// </remarks>
 	public string FontIconPlayPause
 	{
 		get => _fontIconPlayPause;
@@ -50,17 +32,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _repeatButtonFontIcon = "\uE8EE";
-
-	/// <summary>
-	/// Gets or sets the glyph representation for the repeat button icon.
-	/// </summary>
-	/// <remarks>
-	/// This property determines the visual representation of the repeat button in the user interface,
-	/// dynamically updating the displayed glyph based on the current repeat mode. The property maps
-	/// specific Unicode glyphs ("\uE8EE" for repeat all, "\uE8ED" for repeat one, and "\uF5E7" for repeat off)
-	/// to visually indicate the active repeat state. Changes to this property ensure synchronization
-	/// with the application's repeat functionality.
-	/// </remarks>
 	public string RepeatButtonFontIcon
 	{
 		get => _repeatButtonFontIcon;
@@ -68,16 +39,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private double _progressBarValue;
-
-	/// <summary>
-	/// Gets or sets the current position of the progress bar, representing the playback position in seconds.
-	/// </summary>
-	/// <remarks>
-	/// This property is dynamically updated to reflect the real-time playback position of the media content.
-	/// Changes to this value trigger corresponding updates in the user interface. Modifications to the
-	/// property also initiate logic to synchronize the playback position with the media playback session.
-	/// Additionally, it ensures thread-safe updates by utilizing a dispatcher queue.
-	/// </remarks>
 	public double ProgressBarValue
 	{
 		get => _progressBarValue;
@@ -85,37 +46,16 @@ public partial class MusicControlViewModel : ObservableRecipient
 		{
 			if (_progressBarValue != value)
 			{
-				_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () =>
-				{
-					_progressBarValue = value;
-					try
-					{
-						OnPropertyChanged(nameof(ProgressBarValue));
-					}
-					catch (Exception)
-					{
-					}
-				});
+				_progressBarValue = value;
+				try { OnPropertyChanged(nameof(ProgressBarValue)); } catch (Exception) { }
 
 				if (!isUpdatingProgressBar)
-				{
 					UpdatePlaybackPosition();
-				}
 			}
 		}
 	}
 
 	private double _durationOfSong;
-
-	/// <summary>
-	/// Gets or sets the total duration of the currently playing song in seconds.
-	/// </summary>
-	/// <remarks>
-	/// This property represents the length of the song being played, expressed as a double value in seconds.
-	/// It is typically used to calculate playback progress, update UI elements like progress bars,
-	/// and display the song's duration in a human-readable format.
-	/// The value is updated dynamically when a new media track is loaded or when the playback session initializes.
-	/// </remarks>
 	public double DurationOfSong
 	{
 		get => _durationOfSong;
@@ -123,17 +63,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private bool _isShuffleToggled = false;
-
-	/// <summary>
-	/// Gets or sets a value indicating whether shuffle mode is enabled for music playback.
-	/// </summary>
-	/// <remarks>
-	/// When set to true, the playback order of the songs is randomized, activating the shuffle mode.
-	/// Setting this property also updates the underlying music player's shuffle state and manages
-	/// the application's user interface, such as updating tooltips and saving the shuffle status
-	/// to local application settings. Changes to this value are reflected in real time
-	/// to ensure synchronization between the application controls and playback behavior.
-	/// </remarks>
 	public bool IsShuffleToggled
 	{
 		get => _isShuffleToggled;
@@ -141,17 +70,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private Style _repeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
-
-	/// <summary>
-	/// Gets or sets the style applied to the Repeat button in the music control interface.
-	/// </summary>
-	/// <remarks>
-	/// This property determines the visual appearance of the Repeat button, dynamically updating
-	/// its style based on the current repeat mode. It corresponds to predefined styles such as
-	/// "AccentButtonStyle" for active repeat modes (All or One) and "DefaultButtonStyle" when
-	/// repeat is turned off. This allows the button's visual state to reflect the repeat functionality
-	/// accurately, enhancing user interaction and experience.
-	/// </remarks>
 	public Style RepeatButtonStyle
 	{
 		get => _repeatButtonStyle;
@@ -159,16 +77,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _toolTipTextPlayPause = "Play";
-
-	/// <summary>
-	/// Gets or sets the tooltip text for the play/pause button.
-	/// </summary>
-	/// <remarks>
-	/// This property dynamically updates the text displayed in the tooltip of the play/pause button,
-	/// reflecting the current state of media playback. The value is set to "Play" when the media is paused or stopped,
-	/// and "Pause" when the media is playing, ensuring contextual guidance for the user. Changes are synchronized
-	/// with the playback state managed by the media player.
-	/// </remarks>
 	public string ToolTipTextPlayPause
 	{
 		get => _toolTipTextPlayPause;
@@ -176,15 +84,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _toolTipTextShuffleButton = "Shuffle Off";
-
-	/// <summary>
-	/// Gets or sets the tooltip text displayed for the shuffle toggle button.
-	/// </summary>
-	/// <remarks>
-	/// This property determines the tooltip message shown to the user when hovering over the shuffle button.
-	/// The text dynamically updates based on the shuffle state, indicating "Shuffle On" when shuffle mode is activated
-	/// and "Shuffle Off" when it is deactivated. It ensures that the user has clear feedback on the current shuffle status.
-	/// </remarks>
 	public string ToolTipTextShuffleButton
 	{
 		get => _toolTipTextShuffleButton;
@@ -192,16 +91,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _toolTipTextRepeatButton = "Repeat All";
-
-	/// <summary>
-	/// Gets or sets the tooltip text for the repeat button.
-	/// </summary>
-	/// <remarks>
-	/// This property defines the descriptive text displayed when the user hovers over the repeat button
-	/// in the music control interface. It dynamically updates based on the current repeat mode:
-	/// "Repeat All", "Repeat One", or "Repeat Off". These updates provide users with contextual information
-	/// about the button's current function.
-	/// </remarks>
 	public string ToolTipTextRepeatButton
 	{
 		get => _toolTipTextRepeatButton;
@@ -209,15 +98,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _title = "Please select a song";
-
-	/// <summary>
-	/// Gets or sets the title of the currently playing track.
-	/// </summary>
-	/// <remarks>
-	/// This property reflects the name of the song that is being played in the media player.
-	/// It is automatically updated based on the media loaded into the playback session,
-	/// ensuring the displayed title in the user interface is always in sync with the current track.
-	/// </remarks>
 	public string Title
 	{
 		get => _title;
@@ -225,15 +105,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _artist = "";
-
-	/// <summary>
-	/// Gets or sets the artist information of the currently playing song.
-	/// </summary>
-	/// <remarks>
-	/// This property holds the name(s) of the artist(s) associated with the currently playing track.
-	/// It is automatically updated when the media player's playback session opens a new song.
-	/// The value is displayed in the user interface to provide context about the current track.
-	/// </remarks>
 	public string Artist
 	{
 		get => _artist;
@@ -241,16 +112,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	private string _cover = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png");
-
-	/// <summary>
-	/// Gets or sets the file path or URI of the album cover image.
-	/// </summary>
-	/// <remarks>
-	/// This property determines the visual representation of the album artwork displayed in the user interface.
-	/// The value can be a local file path or a URI. Updates to this property dynamically change the displayed
-	/// album cover to match the currently playing song. When no specific album cover is available, it defaults
-	/// to a predefined image path.
-	/// </remarks>
 	public string Cover
 	{
 		get => _cover;
@@ -259,35 +120,24 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	public Storyboard? _vinylEffect { get; set; }
 
-	/// <summary>
-	/// Represents the ViewModel for music control functionality of the application.
-	/// Maintains the state and behavior of media playback, including play/pause, shuffle, repeat, and progress bar controls.
-	/// Interacts with the MusicPlayer instance to handle playback events and exposes properties for UI binding to reflect current playback state.
-	/// </summary>
 	public MusicControlViewModel()
 	{
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
-		_musicPlayer.MediaPlayer.PlaybackStateChanged += (s, e) => PlaybackSession_PlaybackStateChanged();
-
-		_musicPlayer.MediaPlayer.PositionChanged += PlaybackSession_PositionChanged;
-
-		_musicPlayer.MediaPlayer.MediaOpened += (s, e) => PlaybackSession_MediaOpenedAsync();
+		_musicPlayer.PlaybackStateChanged += OnPlaybackStateChanged;
+		_musicPlayer.OpenCompleted += (s, e) => PlaybackSession_MediaOpenedAsync();
+		_musicPlayer.PositionChanged += OnPositionChanged;
 
 		//TODO pause on mute
-
 		_musicPlayer.ShuffleStatusChanged += _musicPlayer_ShuffleStatusChanged;
 
 		SetShuffleAndRepeat();
-
 		_ = LoadLastPlayedTrack();
 
 		App.TrayIcon.MouseClick += (s, e) =>
 		{
 			if (e.Button == System.Windows.Forms.MouseButtons.Left)
-			{
 				TogglePlayPause();
-			}
 		};
 
 		if (_musicPlayer.SMTC != null)
@@ -314,13 +164,92 @@ public partial class MusicControlViewModel : ObservableRecipient
 		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
 	}
 
+	// ─────────────────────────────────────────────────────────
+	//  Event handlers from unified MusicPlayer surface
+	// ─────────────────────────────────────────────────────────
+
 	/// <summary>
-	/// Handles keyboard input events for processing global keyboard shortcuts in the application,
-	/// such as navigating between tracks or executing playback-related commands.
+	/// Handles changes in playback state and updates the user interface and playback controls accordingly.
 	/// </summary>
-	/// <param name="sender">The UI element that is the source of the event.</param>
-	/// <param name="args">The event arguments containing details about the keyboard input,
-	/// such as the key pressed and modifier keys.</param>
+	/// <remarks>This method synchronizes UI elements and playback-related features with the current playback state.
+	/// It should be used as an event handler for playback state change events.</remarks>
+	/// <param name="sender">The source of the event, typically the music player instance.</param>
+	/// <param name="e">An object containing data about the playback state change.</param>
+	private void OnPlaybackStateChanged(object? sender, PlaybackStateChangedArgs e)
+	{
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		{
+			switch (e.State)
+			{
+				case PlaybackState.Paused:
+				case PlaybackState.Stopped:
+					FontIconPlayPause = "\uE768";
+					ToolTipTextPlayPause = "Play";
+
+					_playbackTracker.PausePlayback();
+					_vinylEffect?.Pause();
+
+					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+					MainPage._instance.AnimateTitle(startAnimation: false);
+					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
+
+					await Task.Delay(500);
+
+					if (_musicPlayer.IsPlaying)
+					{
+						StopRainbow();
+						_isRainbowActive = false;
+					}
+					break;
+
+				case PlaybackState.Playing:
+					FontIconPlayPause = "\uE769";
+					ToolTipTextPlayPause = "Pause";
+
+					_playbackTracker.StartPlayback();
+					_vinylEffect?.Resume();
+
+					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+					MainPage._instance.AnimateTitle(startAnimation: true);
+					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
+
+					if (!_isRainbowActive)
+					{
+						StartRainbow();
+						_isRainbowActive = true;
+					}
+					break;
+
+				case PlaybackState.Ended:
+					_musicPlayer.Next(autoChange: true);
+					break;
+			}
+		});
+	}
+
+/// <summary>
+/// Handles position change events by updating the progress bar and taskbar progress indicator to reflect the current
+/// playback position.
+/// </summary>
+/// <remarks>This method is typically called in response to playback position updates, ensuring that the user
+/// interface remains synchronized with the current state of playback.</remarks>
+/// <param name="sender">The source of the event. This parameter is not used.</param>
+/// <param name="ticks">The current playback position, in ticks. Represents the number of 100-nanosecond intervals elapsed.</param>
+	private void OnPositionChanged(object? sender, long ticks)
+	{
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+		{
+			isUpdatingProgressBar = true;
+			ProgressBarValue = TimeSpan.FromTicks(ticks).TotalSeconds;
+			TaskbarHelper.SetProgressValue(App.Hwnd, ProgressBarValue / DurationOfSong * 100, 100);
+			isUpdatingProgressBar = false;
+		});
+	}
+
+	// ─────────────────────────────────────────────────────────
+	//  Keyboard input
+	// ─────────────────────────────────────────────────────────
+
 	private void keyboardInput(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
 	{
 		switch (args.Modifiers)
@@ -334,14 +263,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		}
 	}
 
-	/// <summary>
-	/// Handles the PreviewKeyDown event for the music control functionality.
-	/// Intercepts specific key inputs such as the Space key to toggle play/pause functionality
-	/// or the Tab key to prevent unintended default behavior in the application.
-	/// </summary>
-	/// <param name="sender">The source of the event.</param>
-	/// <param name="e">The event data containing information about the key event.</param>
-	private void PreviewKeyDownMusicControl(object sender, Microsoft.UI.Xaml.Input.KeyRoutedEventArgs e)
+	private void PreviewKeyDownMusicControl(object sender, KeyRoutedEventArgs e)
 	{
 		if (!MainPage._instance.searchBoxFocused && e.Key == Windows.System.VirtualKey.Space)
 		{
@@ -354,24 +276,19 @@ public partial class MusicControlViewModel : ObservableRecipient
 		}
 	}
 
-	/// <summary>
-	/// Initializes the shuffle and repeat button states based on the saved application settings.
-	/// Retrieves the saved shuffle and repeat statuses from local settings and updates the respective toggle and button states accordingly.
-	/// </summary>
+	// ─────────────────────────────────────────────────────────
+	//  Shuffle / Repeat init
+	// ─────────────────────────────────────────────────────────
 	private void SetShuffleAndRepeat()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-
 		ShuffleToggle(bool.Parse(localSettings.Values[nameof(LocalSave.ShuffleStatus)]?.ToString() ?? "false"));
-
 		RepeatButtonToggle(Enum.Parse<RepeatMode>(localSettings.Values[nameof(LocalSave.RepeatStatus)]?.ToString() ?? "All"));
 	}
 
-	/// <summary>
-	/// Loads the last played track from the saved application data and resumes playback state.
-	/// Retrieves the last played track information, playback position, and other related details
-	/// from local settings to restore the media player's state and playlist upon application startup.
-	/// </summary>
+	// ─────────────────────────────────────────────────────────
+	//  Startup: restore last played track
+	// ─────────────────────────────────────────────────────────
 	private async Task LoadLastPlayedTrack()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -392,132 +309,78 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
 
 			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
-
-			DurationOfSong = double.Parse(track.Duration.ToString());
+			DurationOfSong = track.Duration;
 			ProgressBarValue = position;
 		}
 	}
 
-	/// <summary>
-	/// Toggles the play and pause state of the music player.
-	/// If the current playback state is 'Playing', the method pauses the music.
-	/// If the current playback state is 'Paused', the method resumes playback.
-	/// </summary>
+	// ─────────────────────────────────────────────────────────
+	//  Play / Pause toggle
+	// ─────────────────────────────────────────────────────────
 	[RelayCommand]
 	private async Task TogglePlayPause()
 	{
-		switch (_musicPlayer.MediaPlayer.PlaybackState)
+		if (_musicPlayer.IsPlaying)
 		{
-			case MediaPlaybackState.Playing:
-				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
-				_musicPlayer.Pause();
-				_playbackTracker.PausePlayback();
-				break;
-			case MediaPlaybackState.Paused:
-			case MediaPlaybackState.None:
-				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
-				_musicPlayer.MediaPlayer.PositionChanged -= PlaybackSession_PositionChanged;
-				await Task.Delay(10);
-				_musicPlayer.Play(playBackPosition: ProgressBarValue);
-				_playbackTracker.StartPlayback();
-				await Task.Delay(400);
-				_musicPlayer.MediaPlayer.PositionChanged += PlaybackSession_PositionChanged;
-				break;
+			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+			_musicPlayer.Pause();
+			_playbackTracker.PausePlayback();
+		}
+		else
+		{
+			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+			_musicPlayer.Play(playBackPosition: ProgressBarValue);
+			_playbackTracker.StartPlayback();
 		}
 	}
 
-	/// <summary>
-	/// Handles the playback state changes of the media playback session.
-	/// Updates relevant UI elements, like play/pause icon and tooltip, and synchronizes playback status with system media transport controls.
-	/// Also manages visual effects like rainbow animations based on the playback state.
-	/// </summary>
-	/// <param name="sender">The MediaPlaybackSession that triggered the state change event.</param>
-	/// <param name="args">An object containing event data for the playback state change.</param>
-	private void PlaybackSession_PlaybackStateChanged()
-	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
-		{
-			switch (_musicPlayer.MediaPlayer.PlaybackState)
-			{
-				case MediaPlaybackState.Paused:
-				case MediaPlaybackState.None:
-					FontIconPlayPause = "\uE768";
-					ToolTipTextPlayPause = "Play";
-
-					_playbackTracker.PausePlayback();
-
-					_vinylEffect?.Pause();
-
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
-					MainPage._instance.AnimateTitle(startAnimation: false);
-
-					await Task.Delay(500);
-
-					if (_musicPlayer.MediaPlayer.PlaybackState != MediaPlaybackState.Playing)
-					{
-						StopRainbow();
-						_isRainbowActive = false;
-					}
-					break;
-
-				case MediaPlaybackState.Playing:
-					FontIconPlayPause = "\uE769";
-					ToolTipTextPlayPause = "Pause";
-
-					_playbackTracker.StartPlayback();
-
-					_vinylEffect?.Resume();
-
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
-					MainPage._instance.AnimateTitle(startAnimation: true);
-
-					if (!_isRainbowActive)
-					{
-						StartRainbow();
-						_isRainbowActive = true;
-					}
-					break;
-			}
-		});
-	}
+	// ─────────────────────────────────────────────────────────
+	//  Rainbow frame helpers
+	// ─────────────────────────────────────────────────────────
 
 	/// <summary>
-	/// Activates the rainbow frame effect based on user preferences and saved application settings.
-	/// Checks if the rainbow frame feature and playback-dependent activation are enabled in local settings.
-	/// If enabled, starts the rainbow frame effect and applies the user-defined speed configuration.
+	/// Initializes and starts the rainbow frame effect if the relevant user settings are enabled.
 	/// </summary>
+	/// <remarks>This method checks application settings to determine whether the rainbow frame effect should be
+	/// activated and configures its speed accordingly. It is intended to be called when the application needs to update or
+	/// start the rainbow frame based on user preferences.</remarks>
 	private void StartRainbow()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") &&
+			bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
 		{
 			App.Current.RainbowFrame.StartRainbowFrame();
-
 			App.Current.RainbowFrame.UpdateEffectSpeed(51 - int.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31"));
 		}
 	}
 
 	/// <summary>
-	/// Stops the rainbow frame effect and resets the frame color to its default state if certain conditions are met.
-	/// Checks the saved application settings to determine whether the rainbow frame is active and if it should only operate during playback.
-	/// If both conditions are true, it stops the rainbow frame and resets the frame color.
+	/// Stops the rainbow frame effect and resets the frame color to its default state if the relevant settings are
+	/// enabled.
 	/// </summary>
+	/// <remarks>This method checks application settings to determine whether the rainbow frame effect should be
+	/// stopped and the frame color reset. It has no effect if the required settings are not enabled.</remarks>
 	private void StopRainbow()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") &&
+			bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
 		{
 			App.Current.RainbowFrame.StopRainbowFrame();
 			App.Current.RainbowFrame.ResetFrameColorToDefault();
 		}
 	}
 
+	// ─────────────────────────────────────────────────────────
+	//  Transport commands
+	// ─────────────────────────────────────────────────────────
 
 	/// <summary>
-	/// Advances playback to the next song in the playlist or queue. And reset the playback position.
-	/// If the current song is the last in the queue, behavior depends on the playback settings
-	/// (e.g., loop or stop after the last song).
+	/// Advances playback to the next song in the playlist and resets playback progress.
 	/// </summary>
+	/// <remarks>This method stops any active midpoint timer, resets the playback tracker, and updates the progress
+	/// bar to the beginning of the next song. Use this command to skip to the next track during playback.</remarks>
 	[RelayCommand]
 	private void NextSong()
 	{
@@ -528,9 +391,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	/// <summary>
-	/// Switches the currently playing track to the previous song in the playlist. And reset the playback position.
-	/// If the player is at the beginning of the playlist, it may either stop playback or loop based on player settings.
+	/// Skips to the previous song in the playback queue and resets playback progress.
 	/// </summary>
+	/// <remarks>Calling this method resets the progress bar and playback tracker to the beginning of the previous
+	/// song. If the current song is the first in the queue, behavior depends on the implementation of the underlying music
+	/// player.</remarks>
 	[RelayCommand]
 	private void PreviousSong()
 	{
@@ -541,28 +406,32 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	/// <summary>
-	/// Moves the playback position of the currently playing song forward by increasing the progress value.
-	/// This command is used for forwarding the track to a later position in time.
+	/// Advances the current song progress by one unit.
 	/// </summary>
+	/// <remarks>This method is typically used to move the playback position forward, such as when handling a user
+	/// action to skip ahead. The actual effect depends on how the progress bar value is interpreted in the
+	/// application.</remarks>
 	[RelayCommand]
 	private void ForwardSong() => ProgressBarValue++;
 
 	/// <summary>
-	/// Moves the playback position of the currently playing song backward by reducing the progress value.
-	/// This command is used for rewinding the track to an earlier position in time.
+	/// Moves the current song position backward by one unit.
 	/// </summary>
+	/// <remarks>This method is typically used to rewind playback in a media player interface. If the song is
+	/// already at the beginning, further calls may have no effect depending on the implementation of the progress
+	/// bar.</remarks>
 	[RelayCommand]
 	private void RewindSong() => ProgressBarValue--;
 
-
+	// ─────────────────────────────────────────────────────────
+	//  Shuffle / Repeat
+	// ─────────────────────────────────────────────────────────
 	/// <summary>
-	/// Toggles the shuffle mode for the music player.
-	/// If shuffle is currently on, it turns it off; otherwise, it enables shuffle.
-	/// Updates the tooltip text and saves the shuffle state to local settings.
+	/// Toggles the shuffle mode for music playback, optionally setting the shuffle state explicitly.
 	/// </summary>
-	/// <param name="shuffleSaved">
-	/// Optional parameter indicating the desired shuffle state. If null, the current shuffle state is toggled.
-	/// </param>
+	/// <remarks>The shuffle state is persisted to local application settings. This method updates the shuffle
+	/// button tooltip to reflect the current state.</remarks>
+	/// <param name="shuffleSaved">If specified, determines whether shuffle mode is enabled. If null, the current shuffle state is toggled.</param>
 	[RelayCommand]
 	public void ShuffleToggle(bool? shuffleSaved = null)
 	{
@@ -573,15 +442,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	/// <summary>
-	/// Toggles the repeat mode of the music player among 'None', 'One', and 'All'.
-	/// Updates the repeat button's appearance and tooltip text according to the selected mode.
-	/// If a saved repeat mode is provided, it is applied; otherwise, the default is used.
-	/// The chosen repeat mode is saved to the local settings.
+	/// Toggles the repeat mode of the music player or sets it to a specified mode.
 	/// </summary>
-	/// <param name="repeatSaved">
-	/// An optional parameter specifying the saved repeat mode to apply.
-	/// If null, the method uses the default repeat mode.
-	/// </param>
+	/// <remarks>This method updates the music player's repeat mode and synchronizes the UI to reflect the current
+	/// state. The selected repeat mode is also saved to local application settings for persistence across
+	/// sessions.</remarks>
+	/// <param name="repeatSaved">The repeat mode to set. If null, the repeat mode cycles through All, One, and None in sequence.</param>
 	[RelayCommand]
 	private void RepeatButtonToggle(RepeatMode? repeatSaved = null)
 	{
@@ -590,18 +456,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 			repeatMode = repeatSaved.Value;
 		else
 		{
-			if (_musicPlayer.RepeatStatus == RepeatMode.All)
-			{
-				repeatMode = RepeatMode.One;
-			}
-			else if (_musicPlayer.RepeatStatus == RepeatMode.One)
-			{
-				repeatMode = RepeatMode.None;
-			}
-			else if (_musicPlayer.RepeatStatus == RepeatMode.None)
-			{
-				repeatMode = RepeatMode.All;
-			}
+			if (_musicPlayer.RepeatStatus == RepeatMode.All) repeatMode = RepeatMode.One;
+			else if (_musicPlayer.RepeatStatus == RepeatMode.One) repeatMode = RepeatMode.None;
+			else if (_musicPlayer.RepeatStatus == RepeatMode.None) repeatMode = RepeatMode.All;
 		}
 
 		switch (repeatMode)
@@ -628,45 +485,34 @@ public partial class MusicControlViewModel : ObservableRecipient
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RepeatStatus)] = _musicPlayer.RepeatStatus.ToString();
 	}
 
+	// ─────────────────────────────────────────────────────────
+	//  Seek / scrub
+	// ─────────────────────────────────────────────────────────
 	/// <summary>
-	/// Handles the PositionChanged event for the MediaPlaybackSession.
-	/// This event occurs when the position within the currently playing media changes.
-	/// Updates UI components or internal states to reflect the new playback position.
-	/// </summary>
-	/// <param name="sender">The MediaPlaybackSession that raised the event.</param>
-	/// <param name="args">The event data associated with the PositionChanged event.</param>
-	private void PlaybackSession_PositionChanged(object? sender, TimeSpan e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
-	{
-		isUpdatingProgressBar = true;
-		ProgressBarValue = _musicPlayer.MediaPlayer.Position.TotalSeconds;
-		//await Task.Delay(1);
-		//TODO TaskBAr smooth progress
-		isUpdatingProgressBar = false;
-	});
-
-	/// <summary>
-	/// Updates the playback position of the media player to reflect the current value of the progress bar.
-	/// This method mutes the audio briefly while updating the playback position to prevent playback artifacts,
-	/// then resumes audio playback once the update is complete.
+	/// Seeks the active backend to ProgressBarValue (in seconds).
+	/// Uses Normal priority and briefly mutes to avoid audio artifacts.
 	/// </summary>
 	private void UpdatePlaybackPosition()
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, async () =>
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
-			_musicPlayer.MediaPlayer.Volume = 0;
-			_musicPlayer.MediaPlayer.Position = TimeSpan.FromSeconds(ProgressBarValue);
-			await Task.Delay(500);
-			_musicPlayer.MediaPlayer.Volume = 1;
+			_musicPlayer.Volume = 0;
+			_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(ProgressBarValue).Ticks;
+			await Task.Delay(100);
+			_musicPlayer.Volume = 75;
 		});
 	}
 
+	// ─────────────────────────────────────────────────────────
+	//  Media opened — update UI metadata
+	// ─────────────────────────────────────────────────────────
 	/// <summary>
-	/// Handles the MediaOpened event of the PlaybackSession.
-	/// Initializes the playback session by setting the duration of the song and updating song metadata,
-	/// including title, artist, and cover details, fetched from stored song metadata.
+	/// Handles the media opened event for the playback session and updates the user interface with the current song's
+	/// metadata asynchronously.
 	/// </summary>
-	/// <param name="sender">The MediaPlayer instance that triggered the event.</param>
-	/// <param name="args">Event data associated with the MediaOpened event.</param>
+	/// <remarks>This method retrieves the current song information, updates playback tracking, and refreshes UI
+	/// elements such as the title, artist, and cover art. It also manages playback-related timers and effects. This method
+	/// is intended to be called when a new media file is successfully opened for playback.</remarks>
 	private async void PlaybackSession_MediaOpenedAsync()
 	{
 		await Task.Delay(50);
@@ -683,10 +529,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 				_thresoldDuration = TimeSpan.FromSeconds(DurationOfSong * 0.6);
 				_midpointTimer?.Stop();
 
-				if (_musicPlayer.MediaPlayer.PlaybackState == MediaPlaybackState.Playing)
-				{
+				if (_musicPlayer.IsPlaying)
 					_playbackTracker.StartPlayback();
-				}
 
 				_midpointTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 				_midpointTimer.Tick += MidpointTimer_Tick;
@@ -696,27 +540,28 @@ public partial class MusicControlViewModel : ObservableRecipient
 				Artist = track.Artists;
 				Cover = track.Cover;
 			}
-			//track = null; // not needed
 
 			_vinylEffect?.Begin();
-			if (MusicPlayer.Instance.MediaPlayer.PlaybackState != MediaPlaybackState.Playing) _vinylEffect?.Pause();
+			if (!_musicPlayer.IsPlaying) _vinylEffect?.Pause();
 			MusicControl._instance?.FloatingPlayer(null, MainPage._instance?.IsMainPlayerPageOpened ?? false);
 			MusicControl._instance?.SlideInDown();
 		});
 	}
 
+	// ─────────────────────────────────────────────────────────
+	//  Midpoint play-count timer
+	// ─────────────────────────────────────────────────────────
 	private async void MidpointTimer_Tick(object? sender, object e)
 	{
-		var session = _musicPlayer.MediaPlayer;
-
 		if (_playbackTracker.AlreadyCounted)
 		{
 			_midpointTimer?.Stop();
 			return;
 		}
 
-		if (session.PlaybackState == MediaPlaybackState.Playing &&
-			session.Position >= _thresoldDuration &&
+		// Use the unified MusicPlayer surface — no direct Flyleaf Player reference
+		if (_musicPlayer.IsPlaying &&
+			TimeSpan.FromTicks(_musicPlayer.CurTimeTicks) >= _thresoldDuration &&
 			_playbackTracker.GetTotalPlayTime() >= _thresoldDuration)
 		{
 			_midpointTimer?.Stop();
@@ -726,33 +571,32 @@ public partial class MusicControlViewModel : ObservableRecipient
 		}
 	}
 
+	// ─────────────────────────────────────────────────────────
+	//  Shuffle event from MusicPlayer
+	// ─────────────────────────────────────────────────────────
 	/// <summary>
-	/// Handles the event when the shuffle status of the music player changes.
-	/// Updates the shuffle toggle state based on the provided shuffle mode.
+	/// Handles the event that occurs when the shuffle mode of the music player changes.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the music player.</param>
-	/// <param name="e">The new shuffle mode, indicating whether shuffle is turned on or off.</param>
+	/// <param name="sender">The source of the event, typically the music player instance.</param>
+	/// <param name="e">The new shuffle mode value indicating whether shuffle is enabled or disabled.</param>
 	private void _musicPlayer_ShuffleStatusChanged(object? sender, ShuffleMode e)
-	{
-		ShuffleToggle(e == ShuffleMode.On);
-	}
+		=> ShuffleToggle(e == ShuffleMode.On);
+
+	// ─────────────────────────────────────────────────────────
+	//  Storyboard / vinyl effect
+	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Updates the current storyboard used for the vinyl effect.
+	/// </summary>
+	/// <param name="storyboard">The storyboard to apply to the vinyl effect. Can be null to remove the current storyboard.</param>
+	public void UpdateStoryBoard(Storyboard? storyboard) => _vinylEffect = storyboard;
 
 	/// <summary>
-	/// Updates the storyboard instance used to animate UI elements related to music playback control.
+	/// Resets the floating window displaying the current song to its default state.
 	/// </summary>
-	/// <param name="storyboard">
-	/// The storyboard instance to be set for managing animations, or null to reset it.
-	/// </param>
-	public void UpdateStoryBoard(Storyboard? storyboard)
-	{
-		_vinylEffect = storyboard;
-	}
-
-	/// <summary>
-	/// Resets the properties of the floating music control window to their default state.
-	/// This includes updating the title, artist, and cover image to indicate no song is currently selected.
-	/// Primarily used to clear the current song display when no valid song is being played or after certain operations like playlist resets.
-	/// </summary>
+	/// <remarks>This method clears the song information, resets the cover image to the default application icon,
+	/// and stops any active vinyl effect. It also updates the floating player UI to prompt the user to select a song. This
+	/// method is asynchronous but returns void, so exceptions may not be observed by callers.</remarks>
 	public async void ResetCurrentSongFloatingWindow()
 	{
 		Title = "Please select a song";
@@ -765,4 +609,3 @@ public partial class MusicControlViewModel : ObservableRecipient
 		MusicControl._instance?.FloatingPlayer(null, MainPage._instance?.IsMainPlayerPageOpened ?? false);
 	}
 }
-

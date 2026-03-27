@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.Media.Playback;
 
 namespace Tunetastic.Views;
 
@@ -30,13 +29,10 @@ public sealed partial class MusicControl : Page
 	{
 		var storyboard = CreateStoryBoard();
 		ViewModel.UpdateStoryBoard(storyboard);
-		if (MusicPlayer.Instance.MediaPlayer.PlaybackState != MediaPlaybackState.Playing) storyboard?.Pause();
+		if (!MusicPlayer.Instance.IsPlaying) storyboard?.Pause();
 	}
 
-	public MusicControlViewModel ViewModel
-	{
-		get;
-	}
+	public MusicControlViewModel ViewModel { get; }
 
 	/// <summary>
 	/// Creates and initializes a storyboard for animating the album cover rotation.
@@ -107,10 +103,8 @@ public sealed partial class MusicControl : Page
 			Duration = TimeSpan.FromMilliseconds(500),
 			EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
 		};
-
 		Storyboard.SetTarget(fadeIn, TrackInfo);
 		Storyboard.SetTargetProperty(fadeIn, "Opacity");
-
 		storyboard.Children.Add(fadeIn);
 		if (TrackInfo.Opacity != 1) storyboard.Begin();
 	}
@@ -130,10 +124,8 @@ public sealed partial class MusicControl : Page
 			Duration = TimeSpan.FromMilliseconds(200),
 			EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
 		};
-
 		Storyboard.SetTarget(fadeOut, TrackInfo);
 		Storyboard.SetTargetProperty(fadeOut, "Opacity");
-
 		storyboard.Children.Add(fadeOut);
 		if (TrackInfo.Opacity != 0) storyboard.Begin();
 	}
@@ -157,7 +149,6 @@ public sealed partial class MusicControl : Page
 				Duration = TimeSpan.FromMilliseconds(400),
 				EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
 			};
-
 			DoubleAnimation fadeIn = new DoubleAnimation
 			{
 				From = 0,
@@ -165,7 +156,6 @@ public sealed partial class MusicControl : Page
 				Duration = TimeSpan.FromMilliseconds(400),
 				EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
 			};
-
 			Storyboard.SetTarget(slideRight, SongInfoTransform);
 			Storyboard.SetTargetProperty(slideRight, "Y");
 			storyboard.Children.Add(slideRight);

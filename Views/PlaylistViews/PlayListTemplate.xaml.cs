@@ -314,7 +314,13 @@ public sealed partial class PlayListTemplate : Page
 		var listView = GetCurrentViewStyle();
 		if (song != null)
 		{
-			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			listView.SelectedItem = song;
 		}
 	}
@@ -459,22 +465,6 @@ public sealed partial class PlayListTemplate : Page
 	}
 
 	/// <summary>
-	/// Handles the Unloaded event for the PlayList Page.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		PlayListSongs.Clear();
-		PlayListSongs = null;
-		GC.Collect();
-	}
-
-	/// <summary>
 	/// Handles the 'Opened' event of the <see cref="MenuFlyout"/> control in the context menu.
 	/// </summary>
 	/// <remarks>
@@ -590,9 +580,19 @@ public sealed partial class PlayListTemplate : Page
 		GlobalNotification.Info($"{songData?.Title} added to queue.");
 	}
 
-	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event for the "Info/Tag" menu flyout item, displaying detailed song information.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the MenuFlyoutItem.</param>
+	/// <param name="e">The event data associated with the click action.</param>
+	/// <remarks>
+	/// This method retrieves the song associated with the selected menu item, queries the song data from
+	/// the database, and invokes the main page to display the song's detailed information.
+	/// </remarks>
+	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
-		//TODO add Card Display
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>
@@ -671,7 +671,7 @@ public sealed partial class PlayListTemplate : Page
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -693,7 +693,7 @@ public sealed partial class PlayListTemplate : Page
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -857,7 +857,7 @@ public sealed partial class PlayListTemplate : Page
 				}
 
 				List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
-				MusicPlayer.Instance.LoadPlaylist(songPaths, track, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+				MusicPlayer.Instance.LoadPlaylist(songPaths, track, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
 			}
 			else
 			{
@@ -902,7 +902,7 @@ public sealed partial class PlayListTemplate : Page
 		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
 		{
 			List<string> songPaths = PlayListSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
 		}
 
 		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted.");
@@ -923,7 +923,7 @@ public sealed partial class PlayListTemplate : Page
 	private async void RenamePlayList_Click(object sender, RoutedEventArgs e)
 	{
 		RenamePlaylistDialog.Visibility = Visibility.Visible;
-		RenamePlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		RenamePlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = PlaylistHeader.Text;
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 		OnPlaylistNameChanged(null, null);
@@ -1022,7 +1022,7 @@ public sealed partial class PlayListTemplate : Page
 	private async void ExportPlayList_Click(object sender, RoutedEventArgs e)
 	{
 		ExportDialog.Visibility = Visibility.Visible;
-		ExportDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		ExportDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		ExportTextBox.Text = SanitizeFileName(PlaylistHeader.Text);
 		OnPlaylistExportNameChanged(null, null);
 		ExportFormat.SelectedIndex = 0;

@@ -197,7 +197,7 @@ public sealed partial class GenresViewPage : Page
 		}
 
 		GenreTileView_SizeChanged(null, null);
-		GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
+		//GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
@@ -209,12 +209,18 @@ public sealed partial class GenresViewPage : Page
 			if (animation != null && selectedGenreModel != null)
 			{
 				await Task.Delay(30);
-				await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await GenreTileView.SmoothScrollIntoViewWithItemAsync(selectedGenreModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 
 				var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 				if (container != null)
 				{
-					var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+					var genreTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "GenreTextBlock");
 					if (genreTextBlock != null)
 						animation.TryStart(genreTextBlock);
 				}
@@ -234,6 +240,7 @@ public sealed partial class GenresViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		GenreTileView.SizeChanged -= GenreTileView_SizeChanged;
 		GenreTileView.SizeChanged += GenreTileView_SizeChanged;
 	}
 
@@ -270,7 +277,13 @@ public sealed partial class GenresViewPage : Page
 		if (tile != null)
 		{
 			GenreTileView.SelectedItem = tile;
-			await GenreTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -315,22 +328,6 @@ public sealed partial class GenresViewPage : Page
 		{
 			MoreButton.IsEnabled = GenreTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the GenresViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		GenresGroup.Clear();
-		GenresGroup = null;
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -549,7 +546,7 @@ public sealed partial class GenresViewPage : Page
 			GenreTileView.IsItemClickEnabled = false;
 			GenreTileView.IsMultiSelectCheckBoxEnabled = true;
 			GenreTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(GenreTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(GenreTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -568,7 +565,7 @@ public sealed partial class GenresViewPage : Page
 			GenreTileView.IsItemClickEnabled = true;
 			GenreTileView.IsMultiSelectCheckBoxEnabled = false;
 			GenreTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(GenreTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(GenreTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -679,7 +676,7 @@ public sealed partial class GenresViewPage : Page
 			var container = GenreTileView.ContainerFromItem(genreModel) as ListViewItem;
 			if (container != null)
 			{
-				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+				var genreTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "GenreTextBlock");
 				if (genreTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
@@ -743,7 +740,7 @@ public sealed partial class GenresViewPage : Page
 			var container = GenreTileView.ContainerFromItem(selectedGenreModel) as ListViewItem;
 			if (container != null)
 			{
-				var genreTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "GenreTextBlock");
+				var genreTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "GenreTextBlock");
 				if (genreTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("GenreHeaderAnimation", genreTextBlock);
@@ -902,7 +899,7 @@ public sealed partial class GenresViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),
@@ -925,7 +922,6 @@ public sealed partial class GenresViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;
@@ -948,10 +944,22 @@ public sealed partial class GenresViewPage : Page
 
 		if (targetGenre != null)
 		{
-			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			GenreTileView.SelectedItem = targetGenre;
 			await Task.Delay(500);
-			await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await GenreTileView.SmoothScrollIntoViewWithItemAsync(targetGenre, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -967,7 +975,7 @@ public sealed partial class GenresViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = ContentGrid.ActualHeight - 10;
+		double availableSpace = ContentGrid.ActualHeight - 20;
 
 		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
 

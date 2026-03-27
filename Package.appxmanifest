@@ -18,7 +18,7 @@
 	<Identity
 	  Name="AMit-KP.Tunetastic"
 	  Publisher="CN=amitp"
-	  Version="1.18.1663.0"/>
+	  Version="1.23.4.0"/>
 
 	<mp:PhoneIdentity PhoneProductId="fbcf13fc-2512-4b2d-8b9e-3258f0535742" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -45,10 +45,9 @@
 		  EntryPoint="$targetentrypoint$" uap18:TrustLevel="mediumIL" uap18:RuntimeBehavior="packagedClassicApp">
 			<uap:VisualElements
 			  DisplayName="Tunetastic"
-			  Description="A Modern Music App for Windows"
 			  BackgroundColor="transparent"
 			  Square150x150Logo="Assets\Store\Square150x150Logo.png"
-			  Square44x44Logo="Assets\Store\Square44x44Logo.png">
+			  Square44x44Logo="Assets\Store\Square44x44Logo.png" Description="Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that’s as unique, expressive and captivating as the music you love. 🎶">
 				<uap:DefaultTile Wide310x150Logo="Assets\Store\Wide310x150Logo.png" Square71x71Logo="Assets\Store\SmallTile.png" Square310x310Logo="Assets\Store\LargeTile.png">
 					<uap:ShowNameOnTiles>
 						<uap:ShowOn Tile="square150x150Logo"/>
@@ -102,6 +101,7 @@
 						<uap:Codec Name="aac"/>
 						<uap:Codec Name="ogg"/>
 						<uap:Codec Name="aiff"/>
+						<uap:Codec Name="opus"/>
 					</uap:MediaPlayback>
 				</uap:Extension>
       </Extensions>

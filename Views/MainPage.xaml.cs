@@ -3,8 +3,11 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.Storage;
+using Windows.Storage.Streams;
 using WinRT.Interop;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
@@ -116,9 +119,7 @@ public sealed partial class MainPage : Page
 	/// <param name="e">The event data associated with the button click.</param>
 	private async void ThemeButton_Click(object sender, RoutedEventArgs e)
 	{
-		ThemeService.ChangeThemeWithoutSave(App.MainWindow);
-		await Task.Delay(100);
-		App.Current.ThemeService.UpdateCaptionButtons();
+		await App.Current.ThemeService.SetElementThemeWithoutSaveAsync();
 	}
 
 	/// <summary>
@@ -263,7 +264,7 @@ public sealed partial class MainPage : Page
 	private async void ShowAddPlaylistDialog()
 	{
 		AddPlaylistDialog.Visibility = Visibility.Visible;
-		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.GetElementTheme();
+		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = string.Empty;
 		ErrorMessage.Text = "";
 		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
@@ -448,7 +449,7 @@ public sealed partial class MainPage : Page
 	/// This method retrieves the library visibility preferences stored in application settings and hides the corresponding libraries in the UI.
 	/// It checks whether libraries such as "Artists", "Albums", "Genres", and "Years" are enabled, and if not, calls the <c>HideLibrary</c> method to remove them from view.
 	/// </remarks>
-	private void HidePreDefinedLibraries()//TODO: remove detail pages
+	private void HidePreDefinedLibraries()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -573,12 +574,16 @@ public sealed partial class MainPage : Page
 	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
 	{
 		//TODO: Drag n Drop
-		var picker = new FilePicker(WindowNative.GetWindowHandle(App.MainWindow));
-		picker.FileTypeChoices = new Dictionary<string, IList<string>>
-		{
-			{ "Playlists", new List<string> { "*.m3u", "*.m3u8", "*.pls", "*.wpl", "*.zpl" } },
-		};
-		picker.ShowAllFilesOption = false;
+		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		
+		picker.FileTypeFilter.Add("*.m3u");
+		picker.FileTypeFilter.Add("*.m3u8");
+		picker.FileTypeFilter.Add("*.pls");
+		picker.FileTypeFilter.Add("*.wpl");
+		picker.FileTypeFilter.Add("*.zpl");
+
+		picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+		picker.CommitButtonText = "Import Playlist";
 
 		var file = await picker.PickSingleFileAsync();
 		if (file != null)
@@ -611,7 +616,6 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
 	{
-		App.Current.ThemeService.UpdateCaptionButtons();
 		AppIcon.Source = new BitmapImage(new Uri(sender.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
 	}
 
@@ -628,5 +632,50 @@ public sealed partial class MainPage : Page
 	{
 		AppTitle.StrokeThickness = startAnimation ? 1 : 0;
 		AppTitle.Animate = startAnimation;
+	}
+
+	public async void ShowSongInfo(Song? songData)
+	{
+		if (songData != null)
+		{
+			SongTitle.Text = songData.Title;
+			SongArtists.Text = songData.Artists;
+			SongAlbum.Text = songData.Album;
+			StorageFile file = await StorageFile.GetFileFromPathAsync(songData.Cover);
+			using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+			{
+				BitmapImage bitmapImage = new BitmapImage();
+				await bitmapImage.SetSourceAsync(stream);
+				SongCoverImage.Source = bitmapImage;
+			}
+			SongGenre.Text = songData.Genre;
+			SongYear.Text = songData.Year;
+			SongDuration.Text = new DurationToFullTimeConverter().Convert(songData.Duration, null, null, null).ToString();
+			SongSize.Text = songData.FileSize;
+			SongAdded.Text = new DateFormatConverter().Convert(songData.DateAdded, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateAdded, null, "T", null).ToString();
+			SongPath.Text = songData.Path;
+			SongChannel.Text = songData.AudioChannels;
+			SongBitrate.Text = songData.AudioBitrate ?? string.Empty;
+			SongSampleRate.Text = songData.AudioSampleRate ?? string.Empty;
+			SongCodecDescription.Text = songData.AudioCodecDescription ?? string.Empty;
+			SongPlayCount.Text = songData.PlayCount.ToString() ?? "0";
+			if (songData.DateLastPlayed != null)
+				SongLastPlayed.Text = new DateFormatConverter().Convert(songData.DateLastPlayed, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateLastPlayed, null, "T", null).ToString();
+			else
+				SongLastPlayed.Text = "Never";
+
+			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
+
+			await SongInfo.ShowAsync();
+		}
+	}
+
+	private async void ClearButton_Click(object sender, RoutedEventArgs e)
+	{
+		await DatabaseHelper.Instance.ResetPlayCount(SongPath.Text);
+		await DatabaseHelper.Instance.ResetDateLastPlayed(SongPath.Text);
+		SongPlayCount.Text = "0";
+		SongLastPlayed.Text = "Never";
+		ClearButton.IsEnabled = false;
 	}
 }

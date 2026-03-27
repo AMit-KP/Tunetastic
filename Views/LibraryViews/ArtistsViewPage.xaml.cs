@@ -191,7 +191,7 @@ public sealed partial class ArtistsViewPage : Page
 		}
 
 		ArtistTileView_SizeChanged(null, null);
-		ArtistTileView.ContainerContentChanging += ArtistTileView_ContainerContentChanging;
+		//ArtistTileView.ContainerContentChanging += ArtistTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
@@ -203,12 +203,18 @@ public sealed partial class ArtistsViewPage : Page
 			if (animation != null && selectedArtistModel != null)
 			{
 				await Task.Delay(30);
-				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(selectedArtistModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await ArtistTileView.SmoothScrollIntoViewWithItemAsync(selectedArtistModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 
 				var container = ArtistTileView.ContainerFromItem(selectedArtistModel) as ListViewItem;
 				if (container != null)
 				{
-					var artistTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "ArtistTextBlock");
+					var artistTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "ArtistTextBlock");
 					if (artistTextBlock != null)
 						animation.TryStart(artistTextBlock);
 				}
@@ -228,6 +234,7 @@ public sealed partial class ArtistsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		ArtistTileView.SizeChanged -= ArtistTileView_SizeChanged;
 		ArtistTileView.SizeChanged += ArtistTileView_SizeChanged;
 	}
 
@@ -264,7 +271,13 @@ public sealed partial class ArtistsViewPage : Page
 		if (tile != null)
 		{
 			ArtistTileView.SelectedItem = tile;
-			await ArtistTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -309,22 +322,6 @@ public sealed partial class ArtistsViewPage : Page
 		{
 			MoreButton.IsEnabled = ArtistTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the ArtistsViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		ArtistsGroup.Clear();
-		ArtistsGroup = null;
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -544,7 +541,7 @@ public sealed partial class ArtistsViewPage : Page
 			ArtistTileView.IsItemClickEnabled = false;
 			ArtistTileView.IsMultiSelectCheckBoxEnabled = true;
 			ArtistTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(ArtistTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(ArtistTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -563,7 +560,7 @@ public sealed partial class ArtistsViewPage : Page
 			ArtistTileView.IsItemClickEnabled = true;
 			ArtistTileView.IsMultiSelectCheckBoxEnabled = false;
 			ArtistTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(ArtistTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(ArtistTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -676,7 +673,7 @@ public sealed partial class ArtistsViewPage : Page
 			var container = ArtistTileView.ContainerFromItem(artistModel) as ListViewItem;
 			if (container != null)
 			{
-				var artistTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "ArtistTextBlock");
+				var artistTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "ArtistTextBlock");
 				if (artistTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistHeaderAnimation", artistTextBlock);
@@ -740,7 +737,7 @@ public sealed partial class ArtistsViewPage : Page
 			var container = ArtistTileView.ContainerFromItem(selectedArtistModel) as ListViewItem;
 			if (container != null)
 			{
-				var artistTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "ArtistTextBlock");
+				var artistTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "ArtistTextBlock");
 				if (artistTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("ArtistHeaderAnimation", artistTextBlock);
@@ -899,7 +896,7 @@ public sealed partial class ArtistsViewPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),
@@ -922,7 +919,6 @@ public sealed partial class ArtistsViewPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;
@@ -945,10 +941,22 @@ public sealed partial class ArtistsViewPage : Page
 
 		if (targetArtist != null)
 		{
-			await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			ArtistTileView.SelectedItem = targetArtist;
 			await Task.Delay(500);
-			await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await ArtistTileView.SmoothScrollIntoViewWithItemAsync(targetArtist, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -964,7 +972,7 @@ public sealed partial class ArtistsViewPage : Page
 	/// </returns>
 	private Task<Task> AdjustAlphabetSize()
 	{
-		double availableSpace = ContentGrid.ActualHeight - 10;
+		double availableSpace = ContentGrid.ActualHeight - 20;
 
 		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
 

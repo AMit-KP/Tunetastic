@@ -69,12 +69,10 @@ public partial class App : Application
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-		ThemeService.Initialize(MainWindow, false);
-		ThemeService.SetElementTheme(Enum.Parse<ElementTheme>(localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
-		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "DesktopAcrylic";
-		ThemeService.SetBackdropType(Enum.Parse<BackdropType>(backdrop));
-		await Task.Delay(50);
-		App.Current.ThemeService.UpdateCaptionButtons();
+		ThemeService.Initialize(MainWindow);
+		await ThemeService.SetElementThemeAsync(Enum.Parse<ElementTheme>(localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
+		var backdrop = localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Acrylic";
+		await ThemeService.SetBackdropTypeAsync(Enum.Parse<BackdropType>(backdrop));
 
 		rootFrame.Navigate(typeof(Views.SplashScreen));
 
@@ -87,7 +85,7 @@ public partial class App : Application
 												  g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
 												  b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
 
-			App.Current.ThemeService.SetBackdropTintColor(color);
+			App.Current.ThemeService.GetMicaSystemBackdrop().TintColor = color;
 		}
 
 		bool scanAtStartup = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");

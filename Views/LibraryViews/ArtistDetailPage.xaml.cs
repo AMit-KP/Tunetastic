@@ -386,7 +386,13 @@ public sealed partial class ArtistDetailPage : Page
 		var listView = GetCurrentViewStyle();
 		if (song != null)
 		{
-			await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(song, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 			listView.SelectedItem = song;
 		}
 	}
@@ -440,7 +446,7 @@ public sealed partial class ArtistDetailPage : Page
 		if (currentPlaylist.StartsWith("ArtistGroup>") && currentPlaylist.Substring("ArtistGroup>".Length) == ActualArtistGroup.Text)
 		{
 			List<string> songPaths = ArtistGroupSongs.Select(s => s.Path).ToList();
-			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.MediaPlayer.PlaybackState == Windows.Media.Playback.MediaPlaybackState.Playing, dontReloadCurrent: true);
+			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
 		}
 	}
 
@@ -548,9 +554,9 @@ public sealed partial class ArtistDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => 50,
-			"Compact View" => 10,
-			_ => 10
+			"List View" => 60,
+			"Compact View" => 20,
+			_ => 20
 		};
 		if (availableSpace <= 0) return;
 
@@ -563,7 +569,7 @@ public sealed partial class ArtistDetailPage : Page
 			var Button = new Button
 			{
 				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.GetActualTheme() == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
+				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
 				Opacity = hasSongs ? 1 : 0.5,
 				Background = new SolidColorBrush(Colors.Transparent),
 				BorderBrush = new SolidColorBrush(Colors.Transparent),
@@ -586,7 +592,6 @@ public sealed partial class ArtistDetailPage : Page
 			}
 
 			AlphabetNavigationPanel.Children.Add(Button);
-			await Task.Delay(1);
 		}
 		_ = AdjustAlphabetSize();
 		availableLetters = null;
@@ -621,10 +626,22 @@ public sealed partial class ArtistDetailPage : Page
 		if (targetSong != null)
 		{
 			var listView = GetCurrentViewStyle();
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == ArtistDetailListView ? -40 : 0);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == ArtistDetailListView ? -40 : 0);
+			}
+			catch (Exception)
+			{
+			}
 			listView.SelectedItem = targetSong;
 			await Task.Delay(500);
-			await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == ArtistDetailListView ? -40 : 0);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == ArtistDetailListView ? -40 : 0);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -643,9 +660,9 @@ public sealed partial class ArtistDetailPage : Page
 		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
 		double availableSpace = ContentGrid.ActualHeight - viewStyle switch
 		{
-			"List View" => 50,
-			"Compact View" => 10,
-			_ => 10
+			"List View" => 60,
+			"Compact View" => 20,
+			_ => 20
 		};
 
 		AlphabetNavigationPanel.Margin = viewStyle switch
@@ -734,22 +751,6 @@ public sealed partial class ArtistDetailPage : Page
 		}
 		else
 			selectedSong = listView.SelectedItem as Song;
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the ArtistDetailViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		ArtistGroupSongs.Clear();
-		ArtistGroupSongs = null;
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -868,9 +869,19 @@ public sealed partial class ArtistDetailPage : Page
 		GlobalNotification.Info($"{songData?.Title} added to queue.");
 	}
 
-	private void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
+	/// <summary>
+	/// Handles the click event for the "Info/Tag" menu flyout item, displaying detailed song information.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the MenuFlyoutItem.</param>
+	/// <param name="e">The event data associated with the click action.</param>
+	/// <remarks>
+	/// This method retrieves the song associated with the selected menu item, queries the song data from
+	/// the database, and invokes the main page to display the song's detailed information.
+	/// </remarks>
+	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
-		//TODO add Card Display
+		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>
@@ -953,7 +964,7 @@ public sealed partial class ArtistDetailPage : Page
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{
@@ -974,7 +985,7 @@ public sealed partial class ArtistDetailPage : Page
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(view);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
 			{

@@ -187,7 +187,7 @@ public sealed partial class YearsViewPage : Page
 		}
 
 		YearTileView_SizeChanged(null, null);
-		YearTileView.ContainerContentChanging += YearTileView_ContainerContentChanging;
+		//YearTileView.ContainerContentChanging += YearTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
@@ -199,12 +199,18 @@ public sealed partial class YearsViewPage : Page
 			if (animation != null && selectedYearModel != null)
 			{
 				await Task.Delay(30);
-				await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				try
+				{
+					await YearTileView.SmoothScrollIntoViewWithItemAsync(selectedYearModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
+				}
+				catch (Exception)
+				{
+				}
 
 				var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
 				if (container != null)
 				{
-					var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+					var yearTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "YearTextBlock");
 					if (yearTextBlock != null)
 						animation.TryStart(yearTextBlock);
 				}
@@ -224,6 +230,7 @@ public sealed partial class YearsViewPage : Page
 		else
 			ScrollToCurrentPlayingTrack();
 		await Task.Delay(100);
+		YearTileView.SizeChanged -= YearTileView_SizeChanged;
 		YearTileView.SizeChanged += YearTileView_SizeChanged;
 
 	}
@@ -261,7 +268,13 @@ public sealed partial class YearsViewPage : Page
 		if (tile != null)
 		{
 			YearTileView.SelectedItem = tile;
-			await YearTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			try
+			{
+				await YearTileView.SmoothScrollIntoViewWithItemAsync(tile, itemPlacement: ScrollItemPlacement.Center, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
 		}
 	}
 
@@ -305,22 +318,6 @@ public sealed partial class YearsViewPage : Page
 		{
 			MoreButton.IsEnabled = YearTileView.SelectedItems.Count > 0;
 		}
-	}
-
-	/// <summary>
-	/// Handles the Unloaded event for the YearsViewPage.
-	/// </summary>
-	/// <remarks>
-	/// This method is triggered when the page is unloaded. It performs cleanup operations such as clearing
-	/// the song collection, releasing memory resources, and initiating garbage collection.
-	/// </remarks>
-	/// <param name="sender">The source of the event, typically the page being unloaded.</param>
-	/// <param name="e">The event arguments associated with the Unloaded event.</param>
-	private void Page_Unloaded(object sender, RoutedEventArgs e)
-	{
-		YearsGroup.Clear();
-		YearsGroup = null;
-		GC.Collect();
 	}
 
 	/// <summary>
@@ -535,7 +532,7 @@ public sealed partial class YearsViewPage : Page
 			YearTileView.IsItemClickEnabled = false;
 			YearTileView.IsMultiSelectCheckBoxEnabled = true;
 			YearTileView.IsRightTapEnabled = false;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(YearTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(YearTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -554,7 +551,7 @@ public sealed partial class YearsViewPage : Page
 			YearTileView.IsItemClickEnabled = true;
 			YearTileView.IsMultiSelectCheckBoxEnabled = false;
 			YearTileView.IsRightTapEnabled = true;
-			var ItemGrids = DevWinUI.DependencyObjectEx.FindDescendants(YearTileView);
+			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(YearTileView);
 
 			foreach (var item in ItemGrids)
 			{
@@ -661,7 +658,7 @@ public sealed partial class YearsViewPage : Page
 			var container = YearTileView.ContainerFromItem(yearModel) as ListViewItem;
 			if (container != null)
 			{
-				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				var yearTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "YearTextBlock");
 				if (yearTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
@@ -725,7 +722,7 @@ public sealed partial class YearsViewPage : Page
 			var container = YearTileView.ContainerFromItem(selectedYearModel) as ListViewItem;
 			if (container != null)
 			{
-				var yearTextBlock = DevWinUI.DependencyObjectEx.FindDescendant(container, "YearTextBlock");
+				var yearTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "YearTextBlock");
 				if (yearTextBlock != null)
 				{
 					ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("YearHeaderAnimation", yearTextBlock);
