@@ -41,9 +41,9 @@ public sealed partial class PlayListTemplate : Page
 	/// <param name="e">An object that provides data about the navigation event, including the navigation parameter.</param>
 	protected override void OnNavigatedTo(NavigationEventArgs e)
 	{
-		if (e.Parameter is DataGroup dataGroup)
+		if (e.Parameter is string title)
 		{
-			PlaylistHeader.Text = dataGroup.Title;
+			PlaylistHeader.Text = title;
 		}
 	}
 

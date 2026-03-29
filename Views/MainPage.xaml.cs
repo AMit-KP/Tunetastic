@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Flyleaf.FFmpeg;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
@@ -230,6 +231,10 @@ public sealed partial class MainPage : Page
 			string? selectedTag = selectedItem.Tag.ToString();
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
+		if(args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString(), @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
+		{
+			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup).Title);
+		}
 	}
 
 	/// <summary>
@@ -366,7 +371,6 @@ public sealed partial class MainPage : Page
 			playlistsGroup.MenuItems.Add(lastItem);
 
 			NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
-
 			return true;
 		}
 		return false;
