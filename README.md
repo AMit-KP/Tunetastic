@@ -13,9 +13,8 @@
 [![Language](https://img.shields.io/badge/Language-C%23-239120?logo=csharp)](https://learn.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue)](LICENSE)
 
-[<img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="52" />](#)
+[<img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="92" />](#)
 
-*🆓 30-day free trial — then a one-time purchase, no subscription.*
 
 </div>
 
@@ -25,7 +24,8 @@
 
 Tunetastic is a modern music player built natively for Windows using WinUI 3. It brings Windows 11's design language — Mica, Acrylic, rounded corners, and fluid animations — to both Windows 10 and Windows 11, combining a beautifully crafted interface with deep customization options. Turn your local music library into an experience that's as unique, expressive, and captivating as the music you love.
 
-> 📸 *Screenshot: Main player page with blur background and playback controls*
+> <img width="2858" height="1718" alt="image" src="https://github.com/user-attachments/assets/03a76ccf-d134-4a7e-a7d8-9d57382295d8" />
+
 
 ---
 
@@ -54,7 +54,6 @@ Tunetastic automatically organizes your music collection into clean, browsable v
 | Genres | Sorted by genre tag |
 | Years | Sorted by release year |
 
-> 📸 *Screenshot: Library tabs showing Artists and Albums view*
 
 ---
 
@@ -72,7 +71,7 @@ Smart playlists keep your most-reached-for music always at hand, and you can bui
 - Rename or delete user-created playlists at any time
 - Add individual tracks, or bulk-add entire albums, genres, or years in one go
 
-> 📸 *Screenshot: Playlists sidebar showing smart playlists and user-created playlists*
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 123156" src="https://github.com/user-attachments/assets/33f53836-7338-46e3-80da-fa1d2402628c" />
 
 ---
 
@@ -92,6 +91,9 @@ Full SMTC support means you can control playback from anywhere:
 - Any SMTC-compatible third-party app
 - Keyboard media keys (play, pause, next, previous)
 - Bluetooth headphones and controllers
+
+> <img width="439" height="713" alt="Screenshot 2026-03-31 123416" src="https://github.com/user-attachments/assets/8071a19b-31d4-41af-9053-4537d569f5c8" />
+
 
 **📊 Taskbar Progress**
 Track playback progress is shown live on the Tunetastic taskbar icon, so you always know where you are in a track at a glance — without switching windows.
@@ -138,6 +140,21 @@ Pick the backdrop material used throughout the app:
 | Transparent | Fully transparent window background |
 
 When **Mica** is selected, you can also dial in a custom tint color — anywhere from fully transparent to any color you choose.
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 121532" src="https://github.com/user-attachments/assets/8787ca72-1bac-47ce-9798-25c744b9bcd9" />
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 121606" src="https://github.com/user-attachments/assets/761aa5fe-4553-42b5-a2ce-e5189be0f569" />
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 121748" src="https://github.com/user-attachments/assets/9f8eaf81-c47e-44b4-ac4a-6a92d2100b04" />
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 121850" src="https://github.com/user-attachments/assets/2feab746-b3f3-46ea-8283-e74c8be9b91a" />
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 121923" src="https://github.com/user-attachments/assets/5bea4ee2-125f-47e6-b9aa-952d8d612ade" />
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 121944" src="https://github.com/user-attachments/assets/c0f118ce-a2c9-41c2-a9cc-31ee52a0a55f" />
+
+> <img width="2858" height="1717" alt="Screenshot 2026-03-31 122232" src="https://github.com/user-attachments/assets/87c18cef-0ea7-4b24-a8b2-cb6d97f37024" />
+
 
 **Accent Color**
 Certain player UI elements pick up your Windows accent color automatically. A shortcut to the Windows accent color settings page is available directly from within Tunetastic.
