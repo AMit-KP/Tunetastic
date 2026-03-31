@@ -559,13 +559,7 @@ public sealed partial class SettingsPage : Page
 			if (TintSettings.Visibility == Visibility.Visible)
 			{
 				var actualTheme = App.Current.ThemeService.ActualTheme;
-				Color color = actualTheme switch
-				{
-					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
-					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32),
-					_ => Color.FromArgb(0, 0, 0, 0)
-				};
-
+				Color color = Color.FromArgb(0, 0, 0, 0);
 				TintBox.Fill = new SolidColorBrush(color);
 			}
 
@@ -645,15 +639,6 @@ public sealed partial class SettingsPage : Page
 										   g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
 										   b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
 				App.Current.ThemeService.GetMicaSystemBackdrop().TintColor = color;
-			}
-			else
-			{
-				var actualTheme = App.Current.ThemeService.ActualTheme;
-				color = actualTheme switch
-				{
-					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
-					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32)
-				};
 			}
 			TintBox.Fill = new SolidColorBrush(color);
 		}
