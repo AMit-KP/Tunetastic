@@ -15,6 +15,9 @@
     <ImplicitUsings>true</ImplicitUsings>
     <LangVersion>Latest</LangVersion>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
