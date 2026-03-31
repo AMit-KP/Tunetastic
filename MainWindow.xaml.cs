@@ -7,6 +7,7 @@ using WinRT.Interop;
 using WinUIEx;
 
 namespace Tunetastic.Views;
+
 public sealed partial class MainWindow : WindowEx
 {
 	private OverlappedPresenter overlappedPresenter;
@@ -30,13 +31,49 @@ public sealed partial class MainWindow : WindowEx
 
 		Activated += MainWindow_Activated;
 
-		System.Windows.Forms.ContextMenuStrip _trayMenu = new();
-		_trayMenu.Items.Add("Open Tunetastic", null, (s, e) => RestoreFromTray());
-		_trayMenu.Items.Add("Exit", null, (s, e) => ExitApp());
-		_trayMenu.Renderer = new ModernMenuRenderer();
+		#region Don't remove this causes thread issue for some unknown reason
+		var _ = new System.Windows.Forms.ContextMenuStrip();
+		#endregion
 
-		App.TrayIcon.ContextMenuStrip = _trayMenu;
+		AddTrayIcon();
 		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
+	}
+
+	public void AddTrayIcon()
+	{
+		uint iconId = 7823;
+		if (App.TrayIcon is null)
+		{
+			App.TrayIcon = new SystemTrayIcon(iconId, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
+
+		}
+		App.TrayIcon.RightClick += OnTrayIconRightClick;
+		App.TrayIcon.IsVisible = true;
+	}
+
+	public void RemoveTrayIcon()
+	{
+		if (App.TrayIcon is not null)
+		{
+			App.TrayIcon.RightClick -= OnTrayIconRightClick;
+			App.TrayIcon.IsVisible = false;
+			App.TrayIcon.Dispose();
+			App.TrayIcon = null;
+		}
+	}
+
+	private void OnTrayIconRightClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+	{
+		var flyout = new MenuFlyout();
+		flyout.Items.Add(new MenuFlyoutItem() { Text = "Tunetastic", IsEnabled = false });
+		flyout.Items.Add(new MenuFlyoutSeparator());
+		flyout.Items.Add(new MenuFlyoutItem() { Text = "Open" });
+		flyout.Items.Add(new MenuFlyoutItem() { Text = "Exit" });
+
+		((MenuFlyoutItem)flyout.Items[2]).Click += (s, e) => RestoreFromTray();
+		((MenuFlyoutItem)flyout.Items[3]).Click += (s, e) => ExitApp();
+
+		args.Flyout = flyout;
 	}
 
 	/// <summary>
@@ -46,10 +83,12 @@ public sealed partial class MainWindow : WindowEx
 	private void SetMinimizeBehaviour(bool minimizeToTray)
 	{
 		Closed -= MainWindowClose;
+		Closed -= MinimizeToTray;
+
 		if (minimizeToTray)
-			Closed += MainWindowClose;
+			Closed += MinimizeToTray;
 		else
-			Closed -= MainWindowClose;
+			Closed += MainWindowClose;
 	}
 
 	/// <summary>
@@ -66,25 +105,27 @@ public sealed partial class MainWindow : WindowEx
 	/// </summary>
 	/// <param name="sender">The source of the close event, typically the main window instance.</param>
 	/// <param name="args">Event data that provides information about the window close event.</param>
-	/// <remarks>
-	/// This method is invoked when the main application window is being closed. Instead of fully closing the application, it minimizes the window to the system tray by calling the <see cref="MinimizeToTray"/> method and marks the event as handled.
-	/// </remarks>
-	private void MainWindowClose(object sender, WindowEventArgs args)
+	private async void MainWindowClose(object sender, WindowEventArgs args)
 	{
 		args.Handled = true;
-		MinimizeToTray();
+		ExitApp();
+		await Task.Delay(100);
+		this.Close();
 	}
 
 	/// <summary>
 	/// Minimizes the main application window to the system tray.
 	/// </summary>
+	/// <param name="sender">The source of the close event, typically the main window instance.</param>
+	/// <param name="args">Event data that provides information about the window close event.</param>
 	/// <remarks>
 	/// When this method is invoked, the main application window is hidden from view and a notification is displayed
 	/// to inform the user that the application has been minimized to the system tray. The application remains active
 	/// and accessible through the system tray icon.
 	/// </remarks>
-	private void MinimizeToTray()
+	private void MinimizeToTray(object sender, WindowEventArgs args)
 	{
+		args.Handled = true;
 		this.Hide();
 		GlobalNotification.Info("Minimized to system tray");
 	}
@@ -111,7 +152,8 @@ public sealed partial class MainWindow : WindowEx
 	private void ExitApp()
 	{
 		this.Closed -= MainWindowClose;
-		App.TrayIcon.Visible = false;
+		this.Closed -= MinimizeToTray;
+		RemoveTrayIcon();
 		this.Close();
 	}
 

@@ -17,10 +17,10 @@
 
 	<Identity
 	  Name="AMit-KP.Tunetastic"
-	  Publisher="CN=amitp"
-	  Version="1.23.4.0"/>
+	  Publisher="CN=B90A5939-9B2E-481A-9AAB-88AC3440759B"
+	  Version="1.26.10.0"/>
 
-	<mp:PhoneIdentity PhoneProductId="fbcf13fc-2512-4b2d-8b9e-3258f0535742" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+	<mp:PhoneIdentity PhoneProductId="1e56cd21-fffd-4018-bebd-94b2cb6d6063" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
 	<Properties>
 		<DisplayName>Tunetastic</DisplayName>
@@ -52,6 +52,7 @@
 					<uap:ShowNameOnTiles>
 						<uap:ShowOn Tile="square150x150Logo"/>
 						<uap:ShowOn Tile="square310x310Logo"/>
+						<uap:ShowOn Tile="wide310x150Logo"/>
 					</uap:ShowNameOnTiles>
 				</uap:DefaultTile >
 				<uap:SplashScreen Image="Assets\Store\SplashScreen.png"/>
@@ -92,16 +93,88 @@
         </uap5:Extension>
 				<uap:Extension Category="windows.mediaPlayback">
 					<uap:MediaPlayback>
-						<uap:Codec Name="mp3"/>
-						<uap:Codec Name="m4a"/>
-						<uap:Codec Name="flac"/>
-						<uap:Codec Name="alac"/>
-						<uap:Codec Name="wav"/>
-						<uap:Codec Name="wma"/>
-						<uap:Codec Name="aac"/>
-						<uap:Codec Name="ogg"/>
-						<uap:Codec Name="aiff"/>
-						<uap:Codec Name="opus"/>
+						<uap:Codec Name="PCM"/>
+						<uap:Codec Name="FLAC"/>
+						<uap:Codec Name="WMA Lossless"/>
+						<uap:Codec Name="BWF (Broadcast Wave Format)"/>
+						<uap:Codec Name="MP3 (MPEG-1/2 Layer III)"/>
+						<uap:Codec Name="MP2 (MPEG-1/2 Layer II)"/>
+						<uap:Codec Name="AAC"/>
+						<uap:Codec Name="HE-AAC / AAC+"/>
+						<uap:Codec Name="WMA"/>
+						<uap:Codec Name="WMA Pro"/>
+						<uap:Codec Name="WMA Voice"/>
+						<uap:Codec Name="MP4 audio"/>
+						<uap:Codec Name="RIFF/WAV"/>
+						<uap:Codec Name="ASF (Windows Media)"/>
+						<uap:Codec Name="3GPP audio"/>
+						<uap:Codec Name="MIDI"/>
+						<uap:Codec Name="ALAC (Apple Lossless)"/>
+						<uap:Codec Name="WavPack"/>
+						<uap:Codec Name="Monkey&amp;apos;s Audio"/>
+						<uap:Codec Name="TTA (True Audio)"/>
+						<uap:Codec Name="Shorten"/>
+						<uap:Codec Name="RealAudio Lossless"/>
+						<uap:Codec Name="MLP (Meridian Lossless Packing)"/>
+						<uap:Codec Name="Dolby TrueHD"/>
+						<uap:Codec Name="DTS-HD Master Audio"/>
+						<uap:Codec Name="AIFF-C (lossless)"/>
+						<uap:Codec Name="RF64"/>
+						<uap:Codec Name="CAF (Core Audio Format)"/>
+						<uap:Codec Name="MP1 (MPEG-1/2 Layer I)"/>
+						<uap:Codec Name="xHE-AAC"/>
+						<uap:Codec Name="Vorbis"/>
+						<uap:Codec Name="Opus"/>
+						<uap:Codec Name="Speex"/>
+						<uap:Codec Name="AC-3 / Dolby Digital"/>
+						<uap:Codec Name="E-AC-3 / Dolby Digital Plus"/>
+						<uap:Codec Name="DTS"/>
+						<uap:Codec Name="DTS Express"/>
+						<uap:Codec Name="DTS:X"/>
+						<uap:Codec Name="ATRAC / ATRAC3"/>
+						<uap:Codec Name="RealAudio"/>
+						<uap:Codec Name="AMR-NB"/>
+						<uap:Codec Name="AMR-WB / G.722.2"/>
+						<uap:Codec Name="AMR-WB+"/>
+						<uap:Codec Name="EVRC / EVRC-B / EVRC-WB"/>
+						<uap:Codec Name="QCELP"/>
+						<uap:Codec Name="iLBC"/>
+						<uap:Codec Name="G.711 (µ-law / A-law)"/>
+						<uap:Codec Name="G.722"/>
+						<uap:Codec Name="G.723.1"/>
+						<uap:Codec Name="G.726"/>
+						<uap:Codec Name="G.729"/>
+						<uap:Codec Name="GSM 06.10"/>
+						<uap:Codec Name="Silk (Skype)"/>
+						<uap:Codec Name="Nellymoser ASAO"/>
+						<uap:Codec Name="Cook (RealAudio G2)"/>
+						<uap:Codec Name="CELT"/>
+						<uap:Codec Name="AAC-ELD"/>
+						<uap:Codec Name="Siren"/>
+						<uap:Codec Name="VQF (TwinVQ)"/>
+						<uap:Codec Name="Matroska Audio"/>
+						<uap:Codec Name="WebM (audio)"/>
+						<uap:Codec Name="OGG"/>
+						<uap:Codec Name="AIFF"/>
+						<uap:Codec Name="MPEG transport stream"/>
+						<uap:Codec Name="Flash Video (audio)"/>
+						<uap:Codec Name="QuickTime"/>
+						<uap:Codec Name="RealMedia"/>
+						<uap:Codec Name="MXF"/>
+						<uap:Codec Name="LPCM in MPEG"/>
+						<uap:Codec Name="MOD"/>
+						<uap:Codec Name="XM (Extended Module)"/>
+						<uap:Codec Name="IT (Impulse Tracker)"/>
+						<uap:Codec Name="S3M"/>
+						<uap:Codec Name="AU (Sun/NeXT)"/>
+						<uap:Codec Name="VOC (Creative Voice)"/>
+						<uap:Codec Name="8SVX / IFF (Amiga)"/>
+						<uap:Codec Name="SD2 (Sound Designer II)"/>
+						<uap:Codec Name="ADX (CRI Middleware)"/>
+						<uap:Codec Name="DSP"/>
+						<uap:Codec Name="XA (PlayStation)"/>
+						<uap:Codec Name="XWMA (Xbox)"/>
+						<uap:Codec Name="XMA / XMA2"/>
 					</uap:MediaPlayback>
 				</uap:Extension>
       </Extensions>
@@ -112,6 +185,5 @@
 		<rescap:Capability Name="runFullTrust"/>
     <rescap:Capability Name="unvirtualizedResources" />
 		<uap3:Capability Name="backgroundMediaPlayback"/>
-		<uap:Capability Name="musicLibrary"/>
 	</Capabilities>
 </Package>

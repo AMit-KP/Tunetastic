@@ -12,12 +12,9 @@ public partial class App : Application
 	public IJsonNavigationService NavService => GetService<IJsonNavigationService>();
 	public IThemeService ThemeService => GetService<IThemeService>();
 	public IRainbowFrame RainbowFrame => GetService<IRainbowFrame>();
-	public static System.Windows.Forms.NotifyIcon TrayIcon { get; private set; } = new System.Windows.Forms.NotifyIcon
-	{
-		Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico")),
-		Visible = true,
-		Text = "Tunetastic",
-	};
+
+	public static SystemTrayIcon? TrayIcon { get; set; } //= new SystemTrayIcon(7823, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
+
 
 	public static T GetService<T>() where T : class
 	{
@@ -80,10 +77,10 @@ public partial class App : Application
 
 		if (backdrop == "Mica" && bool.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorStatus)]?.ToString() ?? "false"))
 		{
-			var color = Windows.UI.Color.FromArgb(a: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorA)]?.ToString() ?? "255"),
-												  r: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorR)]?.ToString() ?? "32"),
-												  g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
-												  b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
+			var color = Windows.UI.Color.FromArgb(a: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorA)]?.ToString() ?? "0"),
+												  r: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorR)]?.ToString() ?? "0"),
+												  g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "0"),
+												  b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "0"));
 
 			App.Current.ThemeService.GetMicaSystemBackdrop().TintColor = color;
 		}

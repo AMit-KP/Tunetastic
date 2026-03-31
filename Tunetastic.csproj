@@ -6,9 +6,8 @@
     <TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
     <RootNamespace>Tunetastic</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Platforms>x86;x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
@@ -19,7 +18,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.23.4</Version>
+    <Version>1.27.63</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -27,15 +26,15 @@
   <PropertyGroup>
     <PublishAot>False</PublishAot>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">False</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">False</PublishTrimmed>
     <PackageIcon>AppIcon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.26.10.2002</AssemblyVersion>
-    <FileVersion>1.26.10.2002</FileVersion>
+    <AssemblyVersion>1.27.69.2070</AssemblyVersion>
+    <FileVersion>1.27.69.2070</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -270,12 +269,12 @@
   <StartupObject>Tunetastic.Startup</StartupObject>
   <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
   <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-  <PackageCertificateThumbprint>4A4714F85C40ABD6D04907ACDB6FC69E62AE8681</PackageCertificateThumbprint>
-  <AppxPackageSigningTimestampDigestAlgorithm>SHA512</AppxPackageSigningTimestampDigestAlgorithm>
+  <PackageCertificateThumbprint>90305AD4941265C4E75A82E2B291085C30891B48</PackageCertificateThumbprint>
+  <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
   <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
-  <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+  <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
   <GenerateTestArtifacts>True</GenerateTestArtifacts>
-  <AppxBundle>Auto</AppxBundle>
+  <AppxBundle>Never</AppxBundle>
   <AppxBundlePlatforms>x64</AppxBundlePlatforms>
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxPackageDir>C:\Users\amitp\source\repos\Tunetastic\AppPackages\</AppxPackageDir>
