@@ -134,11 +134,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		SetShuffleAndRepeat();
 		_ = LoadLastPlayedTrack();
 
-		App.TrayIcon.MouseClick += (s, e) =>
-		{
-			if (e.Button == System.Windows.Forms.MouseButtons.Left)
-				TogglePlayPause();
-		};
+		App.TrayIcon.LeftClick += OnTrayIconLeftClick;
 
 		if (_musicPlayer.SMTC != null)
 		{
@@ -162,6 +158,14 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
 		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
+	}
+
+	// ─────────────────────────────────────────────────────────
+	//  Tray click Event handlers
+	// ─────────────────────────────────────────────────────────
+	private void OnTrayIconLeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+	{
+		TogglePlayPause();
 	}
 
 	// ─────────────────────────────────────────────────────────
