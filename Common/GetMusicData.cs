@@ -1,4 +1,5 @@
 ﻿using FlyleafLib.MediaPlayer;
+using System.Collections.Concurrent;
 
 namespace Tunetastic.Common;
 
@@ -86,6 +87,7 @@ public class GetMusicData
 	/// Scans the music libraries to identify and process audio files, applying filters such as
 	/// file format and optional configurations for ignoring duplicates or tracks below a certain duration.
 	/// Updates the local settings and notifies the user with the scan results.
+	/// Processes files in parallel (DOP=4) to fully utilize multi-core CPUs and SSDs.
 	/// </summary>
 	/// <returns>
 	/// A <see cref="Task"/> that represents the asynchronous operation of scanning the music libraries.
@@ -153,61 +155,94 @@ public class GetMusicData
 				}
 			}
 
-			List<Song>? songsContainer = new();
-			HashSet<(string Title, string Artist, string Album)>? uniqueMetadata = new HashSet<(string, string, string)>();
+			// Thread-safe collections for parallel processing
+			var songsContainer = new ConcurrentBag<Song>();
+			// ConcurrentDictionary used as a concurrent HashSet for duplicate detection
+			var uniqueMetadata = new ConcurrentDictionary<(string Title, string Artist, string Album), byte>();
 
 			ScanProgress = 1;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			int processedFiles = 0;
+			int totalFiles = audioFiles.Count;
 
-			foreach (var filePath in audioFiles)
-			{
-				try
+			// Parallel.ForEachAsync with DOP=4: saturates SSD I/O and CPU tag parsing
+			// without over-subscribing the scheduler. Each file is independent —
+			// no shared mutable state except thread-safe collections above.
+			await Parallel.ForEachAsync(
+				audioFiles,
+				new ParallelOptions { MaxDegreeOfParallelism = 4 },
+				async (filePath, ct) =>
 				{
-					using (var audioModel = TagLib.File.Create(filePath))
+					try
 					{
-						var fileInfo = new FileInfo(filePath);
-
-						var song = new Song
+						using (var audioModel = TagLib.File.Create(filePath))
 						{
-							Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
-							Album = audioModel.Tag.Album ?? "Unknown Album",
-							Artists = (audioModel.Tag.Performers != null && audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
-							Duration = audioModel.Properties.Duration.TotalSeconds,
-							Path = filePath,
-							Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
-							Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
-							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
-							DateAdded = fileInfo.LastWriteTime,
-							Extension = fileInfo.Extension,
-							AudioCodecDescription = audioModel.Properties.Description,
-							AudioSampleRate = audioModel.Properties.AudioSampleRate != 0 ? audioModel.Properties.AudioSampleRate.ToString() + " Hz" : null,
-							AudioBitrate = audioModel.Properties.AudioBitrate != 0 ? audioModel.Properties.AudioBitrate.ToString() + " kbps" : null,
-							AudioChannels = audioModel.Properties.AudioChannels switch
+							var fileInfo = new FileInfo(filePath);
+
+							var song = new Song
 							{
-								1 => "Mono",
-								2 => "Stereo",
-								4 => "Quadraphonic",
-								5 => "Surround 5.0",
-								6 => "Surround 5.1",
-								7 => "Surround 6.1",
-								8 => "Surround 7.1",
-								>= 9 => "Immersive",
-								_ => null
-							},
-							FileSize = fileInfo.Length switch
+								Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
+								Album = audioModel.Tag.Album ?? "Unknown Album",
+								Artists = (audioModel.Tag.Performers != null && audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
+								Duration = audioModel.Properties.Duration.TotalSeconds,
+								Path = filePath,
+								Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
+								Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
+								Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
+								DateAdded = fileInfo.LastWriteTime,
+								Extension = fileInfo.Extension,
+								AudioCodecDescription = audioModel.Properties.Description,
+								AudioSampleRate = audioModel.Properties.AudioSampleRate != 0 ? audioModel.Properties.AudioSampleRate.ToString() + " Hz" : null,
+								AudioBitrate = audioModel.Properties.AudioBitrate != 0 ? audioModel.Properties.AudioBitrate.ToString() + " kbps" : null,
+								AudioChannels = audioModel.Properties.AudioChannels switch
+								{
+									1 => "Mono",
+									2 => "Stereo",
+									4 => "Quadraphonic",
+									5 => "Surround 5.0",
+									6 => "Surround 5.1",
+									7 => "Surround 6.1",
+									8 => "Surround 7.1",
+									>= 9 => "Immersive",
+									_ => null
+								},
+								FileSize = fileInfo.Length switch
+								{
+									>= 1L << 40 => $"{fileInfo.Length / Math.Pow(1024, 4):0.##} TB",
+									>= 1L << 30 => $"{fileInfo.Length / Math.Pow(1024, 3):0.##} GB",
+									>= 1L << 20 => $"{fileInfo.Length / Math.Pow(1024, 2):0.##} MB",
+									>= 1L << 10 => $"{fileInfo.Length / 1024d:0.##} KB",
+									_ => $"{fileInfo.Length} B"
+								}
+							};
+
+							song.PlayerType = DeterminePlayerType(song.AudioCodecDescription, filePath);
+
+							if (song.Duration <= 0)
 							{
-								>= 1L << 40 => $"{fileInfo.Length / Math.Pow(1024, 4):0.##} TB",
-								>= 1L << 30 => $"{fileInfo.Length / Math.Pow(1024, 3):0.##} GB",
-								>= 1L << 20 => $"{fileInfo.Length / Math.Pow(1024, 2):0.##} MB",
-								>= 1L << 10 => $"{fileInfo.Length / 1024d:0.##} KB",
-								_ => $"{fileInfo.Length} B"
+								FlyleafLib.Config config = new FlyleafLib.Config();
+								config.Video.Enabled = false;
+								config.Audio.Enabled = true;
+								config.Player.AutoPlay = false;
+								var tempPlayer = new Player(config);
+								tempPlayer.Open(filePath);
+								song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+								tempPlayer.Dispose();                           // Flyleaf opened it — it owns this file regardless of extension
+								song.PlayerType = "Flyleaf";
 							}
-						};
 
-						song.PlayerType = DeterminePlayerType(song.AudioCodecDescription, filePath);
-
-						if (song.Duration <= 0)
+							if (song.Duration > ignoreTrackDuration &&
+								(!ignoreDuplicates || uniqueMetadata.TryAdd((song.Title, song.Artists, song.Album), 0)))
+							{
+								songsContainer.Add(song);
+							}
+						}
+					}
+					catch (Exception)
+					{
+						GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
+						double duration = 0;
+						try
 						{
 							FlyleafLib.Config config = new FlyleafLib.Config();
 							config.Video.Enabled = false;
@@ -215,61 +250,48 @@ public class GetMusicData
 							config.Player.AutoPlay = false;
 							var tempPlayer = new Player(config);
 							tempPlayer.Open(filePath);
-							song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-							tempPlayer.Dispose();                           // Flyleaf opened it — it owns this file regardless of extension
-							song.PlayerType = "Flyleaf";
+							duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+							tempPlayer.Dispose();
 						}
-
-						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
+						catch (Exception)
+						{
+							duration = 0;
+						}
+						var fileInfo = new FileInfo(filePath);
+						var song = new Song
+						{
+							Title = Path.GetFileNameWithoutExtension(filePath),
+							Album = "Unknown Album",
+							Artists = "Unknown Artist",
+							Duration = duration,
+							Path = filePath,
+							Year = "Unknown Year",
+							Genre = "Unknown Genre",
+							Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
+							DateAdded = fileInfo.LastWriteTime,
+							Extension = fileInfo.Extension
+						};
+						if (song.Duration > ignoreTrackDuration &&
+							(!ignoreDuplicates || uniqueMetadata.TryAdd((song.Title, song.Artists, song.Album), 0)))
+						{
 							songsContainer.Add(song);
+						}
 					}
-				}
-				catch (Exception)
-				{
-					GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
-					double duration = 0;
-					try
-					{
-						FlyleafLib.Config config = new FlyleafLib.Config();
-						config.Video.Enabled = false;
-						config.Audio.Enabled = true;
-						config.Player.AutoPlay = false;
-						var tempPlayer = new Player(config);
-						tempPlayer.Open(filePath);
-						duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-						tempPlayer.Dispose();
-					}
-					catch (Exception)
-					{
-						duration = 0;
-					}
-					var fileInfo = new FileInfo(filePath);
-					var song = new Song
-					{
-						Title = Path.GetFileNameWithoutExtension(filePath),
-						Album = "Unknown Album",
-						Artists = "Unknown Artist",
-						Duration = duration,
-						Path = filePath,
-						Year = "Unknown Year",
-						Genre = "Unknown Genre",
-						Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
-						DateAdded = fileInfo.LastWriteTime,
-						Extension = fileInfo.Extension
-					};
-					if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.Add((song.Title, song.Artists, song.Album))))
-						songsContainer.Add(song);
-				}
 
-				processedFiles++;
-				ScanProgress = Math.Round((2 + ((double)(processedFiles * 97) / audioFiles.Count)), 2);
-				TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
-				await Task.Delay(10);
-			}
+					// Atomically increment counter; update taskbar every 10 files to
+					// avoid hammering the UI thread from 4 concurrent workers.
+					int current = Interlocked.Increment(ref processedFiles);
+					if (current % 10 == 0 || current == totalFiles)
+					{
+						ScanProgress = Math.Round(2 + ((double)(current * 97) / totalFiles), 2);
+						TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
+					}
+				}
+			);
 
 			try
 			{
-				await DatabaseHelper.Instance.UpdateSongsDatabase(songsContainer);
+				await DatabaseHelper.Instance.UpdateSongsDatabase(songsContainer.ToList());
 			}
 			catch (Exception)
 			{
@@ -279,14 +301,11 @@ public class GetMusicData
 				return ("Error", "No tracks could be added");
 			}
 
-
 			var librariesCount = libraries.Count;
 			var songsCount = songsContainer.Count;
 			extensions = null!;
 			formatList = null!;
 			uniqueFolders = null!;
-			songsContainer = null!;
-			uniqueMetadata = null!;
 			libraries = null!;
 
 			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
