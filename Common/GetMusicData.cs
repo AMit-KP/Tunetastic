@@ -165,12 +165,19 @@ public class GetMusicData
 			int processedFiles = 0;
 			int totalFiles = audioFiles.Count;
 
-			// Parallel.ForEachAsync with DOP=4: saturates SSD I/O and CPU tag parsing
-			// without over-subscribing the scheduler. Each file is independent —
-			// no shared mutable state except thread-safe collections above.
+			// Detect the storage type of the first library's drive and pick an
+			// appropriate DOP. HDD must stay sequential (DOP=1) to avoid thrashing;
+			// SATA SSD can saturate its queue at DOP=4; NVMe benefits from DOP=8.
+			string probePath = uniqueFolders.Count > 0 ? uniqueFolders[0] : audioFiles.First();
+			DiskKind diskKind = DiskSpeedDetector.GetDiskKind(probePath);
+			int dop = DiskSpeedDetector.DopForKind(diskKind);
+
+			// Parallel.ForEachAsync: DOP is chosen per detected storage type.
+			// Each file is independent — no shared mutable state except the
+			// thread-safe collections above.
 			await Parallel.ForEachAsync(
 				audioFiles,
-				new ParallelOptions { MaxDegreeOfParallelism = 4 },
+				new ParallelOptions { MaxDegreeOfParallelism = dop },
 				async (filePath, ct) =>
 				{
 					try
