@@ -86,12 +86,13 @@ public partial class App : Application
 		}
 
 		bool scanAtStartup = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
+		await DatabaseHelper.Instance.InitializeDatabase();
+
 		if (scanAtStartup)
 			await new GetMusicData().UpdateMetaData();
 		else
 			await Task.Delay(500);
 
-		await DatabaseHelper.Instance.InitializeDatabase();
 
 		rootFrame.Navigate(typeof(MainPage));
 

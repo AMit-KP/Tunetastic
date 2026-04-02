@@ -18,7 +18,7 @@
 	<Identity
 	  Name="AMit-KP.Tunetastic"
 	  Publisher="CN=B90A5939-9B2E-481A-9AAB-88AC3440759B"
-	  Version="1.26.10.0"/>
+	  Version="1.27.63.0"/>
 
 	<mp:PhoneIdentity PhoneProductId="1e56cd21-fffd-4018-bebd-94b2cb6d6063" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
