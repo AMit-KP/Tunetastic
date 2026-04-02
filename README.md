@@ -186,7 +186,7 @@ Add an animated rainbow border to the player:
 
 ### Microsoft Store *(Recommended)*
 
-Search for **Tunetastic** in the [Microsoft Store](https://github.com/AMit-KP/Tunetastic/edit/master/README.md#tunetastic), or follow the store link once available. No manual setup or certificate trust required — just install and play.
+Search for **Tunetastic** in the [Microsoft Store](https://github.com/AMit-KP/Tunetastic/tree/master#tunetastic), or follow the store link once available. No manual setup or certificate trust required — just install and play.
 
 ### Github Releases *(Only Recommended if you want the latest version earlier)*
 
