@@ -2,6 +2,7 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Windows.UI;
 
@@ -87,6 +88,7 @@ public sealed partial class SettingsPage : Page
 		#endregion
 
 		if (GetMusicData.IsScanning) ScanButton_Click(null, null);
+		Page_ActualThemeChanged(null, null);
 	}
 
 	/// <summary>
@@ -1042,5 +1044,11 @@ public sealed partial class SettingsPage : Page
 			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
 		}
+	}
+
+	private void Page_ActualThemeChanged(FrameworkElement? sender, object? args)
+	{
+		SourceCodeImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/GitHub_Invertocat_White.png" : "ms-appx:///Assets/Store/GitHub_Invertocat_Black.png"));
+		MicrosoftStoreImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/MS_Dark.png" : "ms-appx:///Assets/Store/MS_Light.png"));
 	}
 }
