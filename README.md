@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="Assets/AppIcon.png" alt="Tunetastic Logo" width="120" height="120" />
+<img src="Assets/AppIcon.png" alt="Tunetastic Logo" width="150" height="150" />
 
 # Tunetastic
 
@@ -13,7 +13,7 @@
 [![Language](https://img.shields.io/badge/Language-C%23-239120?logo=csharp)](https://learn.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue)](LICENSE)
 
-[<img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="92" />](#)
+[<img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" height="92" />](https://apps.microsoft.com/detail/9PCCNQZTD6PX)
 
 
 </div>
@@ -186,13 +186,17 @@ Add an animated rainbow border to the player:
 
 ### Microsoft Store *(Recommended)*
 
-Search for **Tunetastic** in the Microsoft Store, or follow the store link once available. No manual setup or certificate trust required — just install and play.
+Search for **Tunetastic** in the [Microsoft Store](https://github.com/AMit-KP/Tunetastic/edit/master/README.md#tunetastic), or follow the store link once available. No manual setup or certificate trust required — just install and play.
+
+### Github Releases *(Only Recommended if you want the latest version earlier)*
+
+Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download the Store Certificate(.cer) file and the MSIX file for your system architecture. Install the .cer file 1st (Valid for a year). Then, proceed to install the MSIX file.
 
 ### Building from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/tunetastic.git
+git clone https://github.com/AMit-KP/Tunetastic.git
 cd tunetastic
 
 # Open in Visual Studio 2026
