@@ -15,6 +15,8 @@ public sealed partial class MusicControl : Page
 		ViewModel = App.GetService<MusicControlViewModel>();
 		InitializeComponent();
 
+		ViewModel.ProgressBar = BottomProgressBar;
+
 		_instance = this;
 
 		MainPage._instance.MainPlayerPageOpened += FloatingPlayer;

@@ -22,16 +22,9 @@
 				<RowDefinition Height="40" />
 			</Grid.RowDefinitions>
 			<Grid Grid.Row="1">
-				<Slider x:Name="BottomProgressBar"
-				        Margin="10,-25,10,0"
-				        VerticalAlignment="Center"
-				        Maximum="{x:Bind ViewModel.DurationOfSong, Mode=OneWay}"
-				        Minimum="0"
-				        SmallChange="1"
-				        StepFrequency="1"
-				        ThumbToolTipValueConverter="{StaticResource DurationConverter}"
-				        Visibility="Visible"
-				        Value="{x:Bind ViewModel.ProgressBarValue, Mode=TwoWay}" />
+				<helpers:SmoothProgressBar x:Name="BottomProgressBar"
+				                           Margin="10,-25,10,0"
+				                           VerticalAlignment="Center" />
 			</Grid>
 			<Grid Grid.Row="0">
 				<Button x:Name="PlayPauseButton"
@@ -150,7 +143,7 @@
 						           FontSize="15"
 						           HorizontalTextAlignment="Center"
 						           Style="{ThemeResource BodyTextBlockStyle}"
-						           Text="{Binding ElementName=BottomProgressBar, Path=Value, Converter={StaticResource DurationConverter}}" />
+						           Text="{Binding ElementName=BottomProgressBar, Path=Position, Converter={StaticResource DurationConverter}}" />
 					</Grid>
 					<Grid Width="70"
 					      HorizontalAlignment="Right">
