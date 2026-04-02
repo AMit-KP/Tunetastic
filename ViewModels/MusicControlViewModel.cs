@@ -390,6 +390,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		ProgressBarValue = 0;
 		_midpointTimer?.Stop();
+		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
 		_musicPlayer.Next();
 	}
@@ -405,6 +406,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		ProgressBarValue = 0;
 		_midpointTimer?.Stop();
+		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
 		_musicPlayer.Previous();
 	}
@@ -503,7 +505,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_musicPlayer.Volume = 0;
 			_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(ProgressBarValue).Ticks;
 			await Task.Delay(100);
-			_musicPlayer.Volume = 75;
+			_musicPlayer.Volume = 100;
 		});
 	}
 
@@ -537,6 +539,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					_playbackTracker.StartPlayback();
 
 				_midpointTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+				_midpointTimer.Tick -= MidpointTimer_Tick;
 				_midpointTimer.Tick += MidpointTimer_Tick;
 				_midpointTimer.Start();
 
@@ -560,6 +563,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		if (_playbackTracker.AlreadyCounted)
 		{
 			_midpointTimer?.Stop();
+			_midpointTimer?.Tick -= MidpointTimer_Tick;
 			return;
 		}
 
@@ -569,6 +573,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_playbackTracker.GetTotalPlayTime() >= _thresoldDuration)
 		{
 			_midpointTimer?.Stop();
+			_midpointTimer?.Tick -= MidpointTimer_Tick;
 			_playbackTracker.MarkPlayCountRecorded();
 			await DatabaseHelper.Instance.IncrementPlayCount(_musicPlayer.CurrentSong);
 			await DatabaseHelper.Instance.UpdateDateLastPlayed(_musicPlayer.CurrentSong);
