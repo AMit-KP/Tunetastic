@@ -400,9 +400,20 @@
 			                      Header="Tunetastic"
 			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
 			                      IsExpanded="False">
-				<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-				           IsTextSelectionEnabled="True"
-				           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
+				<StackPanel Orientation="Horizontal"
+				            Spacing="10">
+					<TextBlock VerticalAlignment="Center"
+					           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+					           IsTextSelectionEnabled="True"
+					           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
+					<dev:ProgressButton x:Name="CheckForUpdates"
+					                    Width="180"
+					                    CheckedContent="Checking..."
+					                    Click="CheckForUpdates_Click"
+					                    Content="Check for New Version"
+					                    IsIndeterminateProgressRing="true"
+					                    ProgressRingVisibility="Visible" />
+				</StackPanel>
 				<dev:SettingsExpander.Items>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
