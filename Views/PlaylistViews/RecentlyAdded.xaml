@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.PlaylistViews.RecentlyAdded"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,7 +10,8 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       x:Name="RecentlyAddedPage"
-      Loaded="Page_Loaded">
+      Loaded="Page_Loaded"
+      Unloaded="RecentlyAdded_Unloaded">
 
 	<Page.Resources>
 		<MenuFlyout x:Key="RightClickMenu"
@@ -409,7 +410,8 @@
 									           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}, ConverterParameter=True}">
 										<ToolTipService.ToolTip>
 											<TextBlock TextWrapping="WrapWholeWords">
-												<Run FontWeight="Bold"
+												<Run x:Name="DateTooltip"
+												     FontWeight="Bold"
 												     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
 												<Underline />
 												<LineBreak />
@@ -423,7 +425,8 @@
 											</TextBlock>
 										</ToolTipService.ToolTip>
 									</TextBlock>
-									<TextBlock HorizontalAlignment="Left"
+									<TextBlock x:Name="RelativeTime"
+									           HorizontalAlignment="Left"
 									           VerticalAlignment="Center"
 									           HorizontalTextAlignment="Left"
 									           Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}"
@@ -432,7 +435,8 @@
 									           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}}">
 										<ToolTipService.ToolTip>
 											<TextBlock TextWrapping="WrapWholeWords">
-												<Run FontWeight="Bold"
+												<Run x:Name="RelativeTimeTooltip"
+												     FontWeight="Bold"
 												     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
 												<Underline />
 												<LineBreak />
@@ -594,7 +598,8 @@
 										           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}, ConverterParameter=True}">
 											<ToolTipService.ToolTip>
 												<TextBlock TextWrapping="WrapWholeWords">
-													<Run FontWeight="Bold"
+													<Run x:Name="DateTooltip"
+													     FontWeight="Bold"
 													     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
 													<Underline />
 													<LineBreak />
@@ -608,7 +613,8 @@
 												</TextBlock>
 											</ToolTipService.ToolTip>
 										</TextBlock>
-										<TextBlock HorizontalAlignment="Right"
+										<TextBlock x:Name="RelativeTime"
+										           HorizontalAlignment="Right"
 										           VerticalAlignment="Center"
 										           FontWeight="Bold"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
@@ -616,7 +622,8 @@
 										           Visibility="{Binding IsRelativeDisplayMode, ElementName=RecentlyAddedPage, Converter={StaticResource BoolToVisibility}}">
 											<ToolTipService.ToolTip>
 												<TextBlock TextWrapping="WrapWholeWords">
-													<Run FontWeight="Bold"
+													<Run x:Name="RelativeTimeTooltip"
+													     FontWeight="Bold"
 													     Text="{x:Bind DateAdded, Converter={StaticResource RelativeTimeConverter}}" />
 													<Underline />
 													<LineBreak />
