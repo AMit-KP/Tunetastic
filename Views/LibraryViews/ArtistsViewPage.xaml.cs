@@ -191,7 +191,7 @@ public sealed partial class ArtistsViewPage : Page
 		}
 
 		ArtistTileView_SizeChanged(null, null);
-		//ArtistTileView.ContainerContentChanging += ArtistTileView_ContainerContentChanging;
+		ArtistTileView.ContainerContentChanging += ArtistTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{

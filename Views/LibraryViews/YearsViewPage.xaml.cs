@@ -187,7 +187,7 @@ public sealed partial class YearsViewPage : Page
 		}
 
 		YearTileView_SizeChanged(null, null);
-		//YearTileView.ContainerContentChanging += YearTileView_ContainerContentChanging;
+		YearTileView.ContainerContentChanging += YearTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
