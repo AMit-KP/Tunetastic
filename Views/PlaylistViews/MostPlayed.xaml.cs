@@ -883,4 +883,24 @@ public sealed partial class MostPlayed : Page
 		"“We only track relationships—not music speed dates.”\nLet your playlist woo you, and return with numbers worth bragging about.",
 		"“Your ears need a real moment. So does this page.”\nDon't just breeze through. Let a track leave an emotional dent."
 	};
+
+	protected override void OnNavigatedTo(NavigationEventArgs e)
+	{
+		base.OnNavigatedTo(e);
+		DatabaseHelper.OnDateLastPlayedUpdated += OnSongPlayed;
+	}
+
+	protected override void OnNavigatedFrom(NavigationEventArgs e)
+	{
+		base.OnNavigatedFrom(e);
+		DatabaseHelper.OnDateLastPlayedUpdated -= OnSongPlayed;
+	}
+
+	private async void OnSongPlayed()
+	{
+		await _dispatcherQueue.EnqueueAsync(async () =>
+		{
+			await UpdateListBasedOnMaxLimit();
+		});
+	}
 }
