@@ -192,7 +192,7 @@ public sealed partial class AlbumsViewPage : Page
 		}
 
 		AlbumTileView_SizeChanged(null, null);
-		//AlbumTileView.ContainerContentChanging += AlbumTileView_ContainerContentChanging;
+		AlbumTileView.ContainerContentChanging += AlbumTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{
