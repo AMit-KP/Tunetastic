@@ -655,6 +655,8 @@ public class DatabaseHelper
 		return paths.Where(p => existingSet.Contains(p)).ToList();
 	}
 
+	public static event Action? OnPlayCountUpdated;
+
 	/// <summary>
 	/// Increments the play count of a song in the database.
 	/// This method updates the `PlayCount` field of the song record
@@ -669,6 +671,7 @@ public class DatabaseHelper
 	public async Task IncrementPlayCount(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = PlayCount + 1 WHERE Path = ?", songPath);
+		OnPlayCountUpdated?.Invoke();
 	}
 
 	/// <summary>
@@ -680,6 +683,8 @@ public class DatabaseHelper
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = 0 WHERE Path = ?", songPath);
 	}
+
+	public static event Action? OnDateLastPlayedUpdated;
 
 	/// <summary>
 	/// Updates the `DateLastPlayed` field of a song in the database to the current date and time.
@@ -694,6 +699,7 @@ public class DatabaseHelper
 	public async Task UpdateDateLastPlayed(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET DateLastPlayed = ? WHERE Path = ?", DateTime.Now, songPath);
+		OnDateLastPlayedUpdated?.Invoke();
 	}
 
 	/// <summary>

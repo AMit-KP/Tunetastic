@@ -197,7 +197,7 @@ public sealed partial class GenresViewPage : Page
 		}
 
 		GenreTileView_SizeChanged(null, null);
-		//GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
+		GenreTileView.ContainerContentChanging += GenreTileView_ContainerContentChanging;
 
 		if (connectedAnimation)
 		{

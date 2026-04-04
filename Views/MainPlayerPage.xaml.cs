@@ -102,9 +102,9 @@ public sealed partial class MainPlayerPage : Page
 							CoverArtImage.Source = bitmapImage;
 						}
 						if ((Title.Text + "\n" + Artist.Text).Length > 128)
-							App.TrayIcon.Text = Title.Text;
+							App.TrayIcon?.Tooltip = Title.Text;
 						else
-							App.TrayIcon.Text = Title.Text + "\n" + Artist.Text;
+							App.TrayIcon?.Tooltip = Title.Text + "\n" + Artist.Text;
 
 						var updater = MusicPlayer.Instance.SMTC.DisplayUpdater;
 						updater.Type = MediaPlaybackType.Music;

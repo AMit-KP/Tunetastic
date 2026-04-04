@@ -21,6 +21,32 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 	private PlaybackTracker _playbackTracker = new();
 	private DispatcherTimer? _midpointTimer;
+	private double _startupPosition = 0;
+
+	// ── Custom smooth progress bar ────────────────────────────────
+	// Set this from MusicControl code-behind after InitializeComponent():
+	//   ViewModel.ProgressBar = BottomProgressBar;
+	private SmoothProgressBar? _progressBar;
+	public SmoothProgressBar? ProgressBar
+	{
+		get => _progressBar;
+		set
+		{
+			if (_progressBar != null)
+				_progressBar.Seeked -= OnProgressBarSeeked;
+			_progressBar = value;
+			if (_progressBar != null)
+				_progressBar.Seeked += OnProgressBarSeeked;
+		}
+	}
+
+	private void OnProgressBarSeeked(object? sender, double seconds)
+	{
+		isUpdatingProgressBar = true;
+		_progressBarValue = seconds;
+		isUpdatingProgressBar = false;
+		_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(seconds).Ticks;
+	}
 
 	private TimeSpan _thresoldDuration = TimeSpan.Zero;
 
@@ -134,11 +160,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		SetShuffleAndRepeat();
 		_ = LoadLastPlayedTrack();
 
-		App.TrayIcon.MouseClick += (s, e) =>
-		{
-			if (e.Button == System.Windows.Forms.MouseButtons.Left)
-				TogglePlayPause();
-		};
+		App.TrayIcon.LeftClick += OnTrayIconLeftClick;
 
 		if (_musicPlayer.SMTC != null)
 		{
@@ -165,6 +187,14 @@ public partial class MusicControlViewModel : ObservableRecipient
 	}
 
 	// ─────────────────────────────────────────────────────────
+	//  Tray click Event handlers
+	// ─────────────────────────────────────────────────────────
+	private void OnTrayIconLeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+	{
+		TogglePlayPause();
+	}
+
+	// ─────────────────────────────────────────────────────────
 	//  Event handlers from unified MusicPlayer surface
 	// ─────────────────────────────────────────────────────────
 
@@ -188,6 +218,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 					_playbackTracker.PausePlayback();
 					_vinylEffect?.Pause();
+					ProgressBar?.NotifyPaused();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 					MainPage._instance.AnimateTitle(startAnimation: false);
@@ -208,6 +239,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 					_playbackTracker.StartPlayback();
 					_vinylEffect?.Resume();
+					ProgressBar?.NotifyPlaying();
 
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 					MainPage._instance.AnimateTitle(startAnimation: true);
@@ -227,22 +259,25 @@ public partial class MusicControlViewModel : ObservableRecipient
 		});
 	}
 
-/// <summary>
-/// Handles position change events by updating the progress bar and taskbar progress indicator to reflect the current
-/// playback position.
-/// </summary>
-/// <remarks>This method is typically called in response to playback position updates, ensuring that the user
-/// interface remains synchronized with the current state of playback.</remarks>
-/// <param name="sender">The source of the event. This parameter is not used.</param>
-/// <param name="ticks">The current playback position, in ticks. Represents the number of 100-nanosecond intervals elapsed.</param>
+	/// <summary>
+	/// Handles position change events by updating the progress bar and taskbar progress indicator to reflect the current
+	/// playback position.
+	/// </summary>
+	/// <remarks>This method is typically called in response to playback position updates, ensuring that the user
+	/// interface remains synchronized with the current state of playback.</remarks>
+	/// <param name="sender">The source of the event. This parameter is not used.</param>
+	/// <param name="ticks">The current playback position, in ticks. Represents the number of 100-nanosecond intervals elapsed.</param>
 	private void OnPositionChanged(object? sender, long ticks)
 	{
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
 		{
+			var seconds = TimeSpan.FromTicks(ticks).TotalSeconds;
 			isUpdatingProgressBar = true;
-			ProgressBarValue = TimeSpan.FromTicks(ticks).TotalSeconds;
-			TaskbarHelper.SetProgressValue(App.Hwnd, ProgressBarValue / DurationOfSong * 100, 100);
+			ProgressBarValue = seconds;
 			isUpdatingProgressBar = false;
+			// Drive the smooth control — it advances itself between these ticks
+			ProgressBar?.SyncPosition(seconds);
+			TaskbarHelper.SetProgressValue(App.Hwnd, seconds / DurationOfSong * 100, 100);
 		});
 	}
 
@@ -311,6 +346,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 			DurationOfSong = track.Duration;
 			ProgressBarValue = position;
+			// Restore saved position on the custom progress bar without triggering a seek
+
+			//ProgressBar?.NotifyTrackChanged(DurationOfSong);
+			//ProgressBar?.SetInitialPosition(position);
+			// AFTER — in LoadLastPlayedTrack
+			_startupPosition = position;
 		}
 	}
 
@@ -386,6 +427,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		ProgressBarValue = 0;
 		_midpointTimer?.Stop();
+		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
 		_musicPlayer.Next();
 	}
@@ -401,6 +443,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		ProgressBarValue = 0;
 		_midpointTimer?.Stop();
+		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
 		_musicPlayer.Previous();
 	}
@@ -499,7 +542,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_musicPlayer.Volume = 0;
 			_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(ProgressBarValue).Ticks;
 			await Task.Delay(100);
-			_musicPlayer.Volume = 75;
+			_musicPlayer.Volume = 100;
 		});
 	}
 
@@ -524,6 +567,13 @@ public partial class MusicControlViewModel : ObservableRecipient
 			if (track != null)
 			{
 				DurationOfSong = double.Parse(track.Duration.ToString());
+				ProgressBar?.NotifyTrackChanged(DurationOfSong);    
+				if (_musicPlayer.IsPlaying)
+					ProgressBar?.NotifyPlaying();                   
+				ProgressBar?.SetInitialPosition(_startupPosition); 
+
+				if (_startupPosition > 0)
+					_startupPosition = 0;
 
 				_playbackTracker.Reset();
 				_thresoldDuration = TimeSpan.FromSeconds(DurationOfSong * 0.6);
@@ -533,6 +583,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					_playbackTracker.StartPlayback();
 
 				_midpointTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+				_midpointTimer.Tick -= MidpointTimer_Tick;
 				_midpointTimer.Tick += MidpointTimer_Tick;
 				_midpointTimer.Start();
 
@@ -556,6 +607,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		if (_playbackTracker.AlreadyCounted)
 		{
 			_midpointTimer?.Stop();
+			_midpointTimer?.Tick -= MidpointTimer_Tick;
 			return;
 		}
 
@@ -565,6 +617,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			_playbackTracker.GetTotalPlayTime() >= _thresoldDuration)
 		{
 			_midpointTimer?.Stop();
+			_midpointTimer?.Tick -= MidpointTimer_Tick;
 			_playbackTracker.MarkPlayCountRecorded();
 			await DatabaseHelper.Instance.IncrementPlayCount(_musicPlayer.CurrentSong);
 			await DatabaseHelper.Instance.UpdateDateLastPlayed(_musicPlayer.CurrentSong);

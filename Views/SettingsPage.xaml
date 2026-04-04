@@ -6,6 +6,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      ActualThemeChanged="Page_ActualThemeChanged"
       mc:Ignorable="d">
 	<ScrollView Margin="{ThemeResource ContentPageMargin}"
 	            Padding="{ThemeResource ContentPagePadding}"
@@ -399,19 +400,40 @@
 			                      Header="Tunetastic"
 			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
 			                      IsExpanded="False">
-				<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-				           IsTextSelectionEnabled="True"
-				           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
+				<StackPanel Orientation="Horizontal"
+				            Spacing="10">
+					<TextBlock VerticalAlignment="Center"
+					           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+					           IsTextSelectionEnabled="True"
+					           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
+					<dev:ProgressButton x:Name="CheckForUpdates"
+					                    Width="180"
+					                    CheckedContent="Checking..."
+					                    Click="CheckForUpdates_Click"
+					                    Content="Check for New Version"
+					                    IsIndeterminateProgressRing="true"
+					                    ProgressRingVisibility="Visible" />
+				</StackPanel>
 				<dev:SettingsExpander.Items>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"
-						            Spacing="5">
+						            Spacing="8">
 							<TextBlock Text="Related Links" />
-							<HyperlinkButton Content="Source Code"
-							                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
-							<HyperlinkButton Content="Store Page"
-							                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
+							<StackPanel Orientation="Horizontal"
+							            Spacing="2">
+								<Image x:Name="SourceCodeImage"
+								       Height="30" />
+								<HyperlinkButton Content="Source Code"
+								                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
+							</StackPanel>
+							<StackPanel Orientation="Horizontal"
+							            Spacing="2">
+								<Image x:Name="MicrosoftStoreImage"
+								       Height="30" />
+								<HyperlinkButton Content="Microsoft Store Page"
+								                 NavigateUri="https://apps.microsoft.com/detail/9PCCNQZTD6PX?mode=full" />
+							</StackPanel>
 						</StackPanel>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>

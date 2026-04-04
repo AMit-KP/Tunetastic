@@ -2,7 +2,9 @@
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using Windows.Services.Store;
 using Windows.UI;
 
 namespace Tunetastic.Views;
@@ -87,6 +89,7 @@ public sealed partial class SettingsPage : Page
 		#endregion
 
 		if (GetMusicData.IsScanning) ScanButton_Click(null, null);
+		Page_ActualThemeChanged(null, null);
 	}
 
 	/// <summary>
@@ -559,13 +562,7 @@ public sealed partial class SettingsPage : Page
 			if (TintSettings.Visibility == Visibility.Visible)
 			{
 				var actualTheme = App.Current.ThemeService.ActualTheme;
-				Color color = actualTheme switch
-				{
-					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
-					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32),
-					_ => Color.FromArgb(0, 0, 0, 0)
-				};
-
+				Color color = Color.FromArgb(0, 0, 0, 0);
 				TintBox.Fill = new SolidColorBrush(color);
 			}
 
@@ -645,15 +642,6 @@ public sealed partial class SettingsPage : Page
 										   g: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorG)]?.ToString() ?? "32"),
 										   b: byte.Parse(localSettings.Values[nameof(LocalSave.BackdropTintColorB)]?.ToString() ?? "32"));
 				App.Current.ThemeService.GetMicaSystemBackdrop().TintColor = color;
-			}
-			else
-			{
-				var actualTheme = App.Current.ThemeService.ActualTheme;
-				color = actualTheme switch
-				{
-					ElementTheme.Light => Color.FromArgb(255, 223, 223, 223),
-					ElementTheme.Dark => Color.FromArgb(255, 32, 32, 32)
-				};
 			}
 			TintBox.Fill = new SolidColorBrush(color);
 		}
@@ -1056,6 +1044,39 @@ public sealed partial class SettingsPage : Page
 		{
 			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	private void Page_ActualThemeChanged(FrameworkElement? sender, object? args)
+	{
+		SourceCodeImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/GitHub_Invertocat_White.png" : "ms-appx:///Assets/Store/GitHub_Invertocat_Black.png"));
+		MicrosoftStoreImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/MS_Dark.png" : "ms-appx:///Assets/Store/MS_Light.png"));
+	}
+
+	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+	{
+		var context = StoreContext.GetDefault();
+
+		WinRT.Interop.InitializeWithWindow.Initialize(context,
+			WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+
+		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+
+		if (updates.Count == 0)
+		{
+			CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+			CheckForUpdates.IsChecked = false;
+			await MessageBox.ShowSuccessAsync(isModal: true, owner: App.MainWindow, "Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
+		}
+		else
+		{
+			var result = await context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates).AsTask();
+
+			if (result.OverallState == StorePackageUpdateState.Completed)
+			{
+				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+				await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow, "Update installed", "The update will apply next time you launch the app.");
+			}
 		}
 	}
 }

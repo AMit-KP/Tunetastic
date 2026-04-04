@@ -38,6 +38,7 @@ public sealed partial class RecentlyAdded : Page
 		this.InitializeComponent();
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 		_ = CheckScanning();
+		StartLiveTimer();
 	}
 
 	/// <summary>
@@ -878,4 +879,40 @@ public sealed partial class RecentlyAdded : Page
 		"“Everything’s new except the silence.”\nAdd files before this page applies for emotional delivery service.",
 		"“The freshness expired before anything arrived.”\nCheck your library or the page starts playing ambient regret.",
 	};
+
+	private DispatcherTimer _timer;
+
+	private void StartLiveTimer()
+	{
+		_timer = new DispatcherTimer();
+		_timer.Interval = TimeSpan.FromSeconds(1);
+		_timer.Tick += (s, e) =>
+		{
+			var relativeTimeConverter = new RelativeTimeConverter();
+			for (int i = 0; i < GetCurrentViewStyle().Items.Count; i++)
+			{
+				var container = GetCurrentViewStyle().ContainerFromIndex(i) as ListViewItem;
+				if (container != null)
+				{
+					var song = container.Content as Song;
+					var relativeLiveTime = relativeTimeConverter.Convert(song.DateAdded, null, null, null).ToString();
+					var textBlock = (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "RelativeTime") as TextBlock);
+					textBlock?.Text = relativeLiveTime;
+
+					var dateTooltip = (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "DateTooltip") as TextBlock);
+					dateTooltip?.Text = relativeLiveTime;
+
+					var relativeTimeTooltip = (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "RelativeTimeTooltip") as TextBlock);
+					relativeTimeTooltip?.Text = relativeLiveTime;
+				}
+
+			}
+		};
+		_timer.Start();
+	}
+
+	private void RecentlyAdded_Unloaded(object sender, RoutedEventArgs e)
+	{
+		_timer?.Stop();
+	}
 }
