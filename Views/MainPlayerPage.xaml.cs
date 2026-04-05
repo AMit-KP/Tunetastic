@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
@@ -283,4 +284,26 @@ public sealed partial class MainPlayerPage : Page
 	{
 		MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong));
 	}
+	
+	private bool _isTilted = false;
+
+	private void TiltCoverArt()
+	{
+		if (_isTilted) return;
+		_isTilted = true;
+		TiltInStoryboard.Begin();
+	}
+
+	private void ResetCoverArt()
+	{
+		if (!_isTilted) return;
+		_isTilted = false;
+		TiltOutStoryboard.Begin();
+	}
+
+	// Called when ToggleButton is Checked (pressed ON → tilt)
+	private void TiltButton_Click(object sender, RoutedEventArgs e) => TiltCoverArt();
+
+	// Called when ToggleButton is Unchecked (pressed OFF → reset)
+	private void ResetButton_Click(object sender, RoutedEventArgs e) => ResetCoverArt();
 }
