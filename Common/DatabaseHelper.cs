@@ -65,6 +65,7 @@ public class DatabaseHelper
 	///     - AudioDescription (TEXT, DEFAULT NULL): Audio description information.<br/>
 	///     - FileSize (TEXT): File size information.<br/>
 	///     - Lyrics (TEXT, DEFAULT NULL): Song Lyrics.<br/>
+	///     - PlayerType (TEXT, DEFAULT NULL): Player type information.<br/>
 	/// <br/>
 	/// <b>Playlists</b>: Stores user playlists.<br/>
 	///   Columns:<br/>
@@ -108,7 +109,6 @@ public class DatabaseHelper
 	///     - Active (INTEGER, NOT NULL, DEFAULT 1): Whether the rule is active.<br/>
 	///     - IsBuiltIn (INTEGER, NOT NULL, DEFAULT 0): Whether the rule is built-in.<br/>
 	///   Unique constraint on (Type, Pattern, IsRegex). Index on (Active, Type) for fast filtering.<br/>
-	/// <br/>
 	/// <br/>
 	/// <b>SongFTS</b>: Virtual FTS5 table for full-text search across song metadata.<br/>
 	///   Columns:<br/>
