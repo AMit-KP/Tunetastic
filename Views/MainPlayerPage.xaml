@@ -150,6 +150,24 @@
 
 		</Storyboard>
 
+		<Storyboard x:Name="LyricsFadeInStoryboard">
+			<!--  Fade in  -->
+			<DoubleAnimation Storyboard.TargetName="LyricsDisplay"
+			                 Storyboard.TargetProperty="Opacity"
+			                 From="0"
+			                 To="1"
+			                 Duration="0:0:0.65">
+				<DoubleAnimation.EasingFunction>
+					<CircleEase EasingMode="EaseOut" />
+				</DoubleAnimation.EasingFunction>
+			</DoubleAnimation>
+			<!--  Clip width expands from 0 to full — this IS the left-to-right reveal  -->
+			<ObjectAnimationUsingKeyFrames Storyboard.TargetName="LyricsClip"
+			                               Storyboard.TargetProperty="Rect">
+				<!--  We'll drive this from code since Rect isn't directly animatable  -->
+			</ObjectAnimationUsingKeyFrames>
+		</Storyboard>
+
 	</Page.Resources>
 
 	<Grid>
@@ -169,10 +187,6 @@
 			</Border>
 		</Grid>
 
-		<!--
-			Shadow layer — a blurred dark ellipse that sits behind the card.
-			It stays in place while the card tilts, giving a grounded shadow.
-		-->
 		<Border x:Name="ShadowLayer"
 		        Margin="0,60,0,60"
 		        HorizontalAlignment="Center"
@@ -211,11 +225,6 @@
 			<Image x:Name="CoverArtImage"
 			       Stretch="Fill" />
 
-			<!--
-				Left edge slab — a bright strip on the left that simulates
-				the physical thickness of the card facing toward the viewer.
-				Sits on top of the image, anchored to the left.
-			-->
 			<Border x:Name="LeftEdge"
 			        Width="18"
 			        HorizontalAlignment="Left"
@@ -229,10 +238,6 @@
 				</Border.Background>
 			</Border>
 
-			<!--
-				Right-side depth shade — darkens the far (right) edge
-				to reinforce that it's receding away from the viewer.
-			-->
 			<Border x:Name="DepthShade"
 			        IsHitTestVisible="False"
 			        Opacity="0">
@@ -246,6 +251,26 @@
 			</Border>
 
 		</Grid>
+
+		<Canvas x:Name="LyricsCanvas"
+		        HorizontalAlignment="Stretch"
+		        VerticalAlignment="Stretch"
+		        IsHitTestVisible="False">
+			<Grid x:Name="LyricsDisplay"
+			      Opacity="0"
+			      Visibility="Collapsed">
+				<Border Padding="16"
+				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				        CornerRadius="20">
+					<ScrollViewer VerticalScrollBarVisibility="Hidden">
+						<TextBlock x:Name="LyricsText"
+						           LineHeight="28"
+						           Text="Lyrics go here..."
+						           TextWrapping="Wrap" />
+					</ScrollViewer>
+				</Border>
+			</Grid>
+		</Canvas>
 
 		<Grid x:Name="MusicDetails"
 		      Width="Auto"

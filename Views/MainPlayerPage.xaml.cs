@@ -1,11 +1,15 @@
 ﻿using System.Text.RegularExpressions;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Views.LibraryViews;
+using Windows.Foundation;
 using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.Composition;
 
 namespace Tunetastic.Views;
 
@@ -24,9 +28,16 @@ public sealed partial class MainPlayerPage : Page
 	private readonly DispatcherQueue _dispatcherQueue;
 	BitmapImage? BGbitmapImage = null;
 	private double pageHeight = 0;
+	private double pageWidth = 0;
 	private double coverArtAspectRatio = 1.0;
 	private double coverArtImagePixelWidth = 500;
 	private double coverArtImagePixelHeight = 500;
+	private bool _isTilted = false;
+	private double lyricsTargetWidth;
+	private double lyricsTargetHeight;
+	private double lyricsCanvasLeft;
+	private double lyricsCanvasTop;
+	private bool lyricsVisible = false;
 
 	public MainPlayerPage()
 	{
@@ -67,10 +78,10 @@ public sealed partial class MainPlayerPage : Page
 		{
 			if (await DatabaseHelper.Instance.GetSongsCount() != 0)
 			{
-				var song = _musicPlayer.CurrentSong;
-				if (song != null && song != string.Empty)
+				var songPath = _musicPlayer.CurrentSong;
+				if (songPath != null && songPath != string.Empty)
 				{
-					var track = await DatabaseHelper.Instance.GetSongByPath(song);
+					var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
 					if (File.Exists(track?.Path))
 					{
 						Title.Text = track?.Title;
@@ -119,13 +130,14 @@ public sealed partial class MainPlayerPage : Page
 
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
+						LyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Visible : Visibility.Collapsed;
 
 						return Task.CompletedTask;
 					}
 					else
 					{
 						if (notify)
-							GlobalNotification.Error("Could not find track/song:\n" + song);
+							GlobalNotification.Error("Could not find track/song:\n" + songPath);
 					}
 				}
 			}
@@ -161,12 +173,32 @@ public sealed partial class MainPlayerPage : Page
 	/// </summary>
 	private void UpdateCoverArtSize()
 	{
-		double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
+		double availableHeight = pageHeight == 0 ? 500 : pageHeight;
+		double targetHeight = availableHeight * 0.55;
 		double targetWidth = coverArtAspectRatio * targetHeight;
+
 		CoverArt.Width = targetWidth;
 		CoverArt.Height = targetHeight;
 		CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
 	}
+
+	private void UpdateLyricsGrid()
+	{
+		if (pageWidth == 0 || pageHeight == 0) return;
+		if (!lyricsVisible) return;
+
+		CalculateLyricsLayout(out double left, out double top, out double width, out double height);
+		lyricsTargetWidth = width;
+		lyricsTargetHeight = height;
+		LyricsDisplay.Width = lyricsTargetWidth;
+		LyricsDisplay.Height = lyricsTargetHeight;
+		Canvas.SetLeft(LyricsDisplay, left);
+		Canvas.SetTop(LyricsDisplay, top);
+
+		var visual = ElementCompositionPreview.GetElementVisual(LyricsDisplay);
+		visual.Clip = compositor.CreateInsetClip(0, 0, 0, 0);
+	}
+
 
 	/// <summary>
 	/// Executes tasks when navigation to the MainPlayerPage occurs.
@@ -208,10 +240,12 @@ public sealed partial class MainPlayerPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event. Typically, this is the page whose size has changed.</param>
 	/// <param name="e">The event data containing information about the new size of the page.</param>
-	private void Page_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
+		pageWidth = e.NewSize.Width;
 		pageHeight = e.NewSize.Height;
 		UpdateCoverArtSize();
+		UpdateLyricsGrid();
 	}
 
 	/// <summary>
@@ -284,26 +318,101 @@ public sealed partial class MainPlayerPage : Page
 	{
 		MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong));
 	}
-	
-	private bool _isTilted = false;
+
 
 	private void TiltCoverArt()
 	{
 		if (_isTilted) return;
 		_isTilted = true;
+
+		CalculateLyricsLayout(out double left, out double top, out double width, out double height);
+		lyricsTargetWidth = width;
+		lyricsTargetHeight = height;
+		LyricsDisplay.Width = lyricsTargetWidth;
+		LyricsDisplay.Height = lyricsTargetHeight;
+		Canvas.SetLeft(LyricsDisplay, left);
+		Canvas.SetTop(LyricsDisplay, top);
+
+		lyricsVisible = true;
+		LyricsDisplay.Visibility = Visibility.Visible;
+		LyricsDisplay.Opacity = 1;
+
 		TiltInStoryboard.Begin();
+		AnimateLyricsReveal(true);
 	}
 
 	private void ResetCoverArt()
 	{
 		if (!_isTilted) return;
 		_isTilted = false;
+		lyricsVisible = false;
+
 		TiltOutStoryboard.Begin();
+		AnimateLyricsReveal(show: false);
 	}
 
-	// Called when ToggleButton is Checked (pressed ON → tilt)
+	private Microsoft.UI.Composition.Compositor compositor =>
+	ElementCompositionPreview.GetElementVisual(this).Compositor;
+
+	private void AnimateLyricsReveal(bool show)
+	{
+		LyricsDisplay.Opacity = 1;
+		if (show) LyricsDisplay.Visibility = Visibility.Visible;
+
+		var visual = ElementCompositionPreview.GetElementVisual(LyricsDisplay);
+
+		var clip = compositor.CreateInsetClip(
+			leftInset: show ? (float)lyricsTargetWidth : 0f,
+			topInset: 0,
+			rightInset: 0,
+			bottomInset: 0);
+		visual.Clip = clip;
+
+		var ease = compositor.CreateCubicBezierEasingFunction(
+			new System.Numerics.Vector2(0.0f, 0.0f),
+			new System.Numerics.Vector2(0.3f, 1.0f));
+
+		var anim = compositor.CreateScalarKeyFrameAnimation();
+		anim.InsertKeyFrame(0f, show ? (float)lyricsTargetWidth : 0f);
+		anim.InsertKeyFrame(1f, show ? 0f : (float)lyricsTargetWidth, ease);
+		anim.Duration = TimeSpan.FromMilliseconds(650);
+
+		clip.StartAnimation("LeftInset", anim);
+
+		if (!show)
+		{
+			var batch = compositor.CreateScopedBatch(Microsoft.UI.Composition.CompositionBatchTypes.Animation);
+			batch.Completed += (s, _) =>
+			{
+				LyricsDisplay.Visibility = Visibility.Collapsed;
+				visual.Clip = null;
+				batch.Dispose();
+			};
+			clip.StartAnimation("LeftInset", anim);
+			batch.End();
+		}
+	}
+
+	private void CalculateLyricsLayout(out double left, out double top,
+									out double width, out double height)
+	{
+		double coverW = CoverArt.Width;
+		double coverH = CoverArt.Height;
+
+		double coverTop = (pageHeight - coverH) / 2.0 - 32.5;
+
+		double coverCenterX = pageWidth / 2.0;
+		double scaledHalfWidth = (coverW / 2.0) * 0.93;
+		double postTiltRightEdge = coverCenterX + scaledHalfWidth - 110;
+		double gapWidth = pageWidth - postTiltRightEdge;
+
+		width = gapWidth * 0.75;
+		height = coverH;
+		left = postTiltRightEdge + (gapWidth - width) / 2.0;
+		top = coverTop;
+	}
+
 	private void TiltButton_Click(object sender, RoutedEventArgs e) => TiltCoverArt();
 
-	// Called when ToggleButton is Unchecked (pressed OFF → reset)
 	private void ResetButton_Click(object sender, RoutedEventArgs e) => ResetCoverArt();
 }
