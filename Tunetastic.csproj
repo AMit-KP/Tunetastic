@@ -36,8 +36,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.32.56.2222</AssemblyVersion>
-    <FileVersion>1.32.56.2222</FileVersion>
+    <AssemblyVersion>1.32.57.2223</AssemblyVersion>
+    <FileVersion>1.32.57.2223</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -262,6 +262,9 @@
     <Page Update="Views\LibraryViews\GenresViewPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AppPackages\" />
   </ItemGroup>
   <!-- 
 	Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 

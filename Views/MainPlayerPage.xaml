@@ -260,7 +260,7 @@
 			      Opacity="0"
 			      Visibility="Collapsed">
 				<Border Padding="16"
-				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				        Background="Transparent"
 				        CornerRadius="20">
 					<ScrollViewer VerticalScrollBarVisibility="Hidden">
 						<TextBlock x:Name="LyricsText"
@@ -333,16 +333,26 @@
 			        ToolTipService.ToolTip="Song/Track Info">
 				<FontIcon Glyph="&#xE90B;" />
 			</Button>
-			<ToggleButton x:Name="LyricsButton"
-			              Grid.Column="0"
-			              Margin="5"
-			              Padding="3"
-			              Checked="ResetButton_Click"
-			              IsChecked="True"
-			              ToolTipService.ToolTip="Lyrics"
-			              Unchecked="TiltButton_Click">
+			<Button x:Name="ShowLyricsButton"
+			        Grid.Column="0"
+			        Margin="5"
+			        Padding="3"
+			        Click="ShowLyricsButton_Click"
+			        Style="{ThemeResource AccentButtonStyle}"
+			        ToolTipService.ToolTip="Show Lyrics"
+			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE7BC;" />
-			</ToggleButton>
+			</Button>
+			<Button x:Name="CloseLyricsButton"
+			        Grid.Column="0"
+			        Margin="5"
+			        Padding="3"
+			        Click="CloseLyricsButton_Click"
+			        Style="{ThemeResource AccentButtonStyle}"
+			        ToolTipService.ToolTip="Hide Lyrics"
+			        Visibility="Collapsed">
+				<FontIcon Glyph="&#xE89F;" />
+			</Button>
 		</Grid>
 	</Grid>
 </Page>

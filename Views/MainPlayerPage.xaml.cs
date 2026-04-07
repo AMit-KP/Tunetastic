@@ -1,15 +1,11 @@
 ﻿using System.Text.RegularExpressions;
-using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Hosting;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Views.LibraryViews;
-using Windows.Foundation;
 using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using Windows.UI.Composition;
 
 namespace Tunetastic.Views;
 
@@ -35,9 +31,9 @@ public sealed partial class MainPlayerPage : Page
 	private bool _isTilted = false;
 	private double lyricsTargetWidth;
 	private double lyricsTargetHeight;
-	private double lyricsCanvasLeft;
-	private double lyricsCanvasTop;
 	private bool lyricsVisible = false;
+	private string? lyricsText = null;
+	private static readonly Regex SyncedLinePattern = new(@"^\[\d{1,2}:\d{2}([.:]\d{1,3})?\]", RegexOptions.Multiline | RegexOptions.Compiled);
 
 	public MainPlayerPage()
 	{
@@ -130,7 +126,8 @@ public sealed partial class MainPlayerPage : Page
 
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
-						LyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Visible : Visibility.Collapsed;
+						ShowLyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Visible : Visibility.Collapsed;
+						lyricsText = track?.Lyrics;
 
 						return Task.CompletedTask;
 					}
@@ -319,8 +316,7 @@ public sealed partial class MainPlayerPage : Page
 		MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong));
 	}
 
-
-	private void TiltCoverArt()
+	private void TiltCoverArtAndShowLyrics()
 	{
 		if (_isTilted) return;
 		_isTilted = true;
@@ -339,9 +335,12 @@ public sealed partial class MainPlayerPage : Page
 
 		TiltInStoryboard.Begin();
 		AnimateLyricsReveal(true);
+
+		ShowLyricsButton.Visibility = Visibility.Collapsed;
+		CloseLyricsButton.Visibility = Visibility.Visible;
 	}
 
-	private void ResetCoverArt()
+	private void HideLyricsAndResetCoverArt()
 	{
 		if (!_isTilted) return;
 		_isTilted = false;
@@ -349,10 +348,12 @@ public sealed partial class MainPlayerPage : Page
 
 		TiltOutStoryboard.Begin();
 		AnimateLyricsReveal(show: false);
+
+		CloseLyricsButton.Visibility = Visibility.Collapsed;
+		ShowLyricsButton.Visibility = Visibility.Visible;
 	}
 
-	private Microsoft.UI.Composition.Compositor compositor =>
-	ElementCompositionPreview.GetElementVisual(this).Compositor;
+	private Microsoft.UI.Composition.Compositor compositor => ElementCompositionPreview.GetElementVisual(this).Compositor;
 
 	private void AnimateLyricsReveal(bool show)
 	{
@@ -412,7 +413,22 @@ public sealed partial class MainPlayerPage : Page
 		top = coverTop;
 	}
 
-	private void TiltButton_Click(object sender, RoutedEventArgs e) => TiltCoverArt();
+	private void ShowLyricsButton_Click(object sender, RoutedEventArgs e) => TiltCoverArtAndShowLyrics();
 
-	private void ResetButton_Click(object sender, RoutedEventArgs e) => ResetCoverArt();
+	private void CloseLyricsButton_Click(object sender, RoutedEventArgs e) => HideLyricsAndResetCoverArt();
+
+	public static bool IsSyncedLyrics(string lyrics)
+	{
+		if (string.IsNullOrWhiteSpace(lyrics))
+			return false;
+
+		int matchCount = 0;
+		foreach (Match match in SyncedLinePattern.Matches(lyrics))
+		{
+			if (++matchCount >= 2)
+				return true;
+		}
+
+		return false;
+	}
 }
