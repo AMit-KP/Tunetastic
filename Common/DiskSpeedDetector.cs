@@ -33,10 +33,10 @@ public enum DiskKind
 ///    MediaType : 3 = HDD, 4 = SSD
 ///    <br/>
 ///    BusType   : 17 = NVMe, 11 = SATA, others treated as SATA-class
-///    <br/>
-/// 3. Fall back gracefully: Unknown → use a conservative DOP of 2.
-///<br/>
-///<br/>
+/// 3. Every WMI call is wrapped in Task.Run + Wait(timeout) so a hung/broken
+///    WMI provider can NEVER stall the scan. Falls back to DiskKind.Unknown
+///    (DOP=2) on any timeout or error.
+///
 /// Recommended DOP values
 /// <br/>
 /// ──────────────────────
@@ -52,26 +52,28 @@ public enum DiskKind
 [SupportedOSPlatform("windows")]
 public static class DiskSpeedDetector
 {
+	/// <summary>
+	/// Hard ceiling on how long the entire detection is allowed to take.
+	/// If WMI is broken/hung on a user's machine, we bail and fall back to
+	/// DiskKind.Unknown so the scan starts immediately rather than freezing.
+	/// </summary>
+	private static readonly TimeSpan TotalDetectionTimeout = TimeSpan.FromSeconds(3);
+
 	// ── Public API ──────────────────────────────────────────────────────────
 
 	/// <summary>
 	/// Returns the <see cref="DiskKind"/> for the physical disk that hosts
-	/// <paramref name="filePath"/>. Returns <see cref="DiskKind.Unknown"/> on
-	/// any error so the caller always gets a usable value.
+	/// <paramref name="filePath"/>. Guaranteed to return within
+	/// <see cref="TotalDetectionTimeout"/> regardless of WMI provider health.
+	/// Returns <see cref="DiskKind.Unknown"/> on timeout or any error.
 	/// </summary>
 	public static DiskKind GetDiskKind(string filePath)
 	{
 		try
 		{
-			string? driveLetter = Path.GetPathRoot(filePath)
-									  ?.TrimEnd(Path.DirectorySeparatorChar,
-												Path.AltDirectorySeparatorChar);
-			if (string.IsNullOrEmpty(driveLetter)) return DiskKind.Unknown;
+			var task = Task.Run(() => DetectInternal(filePath));
 
-			int diskIndex = ResolveDiskIndex(driveLetter);
-			if (diskIndex < 0) return DiskKind.Unknown;
-
-			return QueryMsftPhysicalDisk(diskIndex);
+			return task.Wait(TotalDetectionTimeout) ? task.Result : DiskKind.Unknown;
 		}
 		catch
 		{
@@ -81,7 +83,7 @@ public static class DiskSpeedDetector
 
 	/// <summary>
 	/// Returns the recommended <see cref="ParallelOptions.MaxDegreeOfParallelism"/>
-	/// for scanning files that live on the drive hosting <paramref name="filePath"/>.
+	/// for scanning files on the drive hosting <paramref name="filePath"/>.
 	/// </summary>
 	public static int GetRecommendedDop(string filePath)
 		=> DopForKind(GetDiskKind(filePath));
@@ -94,51 +96,90 @@ public static class DiskSpeedDetector
 		DiskKind.HDD => 1,   // sequential only — random seeks are ruinous
 		DiskKind.SataSSD => 4,   // saturate SATA queue depth
 		DiskKind.NvmeSSD => 8,   // PCIe lanes + ultra-low latency
-		_ => 2,   // Unknown — conservative default
+		_ => 1,   // Unknown — conservative safe default
 	};
 
-	// ── Internals ───────────────────────────────────────────────────────────
+	// ── Core detection (always runs inside Task.Run) ─────────────────────────
+
+	private static DiskKind DetectInternal(string filePath)
+	{
+		string? driveLetter = Path.GetPathRoot(filePath)
+								  ?.TrimEnd(Path.DirectorySeparatorChar,
+											Path.AltDirectorySeparatorChar);
+		if (string.IsNullOrEmpty(driveLetter)) return DiskKind.Unknown;
+
+		int diskIndex = ResolveDiskIndex(driveLetter);
+		if (diskIndex < 0) return DiskKind.Unknown;
+
+		return QueryMsftPhysicalDisk(diskIndex);
+	}
+
+	// ── WMI helpers ──────────────────────────────────────────────────────────
 
 	/// <summary>
 	/// Walks the WMI chain:
 	///   Win32_LogicalDisk → Win32_DiskPartition → Win32_DiskDrive
-	/// to find the physical disk index (e.g. "Disk #1, …" → 1) for a drive letter.
+	/// to find the physical disk index for a drive letter.
+	///
+	/// The two association-table queries are each run with their own
+	/// inner timeout so neither one can hang the whole call.
 	/// </summary>
 	private static int ResolveDiskIndex(string driveLetter)
 	{
-		// Normalise: "C:" or "C:\" → "C:"
 		string logicalDisk = driveLetter.Length > 2
-			? driveLetter[..2]
+			? driveLetter[..2]   // "C:\" → "C:"
 			: driveLetter;
 
-		// Logical disk → partition
-		using var ldQuery = new ManagementObjectSearcher(
-			"SELECT * FROM Win32_LogicalDiskToPartition");
-
-		foreach (ManagementObject item in ldQuery.Get())
-		{
-			string? dependent = item["Dependent"]?.ToString();   // Win32_LogicalDisk
-			string? antecedent = item["Antecedent"]?.ToString(); // Win32_DiskPartition
-
-			if (dependent == null || antecedent == null) continue;
-			if (!dependent.Contains($"\"{logicalDisk}\"",
-					StringComparison.OrdinalIgnoreCase)) continue;
-
-			// Partition → physical disk
-			using var dpQuery = new ManagementObjectSearcher(
-				"SELECT * FROM Win32_DiskDriveToDiskPartition");
-
-			foreach (ManagementObject dp in dpQuery.Get())
+		// ── Step 1: logical disk → partitions ────────────────────────────
+		var ldPairs = RunWithTimeout(
+			() =>
 			{
-				string? dpDependent = dp["Dependent"]?.ToString();
-				string? dpAntecedent = dp["Antecedent"]?.ToString();
+				var list = new List<(string Dep, string Ant)>();
+				using var q = new ManagementObjectSearcher(
+					"SELECT Dependent, Antecedent FROM Win32_LogicalDiskToPartition");
+				foreach (ManagementObject item in q.Get())
+				{
+					string? dep = item["Dependent"]?.ToString();
+					string? ant = item["Antecedent"]?.ToString();
+					if (dep != null && ant != null) list.Add((dep, ant));
+				}
+				return list;
+			},
+			fallback: new List<(string, string)>(),
+			timeout: TimeSpan.FromSeconds(2));
 
-				if (dpDependent == null || dpAntecedent == null) continue;
-				if (!dpDependent.Contains(ExtractPartitionId(antecedent),
-						StringComparison.OrdinalIgnoreCase)) continue;
+		// ── Step 2: partitions → physical disks ──────────────────────────
+		var dpPairs = RunWithTimeout(
+			() =>
+			{
+				var list = new List<(string Dep, string Ant)>();
+				using var q = new ManagementObjectSearcher(
+					"SELECT Dependent, Antecedent FROM Win32_DiskDriveToDiskPartition");
+				foreach (ManagementObject item in q.Get())
+				{
+					string? dep = item["Dependent"]?.ToString();
+					string? ant = item["Antecedent"]?.ToString();
+					if (dep != null && ant != null) list.Add((dep, ant));
+				}
+				return list;
+			},
+			fallback: new List<(string, string)>(),
+			timeout: TimeSpan.FromSeconds(2));
 
-				// dpAntecedent looks like: \\.\PHYSICALDRIVE1 or Win32_DiskDrive.DeviceID="\\\\.\\PHYSICALDRIVE1"
-				int idx = ParseDiskIndex(dpAntecedent);
+		// ── Step 3: match drive letter → partition → disk index ───────────
+		foreach (var (dep, ant) in ldPairs)
+		{
+			if (!dep.Contains($"\"{logicalDisk}\"", StringComparison.OrdinalIgnoreCase))
+				continue;
+
+			string partitionId = ExtractPartitionId(ant);
+
+			foreach (var (dpDep, dpAnt) in dpPairs)
+			{
+				if (!dpDep.Contains(partitionId, StringComparison.OrdinalIgnoreCase))
+					continue;
+
+				int idx = ParseDiskIndex(dpAnt);
 				if (idx >= 0) return idx;
 			}
 		}
@@ -147,93 +188,133 @@ public static class DiskSpeedDetector
 	}
 
 	/// <summary>
-	/// Queries the Storage namespace for the MSFT_PhysicalDisk entry whose
-	/// DeviceId matches <paramref name="diskIndex"/> and returns its <see cref="DiskKind"/>.
+	/// Primary detection: queries MSFT_PhysicalDisk in the Storage WMI namespace.
+	///
+	/// scope.Connect() is the single most common hang point — some OEM/driver
+	/// combinations cause it to block indefinitely. It runs inside
+	/// <see cref="RunWithTimeout{T}"/> so it is guaranteed to return.
+	///
+	/// Falls through to <see cref="FallbackWin32DiskDrive"/> when:
+	///   • the namespace is unavailable (ManagementException)
+	///   • MediaType comes back as 0 (Unspecified) — older Windows 10 builds
+	///   • the query times out
 	/// </summary>
 	private static DiskKind QueryMsftPhysicalDisk(int diskIndex)
 	{
-		var scope = new ManagementScope(@"\\.\root\Microsoft\Windows\Storage");
-		scope.Connect();
-
-		using var query = new ManagementObjectSearcher(
-			scope,
-			new ObjectQuery("SELECT MediaType, BusType FROM MSFT_PhysicalDisk"));
-
-		foreach (ManagementObject disk in query.Get())
-		{
-			// MSFT_PhysicalDisk doesn't carry a simple numeric index, so we
-			// iterate all disks and match by DeviceId suffix when possible.
-			// For most consumer machines there are only 1–4 disks, so this is fine.
-
-			ushort mediaType = Convert.ToUInt16(disk["MediaType"]);
-			ushort busType = Convert.ToUInt16(disk["BusType"]);
-
-			// MediaType: 3 = HDD, 4 = SSD, 0/1/2 = Unspecified / HDD / SSD (older schema)
-			bool isSsd = mediaType == 4;
-			bool isHdd = mediaType == 3;
-
-			if (isHdd) return DiskKind.HDD;
-
-			if (isSsd)
+		DiskKind result = RunWithTimeout(
+			() =>
 			{
-				// BusType 17 = NVMe, 11 = SATA, 10 = SAS (treat as SATA-class)
-				return busType == 17 ? DiskKind.NvmeSSD : DiskKind.SataSSD;
-			}
-		}
+				// scope.Connect() — most common WMI hang point
+				var scope = new ManagementScope(@"\\.\root\Microsoft\Windows\Storage");
+				scope.Connect();
 
-		// Fallback: re-query Win32_DiskDrive for the specific index and inspect
-		// the MediaType/InterfaceType string fields (older WMI schema).
-		return FallbackWin32DiskDrive(diskIndex);
+				using var query = new ManagementObjectSearcher(
+					scope,
+					new ObjectQuery("SELECT MediaType, BusType FROM MSFT_PhysicalDisk"));
+
+				foreach (ManagementObject disk in query.Get())
+				{
+					ushort mediaType = Convert.ToUInt16(disk["MediaType"]);
+					ushort busType = Convert.ToUInt16(disk["BusType"]);
+
+					// MediaType: 3 = HDD, 4 = SSD, 0 = Unspecified (fall through)
+					if (mediaType == 3) return DiskKind.HDD;
+					if (mediaType == 4)
+						// BusType: 17 = NVMe, 11 = SATA, anything else → SATA-class
+						return busType == 17 ? DiskKind.NvmeSSD : DiskKind.SataSSD;
+				}
+
+				return DiskKind.Unknown; // Unspecified or empty — try fallback
+			},
+			fallback: DiskKind.Unknown,
+			timeout: TimeSpan.FromSeconds(2));
+
+		// Unknown from MSFT_PhysicalDisk → try the older Win32_DiskDrive strings
+		return result == DiskKind.Unknown
+			? FallbackWin32DiskDrive(diskIndex)
+			: result;
 	}
 
 	/// <summary>
-	/// Legacy fallback using Win32_DiskDrive when MSFT_PhysicalDisk
-	/// MediaType is unspecified (0). Uses InterfaceType and MediaType strings.
+	/// Legacy fallback using Win32_DiskDrive InterfaceType / MediaType strings.
+	/// Covers older Windows versions and machines where the Storage namespace is absent.
+	/// Also timeout-guarded to be safe.
 	/// </summary>
 	private static DiskKind FallbackWin32DiskDrive(int diskIndex)
 	{
-		using var query = new ManagementObjectSearcher(
-			$"SELECT Index, MediaType, InterfaceType FROM Win32_DiskDrive WHERE Index = {diskIndex}");
-
-		foreach (ManagementObject disk in query.Get())
-		{
-			string? mediaType = disk["MediaType"]?.ToString()?.ToLowerInvariant();
-			string? interfaceType = disk["InterfaceType"]?.ToString()?.ToLowerInvariant();
-
-			if (mediaType != null && mediaType.Contains("fixed")) // rotating HDD
-				return DiskKind.HDD;
-
-			if (interfaceType != null)
+		return RunWithTimeout(
+			() =>
 			{
-				if (interfaceType.Contains("nvme")) return DiskKind.NvmeSSD;
-				if (interfaceType.Contains("scsi") ||
-					interfaceType.Contains("sata") ||
-					interfaceType.Contains("ide")) return DiskKind.SataSSD; // best guess for SSD on SATA/SCSI
-			}
-		}
+				using var query = new ManagementObjectSearcher(
+					$"SELECT Index, MediaType, InterfaceType FROM Win32_DiskDrive WHERE Index = {diskIndex}");
 
-		return DiskKind.Unknown;
+				foreach (ManagementObject disk in query.Get())
+				{
+					string? mediaType = disk["MediaType"]?.ToString()?.ToLowerInvariant();
+					string? interfaceType = disk["InterfaceType"]?.ToString()?.ToLowerInvariant();
+
+					// "Fixed hard disk" → HDD; "External hard disk" is also fixed
+					if (mediaType != null && mediaType.Contains("fixed"))
+						return DiskKind.HDD;
+
+					if (interfaceType != null)
+					{
+						if (interfaceType.Contains("nvme")) return DiskKind.NvmeSSD;
+						if (interfaceType.Contains("scsi") ||
+							interfaceType.Contains("sata") ||
+							interfaceType.Contains("ide")) return DiskKind.SataSSD;
+					}
+				}
+
+				return DiskKind.Unknown;
+			},
+			fallback: DiskKind.Unknown,
+			timeout: TimeSpan.FromSeconds(2));
 	}
 
-	// ── Parsing helpers ─────────────────────────────────────────────────────
+	// ── Timeout helper ───────────────────────────────────────────────────────
 
 	/// <summary>
-	/// Extracts the bare partition id token (e.g. "Disk #0, Partition #0") from a
-	/// WMI object path string so it can be matched against another path string.
+	/// Runs <paramref name="work"/> on a thread-pool thread and blocks for up to
+	/// <paramref name="timeout"/>. Returns <paramref name="fallback"/> if the work
+	/// does not complete in time or throws any exception.
+	///
+	/// This is the single choke-point that prevents every WMI call in this class
+	/// from hanging indefinitely on machines with broken WMI providers.
+	/// </summary>
+	private static T RunWithTimeout<T>(Func<T> work, T fallback, TimeSpan timeout)
+	{
+		try
+		{
+			var task = Task.Run(work);
+			return task.Wait(timeout) ? task.Result : fallback;
+		}
+		catch
+		{
+			// Catches AggregateException from task.Result, timeout, or work() itself
+			return fallback;
+		}
+	}
+
+	// ── Parsing helpers ──────────────────────────────────────────────────────
+
+	/// <summary>
+	/// Extracts the bare partition id from a WMI object path.
+	/// e.g. Win32_DiskPartition.DeviceID="Disk #0, Partition #1"
+	///   →  "Disk #0, Partition #1"
 	/// </summary>
 	private static string ExtractPartitionId(string wmiPath)
 	{
-		// WMI paths look like: Win32_DiskPartition.DeviceID="Disk #0, Partition #1"
 		int start = wmiPath.IndexOf('"');
 		int end = wmiPath.LastIndexOf('"');
-		if (start >= 0 && end > start)
-			return wmiPath[(start + 1)..end];
-		return wmiPath;
+		return (start >= 0 && end > start)
+			? wmiPath[(start + 1)..end]
+			: wmiPath;
 	}
 
 	/// <summary>
-	/// Parses the physical disk index from strings like
-	/// "PHYSICALDRIVE2", "\\\\.\\PHYSICALDRIVE2", or WMI object paths containing it.
+	/// Parses the physical disk index from strings like:
+	///   "PHYSICALDRIVE2"  |  "\\\\.\\PHYSICALDRIVE2"  |  WMI object paths
 	/// </summary>
 	private static int ParseDiskIndex(string raw)
 	{
@@ -242,7 +323,6 @@ public static class DiskSpeedDetector
 		if (pos < 0) return -1;
 
 		string suffix = raw[(pos + token.Length)..].Trim('"', '\\', ' ');
-		// suffix might be "1" or "1, Partition #0" — take leading digits
 		int len = 0;
 		while (len < suffix.Length && char.IsDigit(suffix[len])) len++;
 
