@@ -1,6 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Text;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
@@ -72,6 +75,13 @@ public sealed partial class MainPlayerPage : Page
 	{
 		try
 		{
+			HideLyricsAndResetCoverArt();
+		}
+		catch (Exception)
+		{ }
+
+		try
+		{
 			if (await DatabaseHelper.Instance.GetSongsCount() != 0)
 			{
 				var songPath = _musicPlayer.CurrentSong;
@@ -126,7 +136,7 @@ public sealed partial class MainPlayerPage : Page
 
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
-						ShowLyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Visible : Visibility.Collapsed;
+						ShowLyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Collapsed : Visibility.Visible;
 						lyricsText = track?.Lyrics;
 
 						return Task.CompletedTask;
@@ -336,6 +346,8 @@ public sealed partial class MainPlayerPage : Page
 		TiltInStoryboard.Begin();
 		AnimateLyricsReveal(true);
 
+		DisplayLyrics();
+
 		ShowLyricsButton.Visibility = Visibility.Collapsed;
 		CloseLyricsButton.Visibility = Visibility.Visible;
 	}
@@ -403,11 +415,14 @@ public sealed partial class MainPlayerPage : Page
 		double coverTop = (pageHeight - coverH) / 2.0 - 32.5;
 
 		double coverCenterX = pageWidth / 2.0;
-		double scaledHalfWidth = (coverW / 2.0) * 0.93;
+		double angle = 38 * Math.PI / 180.0;
+		double rotatedWidth = coverW * Math.Cos(angle) + coverH * Math.Sin(angle);
+		double scale = coverW / rotatedWidth;
+		double scaledHalfWidth = (coverW / 2.0) * scale;
 		double postTiltRightEdge = coverCenterX + scaledHalfWidth - 110;
 		double gapWidth = pageWidth - postTiltRightEdge;
 
-		width = gapWidth * 0.75;
+		width = gapWidth * 0.8;
 		height = coverH;
 		left = postTiltRightEdge + (gapWidth - width) / 2.0;
 		top = coverTop;
@@ -430,5 +445,40 @@ public sealed partial class MainPlayerPage : Page
 		}
 
 		return false;
+	}
+
+	public void DisplayLyrics()
+	{
+		if (!string.IsNullOrEmpty(lyricsText))
+		{
+			LyricsPanel.Children.Clear();
+			foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+			{
+				var run = new Run { Text = line };
+				var tb = new TextBlock
+				{
+					FontSize = 20,
+					FontWeight = FontWeights.SemiBold,
+					TextAlignment = TextAlignment.Center,
+					TextWrapping = TextWrapping.Wrap,
+					LineHeight = 28,
+					LineStackingStrategy = LineStackingStrategy.BlockLineHeight
+				};
+				tb.Inlines.Add(run);
+
+				var border = new Border
+				{
+					//Background = (Brush)Application.Current.Resources["SmokeFillColorDefaultBrush"],
+					//Background = (Brush)Application.Current.Resources["LayerFillColorDefaultBrush"],
+					CornerRadius = new CornerRadius(20),
+					Padding = new Thickness(16, 6, 16, 6),
+					Margin = new Thickness(0, 0, 0, 12),
+					HorizontalAlignment = HorizontalAlignment.Center,
+					Child = tb
+				};
+
+				LyricsPanel.Children.Add(border);
+			}
+		}
 	}
 }

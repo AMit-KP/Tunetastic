@@ -255,20 +255,15 @@
 		<Canvas x:Name="LyricsCanvas"
 		        HorizontalAlignment="Stretch"
 		        VerticalAlignment="Stretch"
-		        IsHitTestVisible="False">
+		        IsHitTestVisible="True">
 			<Grid x:Name="LyricsDisplay"
 			      Opacity="0"
 			      Visibility="Collapsed">
-				<Border Padding="16"
-				        Background="Transparent"
-				        CornerRadius="20">
-					<ScrollViewer VerticalScrollBarVisibility="Hidden">
-						<TextBlock x:Name="LyricsText"
-						           LineHeight="28"
-						           Text="Lyrics go here..."
-						           TextWrapping="Wrap" />
-					</ScrollViewer>
-				</Border>
+				<ScrollView VerticalScrollBarVisibility="Hidden">
+					<StackPanel x:Name="LyricsPanel"
+					            HorizontalAlignment="Center"
+					            Spacing="0" />
+				</ScrollView>
 			</Grid>
 		</Canvas>
 
@@ -319,13 +314,13 @@
 		      Margin="0,0,5,0"
 		      HorizontalAlignment="Right"
 		      VerticalAlignment="Bottom"
-		      ColumnSpacing="5">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition />
-				<ColumnDefinition />
-			</Grid.ColumnDefinitions>
+		      RowSpacing="5">
+			<Grid.RowDefinitions>
+				<RowDefinition />
+				<RowDefinition />
+			</Grid.RowDefinitions>
 			<Button x:Name="MusicInfoButton"
-			        Grid.Column="1"
+			        Grid.Row="1"
 			        Margin="5"
 			        Padding="3"
 			        Click="MusicInfoButton_Click"
@@ -334,17 +329,17 @@
 				<FontIcon Glyph="&#xE90B;" />
 			</Button>
 			<Button x:Name="ShowLyricsButton"
-			        Grid.Column="0"
+			        Grid.Row="0"
 			        Margin="5"
 			        Padding="3"
 			        Click="ShowLyricsButton_Click"
 			        Style="{ThemeResource AccentButtonStyle}"
 			        ToolTipService.ToolTip="Show Lyrics"
-			        Visibility="Collapsed">
+			        Visibility="Visible">
 				<FontIcon Glyph="&#xE7BC;" />
 			</Button>
 			<Button x:Name="CloseLyricsButton"
-			        Grid.Column="0"
+			        Grid.Row="0"
 			        Margin="5"
 			        Padding="3"
 			        Click="CloseLyricsButton_Click"
