@@ -409,7 +409,7 @@ public class DatabaseHelper
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
 							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType)
 							   VALUES
-							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?, ?)
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?,		   ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -427,9 +427,10 @@ public class DatabaseHelper
 							   AudioCodecDescription = excluded.AudioCodecDescription,
 							   AudioSampleRate = excluded.AudioSampleRate,
 							   Lyrics = excluded.Lyrics,
+							   FileSize = excluded.FileSize,
 							   PlayerType = excluded.PlayerType;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
-							   0, song.Cover, song.Duration, song.DateAdded, null,
+							   song.PlayCount, song.Cover, song.Duration, song.DateAdded, song.DateLastPlayed,
 							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType);
 
 				SyncSongArtistsForSong(conn, song);
@@ -473,7 +474,7 @@ public class DatabaseHelper
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
 							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType)
 							   VALUES
-							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?, ?)
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?,		   ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -491,6 +492,7 @@ public class DatabaseHelper
 							   AudioCodecDescription = excluded.AudioCodecDescription,
 							   AudioSampleRate = excluded.AudioSampleRate,
 							   Lyrics = excluded.Lyrics,
+							   FileSize = excluded.FileSize,
 							   PlayerType = excluded.PlayerType;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
 							   existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed,

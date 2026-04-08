@@ -342,39 +342,86 @@
 		      Margin="0,0,5,0"
 		      HorizontalAlignment="Right"
 		      VerticalAlignment="Bottom"
-		      RowSpacing="5">
+		      RowSpacing="2">
 			<Grid.RowDefinitions>
+				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
 			</Grid.RowDefinitions>
 			<Button x:Name="MusicInfoButton"
-			        Grid.Row="1"
+			        Grid.Row="2"
+			        Width="40"
+			        Height="40"
 			        Margin="5"
 			        Padding="3"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 			        Click="MusicInfoButton_Click"
-			        Style="{ThemeResource AccentButtonStyle}"
 			        ToolTipService.ToolTip="Song/Track Info">
 				<FontIcon Glyph="&#xE90B;" />
 			</Button>
 			<Button x:Name="ShowLyricsButton"
-			        Grid.Row="0"
+			        Grid.Row="1"
+			        Width="40"
+			        Height="40"
 			        Margin="5"
 			        Padding="3"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 			        Click="ShowLyricsButton_Click"
-			        Style="{ThemeResource AccentButtonStyle}"
 			        ToolTipService.ToolTip="Show Lyrics"
-			        Visibility="Visible">
+			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE7BC;" />
 			</Button>
 			<Button x:Name="CloseLyricsButton"
-			        Grid.Row="0"
+			        Grid.Row="1"
+			        Width="40"
+			        Height="40"
 			        Margin="5"
 			        Padding="3"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 			        Click="CloseLyricsButton_Click"
-			        Style="{ThemeResource AccentButtonStyle}"
 			        ToolTipService.ToolTip="Hide Lyrics"
 			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE89F;" />
+			</Button>
+			<Button x:Name="LyricsMenuButton"
+			        Grid.Row="0"
+			        Width="40"
+			        Height="40"
+			        Margin="5"
+			        Padding="0"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+			        ToolTipService.ToolTip="Lyrics Menu"
+			        Visibility="Collapsed">
+				<FontIcon Glyph="&#xE712;" />
+				<Button.Flyout>
+					<MenuFlyout dev:MenuFlyoutAttach.AutoCloseByClickOnSecondaryMenuItems="true"
+					            dev:MenuFlyoutAttach.SecondaryMenuPlacement="Top">
+						<dev:MenuFlyoutAttach.SecondaryMenu>
+							<dev:MenuFlyoutSecondaryItems>
+								<AppBarButton Click="CopyAppBarButton_Click"
+								              Icon="Copy"
+								              Label="Copy"
+								              ToolTipService.ToolTip="Copy the lyrics" />
+								<AppBarSeparator />
+								<AppBarButton Click="EditAppBarButton_Click"
+								              Icon="Edit"
+								              Label="Edit"
+								              ToolTipService.ToolTip="Edit the lyrics" />
+								<AppBarSeparator />
+								<!--<AppBarButton Click="SearchAppBarButton_Click"
+								              Icon="Find"
+								              IsEnabled="False"
+								              Label="Search"
+								              ToolTipService.ToolTip="Search for lyrics on internet" />-->
+								<AppBarSeparator />
+								<AppBarButton Click="ClearAppBarButton_Click"
+								              Icon="Delete"
+								              Label="Clear"
+								              ToolTipService.ToolTip="Clear the existing lyrics" />
+							</dev:MenuFlyoutSecondaryItems>
+						</dev:MenuFlyoutAttach.SecondaryMenu>
+					</MenuFlyout>
+				</Button.Flyout>
 			</Button>
 		</Grid>
 	</Grid>

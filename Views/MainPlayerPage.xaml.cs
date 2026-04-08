@@ -86,7 +86,7 @@ public sealed partial class MainPlayerPage : Page
 			if (await DatabaseHelper.Instance.GetSongsCount() != 0)
 			{
 				var songPath = _musicPlayer.CurrentSong;
-				if (songPath != null && songPath != string.Empty)
+				if (!string.IsNullOrEmpty(songPath))
 				{
 					var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
 					if (File.Exists(track?.Path))
@@ -357,6 +357,7 @@ public sealed partial class MainPlayerPage : Page
 
 		ShowLyricsButton.Visibility = Visibility.Collapsed;
 		CloseLyricsButton.Visibility = Visibility.Visible;
+		LyricsMenuButton.Visibility = Visibility.Visible;
 	}
 
 	private void HideLyricsAndResetCoverArt()
@@ -369,6 +370,7 @@ public sealed partial class MainPlayerPage : Page
 		AnimateLyricsReveal(show: false);
 
 		CloseLyricsButton.Visibility = Visibility.Collapsed;
+		LyricsMenuButton.Visibility = Visibility.Collapsed;
 		ShowLyricsButton.Visibility = Visibility.Visible;
 	}
 
@@ -476,9 +478,44 @@ public sealed partial class MainPlayerPage : Page
 					};
 
 					LyricsPanel.Children.Add(capsule);
-				} 
+				}
 			}
 			else
+			{
+				//TODO
+			}
+		}
+	}
+
+	private void CopyAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		System.Windows.Clipboard.SetText(lyricsText);
+	}
+	private async void EditAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		var songPath = _musicPlayer.CurrentSong;
+		if (!string.IsNullOrEmpty(songPath))
+		{
+			var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
+
+			if (File.Exists(track?.Path))
+			{
+
+			}
+		}
+	}
+	private void SearchAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		//TODO
+	}
+	private async void ClearAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		var songPath = _musicPlayer.CurrentSong;
+		if (!string.IsNullOrEmpty(songPath))
+		{
+			var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
+
+			if (File.Exists(track?.Path))
 			{
 				//TODO
 			}

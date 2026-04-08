@@ -617,8 +617,8 @@ public class MusicPlayer
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			var position = MusicControl._instance.ViewModel.ProgressBarValue;
 
-			var song = await DatabaseHelper.Instance.GetPlayerTypeByPath(songPath);
-			var requiredBackend = song == "Windows" ? BackendType.Windows : BackendType.Flyleaf;
+			var playerType = await DatabaseHelper.Instance.GetPlayerTypeByPath(songPath);
+			var requiredBackend = playerType == "Windows" ? BackendType.Windows : BackendType.Flyleaf;
 
 			if (songPath == CurrentSong)
 			{
