@@ -45,6 +45,7 @@ public sealed partial class MainPlayerPage : Page
 
 		BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+		_musicPlayer.CurrentSongChanged -= OnCurrentSongChanged;
 		_musicPlayer.CurrentSongChanged += OnCurrentSongChanged;
 	}
 
@@ -91,8 +92,14 @@ public sealed partial class MainPlayerPage : Page
 					if (File.Exists(track?.Path))
 					{
 						Title.Text = track?.Title;
+						ToolTipService.SetToolTip(Title, track?.Title);
+
 						Album.Text = track?.Album;
+						ToolTipService.SetToolTip(Album, track?.Album);
+
 						Artist.Text = track?.Artists;
+						ToolTipService.SetToolTip(Artist, track?.Artists);
+
 						Title.FontSize = Album.FontSize * 1.5;
 						Artist.FontSize = Album.FontSize * 1.1;
 
@@ -451,33 +458,29 @@ public sealed partial class MainPlayerPage : Page
 	{
 		if (!string.IsNullOrEmpty(lyricsText))
 		{
-			LyricsPanel.Children.Clear();
-			foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+			if (!IsSyncedLyrics(lyricsText))
 			{
-				var run = new Run { Text = line };
-				var tb = new TextBlock
+				LyricsPanel.Children.Clear();
+				foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
 				{
-					FontSize = 20,
-					FontWeight = FontWeights.SemiBold,
-					TextAlignment = TextAlignment.Center,
-					TextWrapping = TextWrapping.Wrap,
-					LineHeight = 28,
-					LineStackingStrategy = LineStackingStrategy.BlockLineHeight
-				};
-				tb.Inlines.Add(run);
+					var text = new TextBlock
+					{
+						Text = line,
+						Style = (Style)Resources["LyricTextStyle"]
+					};
 
-				var border = new Border
-				{
-					//Background = (Brush)Application.Current.Resources["SmokeFillColorDefaultBrush"],
-					//Background = (Brush)Application.Current.Resources["LayerFillColorDefaultBrush"],
-					CornerRadius = new CornerRadius(20),
-					Padding = new Thickness(16, 6, 16, 6),
-					Margin = new Thickness(0, 0, 0, 12),
-					HorizontalAlignment = HorizontalAlignment.Center,
-					Child = tb
-				};
+					var capsule = new Border
+					{
+						Style = (Style)Resources["LyricCapsuleStyle"],
+						Child = text
+					};
 
-				LyricsPanel.Children.Add(border);
+					LyricsPanel.Children.Add(capsule);
+				} 
+			}
+			else
+			{
+				//TODO
 			}
 		}
 	}

@@ -168,6 +168,28 @@
 			</ObjectAnimationUsingKeyFrames>
 		</Storyboard>
 
+		<Style x:Key="LyricCapsuleStyle"
+		       TargetType="Border">
+			<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
+			<Setter Property="CornerRadius" Value="20" />
+			<Setter Property="Padding" Value="10,6,10,10" />
+			<Setter Property="Margin" Value="0,0,0,8" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<!--  was Stretch  -->
+		</Style>
+
+		<Style x:Key="LyricTextStyle"
+		       TargetType="TextBlock">
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+			<Setter Property="FontSize" Value="18" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="HorizontalTextAlignment" Value="Center" />
+			<Setter Property="HorizontalAlignment" Value="Center" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+		</Style>
+
 	</Page.Resources>
 
 	<Grid>
@@ -261,7 +283,7 @@
 			      Visibility="Collapsed">
 				<ScrollView VerticalScrollBarVisibility="Hidden">
 					<StackPanel x:Name="LyricsPanel"
-					            HorizontalAlignment="Center"
+					            Padding="12"
 					            Spacing="0" />
 				</ScrollView>
 			</Grid>
@@ -288,7 +310,9 @@
 					           VerticalAlignment="Center"
 					           FontWeight="ExtraBold"
 					           HorizontalTextAlignment="Center"
+					           MaxLines="1"
 					           TextAlignment="Center"
+					           TextTrimming="WordEllipsis"
 					           TextWrapping="WrapWholeWords" />
 					<TextBlock Name="Artist"
 					           HorizontalAlignment="Center"
@@ -296,14 +320,18 @@
 					           FontStyle="Italic"
 					           FontWeight="Bold"
 					           HorizontalTextAlignment="Center"
+					           MaxLines="2"
 					           TextAlignment="Center"
+					           TextTrimming="WordEllipsis"
 					           TextWrapping="WrapWholeWords" />
 					<TextBlock Name="Album"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
 					           HorizontalTextAlignment="Center"
+					           MaxLines="1"
 					           Style="{ThemeResource SubtitleTextBlockStyle}"
 					           TextAlignment="Center"
+					           TextTrimming="WordEllipsis"
 					           TextWrapping="WrapWholeWords" />
 				</StackPanel>
 			</Border>
