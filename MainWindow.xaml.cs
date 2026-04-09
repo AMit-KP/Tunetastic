@@ -108,8 +108,12 @@ public sealed partial class MainWindow : WindowEx
 	private async void MainWindowClose(object sender, WindowEventArgs args)
 	{
 		args.Handled = true;
-		ExitApp();
+		this.Closed -= MainWindowClose;
+		this.Closed -= MinimizeToTray;
+		RemoveTrayIcon();
 		await Task.Delay(100);
+
+		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		this.Close();
 	}
 
@@ -149,11 +153,12 @@ public sealed partial class MainWindow : WindowEx
 	/// <remarks>
 	/// This method is invoked to terminate the application. It detaches the handler for the window close event, makes the system tray icon invisible, and closes the main application window. After calling this method, the application process will end.
 	/// </remarks>
-	private void ExitApp()
+	private async void ExitApp()
 	{
 		this.Closed -= MainWindowClose;
 		this.Closed -= MinimizeToTray;
 		RemoveTrayIcon();
+		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		this.Close();
 	}
 

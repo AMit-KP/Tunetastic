@@ -517,8 +517,23 @@ public sealed partial class MainPlayerPage : Page
 
 			if (File.Exists(track?.Path))
 			{
-				//TODO
+				track.Lyrics = null;
+				await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { track });
+				using var audioModel = TagLib.File.Create(songPath);
+				audioModel.Tag.Lyrics = null;
+				try
+				{
+					audioModel.Save();
+				}
+				catch (IOException)
+				{
+					await DatabaseHelper.Instance.AddPendingTagWrite(songPath);
+					GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+				}
+				await UpdateUI();
 			}
+			else
+				GlobalNotification.Error($"File not found: {songPath}");
 		}
 	}
 }

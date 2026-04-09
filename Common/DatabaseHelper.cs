@@ -110,6 +110,11 @@ public class DatabaseHelper
 	///     - IsBuiltIn (INTEGER, NOT NULL, DEFAULT 0): Whether the rule is built-in.<br/>
 	///   Unique constraint on (Type, Pattern, IsRegex). Index on (Active, Type) for fast filtering.<br/>
 	/// <br/>
+	/// <b>PendingTagWrites</b>: Stores deferred tag write entries for files that were in use during editing.<br/>
+	///   Columns:<br/>
+	///     - Path (TEXT, PRIMARY KEY): Foreign key to Songs.Path. Unique file path of the song.<br/>
+	///   Foreign key ensures referential integrity and cascade deletes when a song is removed.<br/>
+	/// <br/>
 	/// <b>SongFTS</b>: Virtual FTS5 table for full-text search across song metadata.<br/>
 	///   Columns:<br/>
 	///     - Title (TEXT): Song title for searching.<br/>
@@ -224,6 +229,10 @@ public class DatabaseHelper
 									   UNIQUE(Type, Pattern, IsRegex))");
 
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_ArtistSplitRules_ActiveType ON ArtistSplitRules(Active, Type)");
+
+		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS PendingTagWrites (
+									   Path TEXT PRIMARY KEY,
+									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
 		await _database.ExecuteAsync(@"CREATE VIRTUAL TABLE IF NOT EXISTS SongFTS
 									   USING fts5(
@@ -712,6 +721,41 @@ public class DatabaseHelper
 	public async Task ResetDateLastPlayed(string songPath)
 	{
 		await _database.ExecuteAsync("UPDATE Songs SET DateLastPlayed = NULL WHERE Path = ?", songPath);
+	}
+
+	/// <summary>
+	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
+	/// </summary>
+	/// <param name="path">The file path of the song whose tag write is pending.</param>
+	public async Task AddPendingTagWrite(string path)
+	{
+		await _database.ExecuteAsync("INSERT OR IGNORE INTO PendingTagWrites (Path) VALUES (?)", path);
+	}
+
+	/// <summary>
+	/// Retrieves all pending tag write entries from the database.
+	/// </summary>
+	/// <returns>A list of file paths with pending tag writes.</returns>
+	public async Task<List<string>> GetAllPendingTagWrites()
+	{
+		try
+		{
+			var rows = await _database.QueryAsync<PendingTagWriteRow>("SELECT Path FROM PendingTagWrites ORDER BY rowid ASC");
+			return rows.Select(r => r.Path).ToList();
+		}
+		catch (Exception)
+		{
+			return new List<string>();
+		}
+	}
+
+	/// <summary>
+	/// Deletes a pending tag write entry for the specified file path.
+	/// </summary>
+	/// <param name="path">The file path of the song to remove from pending writes.</param>
+	public async Task DeletePendingTagWrite(string path)
+	{
+		await _database.ExecuteAsync("DELETE FROM PendingTagWrites WHERE Path = ?", path);
 	}
 
 	/// <summary>
@@ -2421,6 +2465,14 @@ public class PlaylistName
 	[PrimaryKey, AutoIncrement]
 	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Represents a row in the PendingTagWrites table, used for deferred tag write processing.
+/// </summary>
+public class PendingTagWriteRow
+{
+	public string Path { get; set; } = string.Empty;
 }
 
 /// <summary>
