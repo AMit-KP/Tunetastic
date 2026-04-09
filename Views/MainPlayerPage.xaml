@@ -189,7 +189,6 @@
 			<Setter Property="TextAlignment" Value="Center" />
 			<Setter Property="TextWrapping" Value="Wrap" />
 		</Style>
-
 	</Page.Resources>
 
 	<Grid>
@@ -423,6 +422,34 @@
 					</MenuFlyout>
 				</Button.Flyout>
 			</Button>
+		</Grid>
+
+		<Grid MinWidth="800"
+		      MinHeight="600"
+		      HorizontalAlignment="Center"
+		      VerticalAlignment="Center">
+			<ContentDialog x:Name="LyricsEditBlock"
+			               Title="Edit Lyrics"
+			               MinWidth="800"
+			               MinHeight="600"
+			               HorizontalAlignment="Center"
+			               VerticalAlignment="Center"
+			               HorizontalContentAlignment="Center"
+			               VerticalContentAlignment="Center"
+			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+			               DefaultButton="Secondary"
+			               PrimaryButtonText="Save"
+			               SecondaryButtonText="Cancel"
+			               Visibility="Visible">
+				<Grid>
+					<TextBox x:Name="LyricsTextBox"
+					         AcceptsReturn="True"
+					         AutomationProperties.Name="multi-line TextBox"
+					         IsSpellCheckEnabled="True"
+					         SelectionHighlightColor="DodgerBlue"
+					         TextWrapping="Wrap" />
+				</Grid>
+			</ContentDialog>
 		</Grid>
 	</Grid>
 </Page>
