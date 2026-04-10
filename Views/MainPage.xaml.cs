@@ -285,7 +285,9 @@ public sealed partial class MainPage : Page
 		AddPlaylistDialog.PrimaryButtonText = "Create";
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
+		MainWindow._instance.WindowResizePermission(false);
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 
 		if (result == ContentDialogResult.Primary)
 		{
@@ -674,7 +676,9 @@ public sealed partial class MainPage : Page
 
 			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
 
+			MainWindow._instance.WindowResizePermission(false);
 			await SongInfo.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
 		}
 	}
 

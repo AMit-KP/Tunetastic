@@ -901,7 +901,9 @@ public sealed partial class AlbumDetailPage : Page
 									$"\nAlbum: {songData.Album}" +
 									$"\nFile: {songData.Path}";
 
+			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
 			if (result == ContentDialogResult.Primary)
 			{
 				if (File.Exists(songData.Path))
@@ -1032,7 +1034,9 @@ public sealed partial class AlbumDetailPage : Page
 		DeleteDialog.Visibility = Visibility.Visible;
 		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
 
+		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 
 		if (result == ContentDialogResult.Primary)
 		{

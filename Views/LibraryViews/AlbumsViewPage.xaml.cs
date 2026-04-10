@@ -489,7 +489,9 @@ public sealed partial class AlbumsViewPage : Page
 		{
 			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Album {albumModel?.Album} from your system?";
 
+			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
 			if (result == ContentDialogResult.Primary)
 			{
 				foreach (string songPath in songPaths)
@@ -620,7 +622,9 @@ public sealed partial class AlbumsViewPage : Page
 		DeleteDialog.Visibility = Visibility.Visible;
 		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected albums from your system?";
 
+		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 
 		if (result == ContentDialogResult.Primary)
 		{

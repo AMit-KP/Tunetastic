@@ -493,7 +493,9 @@ public sealed partial class GenresViewPage : Page
 		{
 			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Genre {genreModel?.Genre} from your system?";
 
+			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
 			if (result == ContentDialogResult.Primary)
 			{
 				foreach (string songPath in songPaths)
@@ -624,7 +626,9 @@ public sealed partial class GenresViewPage : Page
 		DeleteDialog.Visibility = Visibility.Visible;
 		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected genres from your system?";
 
+		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 
 		if (result == ContentDialogResult.Primary)
 		{
