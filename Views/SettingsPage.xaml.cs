@@ -179,6 +179,39 @@ public sealed partial class SettingsPage : Page
 			Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 			return;
 		}
+		var pendingTasks = await DatabaseHelper.Instance.GetAllPendingTagWrites();
+		if (pendingTasks.Count > 0)
+		{
+			var dialog = new ContentDialog
+			{
+				Title = "Scan Libraries",
+				PrimaryButtonText = "Continue",
+				SecondaryButtonText = "Cancel",
+				DefaultButton = ContentDialogButton.Primary,
+				Background = (Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
+
+				Content = new Grid
+				{
+					Children =
+					{
+						new TextBlock
+						{
+							Text = $"You have pending tag writes to {pendingTasks.Count} of the file{(pendingTasks.Count > 1 ? "s" : "")}. If you continue, they will be back to original state.\n\nDo you want to continue?",
+							TextWrapping = TextWrapping.WrapWholeWords
+						}
+					}
+				},
+				XamlRoot = this.Content.XamlRoot
+			};
+			MainWindow._instance.WindowResizePermission(false);
+			var result = await dialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
+
+			if (result != ContentDialogResult.Primary)
+			{
+				return;
+			}
+		}
 
 		Scan.IsEnabled = false;
 		ProgressFill.Width = 0;
