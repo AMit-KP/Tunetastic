@@ -4,7 +4,9 @@ using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Tunetastic.Common;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Storage;
@@ -38,6 +40,13 @@ public sealed partial class MainPlayerPage : Page
 	private bool lyricsVisible = false;
 	private string? lyricsText = null;
 	private static readonly Regex SyncedLinePattern = new(@"^\[\d{1,2}:\d{2}([.:]\d{1,3})?\]", RegexOptions.Multiline | RegexOptions.Compiled);
+
+	// Synced lyrics fields
+	private List<LrcLine> _lines = new();
+	private List<Button> _lyricButtons = new();
+	private int _activeIndex = -1;
+	private DispatcherTimer? _lrcTimer;
+	private long _lastKnownTicks = 0;
 
 	public MainPlayerPage()
 	{
@@ -459,33 +468,246 @@ public sealed partial class MainPlayerPage : Page
 
 	public void DisplayLyrics()
 	{
+		CleanupSyncedLyrics();
+
 		if (!string.IsNullOrEmpty(lyricsText))
 		{
-			if (!IsSyncedLyrics(lyricsText))
-			{
-				LyricsPanel.Children.Clear();
-				foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
-				{
-					var text = new TextBlock
-					{
-						Text = line,
-						Style = (Style)Resources["LyricTextStyle"]
-					};
-
-					var capsule = new Border
-					{
-						Style = (Style)Resources["LyricCapsuleStyle"],
-						Child = text
-					};
-
-					LyricsPanel.Children.Add(capsule);
-				}
-			}
+			if (IsSyncedLyrics(lyricsText))
+				DisplaySyncedLyrics();
 			else
+				DisplayUnsyncedLyrics();
+		}
+	}
+
+	private void DisplayUnsyncedLyrics()
+	{
+		LyricsPanel.Children.Clear();
+		foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			var text = new TextBlock
 			{
-				//TODO
+				Text = line,
+				Style = (Style)Resources["LyricTextStyle"]
+			};
+
+			var capsule = new Border
+			{
+				Style = (Style)Resources["LyricCapsuleStyle"],
+				Child = text
+			};
+
+			LyricsPanel.Children.Add(capsule);
+		}
+	}
+
+	private void DisplaySyncedLyrics()
+	{
+		_lines = LrcParser.Parse(lyricsText!);
+		_lyricButtons.Clear();
+		LyricsPanel.Children.Clear();
+
+		for (int i = 0; i < _lines.Count; i++)
+		{
+			int index = i;
+			var line = _lines[i];
+
+			var textBlock = new TextBlock
+			{
+				Text = line.Text,
+				Style = (Style)Resources["SyncedLyricTextStyle"]
+			};
+
+			var capsule = new Border
+			{
+				Style = (Style)Resources["LyricCapsuleStyle"],
+				Child = textBlock
+			};
+
+			var button = new Button
+			{
+				Style = (Style)Resources["LyricButtonStyle"],
+				Content = capsule,
+				Opacity = 0.30,
+				Tag = index,
+				RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5)
+			};
+
+			var scaleTransform = new ScaleTransform { ScaleX = 1.0, ScaleY = 1.0 };
+			button.RenderTransform = scaleTransform;
+
+			button.Click += LyricButton_Click;
+			button.PointerEntered += LyricButton_PointerEntered;
+			button.PointerExited += LyricButton_PointerExited;
+
+			_lyricButtons.Add(button);
+			LyricsPanel.Children.Add(button);
+		}
+
+		_lrcTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+		_lrcTimer.Tick += LrcTimer_Tick;
+		_lrcTimer.Start();
+	}
+
+	private void LrcTimer_Tick(object? sender, object e)
+	{
+		// Only sync when actually playing — prevents phantom seeking when cycling tracks
+		if (!_musicPlayer.IsPlaying) return;
+
+		long currentTicks = _musicPlayer.CurTimeTicks;
+		TimeSpan currentTime = TimeSpan.FromTicks(currentTicks);
+
+		// Find the active line: last line whose Time <= current position
+		int activeIdx = -1;
+		for (int i = _lines.Count - 1; i >= 0; i--)
+		{
+			if (_lines[i].Time <= currentTime)
+			{
+				activeIdx = i;
+				break;
 			}
 		}
+
+		// Detect seek: if tick difference > 1 second
+		long oneSecondTicks = TimeSpan.TicksPerSecond;
+		bool seekDetected = Math.Abs(currentTicks - _lastKnownTicks) > oneSecondTicks;
+		_lastKnownTicks = currentTicks;
+
+		if (activeIdx != _activeIndex)
+		{
+			int oldIndex = _activeIndex;
+			_activeIndex = activeIdx;
+
+			// Deactivate old line
+			if (oldIndex >= 0 && oldIndex < _lyricButtons.Count)
+			{
+				AnimateLyricButton(_lyricButtons[oldIndex], targetOpacity: 0.30, targetScale: 1.0);
+			}
+
+			// Activate new line
+			if (_activeIndex >= 0 && _activeIndex < _lyricButtons.Count)
+			{
+				AnimateLyricButton(_lyricButtons[_activeIndex], targetOpacity: 1.0, targetScale: 1.05);
+			}
+
+			ScrollToActiveLine(seekDetected);
+		}
+	}
+
+	private void AnimateLyricButton(Button button, double targetOpacity, double targetScale)
+	{
+		var storyboard = new Storyboard();
+
+		// Opacity animation
+		var opacityAnim = new DoubleAnimation
+		{
+			To = targetOpacity,
+			Duration = TimeSpan.FromMilliseconds(300)
+		};
+		var opacityEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+		opacityAnim.EasingFunction = opacityEase;
+		Storyboard.SetTarget(opacityAnim, button);
+		Storyboard.SetTargetProperty(opacityAnim, "Opacity");
+		storyboard.Children.Add(opacityAnim);
+
+		// Scale X animation
+		var scaleXAnim = new DoubleAnimation
+		{
+			To = targetScale,
+			Duration = TimeSpan.FromMilliseconds(300)
+		};
+		var scaleXEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+		scaleXAnim.EasingFunction = scaleXEase;
+		Storyboard.SetTarget(scaleXAnim, button.RenderTransform);
+		Storyboard.SetTargetProperty(scaleXAnim, "ScaleX");
+		storyboard.Children.Add(scaleXAnim);
+
+		// Scale Y animation
+		var scaleYAnim = new DoubleAnimation
+		{
+			To = targetScale,
+			Duration = TimeSpan.FromMilliseconds(300)
+		};
+		var scaleYEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+		scaleYAnim.EasingFunction = scaleYEase;
+		Storyboard.SetTarget(scaleYAnim, button.RenderTransform);
+		Storyboard.SetTargetProperty(scaleYAnim, "ScaleY");
+		storyboard.Children.Add(scaleYAnim);
+
+		storyboard.Begin();
+	}
+
+	private async void ScrollToActiveLine(bool instant)
+	{
+		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
+
+		// Wait for layout to settle
+		await Task.Delay(50);
+
+		var activeButton = _lyricButtons[_activeIndex];
+		var scrollView = LyricsScrollView;
+
+		// Get the Y position of the active button relative to the ScrollView
+		var transform = activeButton.TransformToVisual(scrollView);
+		var position = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
+
+		// Calculate the offset that centers the button in the viewport
+		double viewportHeight = scrollView.ViewportHeight;
+		double buttonHeight = activeButton.ActualHeight;
+		double targetOffset = scrollView.VerticalOffset + position.Y - (viewportHeight / 2) + (buttonHeight / 2);
+
+		// Clamp to valid range
+		double maxOffset = scrollView.ScrollableHeight;
+		targetOffset = Math.Max(0, Math.Min(targetOffset, maxOffset));
+
+		// Scroll with or without animation based on instant flag
+		var options = new ScrollingScrollOptions(
+			instant ? ScrollingAnimationMode.Disabled : ScrollingAnimationMode.Enabled,
+			ScrollingSnapPointsMode.Ignore
+		);
+		scrollView.ScrollTo(0, targetOffset, options);
+	}
+
+	private void LyricButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (sender is Button button && button.Tag is int index && index >= 0 && index < _lines.Count)
+		{
+			var time = _lines[index].Time;
+
+			// Seek on the actual player
+			_musicPlayer.CurTimeTicks = time.Ticks;
+
+			var vm = App.GetService<MusicControlViewModel>();
+			vm.ProgressBarValue = time.TotalSeconds;
+			vm.ProgressBar?.SyncPosition(time.TotalSeconds);
+		}
+	}
+
+	private void LyricButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+	{
+		if (sender is Button button && button.Tag is int index && index != _activeIndex)
+		{
+			AnimateLyricButton(button, targetOpacity: 0.55, targetScale: 1.0);
+		}
+	}
+
+	private void LyricButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+	{
+		if (sender is Button button && button.Tag is int index && index != _activeIndex)
+		{
+			AnimateLyricButton(button, targetOpacity: 0.30, targetScale: 1.0);
+		}
+	}
+
+	private void CleanupSyncedLyrics()
+	{
+		_lrcTimer?.Stop();
+		_lrcTimer = null;
+
+		_lines.Clear();
+		_lyricButtons.Clear();
+		LyricsPanel.Children.Clear();
+		_activeIndex = -1;
+		_lastKnownTicks = 0;
 	}
 
 	private void CopyAppBarButton_Click(object sender, RoutedEventArgs e)

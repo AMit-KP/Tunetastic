@@ -189,6 +189,34 @@
 			<Setter Property="TextAlignment" Value="Center" />
 			<Setter Property="TextWrapping" Value="Wrap" />
 		</Style>
+
+		<Style x:Key="SyncedLyricTextStyle"
+		       TargetType="TextBlock">
+			<Setter Property="FontSize" Value="22" />
+			<Setter Property="FontWeight" Value="Bold" />
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+			<Setter Property="TextAlignment" Value="Center" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+			<Setter Property="HorizontalTextAlignment" Value="Center" />
+		</Style>
+
+		<Style x:Key="LyricButtonStyle"
+		       TargetType="Button">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="8,4" />
+			<Setter Property="HorizontalAlignment" Value="Stretch" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<ContentPresenter Content="{TemplateBinding Content}"
+						                  Background="Transparent"
+						                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
 	</Page.Resources>
 
 	<Grid>
@@ -280,9 +308,10 @@
 			<Grid x:Name="LyricsDisplay"
 			      Opacity="0"
 			      Visibility="Collapsed">
-				<ScrollView VerticalScrollBarVisibility="Hidden">
+				<ScrollView x:Name="LyricsScrollView"
+				            VerticalScrollBarVisibility="Hidden">
 					<StackPanel x:Name="LyricsPanel"
-					            Padding="12"
+					            Padding="24,12"
 					            Spacing="0" />
 				</ScrollView>
 			</Grid>
