@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using WinRT.Interop;
@@ -88,6 +89,9 @@ public sealed partial class MainPage : Page
 				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
 				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
+
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
+			CheckForUpdate();
 	}
 
 	/// <summary>
@@ -161,17 +165,17 @@ public sealed partial class MainPage : Page
 			switch (keyValuePair.Key)
 			{
 				case SearchItemType.Title:
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AllSongsViewPage")).IsSelected = true;
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 					App.Current.NavService.NavigateTo("Tunetastic.Views.LibraryViews.AllSongsViewPage", keyValuePair.Value);
 					break;
 
 				case SearchItemType.Artist:
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage")).IsSelected = true;
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.ArtistsViewPage");
 					App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Artist" : keyValuePair.Value, false);
 					break;
 
 				case SearchItemType.Album:
-					((App.Current.NavService.MenuItems[1] as NavigationViewItem)?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage")).IsSelected = true;
+					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AlbumsViewPage");
 					App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Album" : keyValuePair.Value, false);
 					break;
 			}
@@ -231,7 +235,7 @@ public sealed partial class MainPage : Page
 			string? selectedTag = selectedItem.Tag.ToString();
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
-		if(args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString(), @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
+		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString(), @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
 		{
 			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup).Title);
 		}
@@ -281,7 +285,9 @@ public sealed partial class MainPage : Page
 		AddPlaylistDialog.PrimaryButtonText = "Create";
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
+		MainWindow._instance.WindowResizePermission(false);
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 
 		if (result == ContentDialogResult.Primary)
 		{
@@ -579,7 +585,7 @@ public sealed partial class MainPage : Page
 	{
 		//TODO: Drag n Drop
 		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
-		
+
 		picker.FileTypeFilter.Add("*.m3u");
 		picker.FileTypeFilter.Add("*.m3u8");
 		picker.FileTypeFilter.Add("*.pls");
@@ -670,7 +676,9 @@ public sealed partial class MainPage : Page
 
 			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
 
+			MainWindow._instance.WindowResizePermission(false);
 			await SongInfo.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
 		}
 	}
 
@@ -681,5 +689,20 @@ public sealed partial class MainPage : Page
 		SongPlayCount.Text = "0";
 		SongLastPlayed.Text = "Never";
 		ClearButton.IsEnabled = false;
+	}
+
+	private async void CheckForUpdate()
+	{
+		var context = StoreContext.GetDefault();
+
+		WinRT.Interop.InitializeWithWindow.Initialize(context,
+			WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+
+		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+
+		if (updates.Count != 0)
+			await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow,
+				"App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
+				buttons: MessageBoxButtons.OK);
 	}
 }

@@ -847,9 +847,12 @@ public sealed partial class MainPlayerPage : Page
 			if (File.Exists(track?.Path))
 			{
 				LyricsTextBox.Text = track.Lyrics;
+
 				MainWindow._instance.WindowResizePermission(false);
 
 				var result = await LyricsEditBlock.ShowAsync();
+
+				MainWindow._instance.WindowResizePermission(true);
 
 				if (result == ContentDialogResult.Primary)
 				{
@@ -868,8 +871,6 @@ public sealed partial class MainPlayerPage : Page
 					}
 					await UpdateUI();
 				}
-
-				MainWindow._instance.WindowResizePermission(true);
 			}
 		}
 	}

@@ -70,6 +70,8 @@ public sealed partial class SettingsPage : Page
 
 		UpdateExtentionListOnUI();
 
+		CheckForUpdatesStartupToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true");
+
 		Theme.SelectionChanged += Theme_SelectionChanged;
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
 		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
@@ -176,6 +178,39 @@ public sealed partial class SettingsPage : Page
 			Scan.IsEnabled = true;
 			Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 			return;
+		}
+		var pendingTasks = await DatabaseHelper.Instance.GetAllPendingTagWrites();
+		if (pendingTasks.Count > 0)
+		{
+			var dialog = new ContentDialog
+			{
+				Title = "Scan Libraries",
+				PrimaryButtonText = "Continue",
+				SecondaryButtonText = "Cancel",
+				DefaultButton = ContentDialogButton.Primary,
+				Background = (Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
+
+				Content = new Grid
+				{
+					Children =
+					{
+						new TextBlock
+						{
+							Text = $"You have pending tag writes to {pendingTasks.Count} of the file{(pendingTasks.Count > 1 ? "s" : "")}. If you continue, they will be back to original state.\n\nDo you want to continue?",
+							TextWrapping = TextWrapping.WrapWholeWords
+						}
+					}
+				},
+				XamlRoot = this.Content.XamlRoot
+			};
+			MainWindow._instance.WindowResizePermission(false);
+			var result = await dialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
+
+			if (result != ContentDialogResult.Primary)
+			{
+				return;
+			}
 		}
 
 		Scan.IsEnabled = false;
@@ -1055,6 +1090,7 @@ public sealed partial class SettingsPage : Page
 
 	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
 	{
+		CheckForUpdates.ProgressRingVisibility = Visibility.Visible;
 		var context = StoreContext.GetDefault();
 
 		WinRT.Interop.InitializeWithWindow.Initialize(context,
@@ -1077,6 +1113,16 @@ public sealed partial class SettingsPage : Page
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 				await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow, "Update installed", "The update will apply next time you launch the app.");
 			}
+			else
+			{
+				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+				CheckForUpdates.IsChecked = false;
+			}
 		}
+	}
+
+	private void CheckForUpdatesStartupToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)] = CheckForUpdatesStartupToggle.IsOn;
 	}
 }

@@ -475,7 +475,7 @@
 			               HorizontalContentAlignment="Center"
 			               VerticalContentAlignment="Center"
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
-			               DefaultButton="Secondary"
+			               DefaultButton="Primary"
 			               PrimaryButtonText="Save"
 			               SecondaryButtonText="Cancel"
 			               Visibility="Visible">
