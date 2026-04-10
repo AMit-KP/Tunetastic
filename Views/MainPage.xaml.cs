@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
 using WinRT.Interop;
@@ -88,6 +89,9 @@ public sealed partial class MainPage : Page
 				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
 				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
+
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
+			CheckForUpdate();
 	}
 
 	/// <summary>
@@ -231,7 +235,7 @@ public sealed partial class MainPage : Page
 			string? selectedTag = selectedItem.Tag.ToString();
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
-		if(args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString(), @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
+		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString(), @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
 		{
 			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup).Title);
 		}
@@ -579,7 +583,7 @@ public sealed partial class MainPage : Page
 	{
 		//TODO: Drag n Drop
 		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
-		
+
 		picker.FileTypeFilter.Add("*.m3u");
 		picker.FileTypeFilter.Add("*.m3u8");
 		picker.FileTypeFilter.Add("*.pls");
@@ -681,5 +685,20 @@ public sealed partial class MainPage : Page
 		SongPlayCount.Text = "0";
 		SongLastPlayed.Text = "Never";
 		ClearButton.IsEnabled = false;
+	}
+
+	private async void CheckForUpdate()
+	{
+		var context = StoreContext.GetDefault();
+
+		WinRT.Interop.InitializeWithWindow.Initialize(context,
+			WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+
+		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+
+		if (updates.Count != 0)
+			await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow,
+				"App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
+				buttons: MessageBoxButtons.OK);
 	}
 }

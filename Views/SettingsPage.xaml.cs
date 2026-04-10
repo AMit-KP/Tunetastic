@@ -70,6 +70,8 @@ public sealed partial class SettingsPage : Page
 
 		UpdateExtentionListOnUI();
 
+		CheckForUpdatesStartupToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true");
+
 		Theme.SelectionChanged += Theme_SelectionChanged;
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
 		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
@@ -1055,6 +1057,7 @@ public sealed partial class SettingsPage : Page
 
 	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
 	{
+		CheckForUpdates.ProgressRingVisibility = Visibility.Visible;
 		var context = StoreContext.GetDefault();
 
 		WinRT.Interop.InitializeWithWindow.Initialize(context,
@@ -1077,6 +1080,16 @@ public sealed partial class SettingsPage : Page
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 				await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow, "Update installed", "The update will apply next time you launch the app.");
 			}
+			else
+			{
+				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+				CheckForUpdates.IsChecked = false;
+			}
 		}
+	}
+
+	private void CheckForUpdatesStartupToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)] = CheckForUpdatesStartupToggle.IsOn;
 	}
 }
