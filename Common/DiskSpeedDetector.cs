@@ -18,24 +18,35 @@ public enum DiskKind
 /// Detects the storage type (HDD / SATA SSD / NVMe SSD) of the drive that hosts a
 /// given file path, then recommends a degree-of-parallelism value that suits the
 /// drive's I/O characteristics.
-///
+/// <br/>
+/// <br/>
 /// Detection strategy
+/// <br/>
 /// ──────────────────
+/// <br/>
 /// 1. Resolve the file path → drive letter → physical disk number
 ///    via the "Win32_DiskDrive" / "Win32_DiskDriveToDiskPartition" /
 ///    "Win32_LogicalDiskToPartition" WMI chain.
+///    <br/>
 /// 2. Query "MSFT_PhysicalDisk" (Storage namespace) for MediaType and BusType.
+/// <br/>
 ///    MediaType : 3 = HDD, 4 = SSD
+///    <br/>
 ///    BusType   : 17 = NVMe, 11 = SATA, others treated as SATA-class
 /// 3. Every WMI call is wrapped in Task.Run + Wait(timeout) so a hung/broken
 ///    WMI provider can NEVER stall the scan. Falls back to DiskKind.Unknown
 ///    (DOP=2) on any timeout or error.
 ///
 /// Recommended DOP values
+/// <br/>
 /// ──────────────────────
+/// <br/>
 ///   HDD      → 1  (single sequential stream; random I/O is extremely costly)
+///   <br/>
 ///   SATA SSD → 4  (deep queue saturation, but SATA bandwidth caps out ~550 MB/s)
+///   <br/>
 ///   NVMe SSD → 8  (PCIe bandwidth + very low latency — more parallelism pays off)
+///   <br/>
 ///   Unknown  → 2  (safe conservative default)
 /// </summary>
 [SupportedOSPlatform("windows")]

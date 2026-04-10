@@ -104,8 +104,7 @@ public partial class App : Application
 			RainbowFrame.StartRainbowFrame();
 			RainbowFrame.UpdateEffectSpeed(51 - int.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31"));
 		}
-		MainWindow.Closed += (s, e) => MusicPlayer.Instance.SavePlayBackPosition();
-
+		
 		StartInstanceListener();
 	}
 

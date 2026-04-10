@@ -1049,8 +1049,8 @@ public sealed partial class SettingsPage : Page
 
 	private void Page_ActualThemeChanged(FrameworkElement? sender, object? args)
 	{
-		SourceCodeImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/GitHub_Invertocat_White.png" : "ms-appx:///Assets/Store/GitHub_Invertocat_Black.png"));
-		MicrosoftStoreImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/MS_Dark.png" : "ms-appx:///Assets/Store/MS_Light.png"));
+		SourceCodeImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.IsDark ? "ms-appx:///Assets/Store/GitHub_Invertocat_White.png" : "ms-appx:///Assets/Store/GitHub_Invertocat_Black.png"));
+		MicrosoftStoreImage.Source = new BitmapImage(new Uri(App.Current.ThemeService.IsDark ? "ms-appx:///Assets/Store/MS_Dark.png" : "ms-appx:///Assets/Store/MS_Light.png"));
 	}
 
 	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)

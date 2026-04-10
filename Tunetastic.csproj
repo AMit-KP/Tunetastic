@@ -21,7 +21,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.31.18</Version>
+    <Version>1.32.0</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
@@ -36,8 +36,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.31.26.2174</AssemblyVersion>
-    <FileVersion>1.31.26.2174</FileVersion>
+    <AssemblyVersion>1.32.188.2360</AssemblyVersion>
+    <FileVersion>1.32.188.2360</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -165,7 +165,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Common" Version="8.4.2" />
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.2" />
-    <PackageReference Include="CommunityToolkit.Labs.WinUI.Controls.DataTable" Version="0.1.250811-build.2202" />
+    <PackageReference Include="CommunityToolkit.Labs.WinUI.Controls.DataTable" Version="0.1.250919-build.2256" />
     <PackageReference Include="CommunityToolkit.Labs.WinUI.Shimmer" Version="0.1.250811-build.2202" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="CommunityToolkit.WinUI.Animations" Version="8.2.251219" />
@@ -200,7 +200,7 @@
     <PackageReference Include="FlyleafLib" Version="3.10.3" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1721" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
@@ -262,6 +262,9 @@
     <Page Update="Views\LibraryViews\GenresViewPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="AppPackages\" />
   </ItemGroup>
   <!-- 
 	Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution 

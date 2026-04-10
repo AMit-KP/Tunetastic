@@ -108,8 +108,12 @@ public sealed partial class MainWindow : WindowEx
 	private async void MainWindowClose(object sender, WindowEventArgs args)
 	{
 		args.Handled = true;
-		ExitApp();
+		this.Closed -= MainWindowClose;
+		this.Closed -= MinimizeToTray;
+		RemoveTrayIcon();
 		await Task.Delay(100);
+
+		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		this.Close();
 	}
 
@@ -149,12 +153,20 @@ public sealed partial class MainWindow : WindowEx
 	/// <remarks>
 	/// This method is invoked to terminate the application. It detaches the handler for the window close event, makes the system tray icon invisible, and closes the main application window. After calling this method, the application process will end.
 	/// </remarks>
-	private void ExitApp()
+	private async void ExitApp()
 	{
 		this.Closed -= MainWindowClose;
 		this.Closed -= MinimizeToTray;
 		RemoveTrayIcon();
+		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		this.Close();
+	}
+
+	public void WindowResizePermission(bool permission)
+	{
+		overlappedPresenter?.IsMaximizable = permission;
+		overlappedPresenter?.IsMinimizable = permission;
+		overlappedPresenter?.IsResizable = permission;
 	}
 
 	private bool centered;
@@ -303,34 +315,4 @@ public sealed partial class MainWindow : WindowEx
 		return minWidth;
 	}
 	#endregion
-}
-
-/// <summary>
-/// Provides a custom renderer for the context menu in the application, incorporating support for light and dark themes.
-/// </summary>
-/// <remarks>
-/// This class customizes the appearance of the context menu's background, menu items, and text to match the current application theme.
-/// It extends <see cref="ToolStripRenderer"/> to override default rendering behavior and apply a modern visual style.
-/// </remarks>
-public class ModernMenuRenderer : ToolStripRenderer
-{   //TODO: Needs work
-	private bool IsDarkMode => App.Current.ThemeService.ActualTheme == ElementTheme.Dark;
-
-	protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
-	{
-		Color backgroundColor = IsDarkMode ? Color.Black : Color.White;
-		e.Graphics.FillRectangle(new SolidBrush(backgroundColor), e.Item.Bounds);
-	}
-
-	protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
-	{
-		Color backgroundColor = IsDarkMode ? Color.Black : Color.White;
-		e.Graphics.Clear(backgroundColor);
-	}
-
-	protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
-	{
-		e.TextColor = IsDarkMode ? Color.White : Color.Black;
-		base.OnRenderItemText(e);
-	}
 }
