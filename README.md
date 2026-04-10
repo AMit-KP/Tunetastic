@@ -43,6 +43,27 @@ The main player page is the heart of Tunetastic — a full-screen immersive expe
 
 ---
 
+### 🎤 Lyrics
+
+Tunetastic displays lyrics in sync with your music — no extra setup needed.
+
+- **Synced lyrics** scroll automatically in time with playback, and are sourced from:
+	- Embedded metadata inside the audio file itself
+	- External `.lrc` files placed alongside the track (same folder, matching filename)
+
+- **Unsynced lyrics** are displayed as plain scrollable text and are always read
+from embedded metadata.
+
+- Embedded lyrics can be edited/cleared in the app.
+
+- When both an embedded source and an `.lrc` file are available, the embedded lyrics
+takes priority for synced playback. If no lyrics are found.
+
+> <img width="2282" height="1717" alt="Screenshot 2026-04-10 144915" src="https://github.com/user-attachments/assets/d14623ff-26a9-4711-a8a6-10114e88f623" />
+
+
+---
+
 ### 📚 Library
 
 Tunetastic automatically organizes your music collection into clean, browsable views:
