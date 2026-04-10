@@ -47,6 +47,7 @@ public sealed partial class MainPlayerPage : Page
 	private int _activeIndex = -1;
 	private DispatcherTimer? _lrcTimer;
 	private long _lastKnownTicks = 0;
+	private bool _centeringPaddingSet = false;
 
 	public MainPlayerPage()
 	{
@@ -270,6 +271,10 @@ public sealed partial class MainPlayerPage : Page
 		pageHeight = e.NewSize.Height;
 		UpdateCoverArtSize();
 		UpdateLyricsGrid();
+
+		// Recalculate centering padding when window resizes and synced lyrics are active
+		if (_lyricButtons.Count > 0 && _centeringPaddingSet)
+			SetCenteringPadding();
 	}
 
 	/// <summary>
@@ -546,6 +551,25 @@ public sealed partial class MainPlayerPage : Page
 		_lrcTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
 		_lrcTimer.Tick += LrcTimer_Tick;
 		_lrcTimer.Start();
+
+		// Defer centering padding setup until layout settles
+		_centeringPaddingSet = false;
+		SetCenteringPadding();
+	}
+
+	/// <summary>
+	/// Sets top/bottom padding on LyricsPanel equal to half the ScrollView viewport height,
+	/// so every lyric line (including first and last) can be centered in the viewport.
+	/// </summary>
+	private async void SetCenteringPadding()
+	{
+		await Task.Delay(100); // let layout settle
+		double viewportHeight = LyricsScrollView.ViewportHeight;
+		double halfViewport = viewportHeight / 2;
+
+		// Preserve the existing horizontal padding (24) and add vertical centering padding
+		LyricsPanel.Padding = new Thickness(24, halfViewport, 24, halfViewport);
+		_centeringPaddingSet = true;
 	}
 
 	private void LrcTimer_Tick(object? sender, object e)
@@ -643,6 +667,15 @@ public sealed partial class MainPlayerPage : Page
 		// Wait for layout to settle
 		await Task.Delay(50);
 
+		// If the padding was never set (e.g. first activation before SetCenteringPadding finished), recalculate now
+		if (!_centeringPaddingSet)
+		{
+			double vh = LyricsScrollView.ViewportHeight;
+			LyricsPanel.Padding = new Thickness(24, vh / 2, 24, vh / 2);
+			_centeringPaddingSet = true;
+			await Task.Delay(50); // let the new padding take effect
+		}
+
 		var activeButton = _lyricButtons[_activeIndex];
 		var scrollView = LyricsScrollView;
 
@@ -708,6 +741,8 @@ public sealed partial class MainPlayerPage : Page
 		LyricsPanel.Children.Clear();
 		_activeIndex = -1;
 		_lastKnownTicks = 0;
+		_centeringPaddingSet = false;
+		LyricsPanel.Padding = new Thickness(24, 12, 24, 12); // reset to default
 	}
 
 	private void CopyAppBarButton_Click(object sender, RoutedEventArgs e)
