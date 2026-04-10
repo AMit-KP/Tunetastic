@@ -591,9 +591,6 @@ public sealed partial class MainPlayerPage : Page
 			}
 		}
 
-		// Detect seek: if tick difference > 1 second
-		long oneSecondTicks = TimeSpan.TicksPerSecond;
-		bool seekDetected = Math.Abs(currentTicks - _lastKnownTicks) > oneSecondTicks;
 		_lastKnownTicks = currentTicks;
 
 		if (activeIdx != _activeIndex)
@@ -613,7 +610,7 @@ public sealed partial class MainPlayerPage : Page
 				AnimateLyricButton(_lyricButtons[_activeIndex], targetOpacity: 1.0, targetScale: 1.05);
 			}
 
-			ScrollToActiveLine(seekDetected);
+			ScrollToActiveLine();
 		}
 	}
 
@@ -660,7 +657,7 @@ public sealed partial class MainPlayerPage : Page
 		storyboard.Begin();
 	}
 
-	private async void ScrollToActiveLine(bool instant)
+	private async void ScrollToActiveLine()
 	{
 		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
 
@@ -692,9 +689,9 @@ public sealed partial class MainPlayerPage : Page
 		double maxOffset = scrollView.ScrollableHeight;
 		targetOffset = Math.Max(0, Math.Min(targetOffset, maxOffset));
 
-		// Scroll with or without animation based on instant flag
+		// Always animate scrolling — even on large seeks, a smooth scroll feels better
 		var options = new ScrollingScrollOptions(
-			instant ? ScrollingAnimationMode.Disabled : ScrollingAnimationMode.Enabled,
+			ScrollingAnimationMode.Enabled,
 			ScrollingSnapPointsMode.Ignore
 		);
 		scrollView.ScrollTo(0, targetOffset, options);
