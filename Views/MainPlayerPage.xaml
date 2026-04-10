@@ -210,9 +210,9 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="Button">
-						<ContentPresenter Content="{TemplateBinding Content}"
+						<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
 						                  Background="Transparent"
-						                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+						                  Content="{TemplateBinding Content}" />
 					</ControlTemplate>
 				</Setter.Value>
 			</Setter>
@@ -426,26 +426,35 @@
 					            dev:MenuFlyoutAttach.SecondaryMenuPlacement="Top">
 						<dev:MenuFlyoutAttach.SecondaryMenu>
 							<dev:MenuFlyoutSecondaryItems>
-								<AppBarButton Click="CopyAppBarButton_Click"
+								<AppBarButton x:Name="CopyLyricsButton"
+								              Click="CopyAppBarButton_Click"
 								              Icon="Copy"
 								              Label="Copy"
 								              ToolTipService.ToolTip="Copy the lyrics" />
-								<AppBarSeparator />
-								<AppBarButton Click="EditAppBarButton_Click"
+								<AppBarSeparator x:Name="Separator1" />
+								<AppBarButton x:Name="EditLyricsButton"
+								              Click="EditAppBarButton_Click"
 								              Icon="Edit"
 								              Label="Edit"
 								              ToolTipService.ToolTip="Edit the lyrics" />
-								<AppBarSeparator />
-								<!--<AppBarButton Click="SearchAppBarButton_Click"
+								<!--<AppBarSeparator x:Name="Separator2"/>
+								<AppBarButton x:Name="SearchLyricsButton"
+								              Click="SearchAppBarButton_Click"
 								              Icon="Find"
 								              IsEnabled="False"
 								              Label="Search"
 								              ToolTipService.ToolTip="Search for lyrics on internet" />-->
-								<AppBarSeparator />
-								<AppBarButton Click="ClearAppBarButton_Click"
+								<AppBarSeparator x:Name="Separator3" />
+								<AppBarButton x:Name="ClearLyricsButton"
+								              Click="ClearAppBarButton_Click"
 								              Icon="Delete"
 								              Label="Clear"
 								              ToolTipService.ToolTip="Clear the existing lyrics" />
+								<AppBarButton x:Name="OpenLyricsButton"
+								              Click="OpenAppBarButton_Click"
+								              Icon="Folder"
+								              Label="Open File"
+								              ToolTipService.ToolTip="Open the lrc file" />
 							</dev:MenuFlyoutSecondaryItems>
 						</dev:MenuFlyoutAttach.SecondaryMenu>
 					</MenuFlyout>

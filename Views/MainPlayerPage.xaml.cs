@@ -48,6 +48,13 @@ public sealed partial class MainPlayerPage : Page
 	private DispatcherTimer? _lrcTimer;
 	private long _lastKnownTicks = 0;
 	private bool _centeringPaddingSet = false;
+	private string? _externalLrcPath;
+
+	/// <summary>
+	/// True if the currently displayed lyrics came from an external .lrc file.
+	/// Useful for hiding/showing menu buttons.
+	/// </summary>
+	public bool HasExternalLrcFile => !string.IsNullOrEmpty(_externalLrcPath);
 
 	public MainPlayerPage()
 	{
@@ -91,6 +98,8 @@ public sealed partial class MainPlayerPage : Page
 		}
 		catch (Exception)
 		{ }
+
+		CleanupSyncedLyrics();
 
 		try
 		{
@@ -155,7 +164,31 @@ public sealed partial class MainPlayerPage : Page
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
 						ShowLyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Collapsed : Visibility.Visible;
+						LyricMenuOptions(embeddedLyrics: true);
 						lyricsText = track?.Lyrics;
+
+						// Auto-discover external .lrc file if DB lyrics is missing or unsynced
+						// Priority: DB synced > external .lrc synced > DB unsynced > nothing
+						if (!IsSyncedLyrics(lyricsText))
+						{
+							var externalContent = TryLoadExternalLrc(songPath);
+							if (externalContent != null)
+							{
+								_externalLrcPath = Path.ChangeExtension(songPath, ".lrc");
+								lyricsText = externalContent;
+								ShowLyricsButton.Visibility = Visibility.Visible;
+								LyricMenuOptions(embeddedLyrics: false);
+								GlobalNotification.Info("Discovered external .lrc file:\n" + _externalLrcPath);
+							}
+							else
+							{
+								_externalLrcPath = null;
+							}
+						}
+						else
+						{
+							_externalLrcPath = null; // DB has synced lyrics, ignore external file
+						}
 
 						return Task.CompletedTask;
 					}
@@ -189,6 +222,7 @@ public sealed partial class MainPlayerPage : Page
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		Title.Text = "Please select a song";
 		MusicInfoButton.Visibility = Visibility.Collapsed;
+		_externalLrcPath = null;
 		return Task.CompletedTask;
 	}
 
@@ -471,6 +505,31 @@ public sealed partial class MainPlayerPage : Page
 		return false;
 	}
 
+	/// <summary>
+	/// Tries to load an external .lrc file from the same directory as the audio file.
+	/// Returns the content only if it contains valid synced lyrics.
+	/// </summary>
+	private static string? TryLoadExternalLrc(string songPath)
+	{
+		if (string.IsNullOrEmpty(songPath)) return null;
+
+		var lrcPath = Path.ChangeExtension(songPath, ".lrc");
+		if (File.Exists(lrcPath))
+		{
+			try
+			{
+				var content = File.ReadAllText(lrcPath);
+				if (IsSyncedLyrics(content))
+					return content;
+			}
+			catch
+			{
+				// File read error — silently ignore
+			}
+		}
+		return null;
+	}
+
 	public void DisplayLyrics()
 	{
 		CleanupSyncedLyrics();
@@ -690,6 +749,9 @@ public sealed partial class MainPlayerPage : Page
 		// Wait for layout to settle
 		await Task.Delay(50);
 
+		// Guard: list may have been cleared by CleanupSyncedLyrics during the delay
+		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
+
 		// If the padding was never set (e.g. first activation before SetCenteringPadding finished), recalculate now
 		if (!_centeringPaddingSet)
 		{
@@ -698,6 +760,9 @@ public sealed partial class MainPlayerPage : Page
 			_centeringPaddingSet = true;
 			await Task.Delay(50); // let the new padding take effect
 		}
+
+		// Guard again after the second delay
+		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
 
 		var activeButton = _lyricButtons[_activeIndex];
 		var scrollView = LyricsScrollView;
@@ -787,7 +852,7 @@ public sealed partial class MainPlayerPage : Page
 				var result = await LyricsEditBlock.ShowAsync();
 
 				if (result == ContentDialogResult.Primary)
-				{	
+				{
 					track.Lyrics = LyricsTextBox.Text;
 					await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { track });
 					using var audioModel = TagLib.File.Create(songPath);
@@ -839,5 +904,26 @@ public sealed partial class MainPlayerPage : Page
 			else
 				GlobalNotification.Error($"File not found: {songPath}");
 		}
+	}
+
+	private void OpenAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (!string.IsNullOrEmpty(_externalLrcPath) && File.Exists(_externalLrcPath))
+			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_externalLrcPath) { UseShellExecute = true });
+		else
+			GlobalNotification.Error("Could not find external .lrc file.");
+	}
+
+	private void LyricMenuOptions(bool embeddedLyrics)
+	{
+		CopyLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator1.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		EditLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		//TODO
+		//Separator2.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		//SearchLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		ClearLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		OpenLyricsButton.Visibility = embeddedLyrics ? Visibility.Collapsed : Visibility.Visible;
 	}
 }
