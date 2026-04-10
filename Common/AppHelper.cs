@@ -89,5 +89,6 @@ public enum LocalSave
 	ArtistDetailViewSortBy,
 	ArtistDetailViewSortOrder,
 	ArtistDetailViewStyle,
-	SelectedArtist
+	SelectedArtist,
+	CheckForUpdatesAtStatup
 }

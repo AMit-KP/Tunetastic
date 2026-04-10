@@ -107,7 +107,9 @@ public partial class SettingViewModel : ObservableObject
 			XamlRoot = App.MainWindow.Content.XamlRoot
 		};
 
+		MainWindow._instance.WindowResizePermission(false);
 		await dialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 	}
 
 	/// <summary>

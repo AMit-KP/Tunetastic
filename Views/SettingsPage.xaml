@@ -397,7 +397,7 @@
 			</dev:SettingsCard>-->
 
 			<dev:SettingsExpander Description="Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that’s as unique, expressive and captivating as the music you love. 🎶"
-			                      Header="Tunetastic"
+			                      Header="Tunetastic by AMit-KP"
 			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
 			                      IsExpanded="False">
 				<StackPanel Orientation="Horizontal"
@@ -415,6 +415,11 @@
 					                    ProgressRingVisibility="Visible" />
 				</StackPanel>
 				<dev:SettingsExpander.Items>
+					<dev:SettingsCard Description="When turned on, the app will automatically check for updates at startup."
+					                  Header="Check for updates at startup">
+						<ToggleSwitch x:Name="CheckForUpdatesStartupToggle"
+						              Toggled="CheckForUpdatesStartupToggle_Toggled" />
+					</dev:SettingsCard>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"

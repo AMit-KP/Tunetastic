@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -198,6 +198,7 @@
 								           Text="Title:" />
 								<TextBlock x:Name="SongTitle"
 								           Grid.Row="1"
+								           IsTextSelectionEnabled="True"
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
@@ -214,6 +215,7 @@
 								           Text="Artists:" />
 								<TextBlock x:Name="SongArtists"
 								           Grid.Row="1"
+								           IsTextSelectionEnabled="True"
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
@@ -230,6 +232,7 @@
 								           Text="Album:" />
 								<TextBlock x:Name="SongAlbum"
 								           Grid.Row="1"
+								           IsTextSelectionEnabled="True"
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
@@ -274,6 +277,7 @@
 							           Text="Genre:" />
 							<TextBlock x:Name="SongGenre"
 							           Grid.Row="1"
+							           IsTextSelectionEnabled="True"
 							           MaxLines="1"
 							           Style="{ThemeResource BodyTextBlockStyle}"
 							           TextTrimming="CharacterEllipsis" />
@@ -362,6 +366,7 @@
 							           Text="Path:" />
 							<TextBlock x:Name="SongPath"
 							           Grid.Row="1"
+							           IsTextSelectionEnabled="True"
 							           Style="{ThemeResource BodyTextBlockStyle}"
 							           TextWrapping="WrapWholeWords" />
 						</Grid>

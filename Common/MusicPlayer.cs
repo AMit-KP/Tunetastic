@@ -617,8 +617,8 @@ public class MusicPlayer
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			var position = MusicControl._instance.ViewModel.ProgressBarValue;
 
-			var song = await DatabaseHelper.Instance.GetPlayerTypeByPath(songPath);
-			var requiredBackend = song == "Windows" ? BackendType.Windows : BackendType.Flyleaf;
+			var playerType = await DatabaseHelper.Instance.GetPlayerTypeByPath(songPath);
+			var requiredBackend = playerType == "Windows" ? BackendType.Windows : BackendType.Flyleaf;
 
 			if (songPath == CurrentSong)
 			{
@@ -934,14 +934,83 @@ public class MusicPlayer
 	//  Persistence
 	// ─────────────────────────────────────────────────────────
 	/// <summary>
-	/// Saves the current playback position and the current song index of the player.
-	/// This method stores the playback position and index in application settings for persistence,
-	/// allowing the playback to resume from the saved state the next time the application is launched.
+	/// Saves the current playback position and processes all pending tag writes.
+	/// This method is called on app exit to persist playback state and apply any deferred tag changes.
 	/// </summary>
-	public void SavePlayBackPosition()
+	public async Task SaveOnExitActionsAsync()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = TimeSpan.FromTicks(CurTimeTicks).TotalSeconds.ToString();
+
+		await ProcessPendingTagWritesAsync();
+	}
+
+	/// <summary>
+	/// Processes all pending tag writes sequentially at app exit.
+	/// For each entry, verifies the file exists, fetches the latest tag data from DB, and writes tags.
+	/// Playback is stopped and the backend is disposed before writing to ensure file access.
+	/// </summary>
+	private async Task ProcessPendingTagWritesAsync()
+	{
+		var pendingPaths = await DatabaseHelper.Instance.GetAllPendingTagWrites();
+		if (pendingPaths.Count == 0)
+			return;
+
+		Pause();
+		_activeBackend.Stop();
+		_activeBackend.Dispose();
+
+		SMTCPlayer.Source = null;
+		FlyleafPlayer.Dispose();
+
+		foreach (var path in pendingPaths)
+		{
+			if (!File.Exists(path))
+			{
+				await DatabaseHelper.Instance.DeletePendingTagWrite(path);
+				continue;
+			}
+
+			var track = await DatabaseHelper.Instance.GetSongByPath(path);
+			if (track == null)
+			{
+				await DatabaseHelper.Instance.DeletePendingTagWrite(path);
+				continue;
+			}
+
+			bool success=false;
+			for (int attempt = 0; attempt < 3; attempt++)
+			{
+				try
+				{
+					AudioTagSaveToFile(path, track);
+					success = true;
+					break;
+				}
+				catch (IOException) when (attempt < 4)
+				{
+					await Task.Delay(500);
+				}
+				catch (Exception)
+				{
+					break;
+				}
+			}
+			if (success)
+				GlobalNotification.Info($"Updated metadata for:\n{path}");
+			else
+				GlobalNotification.Error($"Failed to update metadata for:\n{path}");
+
+			await DatabaseHelper.Instance.DeletePendingTagWrite(path);
+		}
+	}
+
+	private static void AudioTagSaveToFile(string path, Song track)
+	{
+		using var audioModel = TagLib.File.Create(path);
+		//TODO: Add more tags
+		audioModel.Tag.Lyrics = track.Lyrics;
+		audioModel.Save();
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -1011,7 +1080,7 @@ public class MusicPlayer
 		ResetOrReloadPlayer(track);
 	}
 
-	//Do not use for now as it causes other issues
+	//FIXME: Do not use for now as it causes other issues
 	private async Task CrossfadeTransition(string songPath, double fadeTime)
 	{
 		/*

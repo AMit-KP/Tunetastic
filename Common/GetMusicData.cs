@@ -56,12 +56,17 @@ public class GetMusicData
 		_isScanning = true;
 		string type = "";
 		string message = "";
+		List<string> failedFiles = new List<string>();
+
 		_scanTask = Task.Run(async () =>
 		{
-			(type, message) = await ScanLibraries();
+			(type, message, failedFiles) = await ScanLibraries();
 		});
 
 		await _scanTask;
+
+		foreach (var failed in failedFiles)
+			GlobalNotification.Error($"Failed to read metadata for:\n{failed}");
 
 		switch (type)
 		{
@@ -92,7 +97,7 @@ public class GetMusicData
 	/// <returns>
 	/// A <see cref="Task"/> that represents the asynchronous operation of scanning the music libraries.
 	/// </returns>
-	private async Task<(string, string)> ScanLibraries()
+	private async Task<(string, string, List<string>)> ScanLibraries()
 	{
 		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 		ScanProgress = 0;
@@ -172,6 +177,7 @@ public class GetMusicData
 			DiskKind diskKind = DiskSpeedDetector.GetDiskKind(probePath);
 			int dop = DiskSpeedDetector.DopForKind(diskKind);
 
+			var failedFiles = new ConcurrentBag<string>();
 			// Parallel.ForEachAsync: DOP is chosen per detected storage type.
 			// Each file is independent — no shared mutable state except the
 			// thread-safe collections above.
@@ -196,6 +202,7 @@ public class GetMusicData
 								Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 								Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
 								Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
+								Lyrics = audioModel.Tag.Lyrics,
 								DateAdded = fileInfo.LastWriteTime,
 								Extension = fileInfo.Extension,
 								AudioCodecDescription = audioModel.Properties.Description,
@@ -247,7 +254,7 @@ public class GetMusicData
 					}
 					catch (Exception)
 					{
-						GlobalNotification.Error($"Failed to read metadata for:\n{filePath}");
+						failedFiles.Add(filePath);
 						double duration = 0;
 						try
 						{
@@ -278,8 +285,7 @@ public class GetMusicData
 							DateAdded = fileInfo.LastWriteTime,
 							Extension = fileInfo.Extension
 						};
-						if (song.Duration > ignoreTrackDuration &&
-							(!ignoreDuplicates || uniqueMetadata.TryAdd((song.Title, song.Artists, song.Album), 0)))
+						if (song.Duration > ignoreTrackDuration && (!ignoreDuplicates || uniqueMetadata.TryAdd((song.Title, song.Artists, song.Album), 0)))
 						{
 							songsContainer.Add(song);
 						}
@@ -305,7 +311,7 @@ public class GetMusicData
 				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
 				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-				return ("Error", "No tracks could be added");
+				return ("Error", "No tracks could be added", failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
@@ -319,14 +325,14 @@ public class GetMusicData
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
-			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount);
+			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
 		}
 		else
 		{
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
 			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-			return ("Warning", "No libraries found. Please add atleast one library.");
+			return ("Warning", "No libraries found. Please add atleast one library.", new List<string>());
 		}
 	}
 

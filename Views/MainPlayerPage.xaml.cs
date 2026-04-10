@@ -1,10 +1,17 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Dispatching;
+using Microsoft.UI.Text;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Tunetastic.Common;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
 
@@ -23,9 +30,31 @@ public sealed partial class MainPlayerPage : Page
 	private readonly DispatcherQueue _dispatcherQueue;
 	BitmapImage? BGbitmapImage = null;
 	private double pageHeight = 0;
+	private double pageWidth = 0;
 	private double coverArtAspectRatio = 1.0;
 	private double coverArtImagePixelWidth = 500;
 	private double coverArtImagePixelHeight = 500;
+	private bool _isTilted = false;
+	private double lyricsTargetWidth;
+	private double lyricsTargetHeight;
+	private bool lyricsVisible = false;
+	private string? lyricsText = null;
+	private static readonly Regex SyncedLinePattern = new(@"^\[\d{1,2}:\d{2}([.:]\d{1,3})?\]", RegexOptions.Multiline | RegexOptions.Compiled);
+
+	// Synced lyrics fields
+	private List<LrcLine> _lines = new();
+	private List<Button> _lyricButtons = new();
+	private int _activeIndex = -1;
+	private DispatcherTimer? _lrcTimer;
+	private long _lastKnownTicks = 0;
+	private bool _centeringPaddingSet = false;
+	private string? _externalLrcPath;
+
+	/// <summary>
+	/// True if the currently displayed lyrics came from an external .lrc file.
+	/// Useful for hiding/showing menu buttons.
+	/// </summary>
+	public bool HasExternalLrcFile => !string.IsNullOrEmpty(_externalLrcPath);
 
 	public MainPlayerPage()
 	{
@@ -34,6 +63,7 @@ public sealed partial class MainPlayerPage : Page
 
 		BlurEffect.Amount = 50 + (double.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MainPlayerBGBlurValue)]?.ToString() ?? "5") * 10);
 		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+		_musicPlayer.CurrentSongChanged -= OnCurrentSongChanged;
 		_musicPlayer.CurrentSongChanged += OnCurrentSongChanged;
 	}
 
@@ -64,17 +94,32 @@ public sealed partial class MainPlayerPage : Page
 	{
 		try
 		{
+			HideLyricsAndResetCoverArt();
+		}
+		catch (Exception)
+		{ }
+
+		CleanupSyncedLyrics();
+
+		try
+		{
 			if (await DatabaseHelper.Instance.GetSongsCount() != 0)
 			{
-				var song = _musicPlayer.CurrentSong;
-				if (song != null && song != string.Empty)
+				var songPath = _musicPlayer.CurrentSong;
+				if (!string.IsNullOrEmpty(songPath))
 				{
-					var track = await DatabaseHelper.Instance.GetSongByPath(song);
+					var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
 					if (File.Exists(track?.Path))
 					{
 						Title.Text = track?.Title;
+						ToolTipService.SetToolTip(Title, track?.Title);
+
 						Album.Text = track?.Album;
+						ToolTipService.SetToolTip(Album, track?.Album);
+
 						Artist.Text = track?.Artists;
+						ToolTipService.SetToolTip(Artist, track?.Artists);
+
 						Title.FontSize = Album.FontSize * 1.5;
 						Artist.FontSize = Album.FontSize * 1.1;
 
@@ -118,13 +163,39 @@ public sealed partial class MainPlayerPage : Page
 
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
+						ShowLyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Collapsed : Visibility.Visible;
+						LyricMenuOptions(embeddedLyrics: true);
+						lyricsText = track?.Lyrics;
+
+						// Auto-discover external .lrc file if DB lyrics is missing or unsynced
+						// Priority: DB synced > external .lrc synced > DB unsynced > nothing
+						if (!IsSyncedLyrics(lyricsText))
+						{
+							var externalContent = TryLoadExternalLrc(songPath);
+							if (externalContent != null)
+							{
+								_externalLrcPath = Path.ChangeExtension(songPath, ".lrc");
+								lyricsText = externalContent;
+								ShowLyricsButton.Visibility = Visibility.Visible;
+								LyricMenuOptions(embeddedLyrics: false);
+								GlobalNotification.Info("Discovered external .lrc file:\n" + _externalLrcPath);
+							}
+							else
+							{
+								_externalLrcPath = null;
+							}
+						}
+						else
+						{
+							_externalLrcPath = null; // DB has synced lyrics, ignore external file
+						}
 
 						return Task.CompletedTask;
 					}
 					else
 					{
 						if (notify)
-							GlobalNotification.Error("Could not find track/song:\n" + song);
+							GlobalNotification.Error("Could not find track/song:\n" + songPath);
 					}
 				}
 			}
@@ -151,6 +222,7 @@ public sealed partial class MainPlayerPage : Page
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		Title.Text = "Please select a song";
 		MusicInfoButton.Visibility = Visibility.Collapsed;
+		_externalLrcPath = null;
 		return Task.CompletedTask;
 	}
 
@@ -160,12 +232,32 @@ public sealed partial class MainPlayerPage : Page
 	/// </summary>
 	private void UpdateCoverArtSize()
 	{
-		double targetHeight = Math.Min(550, pageHeight == 0 ? 500 : pageHeight * 0.55);
+		double availableHeight = pageHeight == 0 ? 500 : pageHeight;
+		double targetHeight = availableHeight * 0.55;
 		double targetWidth = coverArtAspectRatio * targetHeight;
+
 		CoverArt.Width = targetWidth;
 		CoverArt.Height = targetHeight;
 		CoverArt.CornerRadius = new CornerRadius(targetHeight / 8);
 	}
+
+	private void UpdateLyricsGrid()
+	{
+		if (pageWidth == 0 || pageHeight == 0) return;
+		if (!lyricsVisible) return;
+
+		CalculateLyricsLayout(out double left, out double top, out double width, out double height);
+		lyricsTargetWidth = width;
+		lyricsTargetHeight = height;
+		LyricsDisplay.Width = lyricsTargetWidth;
+		LyricsDisplay.Height = lyricsTargetHeight;
+		Canvas.SetLeft(LyricsDisplay, left);
+		Canvas.SetTop(LyricsDisplay, top);
+
+		var visual = ElementCompositionPreview.GetElementVisual(LyricsDisplay);
+		visual.Clip = compositor.CreateInsetClip(0, 0, 0, 0);
+	}
+
 
 	/// <summary>
 	/// Executes tasks when navigation to the MainPlayerPage occurs.
@@ -207,10 +299,16 @@ public sealed partial class MainPlayerPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event. Typically, this is the page whose size has changed.</param>
 	/// <param name="e">The event data containing information about the new size of the page.</param>
-	private void Page_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
+		pageWidth = e.NewSize.Width;
 		pageHeight = e.NewSize.Height;
 		UpdateCoverArtSize();
+		UpdateLyricsGrid();
+
+		// Recalculate centering padding when window resizes and synced lyrics are active
+		if (_lyricButtons.Count > 0 && _centeringPaddingSet)
+			SetCenteringPadding();
 	}
 
 	/// <summary>
@@ -282,5 +380,551 @@ public sealed partial class MainPlayerPage : Page
 	private async void MusicInfoButton_Click(object sender, RoutedEventArgs e)
 	{
 		MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong));
+	}
+
+	private void TiltCoverArtAndShowLyrics()
+	{
+		if (_isTilted) return;
+		_isTilted = true;
+
+		CalculateLyricsLayout(out double left, out double top, out double width, out double height);
+		lyricsTargetWidth = width;
+		lyricsTargetHeight = height;
+		LyricsDisplay.Width = lyricsTargetWidth;
+		LyricsDisplay.Height = lyricsTargetHeight;
+		Canvas.SetLeft(LyricsDisplay, left);
+		Canvas.SetTop(LyricsDisplay, top);
+
+		lyricsVisible = true;
+		LyricsDisplay.Visibility = Visibility.Visible;
+		LyricsDisplay.Opacity = 1;
+
+		TiltInStoryboard.Begin();
+		AnimateLyricsReveal(true);
+
+		DisplayLyrics();
+
+		ShowLyricsButton.Visibility = Visibility.Collapsed;
+		CloseLyricsButton.Visibility = Visibility.Visible;
+		LyricsMenuButton.Visibility = Visibility.Visible;
+	}
+
+	private void HideLyricsAndResetCoverArt()
+	{
+		if (!_isTilted) return;
+		_isTilted = false;
+		lyricsVisible = false;
+
+		TiltOutStoryboard.Begin();
+		AnimateLyricsReveal(show: false);
+
+		CloseLyricsButton.Visibility = Visibility.Collapsed;
+		LyricsMenuButton.Visibility = Visibility.Collapsed;
+		ShowLyricsButton.Visibility = Visibility.Visible;
+	}
+
+	private Microsoft.UI.Composition.Compositor compositor => ElementCompositionPreview.GetElementVisual(this).Compositor;
+
+	private void AnimateLyricsReveal(bool show)
+	{
+		LyricsDisplay.Opacity = 1;
+		if (show) LyricsDisplay.Visibility = Visibility.Visible;
+
+		var visual = ElementCompositionPreview.GetElementVisual(LyricsDisplay);
+
+		var clip = compositor.CreateInsetClip(
+			leftInset: show ? (float)lyricsTargetWidth : 0f,
+			topInset: 0,
+			rightInset: 0,
+			bottomInset: 0);
+		visual.Clip = clip;
+
+		var ease = compositor.CreateCubicBezierEasingFunction(
+			new System.Numerics.Vector2(0.0f, 0.0f),
+			new System.Numerics.Vector2(0.3f, 1.0f));
+
+		var anim = compositor.CreateScalarKeyFrameAnimation();
+		anim.InsertKeyFrame(0f, show ? (float)lyricsTargetWidth : 0f);
+		anim.InsertKeyFrame(1f, show ? 0f : (float)lyricsTargetWidth, ease);
+		anim.Duration = TimeSpan.FromMilliseconds(650);
+
+		clip.StartAnimation("LeftInset", anim);
+
+		if (!show)
+		{
+			var batch = compositor.CreateScopedBatch(Microsoft.UI.Composition.CompositionBatchTypes.Animation);
+			batch.Completed += (s, _) =>
+			{
+				LyricsDisplay.Visibility = Visibility.Collapsed;
+				visual.Clip = null;
+				batch.Dispose();
+			};
+			clip.StartAnimation("LeftInset", anim);
+			batch.End();
+		}
+	}
+
+	private void CalculateLyricsLayout(out double left, out double top,
+									out double width, out double height)
+	{
+		double coverW = CoverArt.Width;
+		double coverH = CoverArt.Height;
+
+		double coverTop = (pageHeight - coverH) / 2.0 - 32.5;
+
+		double coverCenterX = pageWidth / 2.0;
+		double angle = 38 * Math.PI / 180.0;
+		double rotatedWidth = coverW * Math.Cos(angle) + coverH * Math.Sin(angle);
+		double scale = coverW / rotatedWidth;
+		double scaledHalfWidth = (coverW / 2.0) * scale;
+		double postTiltRightEdge = coverCenterX + scaledHalfWidth - 110;
+		double gapWidth = pageWidth - postTiltRightEdge;
+
+		width = gapWidth * 0.8;
+		height = coverH;
+		left = postTiltRightEdge + (gapWidth - width) / 2.0;
+		top = coverTop;
+	}
+
+	private void ShowLyricsButton_Click(object sender, RoutedEventArgs e) => TiltCoverArtAndShowLyrics();
+
+	private void CloseLyricsButton_Click(object sender, RoutedEventArgs e) => HideLyricsAndResetCoverArt();
+
+	public static bool IsSyncedLyrics(string lyrics)
+	{
+		if (string.IsNullOrWhiteSpace(lyrics))
+			return false;
+
+		int matchCount = 0;
+		foreach (Match match in SyncedLinePattern.Matches(lyrics))
+		{
+			if (++matchCount >= 2)
+				return true;
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Tries to load an external .lrc file from the same directory as the audio file.
+	/// Returns the content only if it contains valid synced lyrics.
+	/// </summary>
+	private static string? TryLoadExternalLrc(string songPath)
+	{
+		if (string.IsNullOrEmpty(songPath)) return null;
+
+		var lrcPath = Path.ChangeExtension(songPath, ".lrc");
+		if (File.Exists(lrcPath))
+		{
+			try
+			{
+				var content = File.ReadAllText(lrcPath);
+				if (IsSyncedLyrics(content))
+					return content;
+			}
+			catch
+			{
+				// File read error — silently ignore
+			}
+		}
+		return null;
+	}
+
+	public void DisplayLyrics()
+	{
+		CleanupSyncedLyrics();
+
+		if (!string.IsNullOrEmpty(lyricsText))
+		{
+			if (IsSyncedLyrics(lyricsText))
+				DisplaySyncedLyrics();
+			else
+				DisplayUnsyncedLyrics();
+		}
+	}
+
+	private void DisplayUnsyncedLyrics()
+	{
+		LyricsPanel.Children.Clear();
+		foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			var text = new TextBlock
+			{
+				Text = line,
+				Style = (Style)Resources["LyricTextStyle"]
+			};
+
+			var capsule = new Border
+			{
+				Style = (Style)Resources["LyricCapsuleStyle"],
+				Child = text
+			};
+
+			LyricsPanel.Children.Add(capsule);
+		}
+	}
+
+	private void DisplaySyncedLyrics()
+	{
+		_lines = LrcParser.Parse(lyricsText!);
+		_lyricButtons.Clear();
+		LyricsPanel.Children.Clear();
+
+		for (int i = 0; i < _lines.Count; i++)
+		{
+			int index = i;
+			var line = _lines[i];
+			bool isEmpty = string.IsNullOrEmpty(line.Text);
+
+			FrameworkElement content;
+			if (isEmpty)
+			{
+				// Placeholder: single-space text in a capsule to reserve vertical space
+				var spacerText = new TextBlock
+				{
+					Text = " ",
+					Style = (Style)Resources["SyncedLyricTextStyle"]
+				};
+				var spacerCapsule = new Border
+				{
+					Style = (Style)Resources["LyricCapsuleStyle"],
+					Child = spacerText,
+					Opacity = 0
+				};
+				content = spacerCapsule;
+			}
+			else
+			{
+				var textBlock = new TextBlock
+				{
+					Text = line.Text,
+					Style = (Style)Resources["SyncedLyricTextStyle"]
+				};
+
+				content = new Border
+				{
+					Style = (Style)Resources["LyricCapsuleStyle"],
+					Child = textBlock
+				};
+			}
+
+			var button = new Button
+			{
+				Style = (Style)Resources["LyricButtonStyle"],
+				Content = content,
+				Opacity = isEmpty ? 0 : 0.30,
+				Tag = index,
+				RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5),
+				IsHitTestVisible = !isEmpty
+			};
+
+			var scaleTransform = new ScaleTransform { ScaleX = 1.0, ScaleY = 1.0 };
+			button.RenderTransform = scaleTransform;
+
+			// Only wire events for non-empty lines
+			if (!isEmpty)
+			{
+				button.Click += LyricButton_Click;
+				button.PointerEntered += LyricButton_PointerEntered;
+				button.PointerExited += LyricButton_PointerExited;
+			}
+
+			_lyricButtons.Add(button);
+			LyricsPanel.Children.Add(button);
+		}
+
+		_lrcTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+		_lrcTimer.Tick += LrcTimer_Tick;
+		_lrcTimer.Start();
+
+		// Defer centering padding setup until layout settles
+		_centeringPaddingSet = false;
+		SetCenteringPadding();
+	}
+
+	/// <summary>
+	/// Sets top/bottom padding on LyricsPanel equal to half the ScrollView viewport height,
+	/// so every lyric line (including first and last) can be centered in the viewport.
+	/// </summary>
+	private async void SetCenteringPadding()
+	{
+		await Task.Delay(100); // let layout settle
+		double viewportHeight = LyricsScrollView.ViewportHeight;
+		double halfViewport = viewportHeight / 2;
+
+		// Preserve the existing horizontal padding (24) and add vertical centering padding
+		LyricsPanel.Padding = new Thickness(24, halfViewport, 24, halfViewport);
+		_centeringPaddingSet = true;
+	}
+
+	private void LrcTimer_Tick(object? sender, object e)
+	{
+		// Only sync when actually playing — prevents phantom seeking when cycling tracks
+		if (!_musicPlayer.IsPlaying) return;
+
+		long currentTicks = _musicPlayer.CurTimeTicks;
+		TimeSpan currentTime = TimeSpan.FromTicks(currentTicks);
+
+		// Find the active line: last line whose Time <= current position
+		int activeIdx = -1;
+		for (int i = _lines.Count - 1; i >= 0; i--)
+		{
+			if (_lines[i].Time <= currentTime)
+			{
+				activeIdx = i;
+				break;
+			}
+		}
+
+		_lastKnownTicks = currentTicks;
+
+		if (activeIdx != _activeIndex)
+		{
+			int oldIndex = _activeIndex;
+			_activeIndex = activeIdx;
+
+			// Deactivate old line
+			if (oldIndex >= 0 && oldIndex < _lyricButtons.Count)
+			{
+				AnimateLyricButton(_lyricButtons[oldIndex], targetOpacity: 0.30, targetScale: 1.0);
+			}
+
+			// Activate new line
+			if (_activeIndex >= 0 && _activeIndex < _lyricButtons.Count)
+			{
+				AnimateLyricButton(_lyricButtons[_activeIndex], targetOpacity: 1.0, targetScale: 1.05);
+			}
+
+			ScrollToActiveLine();
+		}
+	}
+
+	private void AnimateLyricButton(Button button, double targetOpacity, double targetScale)
+	{
+		var storyboard = new Storyboard();
+
+		// Opacity animation
+		var opacityAnim = new DoubleAnimation
+		{
+			To = targetOpacity,
+			Duration = TimeSpan.FromMilliseconds(300)
+		};
+		var opacityEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+		opacityAnim.EasingFunction = opacityEase;
+		Storyboard.SetTarget(opacityAnim, button);
+		Storyboard.SetTargetProperty(opacityAnim, "Opacity");
+		storyboard.Children.Add(opacityAnim);
+
+		// Scale X animation
+		var scaleXAnim = new DoubleAnimation
+		{
+			To = targetScale,
+			Duration = TimeSpan.FromMilliseconds(300)
+		};
+		var scaleXEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+		scaleXAnim.EasingFunction = scaleXEase;
+		Storyboard.SetTarget(scaleXAnim, button.RenderTransform);
+		Storyboard.SetTargetProperty(scaleXAnim, "ScaleX");
+		storyboard.Children.Add(scaleXAnim);
+
+		// Scale Y animation
+		var scaleYAnim = new DoubleAnimation
+		{
+			To = targetScale,
+			Duration = TimeSpan.FromMilliseconds(300)
+		};
+		var scaleYEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+		scaleYAnim.EasingFunction = scaleYEase;
+		Storyboard.SetTarget(scaleYAnim, button.RenderTransform);
+		Storyboard.SetTargetProperty(scaleYAnim, "ScaleY");
+		storyboard.Children.Add(scaleYAnim);
+
+		storyboard.Begin();
+	}
+
+	private async void ScrollToActiveLine()
+	{
+		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
+
+		// Wait for layout to settle
+		await Task.Delay(50);
+
+		// Guard: list may have been cleared by CleanupSyncedLyrics during the delay
+		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
+
+		// If the padding was never set (e.g. first activation before SetCenteringPadding finished), recalculate now
+		if (!_centeringPaddingSet)
+		{
+			double vh = LyricsScrollView.ViewportHeight;
+			LyricsPanel.Padding = new Thickness(24, vh / 2, 24, vh / 2);
+			_centeringPaddingSet = true;
+			await Task.Delay(50); // let the new padding take effect
+		}
+
+		// Guard again after the second delay
+		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
+
+		var activeButton = _lyricButtons[_activeIndex];
+		var scrollView = LyricsScrollView;
+
+		// Get the Y position of the active button relative to the ScrollView
+		var transform = activeButton.TransformToVisual(scrollView);
+		var position = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
+
+		// Calculate the offset that centers the button in the viewport
+		double viewportHeight = scrollView.ViewportHeight;
+		double buttonHeight = activeButton.ActualHeight;
+		double targetOffset = scrollView.VerticalOffset + position.Y - (viewportHeight / 2) + (buttonHeight / 2);
+
+		// Clamp to valid range
+		double maxOffset = scrollView.ScrollableHeight;
+		targetOffset = Math.Max(0, Math.Min(targetOffset, maxOffset));
+
+		// Always animate scrolling — even on large seeks, a smooth scroll feels better
+		var options = new ScrollingScrollOptions(
+			ScrollingAnimationMode.Enabled,
+			ScrollingSnapPointsMode.Ignore
+		);
+		scrollView.ScrollTo(0, targetOffset, options);
+	}
+
+	private void LyricButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (sender is Button button && button.Tag is int index && index >= 0 && index < _lines.Count)
+		{
+			var time = _lines[index].Time;
+
+			// Seek on the actual player
+			_musicPlayer.CurTimeTicks = time.Ticks;
+
+			var vm = App.GetService<MusicControlViewModel>();
+			vm.ProgressBarValue = time.TotalSeconds;
+			vm.ProgressBar?.SyncPosition(time.TotalSeconds);
+		}
+	}
+
+	private void LyricButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+	{
+		if (sender is Button button && button.Tag is int index && index != _activeIndex)
+		{
+			AnimateLyricButton(button, targetOpacity: 0.55, targetScale: 1.0);
+		}
+	}
+
+	private void LyricButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+	{
+		if (sender is Button button && button.Tag is int index && index != _activeIndex)
+		{
+			AnimateLyricButton(button, targetOpacity: 0.30, targetScale: 1.0);
+		}
+	}
+
+	private void CleanupSyncedLyrics()
+	{
+		_lrcTimer?.Stop();
+		_lrcTimer = null;
+
+		_lines.Clear();
+		_lyricButtons.Clear();
+		LyricsPanel.Children.Clear();
+		_activeIndex = -1;
+		_lastKnownTicks = 0;
+		_centeringPaddingSet = false;
+		LyricsPanel.Padding = new Thickness(24, 12, 24, 12); // reset to default
+	}
+
+	private void CopyAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		System.Windows.Clipboard.SetText(lyricsText);
+	}
+	private async void EditAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		var songPath = _musicPlayer.CurrentSong;
+		if (!string.IsNullOrEmpty(songPath))
+		{
+			var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
+
+			if (File.Exists(track?.Path))
+			{
+				LyricsTextBox.Text = track.Lyrics;
+
+				MainWindow._instance.WindowResizePermission(false);
+
+				var result = await LyricsEditBlock.ShowAsync();
+
+				MainWindow._instance.WindowResizePermission(true);
+
+				if (result == ContentDialogResult.Primary)
+				{
+					track.Lyrics = LyricsTextBox.Text;
+					await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { track });
+					using var audioModel = TagLib.File.Create(songPath);
+					audioModel.Tag.Lyrics = LyricsTextBox.Text;
+					try
+					{
+						audioModel.Save();
+					}
+					catch (IOException)
+					{
+						await DatabaseHelper.Instance.AddPendingTagWrite(songPath);
+						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+					}
+					await UpdateUI();
+				}
+			}
+		}
+	}
+	private void SearchAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		//TODO
+	}
+	private async void ClearAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		var songPath = _musicPlayer.CurrentSong;
+		if (!string.IsNullOrEmpty(songPath))
+		{
+			var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
+
+			if (File.Exists(track?.Path))
+			{
+				track.Lyrics = null;
+				await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { track });
+				using var audioModel = TagLib.File.Create(songPath);
+				audioModel.Tag.Lyrics = null;
+				try
+				{
+					audioModel.Save();
+				}
+				catch (IOException)
+				{
+					await DatabaseHelper.Instance.AddPendingTagWrite(songPath);
+					GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+				}
+				await UpdateUI();
+			}
+			else
+				GlobalNotification.Error($"File not found: {songPath}");
+		}
+	}
+
+	private void OpenAppBarButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (!string.IsNullOrEmpty(_externalLrcPath) && File.Exists(_externalLrcPath))
+			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_externalLrcPath) { UseShellExecute = true });
+		else
+			GlobalNotification.Error("Could not find external .lrc file.");
+	}
+
+	private void LyricMenuOptions(bool embeddedLyrics)
+	{
+		CopyLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator1.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		EditLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		//TODO
+		//Separator2.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		//SearchLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		ClearLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		OpenLyricsButton.Visibility = embeddedLyrics ? Visibility.Collapsed : Visibility.Visible;
 	}
 }

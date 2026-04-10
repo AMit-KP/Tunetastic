@@ -488,7 +488,9 @@ public sealed partial class ArtistsViewPage : Page
 		{
 			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Artist {artistModel?.Artist} from your system?";
 
+			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
 			if (result == ContentDialogResult.Primary)
 			{
 				foreach (string songPath in songPaths)
@@ -621,7 +623,9 @@ public sealed partial class ArtistsViewPage : Page
 		DeleteDialog.Visibility = Visibility.Visible;
 		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected artists from your system?";
 
+		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
 
 		if (result == ContentDialogResult.Primary)
 		{
