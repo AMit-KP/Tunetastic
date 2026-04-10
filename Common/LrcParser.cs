@@ -10,6 +10,8 @@ public static class LrcParser
     // Matches [mm:ss.xx] or [mm:ss.xxx] timestamps (2 or 3 decimal places, dot or colon separator)
     private static readonly Regex TimestampRegex = new(@"\[(\d{1,2}):(\d{2})[.:](\d{1,3})\]", RegexOptions.Compiled);
     private static readonly Regex MetadataLineRegex = new(@"^\[(ar|ti|al|by|offset|re|ve):", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    // Strips inline karaoke tags like <00:15.50> or <01:23.123>
+    private static readonly Regex KaraokeTagRegex = new(@"<\d{1,2}:\d{2}[.:]\d{1,3}>", RegexOptions.Compiled);
 
     /// <summary>
     /// Parses LRC-formatted lyrics text into a sorted list of <see cref="LrcLine"/>.
@@ -38,8 +40,14 @@ public static class LrcParser
 
             string text = TimestampRegex.Replace(line, "").Trim();
 
-            if (string.IsNullOrEmpty(text))
-                continue;
+            // TODO: Karaoke word-by-word highlighting
+            // The <mm:ss.xx> inline tags below are stripped for now, but the original
+            // tagged text could be parsed to create per-word LrcLine entries.
+            // For future karaoke: add a List<KaraokeWord> to LrcLine where
+            // KaraokeWord = { string Word, TimeSpan TimeOffset }.
+            // Then populate the button content with a WrapPanel of individual TextBlock
+            // runs, each with its own timer-driven opacity/scale animation.
+            text = KaraokeTagRegex.Replace(text, "").Trim();
 
             foreach (Match match in matches)
             {
