@@ -515,34 +515,60 @@ public sealed partial class MainPlayerPage : Page
 		{
 			int index = i;
 			var line = _lines[i];
+			bool isEmpty = string.IsNullOrEmpty(line.Text);
 
-			var textBlock = new TextBlock
+			FrameworkElement content;
+			if (isEmpty)
 			{
-				Text = line.Text,
-				Style = (Style)Resources["SyncedLyricTextStyle"]
-			};
+				// Placeholder: single-space text in a capsule to reserve vertical space
+				var spacerText = new TextBlock
+				{
+					Text = " ",
+					Style = (Style)Resources["SyncedLyricTextStyle"]
+				};
+				var spacerCapsule = new Border
+				{
+					Style = (Style)Resources["LyricCapsuleStyle"],
+					Child = spacerText,
+					Opacity = 0
+				};
+				content = spacerCapsule;
+			}
+			else
+			{
+				var textBlock = new TextBlock
+				{
+					Text = line.Text,
+					Style = (Style)Resources["SyncedLyricTextStyle"]
+				};
 
-			var capsule = new Border
-			{
-				Style = (Style)Resources["LyricCapsuleStyle"],
-				Child = textBlock
-			};
+				content = new Border
+				{
+					Style = (Style)Resources["LyricCapsuleStyle"],
+					Child = textBlock
+				};
+			}
 
 			var button = new Button
 			{
 				Style = (Style)Resources["LyricButtonStyle"],
-				Content = capsule,
-				Opacity = 0.30,
+				Content = content,
+				Opacity = isEmpty ? 0 : 0.30,
 				Tag = index,
-				RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5)
+				RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5),
+				IsHitTestVisible = !isEmpty
 			};
 
 			var scaleTransform = new ScaleTransform { ScaleX = 1.0, ScaleY = 1.0 };
 			button.RenderTransform = scaleTransform;
 
-			button.Click += LyricButton_Click;
-			button.PointerEntered += LyricButton_PointerEntered;
-			button.PointerExited += LyricButton_PointerExited;
+			// Only wire events for non-empty lines
+			if (!isEmpty)
+			{
+				button.Click += LyricButton_Click;
+				button.PointerEntered += LyricButton_PointerEntered;
+				button.PointerExited += LyricButton_PointerExited;
+			}
 
 			_lyricButtons.Add(button);
 			LyricsPanel.Children.Add(button);
