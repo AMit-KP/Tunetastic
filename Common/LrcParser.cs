@@ -10,8 +10,8 @@ public static class LrcParser
     // Matches [mm:ss.xx] or [mm:ss.xxx] timestamps (2 or 3 decimal places, dot or colon separator)
     private static readonly Regex TimestampRegex = new(@"\[(\d{1,2}):(\d{2})[.:](\d{1,3})\]", RegexOptions.Compiled);
     private static readonly Regex MetadataLineRegex = new(@"^\[(ar|ti|al|by|offset|re|ve):", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    // Strips inline karaoke tags like <00:15.50> or <01:23.123>
     private static readonly Regex KaraokeTagRegex = new(@"<\d{1,2}:\d{2}[.:]\d{1,3}>", RegexOptions.Compiled);
+    private static readonly Regex OffsetRegex = new(@"^\[offset:(-?\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     /// <summary>
     /// Parses LRC-formatted lyrics text into a sorted list of <see cref="LrcLine"/>.
@@ -25,6 +25,20 @@ public static class LrcParser
         if (string.IsNullOrWhiteSpace(lrcContent))
             return lines;
 
+        // First pass: extract offset from metadata
+        int offsetMs = 0;
+        foreach (var rawLine in lrcContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var line = rawLine.Trim();
+            var offsetMatch = OffsetRegex.Match(line);
+            if (offsetMatch.Success)
+            {
+                offsetMs = int.Parse(offsetMatch.Groups[1].Value);
+                break;
+            }
+        }
+
+        // Second pass: parse lyric lines
         foreach (var rawLine in lrcContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
         {
             var line = rawLine.Trim();
@@ -63,6 +77,17 @@ public static class LrcParser
         }
 
         lines.Sort((a, b) => a.Time.CompareTo(b.Time));
+
+        // Apply offset to all lines, clamping to 0 so no line goes negative
+        if (offsetMs != 0)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                var shifted = lines[i].Time.Add(TimeSpan.FromMilliseconds(offsetMs));
+                lines[i] = new LrcLine(shifted < TimeSpan.Zero ? TimeSpan.Zero : shifted, lines[i].Text);
+            }
+        }
+
         return lines;
     }
 }
