@@ -22,7 +22,7 @@ public sealed class SmoothProgressBar : UserControl
 	private bool _isDragging = false;
 	private bool _isPointerCaptured = false;
 
-	private const double ThumbSize = 14;
+	private const double ThumbSize = 15;
 	private const double TrackHeight = 4;
 
 	// ── Dependency Properties ─────────────────────────────────────
@@ -71,7 +71,7 @@ public sealed class SmoothProgressBar : UserControl
 	{
 		// MinHeight = ThumbSize so the entire thumb area is tappable,
 		// but the visual track stays at TrackHeight via its own Height.
-		MinHeight = ThumbSize;
+		MinHeight = ThumbSize+2;
 
 		// Transparent background on the root captures pointer events across
 		// the full MinHeight hit area, not just the 4px track.
@@ -80,7 +80,7 @@ public sealed class SmoothProgressBar : UserControl
 		_trackBg.Height = TrackHeight;
 		_trackBg.RadiusX = 2; _trackBg.RadiusY = 2;
 		_trackBg.VerticalAlignment = VerticalAlignment.Center;
-		_trackBg.Fill = (Brush)Application.Current.Resources["SystemFillColorNeutralBackgroundBrush"];
+		_trackBg.Fill = GetTrackBackground();
 
 		_trackFill.Height = TrackHeight;
 		_trackFill.RadiusX = 2; _trackFill.RadiusY = 2;
@@ -120,6 +120,20 @@ public sealed class SmoothProgressBar : UserControl
 			: (Brush)Application.Current.Resources["AccentAAFillColorDefaultBrush"];
 		_trackFill.Fill = brush;
 		_thumb.Fill = brush;
+		_trackBg.Fill = GetTrackBackground();
+	}
+
+	private static SolidColorBrush GetTrackBackground()
+	{
+		var uiSettings = new Windows.UI.ViewManagement.UISettings();
+		var color = uiSettings.GetColorValue(Windows.UI.ViewManagement.UIColorType.Background);
+		
+		// Calculate a visible track color based on theme
+		// In light theme: darker grey; in dark theme: lighter grey
+		byte alpha = 60; // Semi-transparent for subtlety
+		byte grey = color.R > 128 ? (byte)180 : (byte)80;
+		
+		return new SolidColorBrush(Windows.UI.Color.FromArgb(alpha, grey, grey, grey));
 	}
 
 	// ── ViewModel API ─────────────────────────────────────────────
