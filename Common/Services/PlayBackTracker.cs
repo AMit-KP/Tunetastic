@@ -1,4 +1,4 @@
-﻿namespace Tunetastic.Common;
+﻿namespace Tunetastic.Common.Services;
 
 /// <summary>
 /// Tracks playback activity of a media item, including play time, playback position, and playback count state.

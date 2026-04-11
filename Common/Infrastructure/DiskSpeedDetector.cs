@@ -1,18 +1,7 @@
 ﻿using System.Management;
 using System.Runtime.Versioning;
 
-namespace Tunetastic.Common;
-
-/// <summary>
-/// Detected storage media category, ordered from slowest to fastest.
-/// </summary>
-public enum DiskKind
-{
-	Unknown,
-	HDD,
-	SataSSD,
-	NvmeSSD,
-}
+namespace Tunetastic.Common.Infrastructure;
 
 /// <summary>
 /// Detects the storage type (HDD / SATA SSD / NVMe SSD) of the drive that hosts a

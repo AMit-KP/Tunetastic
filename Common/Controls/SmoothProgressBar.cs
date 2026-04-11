@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Controls;
 
 public sealed class SmoothProgressBar : UserControl
 {

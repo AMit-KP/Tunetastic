@@ -1,7 +1,7 @@
 ﻿using FlyleafLib.MediaPlayer;
 using System.Collections.Concurrent;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Operations;
 
 /// <summary>
 /// Provides services for managing and updating metadata related to music libraries in the application.
