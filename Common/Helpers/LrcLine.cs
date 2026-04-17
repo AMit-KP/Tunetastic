@@ -1,4 +1,4 @@
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Helpers;
 
 /// <summary>
 /// Represents a single line of parsed LRC lyrics.

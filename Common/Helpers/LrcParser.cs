@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Helpers;
 
 /// <summary>
 /// Parses LRC-format synced lyrics into a sorted list of <see cref="LrcLine"/> objects.

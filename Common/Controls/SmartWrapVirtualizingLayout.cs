@@ -1,6 +1,6 @@
 ﻿using Windows.Foundation;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Controls;
 
 public class SmartWrapVirtualizingLayout : VirtualizingLayout
 {

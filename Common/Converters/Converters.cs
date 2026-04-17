@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using Microsoft.UI.Xaml.Data;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Converters;
 
 /// <summary>
 /// Converts a duration in seconds to a human-readable formatted string representation.

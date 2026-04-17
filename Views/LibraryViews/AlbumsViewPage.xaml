@@ -4,6 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
       xmlns:common="using:Tunetastic.Common"
+      xmlns:customControls="using:Tunetastic.Common.Controls"
       xmlns:controls="using:CommunityToolkit.WinUI.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
@@ -227,7 +228,7 @@
 				               VerticalAlignment="Top"
 				               Visibility="Collapsed">
 					<ItemsRepeater.Layout>
-						<common:SmartWrapVirtualizingLayout MinGap="30"
+						<customControls:SmartWrapVirtualizingLayout MinGap="30"
 						                                    RowGap="40"
 						                                    TileHeight="230"
 						                                    TileWidth="190" />

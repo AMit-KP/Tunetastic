@@ -899,6 +899,7 @@ public sealed partial class RecentlyAdded : Page
 				if (container != null)
 				{
 					var song = container.Content as Song;
+					if (song == null) continue;
 					var relativeLiveTime = relativeTimeConverter.Convert(song.DateAdded, null, null, null).ToString();
 					var textBlock = (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "RelativeTime") as TextBlock);
 					textBlock?.Text = relativeLiveTime;
