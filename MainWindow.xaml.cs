@@ -108,13 +108,7 @@ public sealed partial class MainWindow : WindowEx
 	private async void MainWindowClose(object sender, WindowEventArgs args)
 	{
 		args.Handled = true;
-		this.Closed -= MainWindowClose;
-		this.Closed -= MinimizeToTray;
-		RemoveTrayIcon();
-		await Task.Delay(100);
-
-		await MusicPlayer.Instance.SaveOnExitActionsAsync();
-		this.Close();
+		ExitApp();
 	}
 
 	/// <summary>
@@ -158,7 +152,10 @@ public sealed partial class MainWindow : WindowEx
 		this.Closed -= MainWindowClose;
 		this.Closed -= MinimizeToTray;
 		RemoveTrayIcon();
+		await Task.Delay(100);
+
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
+		App.Current.AudioService.Dispose();
 		this.Close();
 	}
 
