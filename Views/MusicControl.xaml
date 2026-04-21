@@ -43,7 +43,8 @@
 						<ColumnDefinition Width="40" />
 					</Grid.ColumnDefinitions>
 
-					<TextBlock Grid.Column="0"
+					<TextBlock x:Name="CurrentDurationConverter"
+					           Grid.Column="0"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
 					           FontSize="15"
@@ -87,8 +88,8 @@
 					</Button>
 
 					<Button x:Name="PlayPauseButton"
-					        Width="60"
-					        Height="60"
+					        Width="90"
+					        Height="65"
 					        Margin="10,0"
 					        Command="{x:Bind ViewModel.TogglePlayPauseCommand}"
 					        CornerRadius="30"
@@ -139,8 +140,7 @@
 						<FontIcon Glyph="{x:Bind ViewModel.RepeatButtonFontIcon, Mode=OneWay}" />
 					</Button>
 
-					<TextBlock x:Name="CurrentDurationConverter"
-					           Grid.Column="3"
+					<TextBlock Grid.Column="3"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
 					           FontSize="15"
