@@ -705,4 +705,17 @@ public sealed partial class MainPage : Page
 				"App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
 				buttons: MessageBoxButtons.OK);
 	}
+
+	private void VolumeMuteButton_Click(object sender, RoutedEventArgs e)
+	{
+
+	}
+
+	private void VolumeSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+	{
+		if(sender is null) return;
+
+		var slider = sender as Slider;
+		var volume = slider?.Value;
+	}
 }

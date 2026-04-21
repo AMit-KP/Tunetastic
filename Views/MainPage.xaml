@@ -57,7 +57,7 @@
 					</Grid>
 				</TitleBar.LeftHeader>
 				<AutoSuggestBox x:Name="SearchBox"
-				                MinWidth="320"
+				                Width="320"
 				                VerticalAlignment="Center"
 				                PlaceholderText="Quick Search"
 				                QueryIcon="Find"
@@ -94,14 +94,35 @@
 					</AutoSuggestBox.ItemTemplate>
 				</AutoSuggestBox>
 				<TitleBar.RightHeader>
-					<Button x:Name="ThemeButton"
-					        Height="32"
-					        Margin="0,0,4,0"
-					        Click="ThemeButton_Click"
-					        Content="{dev:FontIcon GlyphCode=E793,
-					                               FontSize=16}"
-					        Style="{ThemeResource SubtleButtonStyle}"
-					        ToolTipService.ToolTip="Toggle Theme" />
+					<Grid Margin="0,0,-50,0"
+					      ColumnSpacing="5">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="100" />
+						</Grid.ColumnDefinitions>
+						<Button x:Name="ThemeButton"
+						        Grid.Column="0"
+						        Height="32"
+						        Margin="0,0,4,0"
+						        Click="ThemeButton_Click"
+						        Content="{dev:FontIcon GlyphCode=E793,
+						                               FontSize=16}"
+						        Style="{ThemeResource SubtleButtonStyle}"
+						        ToolTipService.ToolTip="Toggle Theme" />
+						<Button x:Name="volumeMuteButton"
+						        Grid.Column="1"
+						        Click="VolumeMuteButton_Click"
+						        Content="{dev:FontIcon GlyphName=Volume,
+						                               FontSize=16}"
+						        Style="{ThemeResource SubtleButtonStyle}"
+						        ToolTipService.ToolTip="Mute" />
+						<Slider x:Name="VolumeSlider"
+						        Grid.Column="2"
+						        Maximum="100"
+						        ValueChanged="VolumeSlider_ValueChanged"
+						        Value="0" />
+					</Grid>
 				</TitleBar.RightHeader>
 			</TitleBar>
 
