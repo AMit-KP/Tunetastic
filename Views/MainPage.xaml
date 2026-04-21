@@ -27,6 +27,7 @@
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="Auto" />
 							<ColumnDefinition Width="Auto" />
+							<ColumnDefinition Width="Auto" />
 						</Grid.ColumnDefinitions>
 						<ImageIcon x:Name="AppIcon"
 						           Grid.Column="0"
@@ -47,6 +48,12 @@
 							           Style="{ThemeResource SubtitleTextBlockStyle}"
 							           Text="Tunetastic" />
 						</dev:TextBlockStrokeView>
+						<TextBlock Grid.Column="2"
+						           Margin="4,8,0,0"
+						           VerticalAlignment="Center"
+						           Foreground="{ThemeResource TextFillColorDisabled}"
+						           Style="{ThemeResource CaptionTextBlockStyle}"
+						           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
 					</Grid>
 				</TitleBar.LeftHeader>
 				<AutoSuggestBox x:Name="SearchBox"
