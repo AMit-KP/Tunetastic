@@ -420,6 +420,11 @@
 						<ToggleSwitch x:Name="CheckForUpdatesStartupToggle"
 						              Toggled="CheckForUpdatesStartupToggle_Toggled" />
 					</dev:SettingsCard>
+					<dev:SettingsCard Description="When turned on, the current app version will be shown on the title bar."
+					                  Header="Show version info on TitleBar">
+						<ToggleSwitch x:Name="VersionInfoToggle"
+						              Toggled="VersionInfoToggle_Toggled" />
+					</dev:SettingsCard>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"

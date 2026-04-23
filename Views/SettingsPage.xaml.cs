@@ -70,7 +70,7 @@ public sealed partial class SettingsPage : Page
 
 		UpdateExtentionListOnUI();
 
-		CheckForUpdatesStartupToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true");
+		LoadAboutSectionSettings();
 
 		Theme.SelectionChanged += Theme_SelectionChanged;
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
@@ -1120,8 +1120,20 @@ public sealed partial class SettingsPage : Page
 		}
 	}
 
+	private void LoadAboutSectionSettings()
+	{
+		CheckForUpdatesStartupToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true");
+		VersionInfoToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true");
+	}
+
 	private void CheckForUpdatesStartupToggle_Toggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)] = CheckForUpdatesStartupToggle.IsOn;
 	}
+
+	private void VersionInfoToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)] = VersionInfoToggle.IsOn;
+		MainPage._instance?.SetVersionInfoVisibility(VersionInfoToggle.IsOn);
+    }
 }

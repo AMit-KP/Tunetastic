@@ -48,7 +48,8 @@
 							           Style="{ThemeResource SubtitleTextBlockStyle}"
 							           Text="Tunetastic" />
 						</dev:TextBlockStrokeView>
-						<TextBlock Grid.Column="2"
+						<TextBlock x:Name="VersionInfo"
+						           Grid.Column="2"
 						           Margin="4,8,0,0"
 						           VerticalAlignment="Center"
 						           Foreground="{ThemeResource TextFillColorDisabled}"

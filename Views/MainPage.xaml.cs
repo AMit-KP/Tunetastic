@@ -93,7 +93,10 @@ public sealed partial class MainPage : Page
 
 		InitializeVolumeSliderAndService();
 
-		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
+
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
 	}
 
@@ -707,6 +710,11 @@ public sealed partial class MainPage : Page
 			await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow,
 				"App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
 				buttons: MessageBoxButtons.OK);
+	}
+
+	public void SetVersionInfoVisibility(bool visible)
+	{
+		VersionInfo.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
 	}
 
 	private void InitializeVolumeSliderAndService()
