@@ -719,17 +719,46 @@ public sealed partial class MainPage : Page
 
 	private void InitializeVolumeSliderAndService()
 	{
-		App.Current.AudioService.VolumeChanged += OnVolumeChanged;
-		VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true"))
+			SwitchToSystemVolumeSliderControl();
+		else
+			SwitchToAppVolumeSliderControl();
 
-		var volume = App.Current.AudioService.GetVolume();
-		var isMuted = App.Current.AudioService.IsMuted();
+		VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
+		AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd)).Changed += (s, e) => UpdateDragRects();
+		VolumeSlider.Loaded += (s, e) => UpdateDragRects();
+	}
+
+	public void SwitchToSystemVolumeSliderControl()
+	{
+		var audioService = App.Current.AudioService;
+
+		audioService.SystemVolumeChanged -= OnVolumeChanged;
+		audioService.AppVolumeChanged -= OnVolumeChanged;
+
+		audioService.SystemVolumeChanged += OnVolumeChanged;
+
+		var volume = audioService.GetVolume();
+		var isMuted = audioService.IsMuted();
 
 		VolumeSlider.Value = volume;
 		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+	}
 
-		AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd)).Changed += (s, e) => UpdateDragRects();
-		VolumeSlider.Loaded += (s, e) => UpdateDragRects();
+	public void SwitchToAppVolumeSliderControl()
+	{
+		var audioService = App.Current.AudioService;
+
+		audioService.SystemVolumeChanged -= OnVolumeChanged;
+		audioService.AppVolumeChanged -= OnVolumeChanged;
+
+		audioService.AppVolumeChanged += OnVolumeChanged;
+
+		var volume = audioService.GetAppVolume();
+		var isMuted = audioService.IsAppMuted();
+
+		VolumeSlider.Value = volume;
+		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
 	}
 
 	private void UpdateDragRects()
@@ -761,7 +790,11 @@ public sealed partial class MainPage : Page
 	private void VolumeMuteButton_Click(object sender, RoutedEventArgs e)
 	{
 		var audioService = App.Current.AudioService;
-		audioService.SetMute(!audioService.IsMuted());
+
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true"))
+			audioService.SetMute(!audioService.IsMuted());
+		else
+			audioService.SetAppMute(!audioService.IsAppMuted());
 	}
 
 	private void VolumeSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
@@ -771,7 +804,10 @@ public sealed partial class MainPage : Page
 		var slider = sender as Slider;
 		if (slider == null) return;
 
-		App.Current.AudioService.SetVolume(slider.Value);
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true"))
+			App.Current.AudioService.SetVolume(slider.Value);
+		else
+			App.Current.AudioService.SetAppVolume(slider.Value);
 	}
 
 	private void OnVolumeChanged(double volume, bool isMuted)

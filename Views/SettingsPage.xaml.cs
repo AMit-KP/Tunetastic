@@ -507,7 +507,10 @@ public sealed partial class SettingsPage : Page
 	private void UseSystemVolume_OnToggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)] = UseSystemVolume.IsOn;
-		//TODO: Add logic to handle the use system volume setting
+		if (UseSystemVolume.IsOn)
+			MainPage._instance?.SwitchToSystemVolumeSliderControl();
+		else
+			MainPage._instance?.SwitchToAppVolumeSliderControl();
 	}
 
 	/// <summary>
@@ -757,8 +760,8 @@ public sealed partial class SettingsPage : Page
 
 		RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
 
+		UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true");
 		#region Uncomment this is implemented
-		//UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
 
 		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
 		#endregion

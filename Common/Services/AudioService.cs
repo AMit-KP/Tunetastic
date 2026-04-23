@@ -9,8 +9,9 @@ public class AudioService : IDisposable, IAudioSessionEventsHandler, IMMNotifica
 	private readonly MMDeviceEnumerator _enumerator;
 	private AudioSessionControl? _appSession;
 	private MMDevice _currentDevice;
+	private volatile bool _suppressAppVolumeEvent = false;
 
-	public event Action<double, bool>? VolumeChanged;
+	public event Action<double, bool>? SystemVolumeChanged;
 	public event Action<double, bool>? AppVolumeChanged;
 
 	private MMDevice GetFreshDevice() => _enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
@@ -115,14 +116,18 @@ public class AudioService : IDisposable, IAudioSessionEventsHandler, IMMNotifica
 
 	private void OnVolumeNotification(AudioVolumeNotificationData data)
 	{
-		VolumeChanged?.Invoke((double)data.MasterVolume * 100, data.Muted);
+		SystemVolumeChanged?.Invoke((double)data.MasterVolume * 100, data.Muted);
 	}
 
-	void IAudioSessionEventsHandler.OnVolumeChanged(float volume, bool isMuted) => AppVolumeChanged?.Invoke((double)volume * 100, isMuted);
+	void IAudioSessionEventsHandler.OnVolumeChanged(float volume, bool isMuted)
+	{
+		if (_suppressAppVolumeEvent) return;
+		AppVolumeChanged?.Invoke((double)volume * 100, isMuted);
+	}
 
 	public double GetVolume() => _currentDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100;
 
-	public float GetAppVolume() => FindAppSession(Environment.ProcessId)?.session.SimpleAudioVolume.Volume * 100 ?? 0;
+	public double GetAppVolume() => (_appSession?.SimpleAudioVolume.Volume ?? 0) * 100;
 
 	public void SetVolume(double volume)
 	{
@@ -132,22 +137,22 @@ public class AudioService : IDisposable, IAudioSessionEventsHandler, IMMNotifica
 
 	public void SetAppVolume(double volume)
 	{
-		var session = FindAppSession(Environment.ProcessId)?.session;
-		if (session != null)
-			session.SimpleAudioVolume.Volume = Math.Clamp((float)volume / 100f, 0f, 1f);
+		if (_appSession == null) return;
+		_suppressAppVolumeEvent = true;
+		_appSession.SimpleAudioVolume.Volume = Math.Clamp((float)volume / 100f, 0f, 1f);
+		_suppressAppVolumeEvent = false;
 	}
 
 	public void SetMute(bool mute) => _currentDevice.AudioEndpointVolume.Mute = mute;
 
 	public void SetAppMute(bool mute)
 	{
-		var session = FindAppSession(Environment.ProcessId)?.session;
-		if (session != null)
-			session.SimpleAudioVolume.Mute = mute;
+		if (_appSession == null) return;
+		_appSession.SimpleAudioVolume.Mute = mute;
 	}
 	public bool IsMuted() => _currentDevice.AudioEndpointVolume.Mute;
 
-	public bool IsAppMuted() => FindAppSession(Environment.ProcessId)?.session.SimpleAudioVolume.Mute ?? false;
+	public bool IsAppMuted() => _appSession?.SimpleAudioVolume.Mute ?? false;
 
 	public void Dispose()
 	{
@@ -162,8 +167,21 @@ public class AudioService : IDisposable, IAudioSessionEventsHandler, IMMNotifica
 	void IAudioSessionEventsHandler.OnIconPathChanged(string iconPath) { }
 	void IAudioSessionEventsHandler.OnChannelVolumeChanged(uint channelCount, IntPtr newVolumes, uint channelIndex) { }
 	void IAudioSessionEventsHandler.OnGroupingParamChanged(ref Guid groupingId) { }
-	void IAudioSessionEventsHandler.OnStateChanged(AudioSessionState state) { }
-	void IAudioSessionEventsHandler.OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason) { }
+	void IAudioSessionEventsHandler.OnStateChanged(AudioSessionState state)
+	{
+		if (state == AudioSessionState.AudioSessionStateExpired)
+		{
+			_appSession?.UnRegisterEventClient(this);
+			_appSession = null;
+			_ = WaitAndSubscribeToAppVolumeAsync();
+		}
+	}
+	void IAudioSessionEventsHandler.OnSessionDisconnected(AudioSessionDisconnectReason disconnectReason)
+	{
+		_appSession?.UnRegisterEventClient(this);
+		_appSession = null;
+		_ = WaitAndSubscribeToAppVolumeAsync();
+	}
 
 	void IMMNotificationClient.OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
 	{
@@ -178,7 +196,18 @@ public class AudioService : IDisposable, IAudioSessionEventsHandler, IMMNotifica
 	// Rest are required but unused
 	void IMMNotificationClient.OnDeviceAdded(string deviceId) { }
 	void IMMNotificationClient.OnDeviceRemoved(string deviceId) { }
-	void IMMNotificationClient.OnDeviceStateChanged(string deviceId, DeviceState newState) { }
+	void IMMNotificationClient.OnDeviceStateChanged(string deviceId, DeviceState newState)
+	{
+		if (deviceId != _currentDevice.ID) return;
+		if (newState != DeviceState.Active)
+		{
+			UnsubscribeFromDevice(_currentDevice);
+			_currentDevice.Dispose();
+			_currentDevice = GetFreshDevice();
+			SubscribeToDevice(_currentDevice);
+			_ = WaitAndSubscribeToAppVolumeAsync();
+		}
+	}
 	void IMMNotificationClient.OnPropertyValueChanged(string deviceId, PropertyKey key) { }
 
 }
