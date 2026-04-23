@@ -346,11 +346,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 			DurationOfSong = track.Duration;
 			ProgressBarValue = position;
-			// Restore saved position on the custom progress bar without triggering a seek
-
-			//ProgressBar?.NotifyTrackChanged(DurationOfSong);
-			//ProgressBar?.SetInitialPosition(position);
-			// AFTER — in LoadLastPlayedTrack
 			_startupPosition = position;
 		}
 	}
