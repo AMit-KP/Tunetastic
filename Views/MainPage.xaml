@@ -112,15 +112,16 @@
 						        ToolTipService.ToolTip="Toggle Theme" />
 						<Button x:Name="volumeMuteButton"
 						        Grid.Column="1"
+								Style="{ThemeResource SubtleButtonStyle}"
 						        Click="VolumeMuteButton_Click"
-						        Content="{dev:FontIcon GlyphName=Volume,
-						                               FontSize=16}"
-						        Style="{ThemeResource SubtleButtonStyle}"
-						        ToolTipService.ToolTip="Mute" />
+						        ToolTipService.ToolTip="Mute">
+							<FontIcon x:Name="VolumeButtonGlyph"
+							          Glyph="&#xE767;" />
+						</Button>
 						<Slider x:Name="VolumeSlider"
 						        Grid.Column="2"
+						        Height="32"
 						        Maximum="100"
-						        ValueChanged="VolumeSlider_ValueChanged"
 						        Value="0" />
 					</Grid>
 				</TitleBar.RightHeader>

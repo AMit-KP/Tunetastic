@@ -7,7 +7,7 @@ public class AudioService : IDisposable
 	private MMDevice _device;
 	private readonly MMDeviceEnumerator _enumerator;
 
-	public event Action<float, bool>? VolumeChanged;
+	public event Action<double, bool>? VolumeChanged;
 
 	public AudioService()
 	{
@@ -45,18 +45,19 @@ public class AudioService : IDisposable
 
 	private void OnVolumeNotification(AudioVolumeNotificationData data)
 	{
-		VolumeChanged?.Invoke(data.MasterVolume, data.Muted);
+		VolumeChanged?.Invoke((double)data.MasterVolume * 100, data.Muted);
 	}
 
-	public float GetVolume() => _device.AudioEndpointVolume.MasterVolumeLevelScalar;
+	public double GetVolume() => _device.AudioEndpointVolume.MasterVolumeLevelScalar * 100;
 
-	public void SetVolume(float volume)
+	public void SetVolume(double volume)
 	{
-		volume = Math.Clamp(volume, 0f, 1f);
-		_device.AudioEndpointVolume.MasterVolumeLevelScalar = volume;
+		var Actualvolume = Math.Clamp((float)volume / 100f, 0f, 1f);
+		_device.AudioEndpointVolume.MasterVolumeLevelScalar = Actualvolume;
 	}
 
 	public void SetMute(bool mute) => _device.AudioEndpointVolume.Mute = mute;
+	public bool IsMuted() => _device.AudioEndpointVolume.Mute;
 
 	public void Dispose()
 	{

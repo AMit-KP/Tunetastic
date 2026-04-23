@@ -1,8 +1,6 @@
 ﻿using System.Text.RegularExpressions;
-using Flyleaf.FFmpeg;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
@@ -10,7 +8,6 @@ using Tunetastic.Views.PlaylistViews;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using WinRT.Interop;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
@@ -22,6 +19,7 @@ namespace Tunetastic.Views;
 public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
+	private bool _isUpdatingSlider = false;
 
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
@@ -90,6 +88,8 @@ public sealed partial class MainPage : Page
 				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
 
+		InitializeVolumeSliderAndService();
+
 		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
 	}
@@ -109,7 +109,7 @@ public sealed partial class MainPage : Page
 	{
 		get
 		{
-			return FocusManager.GetFocusedElement(XamlRoot) is TextBox;
+			return Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) is TextBox;
 		}
 	}
 
@@ -706,16 +706,43 @@ public sealed partial class MainPage : Page
 				buttons: MessageBoxButtons.OK);
 	}
 
+	private void InitializeVolumeSliderAndService()
+	{
+		App.Current.AudioService.VolumeChanged += OnVolumeChanged;
+		VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
+
+		var volume = App.Current.AudioService.GetVolume();
+		var isMuted = App.Current.AudioService.IsMuted();
+
+		VolumeSlider.Value = volume;
+		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+	}
+
 	private void VolumeMuteButton_Click(object sender, RoutedEventArgs e)
 	{
-
+		var audioService = App.Current.AudioService;
+		audioService.SetMute(!audioService.IsMuted());
 	}
 
 	private void VolumeSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
 	{
-		if(sender is null) return;
+		if (_isUpdatingSlider) return;
 
 		var slider = sender as Slider;
-		var volume = slider?.Value;
+		if (slider == null) return;
+
+		App.Current.AudioService.SetVolume(slider.Value);
+	}
+
+	private void OnVolumeChanged(double volume, bool isMuted)
+	{
+		DispatcherQueue.TryEnqueue(() =>
+		{
+			_isUpdatingSlider = true;
+			VolumeSlider.Value = volume;
+			_isUpdatingSlider = false;
+
+			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+		});
 	}
 }
