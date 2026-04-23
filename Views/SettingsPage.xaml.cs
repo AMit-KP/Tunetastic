@@ -103,7 +103,6 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of EventArgs containing the event data.</param>
 	private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
 	{
-		var Hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
 		var picker = new FolderPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
 		picker.CommitButtonText = "Add Folder";
 		picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;

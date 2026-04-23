@@ -1,10 +1,13 @@
 ﻿using System.Text.RegularExpressions;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.Foundation;
+using Windows.Graphics;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
@@ -716,6 +719,35 @@ public sealed partial class MainPage : Page
 
 		VolumeSlider.Value = volume;
 		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+
+		AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd)).Changed += (s, e) => UpdateDragRects();
+		VolumeSlider.Loaded += (s, e) => UpdateDragRects();
+	}
+
+	private void UpdateDragRects()
+	{
+		if (VolumeSlider.XamlRoot == null) return;
+
+		var nonClientSource = InputNonClientPointerSource.GetForWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd));
+		nonClientSource.SetRegionRects(NonClientRegionKind.Passthrough, new RectInt32[]
+		{
+			GetRectForElement(VolumeSlider),
+		});
+	}
+
+	private RectInt32 GetRectForElement(FrameworkElement element)
+	{
+		var transform = element.TransformToVisual(null);
+		var bounds = transform.TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
+
+		var scale = XamlRoot.RasterizationScale;
+
+		return new RectInt32(
+			(int)(bounds.X * scale),
+			(int)(bounds.Y * scale),
+			(int)(bounds.Width * scale),
+			(int)(bounds.Height * scale)
+		);
 	}
 
 	private void VolumeMuteButton_Click(object sender, RoutedEventArgs e)

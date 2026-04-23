@@ -112,8 +112,8 @@
 						        ToolTipService.ToolTip="Toggle Theme" />
 						<Button x:Name="volumeMuteButton"
 						        Grid.Column="1"
-								Style="{ThemeResource SubtleButtonStyle}"
 						        Click="VolumeMuteButton_Click"
+						        Style="{ThemeResource SubtleButtonStyle}"
 						        ToolTipService.ToolTip="Mute">
 							<FontIcon x:Name="VolumeButtonGlyph"
 							          Glyph="&#xE767;" />
