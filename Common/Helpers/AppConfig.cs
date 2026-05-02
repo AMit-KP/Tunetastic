@@ -2,6 +2,7 @@
 using Nucs.JsonSettings.Modulation;
 
 namespace Tunetastic.Common.Helpers;
+
 [GenerateAutoSaveOnChange]
 public partial class AppConfig : NotifiyingJsonSettings, IVersionable
 {

@@ -1,5 +1,5 @@
-﻿using FlyleafLib.MediaPlayer;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using FlyleafLib.MediaPlayer;
 
 namespace Tunetastic.Common.Operations;
 

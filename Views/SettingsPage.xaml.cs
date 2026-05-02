@@ -1138,5 +1138,5 @@ public sealed partial class SettingsPage : Page
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)] = VersionInfoToggle.IsOn;
 		MainPage._instance?.SetVersionInfoVisibility(VersionInfoToggle.IsOn);
-    }
+	}
 }

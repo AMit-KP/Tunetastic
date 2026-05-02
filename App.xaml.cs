@@ -1,5 +1,4 @@
 ﻿using System.IO.Pipes;
-using NAudio.CoreAudioApi;
 using WinUIEx;
 
 namespace Tunetastic;

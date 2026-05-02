@@ -1,9 +1,6 @@
-﻿using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
+﻿using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
-using WinRT.Interop;
 using WinUIEx;
 
 namespace Tunetastic.Views;

@@ -1,6 +1,5 @@
 ﻿using FlyleafLib;
 using FlyleafLib.MediaPlayer;
-using Tunetastic.Common.Services.Backends;
 using Windows.Media;
 using Windows.Media.Playback;
 
@@ -704,7 +703,7 @@ public class MusicPlayer
 	public async Task SaveOnExitActionsAsync()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = TimeSpan.FromTicks(CurTimeTicks).TotalSeconds.ToString();
+		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MusicControl._instance.ViewModel.ProgressBarValue;
 
 		await ProcessPendingTagWritesAsync();
 	}
@@ -742,7 +741,7 @@ public class MusicPlayer
 				continue;
 			}
 
-			bool success=false;
+			bool success = false;
 			for (int attempt = 0; attempt < 3; attempt++)
 			{
 				try
