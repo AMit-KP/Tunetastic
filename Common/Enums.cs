@@ -1,4 +1,4 @@
-namespace Tunetastic.Common;
+﻿namespace Tunetastic.Common;
 
 // ─────────────────────────────────────────────────────────────
 //  Playback enums
@@ -190,5 +190,6 @@ public enum LocalSave
 	ArtistDetailViewSortOrder,
 	ArtistDetailViewStyle,
 	SelectedArtist,
-	CheckForUpdatesAtStatup
+	CheckForUpdatesAtStatup,
+	ShowVersionInfoOnTitleBar
 }

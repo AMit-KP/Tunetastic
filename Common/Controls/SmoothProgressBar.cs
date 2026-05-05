@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
@@ -71,7 +69,7 @@ public sealed class SmoothProgressBar : UserControl
 	{
 		// MinHeight = ThumbSize so the entire thumb area is tappable,
 		// but the visual track stays at TrackHeight via its own Height.
-		MinHeight = ThumbSize+2;
+		MinHeight = ThumbSize + 2;
 
 		// Transparent background on the root captures pointer events across
 		// the full MinHeight hit area, not just the 4px track.
@@ -127,12 +125,12 @@ public sealed class SmoothProgressBar : UserControl
 	{
 		var uiSettings = new Windows.UI.ViewManagement.UISettings();
 		var color = uiSettings.GetColorValue(Windows.UI.ViewManagement.UIColorType.Background);
-		
+
 		// Calculate a visible track color based on theme
 		// In light theme: darker grey; in dark theme: lighter grey
 		byte alpha = 60; // Semi-transparent for subtlety
 		byte grey = color.R > 128 ? (byte)180 : (byte)80;
-		
+
 		return new SolidColorBrush(Windows.UI.Color.FromArgb(alpha, grey, grey, grey));
 	}
 

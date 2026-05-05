@@ -219,9 +219,8 @@
 				<ToggleSwitch x:Name="RestartTrackOnSelection"
 				              Toggled="RestartTrackOnSelection_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will use the system volume control to control the volume of the track that is currently playing."
-			                  Header="Use System Volume Control"
-			                  Visibility="Collapsed">
+			<dev:SettingsCard Description="When turned on, the app will use the system volume control. When turned off, the app will use the Tunetastic app volume control."
+			                  Header="Use System Volume Control">
 				<ToggleSwitch x:Name="UseSystemVolume"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
@@ -419,6 +418,11 @@
 					                  Header="Check for updates at startup">
 						<ToggleSwitch x:Name="CheckForUpdatesStartupToggle"
 						              Toggled="CheckForUpdatesStartupToggle_Toggled" />
+					</dev:SettingsCard>
+					<dev:SettingsCard Description="When turned on, the current app version will be shown on the title bar."
+					                  Header="Show version info on TitleBar">
+						<ToggleSwitch x:Name="VersionInfoToggle"
+						              Toggled="VersionInfoToggle_Toggled" />
 					</dev:SettingsCard>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">

@@ -1,17 +1,13 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Text;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Tunetastic.Common;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
 

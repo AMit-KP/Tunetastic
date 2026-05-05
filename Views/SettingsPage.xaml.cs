@@ -70,7 +70,7 @@ public sealed partial class SettingsPage : Page
 
 		UpdateExtentionListOnUI();
 
-		CheckForUpdatesStartupToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true");
+		LoadAboutSectionSettings();
 
 		Theme.SelectionChanged += Theme_SelectionChanged;
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
@@ -103,7 +103,6 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of EventArgs containing the event data.</param>
 	private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
 	{
-		var Hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow);
 		var picker = new FolderPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
 		picker.CommitButtonText = "Add Folder";
 		picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
@@ -508,7 +507,10 @@ public sealed partial class SettingsPage : Page
 	private void UseSystemVolume_OnToggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)] = UseSystemVolume.IsOn;
-		//TODO: Add logic to handle the use system volume setting
+		if (UseSystemVolume.IsOn)
+			MainPage._instance?.SwitchToSystemVolumeSliderControl();
+		else
+			MainPage._instance?.SwitchToAppVolumeSliderControl();
 	}
 
 	/// <summary>
@@ -758,8 +760,8 @@ public sealed partial class SettingsPage : Page
 
 		RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
 
+		UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true");
 		#region Uncomment this is implemented
-		//UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "false");
 
 		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
 		#endregion
@@ -1121,8 +1123,20 @@ public sealed partial class SettingsPage : Page
 		}
 	}
 
+	private void LoadAboutSectionSettings()
+	{
+		CheckForUpdatesStartupToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true");
+		VersionInfoToggle.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true");
+	}
+
 	private void CheckForUpdatesStartupToggle_Toggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)] = CheckForUpdatesStartupToggle.IsOn;
+	}
+
+	private void VersionInfoToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)] = VersionInfoToggle.IsOn;
+		MainPage._instance?.SetVersionInfoVisibility(VersionInfoToggle.IsOn);
 	}
 }

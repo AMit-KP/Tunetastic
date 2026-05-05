@@ -326,6 +326,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	// ─────────────────────────────────────────────────────────
 	private async Task LoadLastPlayedTrack()
 	{
+		await Task.Delay(200);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
 		{
@@ -341,17 +342,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 				return;
 			}
 
-			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
-
 			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 			DurationOfSong = track.Duration;
 			ProgressBarValue = position;
-			// Restore saved position on the custom progress bar without triggering a seek
-
-			//ProgressBar?.NotifyTrackChanged(DurationOfSong);
-			//ProgressBar?.SetInitialPosition(position);
-			// AFTER — in LoadLastPlayedTrack
 			_startupPosition = position;
+
+			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
 		}
 	}
 
@@ -567,10 +563,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 			if (track != null)
 			{
 				DurationOfSong = double.Parse(track.Duration.ToString());
-				ProgressBar?.NotifyTrackChanged(DurationOfSong);    
+				ProgressBar?.NotifyTrackChanged(DurationOfSong);
 				if (_musicPlayer.IsPlaying)
-					ProgressBar?.NotifyPlaying();                   
-				ProgressBar?.SetInitialPosition(_startupPosition); 
+					ProgressBar?.NotifyPlaying();
+				ProgressBar?.SetInitialPosition(_startupPosition);
 
 				if (_startupPosition > 0)
 					_startupPosition = 0;

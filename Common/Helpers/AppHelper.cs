@@ -4,6 +4,7 @@ using Nucs.JsonSettings.Modulation;
 using Nucs.JsonSettings.Modulation.Recovery;
 
 namespace Tunetastic.Common.Helpers;
+
 public static partial class AppHelper
 {
 	public static AppConfig Settings = JsonSettings.Configure<AppConfig>()
