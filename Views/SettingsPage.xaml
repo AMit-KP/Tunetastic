@@ -235,6 +235,11 @@
 				<ToggleSwitch x:Name="AutoStart"
 				              Toggled="AutoStart_OnToggled" />
 			</dev:SettingsCard>
+			<dev:SettingsCard Description="When turned on, the app will show the forward and rewind buttons."
+			                  Header="Forward and Rewind Button Visibility">
+				<ToggleSwitch x:Name="ForwardRewindButtonVisibility"
+				              Toggled="ForwardRewindButtonVisibility_Toggled" />
+			</dev:SettingsCard>
 
 			<!--  Appearance & behavior  -->
 

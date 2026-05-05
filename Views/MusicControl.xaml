@@ -73,7 +73,8 @@
 					              ClickMode="Press"
 					              Command="{x:Bind ViewModel.RewindSongCommand}"
 					              CornerRadius="23"
-					              ToolTipService.ToolTip="1 sec Rewind">
+					              ToolTipService.ToolTip="1 sec Rewind"
+					              Visibility="{x:Bind ViewModel.Forward_Rewind_Visibility, Mode=OneWay}">
 						<FontIcon Glyph="&#xEB9E;" />
 					</RepeatButton>
 
@@ -115,7 +116,8 @@
 					              Margin="5,0"
 					              Command="{x:Bind ViewModel.ForwardSongCommand}"
 					              CornerRadius="23"
-					              ToolTipService.ToolTip="1 sec Forward">
+					              ToolTipService.ToolTip="1 sec Forward"
+					              Visibility="{x:Bind ViewModel.Forward_Rewind_Visibility, Mode=OneWay}">
 						<FontIcon Glyph="&#xEB9D;" />
 					</RepeatButton>
 				</StackPanel>

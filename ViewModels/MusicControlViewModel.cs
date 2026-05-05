@@ -147,6 +147,13 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _cover, value);
 	}
 
+	private Visibility _forward_rewind_visibility = Visibility.Visible;
+	public Visibility Forward_Rewind_Visibility
+	{
+		get => _forward_rewind_visibility;
+		set => SetProperty(ref _forward_rewind_visibility, value);
+	}
+
 	public Storyboard? _vinylEffect { get; set; }
 
 	public MusicControlViewModel()

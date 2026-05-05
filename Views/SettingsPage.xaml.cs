@@ -767,6 +767,8 @@ public sealed partial class SettingsPage : Page
 		#endregion
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
+
+		ForwardRewindButtonVisibility.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)]?.ToString() ?? "true");
 	}
 
 	/// <summary>
@@ -1138,5 +1140,11 @@ public sealed partial class SettingsPage : Page
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)] = VersionInfoToggle.IsOn;
 		MainPage._instance?.SetVersionInfoVisibility(VersionInfoToggle.IsOn);
+	}
+
+	private void ForwardRewindButtonVisibility_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)] = ForwardRewindButtonVisibility.IsOn;
+		App.GetService<MusicControlViewModel>().Forward_Rewind_Visibility = ForwardRewindButtonVisibility.IsOn ? Visibility.Visible : Visibility.Collapsed;
 	}
 }
