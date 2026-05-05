@@ -36,8 +36,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.37.45.2467</AssemblyVersion>
-    <FileVersion>1.37.45.2467</FileVersion>
+    <AssemblyVersion>1.38.6.2473</AssemblyVersion>
+    <FileVersion>1.38.6.2473</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -199,6 +199,7 @@
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.0.1" />
     <PackageReference Include="FlyleafLib" Version="3.10.3" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
+    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1839" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
