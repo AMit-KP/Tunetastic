@@ -1,4 +1,4 @@
-<div align="center">
+﻿<div align="center">
 
 <img src="Assets/AppIcon.png" alt="Tunetastic Logo" width="150" height="150" />
 
@@ -64,6 +64,19 @@ takes priority for synced playback. If no lyrics are found.
 
 ---
 
+### 🔊 Volume Control
+
+Tunetastic gives you precise, flexible control over volume without ever leaving the app.
+
+A dedicated volume slider sits right in the player UI, and can operate in two distinct modes — switchable at any time:
+
+- **System Volume** — The slider controls your device's master output volume, in sync with the Windows volume flyout and taskbar speaker icon. Dragging it in Tunetastic is identical to dragging it from the system tray.
+- **App Volume** — The slider controls only Tunetastic's volume as an independent channel, leaving all other audio on your system untouched. This maps directly to Tunetastic's entry in the Windows Volume Mixer, so changes made in either place are always reflected in the other in real time.
+
+**Pause on Mute** — When enabled, Tunetastic will automatically pause playback the moment the volume reaches zero (whether muted via the in-app slider, the system mute key, or any other source).
+
+---
+
 ### 📚 Library
 
 Tunetastic automatically organizes your music collection into clean, browsable views:
@@ -117,6 +130,13 @@ Full SMTC support means you can control playback from anywhere:
 > <img width="439" height="713" alt="Screenshot 2026-03-31 123416" src="https://github.com/user-attachments/assets/8071a19b-31d4-41af-9053-4537d569f5c8" />
 
 
+**🖱️ Thumbnail Toolbar**
+Tunetastic adds playback buttons directly to its taskbar thumbnail preview — the small popup that appears when you hover over the app on the taskbar. Without switching to the app, you can:
+- Play or pause the current track
+- Skip to the previous or next track
+
+It's the fastest way to manage playback when Tunetastic is sitting in the background.
+
 **📊 Taskbar Progress**
 Track playback progress is shown live on the Tunetastic taskbar icon, so you always know where you are in a track at a glance — without switching windows.
 
@@ -141,6 +161,8 @@ Track playback progress is shown live on the Tunetastic taskbar icon, so you alw
 ### 🎚️ Playback
 
 - Crossfade between tracks with adjustable duration
+- **Volume Mode** — Choose between System Volume and App Volume for the in-app slider
+- **Pause on Mute** — Automatically pause playback when volume drops to zero, and resume when sound is restored
 - Additional playback behavior settings
 
 ### 🎨 Appearance & Behavior
