@@ -191,5 +191,6 @@ public enum LocalSave
 	ArtistDetailViewStyle,
 	SelectedArtist,
 	CheckForUpdatesAtStatup,
-	ShowVersionInfoOnTitleBar
+	ShowVersionInfoOnTitleBar,
+	ForwardRewindButtonVisibility
 }

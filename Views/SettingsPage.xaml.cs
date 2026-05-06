@@ -523,7 +523,6 @@ public sealed partial class SettingsPage : Page
 	private void PauseOnMute_OnToggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)] = PauseOnMute.IsOn;
-		//TODO: Add logic to handle the pause on mute setting
 	}
 
 	/// <summary>
@@ -761,12 +760,12 @@ public sealed partial class SettingsPage : Page
 		RestartTrackOnSelection.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "true");
 
 		UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true");
-		#region Uncomment this is implemented
 
-		//PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
-		#endregion
+		PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
+
+		ForwardRewindButtonVisibility.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)]?.ToString() ?? "true");
 	}
 
 	/// <summary>
@@ -1138,5 +1137,11 @@ public sealed partial class SettingsPage : Page
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)] = VersionInfoToggle.IsOn;
 		MainPage._instance?.SetVersionInfoVisibility(VersionInfoToggle.IsOn);
+	}
+
+	private void ForwardRewindButtonVisibility_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)] = ForwardRewindButtonVisibility.IsOn;
+		App.GetService<MusicControlViewModel>().Forward_Rewind_Visibility = ForwardRewindButtonVisibility.IsOn ? Visibility.Visible : Visibility.Collapsed;
 	}
 }

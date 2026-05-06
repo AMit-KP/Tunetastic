@@ -819,6 +819,9 @@ public sealed partial class MainPage : Page
 			_isUpdatingSlider = false;
 
 			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+
+			if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true") && (isMuted || volume == 0))
+				MusicPlayer.Instance.Pause();
 		});
 	}
 }
