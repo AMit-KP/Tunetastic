@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Xml.Linq;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Operations;
 
 /// <summary>
 /// Provides functionality for importing and exporting playlists in various formats.

@@ -1,4 +1,4 @@
-﻿namespace Tunetastic.Common;
+﻿namespace Tunetastic.Common.Infrastructure;
 
 /// <summary>
 /// Provides utility methods for displaying global notifications to the user.

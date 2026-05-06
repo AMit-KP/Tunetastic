@@ -2,6 +2,7 @@
 using Windows.System;
 
 namespace Tunetastic.ViewModels;
+
 public partial class SettingViewModel : ObservableObject
 {
 	[ObservableProperty]

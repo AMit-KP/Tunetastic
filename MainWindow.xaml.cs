@@ -1,9 +1,6 @@
-﻿using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
+﻿using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
-using WinRT.Interop;
 using WinUIEx;
 
 namespace Tunetastic.Views;
@@ -108,13 +105,7 @@ public sealed partial class MainWindow : WindowEx
 	private async void MainWindowClose(object sender, WindowEventArgs args)
 	{
 		args.Handled = true;
-		this.Closed -= MainWindowClose;
-		this.Closed -= MinimizeToTray;
-		RemoveTrayIcon();
-		await Task.Delay(100);
-
-		await MusicPlayer.Instance.SaveOnExitActionsAsync();
-		this.Close();
+		ExitApp();
 	}
 
 	/// <summary>
@@ -158,7 +149,10 @@ public sealed partial class MainWindow : WindowEx
 		this.Closed -= MainWindowClose;
 		this.Closed -= MinimizeToTray;
 		RemoveTrayIcon();
+		await Task.Delay(100);
+
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
+		App.Current.AudioService.Dispose();
 		this.Close();
 	}
 
@@ -209,13 +203,12 @@ public sealed partial class MainWindow : WindowEx
 	/// </remarks>
 	private void SetWindowMinimumSizeAndToCenter(Window window)
 	{
-		IntPtr hWnd = WindowNative.GetWindowHandle(window);
-		WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+		WindowId windowId = Win32Interop.GetWindowIdFromWindow(App.Hwnd);
 
 		if (AppWindow.GetFromWindowId(windowId) is AppWindow appWindow &&
 			DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Nearest) is DisplayArea displayArea)
 		{
-			int dpi = GetDpiForWindow(hWnd);
+			int dpi = GetDpiForWindow(App.Hwnd);
 			double zoomFactor = dpi / 96.0;
 
 			double screenWidth = displayArea.WorkArea.Width;

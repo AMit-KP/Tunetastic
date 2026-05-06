@@ -13,8 +13,9 @@ public partial class App : Application
 	public IThemeService ThemeService => GetService<IThemeService>();
 	public IRainbowFrame RainbowFrame => GetService<IRainbowFrame>();
 
-	public static SystemTrayIcon? TrayIcon { get; set; } //= new SystemTrayIcon(7823, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
+	public static SystemTrayIcon? TrayIcon { get; set; }
 
+	public AudioService AudioService { get; private set; }
 
 	public static T GetService<T>() where T : class
 	{
@@ -57,6 +58,8 @@ public partial class App : Application
 	/// <param name="args">Contains event data related to the application's launch event.</param>
 	protected override async void OnLaunched(LaunchActivatedEventArgs args)
 	{
+		AudioService = new AudioService();
+
 		MainWindow = new MainWindow();
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
 		MainWindow.AppWindow.SetIcon("Assets/AppIcon.png");
@@ -97,6 +100,7 @@ public partial class App : Application
 		rootFrame.Navigate(typeof(MainPage));
 
 		RainbowFrame.Initialize(App.MainWindow);
+
 		InitializeApp();
 
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false") && !bool.Parse(localSettings.Values[nameof(LocalSave.RainbowOnlyDuringPlayback)]?.ToString() ?? "false"))
@@ -104,7 +108,7 @@ public partial class App : Application
 			RainbowFrame.StartRainbowFrame();
 			RainbowFrame.UpdateEffectSpeed(51 - int.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameSpeed)]?.ToString() ?? "31"));
 		}
-		
+
 		StartInstanceListener();
 	}
 

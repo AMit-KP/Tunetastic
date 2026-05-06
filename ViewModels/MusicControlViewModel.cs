@@ -1,6 +1,8 @@
-﻿using Microsoft.UI.Dispatching;
+﻿using System.Drawing;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using Windows.Media;
 
 
@@ -22,6 +24,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private PlaybackTracker _playbackTracker = new();
 	private DispatcherTimer? _midpointTimer;
 	private double _startupPosition = 0;
+	private ThumbnailToolBarButton Play_Pause_Button;
 
 	// ── Custom smooth progress bar ────────────────────────────────
 	// Set this from MusicControl code-behind after InitializeComponent():
@@ -144,6 +147,13 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _cover, value);
 	}
 
+	private Visibility _forward_rewind_visibility = Visibility.Visible;
+	public Visibility Forward_Rewind_Visibility
+	{
+		get => _forward_rewind_visibility;
+		set => SetProperty(ref _forward_rewind_visibility, value);
+	}
+
 	public Storyboard? _vinylEffect { get; set; }
 
 	public MusicControlViewModel()
@@ -184,6 +194,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
 		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
+
+		SetupTaskbarThumbnailToolBar();
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -223,6 +235,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 					MainPage._instance.AnimateTitle(startAnimation: false);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
+					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"play_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
 
 					await Task.Delay(500);
 
@@ -244,6 +257,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 					MainPage._instance.AnimateTitle(startAnimation: true);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
+					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"pause_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
 
 					if (!_isRainbowActive)
 					{
@@ -326,6 +340,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	// ─────────────────────────────────────────────────────────
 	private async Task LoadLastPlayedTrack()
 	{
+		await Task.Delay(200);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
 		{
@@ -341,17 +356,12 @@ public partial class MusicControlViewModel : ObservableRecipient
 				return;
 			}
 
-			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
-
 			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
 			DurationOfSong = track.Duration;
 			ProgressBarValue = position;
-			// Restore saved position on the custom progress bar without triggering a seek
-
-			//ProgressBar?.NotifyTrackChanged(DurationOfSong);
-			//ProgressBar?.SetInitialPosition(position);
-			// AFTER — in LoadLastPlayedTrack
 			_startupPosition = position;
+
+			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
 		}
 	}
 
@@ -567,10 +577,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 			if (track != null)
 			{
 				DurationOfSong = double.Parse(track.Duration.ToString());
-				ProgressBar?.NotifyTrackChanged(DurationOfSong);    
+				ProgressBar?.NotifyTrackChanged(DurationOfSong);
 				if (_musicPlayer.IsPlaying)
-					ProgressBar?.NotifyPlaying();                   
-				ProgressBar?.SetInitialPosition(_startupPosition); 
+					ProgressBar?.NotifyPlaying();
+				ProgressBar?.SetInitialPosition(_startupPosition);
 
 				if (_startupPosition > 0)
 					_startupPosition = 0;
@@ -660,5 +670,31 @@ public partial class MusicControlViewModel : ObservableRecipient
 		await Task.Delay(50);
 		DurationOfSong = 0;
 		MusicControl._instance?.FloatingPlayer(null, MainPage._instance?.IsMainPlayerPageOpened ?? false);
+	}
+
+	private void SetupTaskbarThumbnailToolBar()
+	{
+		var prevButton = new ThumbnailToolBarButton(
+		new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"prev_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Previous");
+
+		Play_Pause_Button = new ThumbnailToolBarButton(
+		new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"{(_musicPlayer.IsPlaying ? "pause" : "play")}_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Play");
+
+		var nextButton = new ThumbnailToolBarButton(
+			new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"next_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Next");
+
+
+		prevButton.Click += (s, e) => PreviousSong();
+		Play_Pause_Button.Click += (s, e) => TogglePlayPause();
+		nextButton.Click += (s, e) => NextSong();
+
+		TaskbarManager.Instance.ThumbnailToolBars.AddButtons(App.Hwnd, prevButton, Play_Pause_Button, nextButton);
+
+		App.Current.ThemeService.ThemeChanged += (s, e) =>
+		{
+			prevButton.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"prev_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
+			Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"{(_musicPlayer.IsPlaying ? "pause" : "play")}_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
+			nextButton.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"next_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
+		};
 	}
 }

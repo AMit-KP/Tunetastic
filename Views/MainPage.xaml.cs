@@ -1,16 +1,16 @@
 ﻿using System.Text.RegularExpressions;
-using Flyleaf.FFmpeg;
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.Foundation;
+using Windows.Graphics;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
-using WinRT.Interop;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
@@ -22,6 +22,7 @@ namespace Tunetastic.Views;
 public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
+	private bool _isUpdatingSlider = false;
 
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
@@ -90,7 +91,12 @@ public sealed partial class MainPage : Page
 				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
 
-		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
+		InitializeVolumeSliderAndService();
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
+
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
 	}
 
@@ -109,7 +115,7 @@ public sealed partial class MainPage : Page
 	{
 		get
 		{
-			return FocusManager.GetFocusedElement(XamlRoot) is TextBox;
+			return Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) is TextBox;
 		}
 	}
 
@@ -704,5 +710,118 @@ public sealed partial class MainPage : Page
 			await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow,
 				"App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
 				buttons: MessageBoxButtons.OK);
+	}
+
+	public void SetVersionInfoVisibility(bool visible)
+	{
+		VersionInfo.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+	}
+
+	private void InitializeVolumeSliderAndService()
+	{
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true"))
+			SwitchToSystemVolumeSliderControl();
+		else
+			SwitchToAppVolumeSliderControl();
+
+		VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
+		AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd)).Changed += (s, e) => UpdateDragRects();
+		VolumeSlider.Loaded += (s, e) => UpdateDragRects();
+	}
+
+	public void SwitchToSystemVolumeSliderControl()
+	{
+		var audioService = App.Current.AudioService;
+
+		audioService.SystemVolumeChanged -= OnVolumeChanged;
+		audioService.AppVolumeChanged -= OnVolumeChanged;
+
+		audioService.SystemVolumeChanged += OnVolumeChanged;
+
+		var volume = audioService.GetVolume();
+		var isMuted = audioService.IsMuted();
+
+		VolumeSlider.Value = volume;
+		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+	}
+
+	public void SwitchToAppVolumeSliderControl()
+	{
+		var audioService = App.Current.AudioService;
+
+		audioService.SystemVolumeChanged -= OnVolumeChanged;
+		audioService.AppVolumeChanged -= OnVolumeChanged;
+
+		audioService.AppVolumeChanged += OnVolumeChanged;
+
+		var volume = audioService.GetAppVolume();
+		var isMuted = audioService.IsAppMuted();
+
+		VolumeSlider.Value = volume;
+		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+	}
+
+	private void UpdateDragRects()
+	{
+		if (VolumeSlider.XamlRoot == null) return;
+
+		var nonClientSource = InputNonClientPointerSource.GetForWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd));
+		nonClientSource.SetRegionRects(NonClientRegionKind.Passthrough, new RectInt32[]
+		{
+			GetRectForElement(VolumeSlider),
+		});
+	}
+
+	private RectInt32 GetRectForElement(FrameworkElement element)
+	{
+		var transform = element.TransformToVisual(null);
+		var bounds = transform.TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
+
+		var scale = XamlRoot.RasterizationScale;
+
+		return new RectInt32(
+			(int)(bounds.X * scale),
+			(int)(bounds.Y * scale),
+			(int)(bounds.Width * scale),
+			(int)(bounds.Height * scale)
+		);
+	}
+
+	private void VolumeMuteButton_Click(object sender, RoutedEventArgs e)
+	{
+		var audioService = App.Current.AudioService;
+
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true"))
+			audioService.SetMute(!audioService.IsMuted());
+		else
+			audioService.SetAppMute(!audioService.IsAppMuted());
+	}
+
+	private void VolumeSlider_ValueChanged(object sender, Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
+	{
+		if (_isUpdatingSlider) return;
+
+		var slider = sender as Slider;
+		if (slider == null) return;
+
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true"))
+			App.Current.AudioService.SetVolume(slider.Value);
+		else
+			App.Current.AudioService.SetAppVolume(slider.Value);
+	}
+
+	private void OnVolumeChanged(double volume, bool isMuted)
+	{
+		DispatcherQueue.TryEnqueue(() =>
+		{
+			_isUpdatingSlider = true;
+			VolumeSlider.Value = volume;
+			_isUpdatingSlider = false;
+
+			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+
+			if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true") && (isMuted || volume == 0))
+				MusicPlayer.Instance.Pause();
+		});
 	}
 }

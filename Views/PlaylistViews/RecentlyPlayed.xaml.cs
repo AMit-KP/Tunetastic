@@ -3,7 +3,6 @@ using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Animation;
 
 
 namespace Tunetastic.Views.PlaylistViews;
@@ -964,6 +963,7 @@ public sealed partial class RecentlyPlayed : Page
 				if (container != null)
 				{
 					var song = container.Content as Song;
+					if (song == null) continue;
 					var relativeLiveTime = relativeTimeConverter.Convert(song.DateLastPlayed, null, null, null).ToString();
 					var textBlock = (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "RelativeTime") as TextBlock);
 					textBlock?.Text = relativeLiveTime;

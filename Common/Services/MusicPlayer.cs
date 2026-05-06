@@ -3,13 +3,7 @@ using FlyleafLib.MediaPlayer;
 using Windows.Media;
 using Windows.Media.Playback;
 
-namespace Tunetastic.Common;
-
-// ─────────────────────────────────────────────────────────────
-//  Unified playback state (replaces FlyleafLib.MediaPlayer.Status)
-// ─────────────────────────────────────────────────────────────
-public enum PlaybackState { Playing, Paused, Stopped, Ended }
-
+namespace Tunetastic.Common.Services;
 
 public class PlaybackStateChangedArgs : EventArgs
 {
@@ -23,237 +17,6 @@ public class PlaybackStateChangedArgs : EventArgs
 	/// <param name="state">The new playback state.</param>
 	public PlaybackStateChangedArgs(PlaybackState state) => State = state;
 }
-
-// ─────────────────────────────────────────────────────────────
-//  Internal backend abstraction
-// ─────────────────────────────────────────────────────────────
-internal interface IMediaBackend : IDisposable
-{
-	bool IsPlaying { get; }
-	long CurTimeTicks { get; set; }
-	int Volume { get; set; }
-	bool IsMuted { get; set; }
-
-	Task OpenAsync(string path);
-	void Play();
-	void Pause();
-	void Stop();
-
-	event EventHandler<PlaybackStateChangedArgs>? StateChanged;
-	event EventHandler? OpenCompleted;
-	event EventHandler<long>? PositionChanged;
-}
-
-// ─────────────────────────────────────────────────────────────
-//  Windows MediaPlayer backend
-// ─────────────────────────────────────────────────────────────
-internal sealed class WindowsMediaBackend : IMediaBackend
-{
-	private readonly Windows.Media.Playback.MediaPlayer _player;
-	private System.Threading.Timer? _positionTimer;
-	private bool _disposed;
-	private volatile bool _isLoading = false;
-	public double PendingStartPosition = 0.0;
-
-	public event EventHandler<PlaybackStateChangedArgs>? StateChanged;
-	public event EventHandler? OpenCompleted;
-	public event EventHandler<long>? PositionChanged;
-
-	public WindowsMediaBackend(Windows.Media.Playback.MediaPlayer player)
-	{
-		_player = player;
-		_player.MediaOpened += OnMediaOpened;
-		_player.MediaEnded += OnMediaEnded;
-		_player.PlaybackSession.PlaybackStateChanged += OnPlaybackStateChanged;
-
-		_positionTimer = new System.Threading.Timer(_ =>
-		{
-			if (_player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
-				PositionChanged?.Invoke(this, _player.PlaybackSession.Position.Ticks);
-		}, null, Timeout.Infinite, Timeout.Infinite);
-	}
-
-	public bool IsPlaying =>
-		_player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
-
-	public long CurTimeTicks
-	{
-		get => _player.PlaybackSession.Position.Ticks;
-		set => _player.PlaybackSession.Position = TimeSpan.FromTicks(value);
-	}
-
-	public int Volume
-	{
-		get => (int)(_player.Volume * 100);
-		set => _player.Volume = Math.Clamp(value, 0, 100) / 100.0;
-	}
-
-	public bool IsMuted
-	{
-		get => _player.IsMuted;
-		set => _player.IsMuted = value;
-	}
-
-	public Task OpenAsync(string path)
-	{
-		_isLoading = true;
-		_player.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(path));
-		return Task.CompletedTask;
-	}
-
-	public void Play()
-	{
-		_player.Play();
-		_positionTimer?.Change(0, 1000);
-	}
-
-	public void Pause()
-	{
-		_player.Pause();
-		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-	}
-
-	public void Stop()
-	{
-		_player.Source = null;
-		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-	}
-
-	private void OnMediaOpened(Windows.Media.Playback.MediaPlayer sender, object args)
-	{
-		_isLoading = false;
-		if (PendingStartPosition > 0)
-		{
-			_player.PlaybackSession.Position = TimeSpan.FromSeconds(PendingStartPosition);
-			PendingStartPosition = 0.0;
-		}
-		OpenCompleted?.Invoke(this, EventArgs.Empty);
-	}
-
-	private void OnMediaEnded(Windows.Media.Playback.MediaPlayer sender, object args)
-	{
-		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-		StateChanged?.Invoke(this, new PlaybackStateChangedArgs(PlaybackState.Ended));
-	}
-
-	private void OnPlaybackStateChanged(MediaPlaybackSession sender, object args)
-	{
-		if (_isLoading) return;
-
-		var state = sender.PlaybackState switch
-		{
-			MediaPlaybackState.Playing => PlaybackState.Playing,
-			MediaPlaybackState.Paused => PlaybackState.Paused,
-			_ => PlaybackState.Stopped
-		};
-		StateChanged?.Invoke(this, new PlaybackStateChangedArgs(state));
-	}
-
-	public void Dispose()
-	{
-		if (_disposed) return;
-		_disposed = true;
-		_positionTimer?.Dispose();
-		_player.MediaOpened -= OnMediaOpened;
-		_player.MediaEnded -= OnMediaEnded;
-		_player.PlaybackSession.PlaybackStateChanged -= OnPlaybackStateChanged;
-	}
-}
-
-// ─────────────────────────────────────────────────────────────
-//  Flyleaf backend
-// ─────────────────────────────────────────────────────────────
-internal sealed class FlyleafMediaBackend : IMediaBackend
-{
-	private readonly Player _player;
-	private bool _disposed;
-
-	// Throttle: fire PositionChanged at most ~once per second
-	private long _lastPosTick;
-	private static readonly long _posIntervalTicks = TimeSpan.FromMilliseconds(950).Ticks;
-
-	public event EventHandler<PlaybackStateChangedArgs>? StateChanged;
-	public event EventHandler? OpenCompleted;
-	public event EventHandler<long>? PositionChanged;
-
-	public FlyleafMediaBackend(Player player)
-	{
-		_player = player;
-		_player.OpenCompleted += OnOpenCompleted;
-		_player.PropertyChanged += OnPropertyChanged;
-	}
-
-	public bool IsPlaying => _player.IsPlaying;
-	public long CurTimeTicks
-	{
-		get => _player.CurTime;
-		set => _player.CurTime = value;
-	}
-
-	public int Volume
-	{
-		get => _player.Audio.Volume;
-		set => _player.Audio.Volume = value;
-	}
-
-	public bool IsMuted
-	{
-		get => _player.Audio.Mute;
-		set => _player.Audio.Mute = value;
-	}
-
-	public async Task OpenAsync(string path)
-		=> await Task.Run(() => _player.Open(path));
-
-	public void Play() => _player.Play();
-	public void Pause() => _player.Pause();
-	public void Stop()
-	{
-		_player.Stop();
-	}
-
-	private void OnOpenCompleted(object? s, OpenCompletedArgs e)
-		=> OpenCompleted?.Invoke(this, EventArgs.Empty);
-
-	private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-	{
-		switch (e.PropertyName)
-		{
-			case nameof(_player.Status):
-				var state = _player.Status switch
-				{
-					FlyleafLib.MediaPlayer.Status.Playing => PlaybackState.Playing,
-					FlyleafLib.MediaPlayer.Status.Paused => PlaybackState.Paused,
-					FlyleafLib.MediaPlayer.Status.Ended => PlaybackState.Ended,
-					_ => PlaybackState.Stopped
-				};
-				StateChanged?.Invoke(this, new PlaybackStateChangedArgs(state));
-				break;
-
-			case nameof(_player.CurTime):
-				long now = System.Diagnostics.Stopwatch.GetTimestamp();
-				long elapsed = (now - _lastPosTick) *
-							   (TimeSpan.TicksPerSecond / System.Diagnostics.Stopwatch.Frequency);
-				if (elapsed < _posIntervalTicks) break;
-				_lastPosTick = now;
-				PositionChanged?.Invoke(this, _player.CurTime);
-				break;
-		}
-	}
-
-	public void Dispose()
-	{
-		if (_disposed) return;
-		_disposed = true;
-		_player.OpenCompleted -= OnOpenCompleted;
-		_player.PropertyChanged -= OnPropertyChanged;
-	}
-}
-
-// ─────────────────────────────────────────────────────────────
-//  Backend type enum
-// ─────────────────────────────────────────────────────────────
-public enum BackendType { Windows, Flyleaf, Unsupported }
 
 // ─────────────────────────────────────────────────────────────
 //  MusicPlayer singleton
@@ -940,7 +703,7 @@ public class MusicPlayer
 	public async Task SaveOnExitActionsAsync()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = TimeSpan.FromTicks(CurTimeTicks).TotalSeconds.ToString();
+		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MusicControl._instance.ViewModel.ProgressBarValue;
 
 		await ProcessPendingTagWritesAsync();
 	}
@@ -978,7 +741,7 @@ public class MusicPlayer
 				continue;
 			}
 
-			bool success=false;
+			bool success = false;
 			for (int attempt = 0; attempt < 3; attempt++)
 			{
 				try
@@ -1108,22 +871,3 @@ public class MusicPlayer
 		await Task.CompletedTask;
 	}
 }
-
-// ─────────────────────────────────────────────────────────────
-//  Enums
-// ─────────────────────────────────────────────────────────────
-/// <summary>
-/// Specifies the repeat modes that can be used by the music player.
-/// This enum controls how playback behaves when the end of the playlist is reached.
-/// It includes options for disabling repeat, repeating a single track, or repeating the entire playlist.
-/// </summary>
-public enum RepeatMode { None, One, All }
-
-/// <summary>
-/// Specifies the shuffle modes available for the music player.
-/// This enum defines whether the playlist should be played in sequential order or in a randomized order.
-/// The shuffle mode impacts the playback sequence when enabled.
-/// </summary>
-public enum ShuffleMode { Off, On }
-
-public enum FadeType { None, Manual, AutoAdvance }

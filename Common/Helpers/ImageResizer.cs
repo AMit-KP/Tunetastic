@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.Processing;
 using TagLib;
 using Image = SixLabors.ImageSharp.Image;
 
-namespace Tunetastic.Common;
+namespace Tunetastic.Common.Helpers;
 
 public static class ImageResizer
 {
@@ -106,13 +106,4 @@ public static class ImageResizer
 	{
 		return CreateThumbnailImage(thumbnailFolder, pictures, size, size);
 	}
-}
-
-/// <summary>
-/// Represents the folder locations where thumbnail images are stored.
-/// </summary>
-public enum ThumbnailFolder
-{
-	AllSongView,
-	MainPlayer
 }
