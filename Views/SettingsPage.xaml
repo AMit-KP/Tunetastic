@@ -225,8 +225,7 @@
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
-			                  Header="Pause on Mute"
-			                  Visibility="Collapsed">
+			                  Header="Pause on Mute">
 				<ToggleSwitch x:Name="PauseOnMute"
 				              Toggled="PauseOnMute_OnToggled" />
 			</dev:SettingsCard>
