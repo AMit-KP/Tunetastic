@@ -824,4 +824,12 @@ public sealed partial class MainPage : Page
 				MusicPlayer.Instance.Pause();
 		});
 	}
+
+	private async void SongInfo_EditDetailsButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+	{
+		await Task.Delay(50);
+		MainWindow._instance.WindowResizePermission(false);
+		await EditSongInfo.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
+	}
 }

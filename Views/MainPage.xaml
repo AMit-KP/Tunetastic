@@ -194,6 +194,8 @@
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 			               CloseButtonText="Close"
 			               DefaultButton="Close"
+			               PrimaryButtonClick="SongInfo_EditDetailsButtonClick"
+			               PrimaryButtonText="Edit Details"
 			               Visibility="Visible">
 				<Grid RowSpacing="10">
 					<Grid.RowDefinitions>
@@ -521,6 +523,131 @@
 						</Grid>
 					</Grid>
 				</Grid>
+			</ContentDialog>
+
+			<ContentDialog x:Name="EditSongInfo"
+			               Title="Edit Song/Track Info"
+			               CloseButtonText="Cancel"
+			               DefaultButton="Primary"
+			               PrimaryButtonText="Save">
+
+				<ScrollViewer Height="500"
+				              HorizontalAlignment="Stretch"
+				              VerticalScrollBarVisibility="Visible">
+					<StackPanel Margin="8"
+					            HorizontalAlignment="Stretch"
+					            Spacing="15">
+
+						<StackPanel Spacing="4">
+							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+							           Text="Cover Art" />
+							<Border Height="200"
+							        Margin="0,0,0,8"
+							        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+							        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+							        BorderThickness="1"
+							        CornerRadius="6">
+								<Grid>
+									<StackPanel x:Name="CoverArtPlaceholder"
+									            HorizontalAlignment="Center"
+									            VerticalAlignment="Center"
+									            Spacing="8">
+										<FontIcon FontSize="36"
+										          Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+										          Glyph="&#xE8B9;" />
+										<TextBlock HorizontalAlignment="Center"
+										           FontSize="12"
+										           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+										           Text="No artwork" />
+									</StackPanel>
+									<Image x:Name="CoverArtImage"
+									       Stretch="UniformToFill"
+									       Visibility="Collapsed" />
+								</Grid>
+							</Border>
+							<Button x:Name="BrowseCoverArtButton"
+							        HorizontalAlignment="Stretch"
+							        Content="Browse image…" />
+							<!--  Click="BrowseCoverArtButton_Click"  -->
+							<Button x:Name="RemoveCoverArtButton"
+							        HorizontalAlignment="Stretch"
+							        Content="Remove art"
+							        Visibility="Collapsed" />
+							<!--  Click="RemoveCoverArtButton_Click"  -->
+						</StackPanel>
+
+						<StackPanel Spacing="4">
+							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+							           Text="Title" />
+							<TextBox x:Name="TitleTextBox"
+							         PlaceholderText="Enter title" />
+						</StackPanel>
+
+						<StackPanel Spacing="4">
+							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+							           Text="Artist(s)" />
+							<TextBox x:Name="ArtistTextBox"
+							         PlaceholderText="Enter Artist Name(s)  Separate with ‹,› ‹and› ‹&amp;› ‹feat.› ‹ft.› ‹x›" />
+						</StackPanel>
+
+						<StackPanel Spacing="4">
+							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+							           Text="Album" />
+							<TextBox x:Name="AlbumTextBox"
+							         PlaceholderText="Enter Album Name" />
+						</StackPanel>
+
+						<Grid ColumnSpacing="12">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="160" />
+							</Grid.ColumnDefinitions>
+
+							<StackPanel Grid.Column="0"
+							            Spacing="4">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Genre" />
+								<AutoSuggestBox x:Name="GenreAutoSuggestBox"
+								                PlaceholderText="Enter Genre"
+								                QueryIcon="Find" />
+							</StackPanel>
+
+							<StackPanel Grid.Column="1"
+							            Spacing="4">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Year" />
+								<NumberBox x:Name="YearNumberBox"
+								           Maximum="2099"
+								           Minimum="1900"
+								           PlaceholderText="Enter Year"
+								           SpinButtonPlacementMode="Inline" />
+							</StackPanel>
+						</Grid>
+
+						<Grid Height="400"
+						      RowSpacing="4">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="*" />
+							</Grid.RowDefinitions>
+							<TextBlock Grid.Row="0"
+							           Style="{ThemeResource BodyStrongTextBlockStyle}"
+							           Text="Lyrics" />
+							<TextBox x:Name="LyricsTextBox"
+							         Grid.Row="1"
+							         AcceptsReturn="True"
+							         AutomationProperties.Name="multi-line TextBox"
+							         IsSpellCheckEnabled="True"
+							         PlaceholderText="Enter Lyrics"
+							         TextWrapping="Wrap" />
+						</Grid>
+
+					</StackPanel>
+				</ScrollViewer>
+				<ContentDialog.Resources>
+					<x:Double x:Key="ContentDialogMaxWidth">600</x:Double>
+					<x:Double x:Key="ContentDialogMinWidth">550</x:Double>
+				</ContentDialog.Resources>
 			</ContentDialog>
 		</Grid>
 	</Grid>
