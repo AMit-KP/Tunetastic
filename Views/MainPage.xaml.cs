@@ -683,8 +683,16 @@ public sealed partial class MainPage : Page
 			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
 
 			MainWindow._instance.WindowResizePermission(false);
-			await SongInfo.ShowAsync();
+			var result = await SongInfo.ShowAsync();
 			MainWindow._instance.WindowResizePermission(true);
+
+			if (result == ContentDialogResult.Primary)
+			{
+
+				MainWindow._instance.WindowResizePermission(false);
+				await EditSongInfo.ShowAsync();
+				MainWindow._instance.WindowResizePermission(true); 
+			}
 		}
 	}
 
@@ -825,11 +833,13 @@ public sealed partial class MainPage : Page
 		});
 	}
 
-	private async void SongInfo_EditDetailsButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+	private void ArtistTextBox_GotFocus(object sender, RoutedEventArgs e)
 	{
-		await Task.Delay(50);
-		MainWindow._instance.WindowResizePermission(false);
-		await EditSongInfo.ShowAsync();
-		MainWindow._instance.WindowResizePermission(true);
-	}
+		ArtistTeachingTip.IsOpen = true;
+    }
+
+	private void ArtistTextBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		ArtistTeachingTip.IsOpen = false;
+    }
 }

@@ -194,7 +194,6 @@
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 			               CloseButtonText="Close"
 			               DefaultButton="Close"
-			               PrimaryButtonClick="SongInfo_EditDetailsButtonClick"
 			               PrimaryButtonText="Edit Details"
 			               Visibility="Visible">
 				<Grid RowSpacing="10">
@@ -587,7 +586,44 @@
 							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 							           Text="Artist(s)" />
 							<TextBox x:Name="ArtistTextBox"
-							         PlaceholderText="Enter Artist Name(s)  Separate with ‹,› ‹and› ‹&amp;› ‹feat.› ‹ft.› ‹x›" />
+							         GotFocus="ArtistTextBox_GotFocus"
+							         LostFocus="ArtistTextBox_LostFocus"
+							         PlaceholderText="Enter Artist Name(s)" />
+
+							<TeachingTip x:Name="ArtistTeachingTip"
+							             Title="Enter Artist Name(s)"
+							             Target="{x:Bind ArtistTextBox}">
+								<TeachingTip.Content>
+									<TextBlock>
+										<Run Text="For multiple artists, separate with:" />
+										<LineBreak />
+										<Run Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" ," />
+										<LineBreak />
+										<Run Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" and" />
+										<LineBreak />
+										<Run Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" &amp;" />
+										<LineBreak />
+										<Run Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" feat." />
+										<LineBreak />
+										<Run Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" ft." />
+										<LineBreak />
+										<Run Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" x" />
+									</TextBlock>
+								</TeachingTip.Content>
+							</TeachingTip>
+
 						</StackPanel>
 
 						<StackPanel Spacing="4">
