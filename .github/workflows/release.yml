@@ -40,12 +40,14 @@ jobs:
           $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" -Filter "*.msix" | Select-Object -First 1
           echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_OUTPUT
 
-      - name: Find CER file (x64 only)
+      - name: Find and rename CER file (x64 only)
         id: find_cer
         if: matrix.platform == 'x64'
         run: |
           $cer = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" -Filter "*.cer" | Select-Object -First 1
-          echo "CER_PATH=$($cer.FullName)" >> $env:GITHUB_OUTPUT
+          $renamed = Join-Path $cer.DirectoryName "Tunetastic_Store_Publisher_Certificate.cer"
+          Rename-Item -Path $cer.FullName -NewName "Tunetastic_Store_Publisher_Certificate.cer"
+          echo "CER_PATH=$renamed" >> $env:GITHUB_OUTPUT
 
       - name: Upload MSIX to release (${{ matrix.platform }})
         uses: softprops/action-gh-release@v2
