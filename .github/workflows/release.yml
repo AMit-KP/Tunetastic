@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  release:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: [ x64, arm64 ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore Tunetastic.sln
+
+      - name: Decode certificate
+        run: |
+          $cert = [Convert]::FromBase64String("${{ secrets.CERTIFICATE_BASE64 }}")
+          [IO.File]::WriteAllBytes("${{ github.workspace }}\certificate.pfx", $cert)
+
+      - name: Build and package MSIX (${{ matrix.platform }})
+        run: |
+          msbuild Tunetastic.sln `
+            /p:Configuration=Release `
+            /p:Platform=${{ matrix.platform }} `
+            /p:AppxPackageDir="${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" `
+            /p:AppxBundle=Never `
+            /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxPackageSigningEnabled=true `
+            /p:PackageCertificateKeyFile="${{ github.workspace }}\certificate.pfx" `
+            /p:PackageCertificatePassword="${{ secrets.CERTIFICATE_PASSWORD }}"
+
+      - name: Find MSIX file (${{ matrix.platform }})
+        id: find_msix
+        run: |
+          $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" -Filter "*.msix" | Select-Object -First 1
+          echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Upload MSIX to release (${{ matrix.platform }})
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_msix.outputs.MSIX_PATH }}
