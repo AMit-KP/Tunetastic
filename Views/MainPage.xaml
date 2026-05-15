@@ -579,7 +579,8 @@
 							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 							           Text="Title" />
 							<TextBox x:Name="TitleTextBox"
-							         PlaceholderText="Enter title" />
+							         PlaceholderText="Enter title"
+							         TextWrapping="Wrap" />
 						</StackPanel>
 
 						<StackPanel Spacing="4">
@@ -588,7 +589,8 @@
 							<TextBox x:Name="ArtistTextBox"
 							         GotFocus="ArtistTextBox_GotFocus"
 							         LostFocus="ArtistTextBox_LostFocus"
-							         PlaceholderText="Enter Artist Name(s)" />
+							         PlaceholderText="Enter Artist Name(s)"
+							         TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
 							             Title="Enter Artist Name(s)"
@@ -630,7 +632,8 @@
 							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 							           Text="Album" />
 							<TextBox x:Name="AlbumTextBox"
-							         PlaceholderText="Enter Album Name" />
+							         PlaceholderText="Enter Album Name"
+							         TextWrapping="Wrap" />
 						</StackPanel>
 
 						<Grid ColumnSpacing="12">

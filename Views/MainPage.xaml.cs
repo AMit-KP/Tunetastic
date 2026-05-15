@@ -690,8 +690,14 @@ public sealed partial class MainPage : Page
 			{
 
 				MainWindow._instance.WindowResizePermission(false);
+				TitleTextBox.Text = songData.Title;
+				ArtistTextBox.Text = songData.Artists;
+				AlbumTextBox.Text = songData.Album;
+				GenreAutoSuggestBox.Text = songData.Genre;
+				YearNumberBox.Text = songData.Year;
+				LyricsTextBox.Text = songData.Lyrics;
 				await EditSongInfo.ShowAsync();
-				MainWindow._instance.WindowResizePermission(true); 
+				MainWindow._instance.WindowResizePermission(true);
 			}
 		}
 	}
@@ -836,10 +842,10 @@ public sealed partial class MainPage : Page
 	private void ArtistTextBox_GotFocus(object sender, RoutedEventArgs e)
 	{
 		ArtistTeachingTip.IsOpen = true;
-    }
+	}
 
 	private void ArtistTextBox_LostFocus(object sender, RoutedEventArgs e)
 	{
 		ArtistTeachingTip.IsOpen = false;
-    }
+	}
 }
