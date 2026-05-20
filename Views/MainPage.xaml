@@ -540,7 +540,7 @@
 						<StackPanel Spacing="4">
 							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 							           Text="Cover Art" />
-							<Border Height="200"
+							<Border Height="300"
 							        Margin="0,0,0,8"
 							        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
 							        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -560,7 +560,8 @@
 										           Text="No artwork" />
 									</StackPanel>
 									<Image x:Name="CoverArtImage"
-									       Stretch="UniformToFill"
+									       Margin="6"
+									       Stretch="Fill"
 									       Visibility="Collapsed" />
 								</Grid>
 							</Border>

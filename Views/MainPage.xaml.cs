@@ -657,10 +657,13 @@ public sealed partial class MainPage : Page
 			SongTitle.Text = songData.Title;
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
-			StorageFile file = await StorageFile.GetFileFromPathAsync(songData.Cover);
+
+			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), songData.Cover.Substring(songData.Cover.LastIndexOf("Cover_")));
+			StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
+			BitmapImage bitmapImage;
 			using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
 			{
-				BitmapImage bitmapImage = new BitmapImage();
+				bitmapImage = new BitmapImage();
 				await bitmapImage.SetSourceAsync(stream);
 				SongCoverImage.Source = bitmapImage;
 			}
@@ -688,14 +691,26 @@ public sealed partial class MainPage : Page
 
 			if (result == ContentDialogResult.Primary)
 			{
+				var coverArtImagePixelWidth = bitmapImage.PixelWidth;
+				var coverArtImagePixelHeight = bitmapImage.PixelHeight;
+				var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
+				double targetHeight = 250;
+				double targetWidth = coverArtAspectRatio * targetHeight;
 
-				MainWindow._instance.WindowResizePermission(false);
+				CoverArtImage.Height = targetHeight;
+				CoverArtImage.Width = targetWidth;
+				CoverArtImage.Source = bitmapImage;
+				CoverArtImage.Visibility = Visibility.Visible;
+				CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+
 				TitleTextBox.Text = songData.Title;
 				ArtistTextBox.Text = songData.Artists;
 				AlbumTextBox.Text = songData.Album;
 				GenreAutoSuggestBox.Text = songData.Genre;
 				YearNumberBox.Text = songData.Year;
 				LyricsTextBox.Text = songData.Lyrics;
+
+				MainWindow._instance.WindowResizePermission(false);
 				await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
 			}
