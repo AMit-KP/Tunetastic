@@ -592,11 +592,9 @@ public sealed partial class MainPage : Page
 		//TODO: Drag n Drop
 		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
 
-		picker.FileTypeFilter.Add("*.m3u");
-		picker.FileTypeFilter.Add("*.m3u8");
-		picker.FileTypeFilter.Add("*.pls");
-		picker.FileTypeFilter.Add("*.wpl");
-		picker.FileTypeFilter.Add("*.zpl");
+		picker.FileTypeChoices.Add("Playlist Files", new List<string>() { ".m3u", ".m3u8", ".pls", ".wpl", ".zpl" });
+
+		picker.Title = "Select Playlist File";
 
 		picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 		picker.CommitButtonText = "Import Playlist";
