@@ -543,7 +543,7 @@
 							<Border Height="300"
 							        Margin="0,0,0,8"
 							        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-							        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+							        BorderBrush="{ThemeResource CardBackgroundFillColorDefault}"
 							        BorderThickness="1"
 							        CornerRadius="6">
 								<Grid>
@@ -565,15 +565,22 @@
 									       Visibility="Collapsed" />
 								</Grid>
 							</Border>
-							<Button x:Name="BrowseCoverArtButton"
-							        HorizontalAlignment="Stretch"
-							        Content="Browse image…" />
-							<!--  Click="BrowseCoverArtButton_Click"  -->
-							<Button x:Name="RemoveCoverArtButton"
-							        HorizontalAlignment="Stretch"
-							        Content="Remove art"
-							        Visibility="Collapsed" />
-							<!--  Click="RemoveCoverArtButton_Click"  -->
+							<Grid ColumnSpacing="10">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="*" />
+								</Grid.ColumnDefinitions>
+								<Button x:Name="BrowseCoverArtButton"
+								        Grid.Column="0"
+								        HorizontalAlignment="Stretch"
+								        Click="BrowseCoverArtButton_Click"
+								        Content="Browse new Cover art" />
+								<Button x:Name="RemoveCoverArtButton"
+								        Grid.Column="1"
+								        HorizontalAlignment="Stretch"
+								        Click="RemoveCoverArtButton_Click"
+								        Content="Remove Cover art" />
+							</Grid>
 						</StackPanel>
 
 						<StackPanel Spacing="4">

@@ -657,6 +657,12 @@ public sealed partial class MainPage : Page
 			SongAlbum.Text = songData.Album;
 
 			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), songData.Cover.Substring(songData.Cover.LastIndexOf("Cover_")));
+			if (!File.Exists(thumbnailFilePath))
+			{
+				using var audioModel = TagLib.File.Create(songData.Path);
+				ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+			}
+
 			StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
 			BitmapImage bitmapImage;
 			using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
@@ -860,5 +866,43 @@ public sealed partial class MainPage : Page
 	private void ArtistTextBox_LostFocus(object sender, RoutedEventArgs e)
 	{
 		ArtistTeachingTip.IsOpen = false;
+	}
+
+	private async void BrowseCoverArtButton_Click(object sender, RoutedEventArgs e)
+	{
+		var filePicker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		filePicker.ViewMode = PickerViewMode.Thumbnail;
+		filePicker.SuggestedStartLocation = PickerLocationId.Downloads;
+		filePicker.CommitButtonText = "Select Cover Art";
+		filePicker.Title = "Select Cover Art";
+
+		filePicker.FileTypeChoices.Add("Image Files", new List<string>() { ".jpg", ".jpeg", ".png", ".gif" });
+
+		var imageFile = await filePicker.PickSingleFileAsync();
+		if (imageFile != null)
+		{
+			StorageFile file = await StorageFile.GetFileFromPathAsync(imageFile.Path);
+			BitmapImage bitmapImage;
+			using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
+			bitmapImage = new BitmapImage();
+			await bitmapImage.SetSourceAsync(stream);
+
+			var coverArtImagePixelWidth = bitmapImage.PixelWidth;
+			var coverArtImagePixelHeight = bitmapImage.PixelHeight;
+			var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
+			double targetHeight = 250;
+			double targetWidth = coverArtAspectRatio * targetHeight;
+
+			CoverArtImage.Height = targetHeight;
+			CoverArtImage.Width = targetWidth;
+			CoverArtImage.Source = bitmapImage;
+		}
+	}
+
+	private void RemoveCoverArtButton_Click(object sender, RoutedEventArgs e)
+	{
+		CoverArtImage.Height = 250;
+		CoverArtImage.Width = 250;
+		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 	}
 }
