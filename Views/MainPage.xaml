@@ -12,6 +12,32 @@
       Loaded="Page_Loaded"
       mc:Ignorable="d">
 
+	<Page.Resources>
+		<Style x:Key="NewBadgeStyle"
+		       TargetType="ContentControl">
+			<Setter Property="IsTabStop" Value="False" />
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="ContentControl">
+						<Border Padding="8,3"
+						        HorizontalAlignment="Left"
+						        VerticalAlignment="Center"
+						        Background="{ThemeResource AccentFillColorDefaultBrush}"
+						        CornerRadius="13">
+							<TextBlock HorizontalAlignment="Center"
+							           VerticalAlignment="Center"
+							           CharacterSpacing="50"
+							           FontSize="10"
+							           FontWeight="SemiBold"
+							           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+							           Text="CHANGED" />
+						</Border>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Page.Resources>
+
 	<Grid>
 		<Grid>
 			<Grid.RowDefinitions>
@@ -528,6 +554,7 @@
 			               Title="Edit Song/Track Info"
 			               CloseButtonText="Cancel"
 			               DefaultButton="Primary"
+			               IsPrimaryButtonEnabled="False"
 			               PrimaryButtonText="Save">
 
 				<ScrollViewer Height="500"
@@ -538,8 +565,14 @@
 					            Spacing="15">
 
 						<StackPanel Spacing="4">
-							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-							           Text="Cover Art" />
+							<StackPanel Orientation="Horizontal"
+							            Spacing="8">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Cover Art" />
+								<ContentControl x:Name="CoverArtChanged"
+								                Style="{StaticResource NewBadgeStyle}"
+								                Visibility="Collapsed" />
+							</StackPanel>
 							<Border Height="300"
 							        Margin="0,0,0,8"
 							        Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
@@ -584,20 +617,34 @@
 						</StackPanel>
 
 						<StackPanel Spacing="4">
-							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-							           Text="Title" />
+							<StackPanel Orientation="Horizontal"
+							            Spacing="8">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Title" />
+								<ContentControl x:Name="TitleChanged"
+								                Style="{StaticResource NewBadgeStyle}"
+								                Visibility="Collapsed" />
+							</StackPanel>
 							<TextBox x:Name="TitleTextBox"
 							         PlaceholderText="Enter title"
+							         TextChanged="TitleTextBox_TextChanged"
 							         TextWrapping="Wrap" />
 						</StackPanel>
 
 						<StackPanel Spacing="4">
-							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-							           Text="Artist(s)" />
+							<StackPanel Orientation="Horizontal"
+							            Spacing="8">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Artist(s)" />
+								<ContentControl x:Name="ArtistChanged"
+								                Style="{StaticResource NewBadgeStyle}"
+								                Visibility="Collapsed" />
+							</StackPanel>
 							<TextBox x:Name="ArtistTextBox"
 							         GotFocus="ArtistTextBox_GotFocus"
 							         LostFocus="ArtistTextBox_LostFocus"
 							         PlaceholderText="Enter Artist Name(s)"
+							         TextChanged="ArtistTextBox_TextChanged"
 							         TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
@@ -637,10 +684,18 @@
 						</StackPanel>
 
 						<StackPanel Spacing="4">
-							<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-							           Text="Album" />
+							<StackPanel Orientation="Horizontal"
+							            Spacing="8">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Album" />
+								<ContentControl x:Name="AlbumChanged"
+								                Style="{StaticResource NewBadgeStyle}"
+								                Visibility="Collapsed" />
+							</StackPanel>
+
 							<TextBox x:Name="AlbumTextBox"
 							         PlaceholderText="Enter Album Name"
+							         TextChanged="AlbumTextBox_TextChanged"
 							         TextWrapping="Wrap" />
 						</StackPanel>
 
@@ -652,22 +707,34 @@
 
 							<StackPanel Grid.Column="0"
 							            Spacing="4">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Genre" />
+								<StackPanel Orientation="Horizontal"
+								            Spacing="8">
+									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+									           Text="Genre" />
+									<ContentControl x:Name="GenreChanged"
+									                Style="{StaticResource NewBadgeStyle}"
+									                Visibility="Collapsed" />
+								</StackPanel>
 								<AutoSuggestBox x:Name="GenreAutoSuggestBox"
 								                PlaceholderText="Enter Genre"
-								                QueryIcon="Find" />
+								                QueryIcon="Find"
+								                TextChanged="GenreAutoSuggestBox_TextChanged" />
 							</StackPanel>
 
 							<StackPanel Grid.Column="1"
 							            Spacing="4">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Year" />
-								<NumberBox x:Name="YearNumberBox"
-								           Maximum="2099"
-								           Minimum="1900"
-								           PlaceholderText="Enter Year"
-								           SpinButtonPlacementMode="Inline" />
+								<StackPanel Orientation="Horizontal"
+								            Spacing="8">
+									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+									           Text="Year" />
+									<ContentControl x:Name="YearChanged"
+									                Style="{StaticResource NewBadgeStyle}"
+									                Visibility="Collapsed" />
+								</StackPanel>
+								<TextBox x:Name="YearNumberBox"
+								         MaxLength="4"
+								         PlaceholderText="Enter Year"
+								         TextChanged="YearNumberBox_TextChanged" />
 							</StackPanel>
 						</Grid>
 
@@ -677,15 +744,21 @@
 								<RowDefinition Height="Auto" />
 								<RowDefinition Height="*" />
 							</Grid.RowDefinitions>
-							<TextBlock Grid.Row="0"
-							           Style="{ThemeResource BodyStrongTextBlockStyle}"
-							           Text="Lyrics" />
+							<StackPanel Orientation="Horizontal"
+							            Spacing="8">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Lyrics" />
+								<ContentControl x:Name="LyricsChanged"
+								                Style="{StaticResource NewBadgeStyle}"
+								                Visibility="Collapsed" />
+							</StackPanel>
 							<TextBox x:Name="LyricsTextBox"
 							         Grid.Row="1"
 							         AcceptsReturn="True"
 							         AutomationProperties.Name="multi-line TextBox"
 							         IsSpellCheckEnabled="True"
 							         PlaceholderText="Enter Lyrics"
+							         TextChanged="LyricsTextBox_TextChanged"
 							         TextWrapping="Wrap" />
 						</Grid>
 

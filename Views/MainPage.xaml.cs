@@ -23,6 +23,7 @@ public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
 	private bool _isUpdatingSlider = false;
+	private Song? _songData = null;
 
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
@@ -695,6 +696,8 @@ public sealed partial class MainPage : Page
 
 			if (result == ContentDialogResult.Primary)
 			{
+				_songData = songData;
+
 				var coverArtImagePixelWidth = bitmapImage.PixelWidth;
 				var coverArtImagePixelHeight = bitmapImage.PixelHeight;
 				var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
@@ -706,17 +709,38 @@ public sealed partial class MainPage : Page
 				CoverArtImage.Source = bitmapImage;
 				CoverArtImage.Visibility = Visibility.Visible;
 				CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+				CoverArtChanged.Visibility = Visibility.Collapsed;
 
 				TitleTextBox.Text = songData.Title;
+				TitleChanged.Visibility = Visibility.Collapsed;
+
 				ArtistTextBox.Text = songData.Artists;
+				ArtistChanged.Visibility = Visibility.Collapsed;
+
 				AlbumTextBox.Text = songData.Album;
+				AlbumChanged.Visibility = Visibility.Collapsed;
+
 				GenreAutoSuggestBox.Text = songData.Genre;
-				YearNumberBox.Text = songData.Year;
+				GenreChanged.Visibility = Visibility.Collapsed;
+
+				YearNumberBox.Text = _songData.Year;
+				YearChanged.Visibility = Visibility.Collapsed;
+
 				LyricsTextBox.Text = songData.Lyrics;
+				LyricsChanged.Visibility = Visibility.Collapsed;
+
+				EditSongInfo.IsPrimaryButtonEnabled = false;
 
 				MainWindow._instance.WindowResizePermission(false);
-				await EditSongInfo.ShowAsync();
+				var editResult = await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
+
+				if (editResult == ContentDialogResult.Primary)
+				{
+
+				}
+
+				_songData = null;
 			}
 		}
 	}
@@ -868,6 +892,17 @@ public sealed partial class MainPage : Page
 		ArtistTeachingTip.IsOpen = false;
 	}
 
+	private void EditInfoSaveButtonEnableUpdate()
+	{
+		EditSongInfo.IsPrimaryButtonEnabled = CoverArtChanged.Visibility == Visibility.Visible ||
+											  TitleChanged.Visibility == Visibility.Visible ||
+											  ArtistChanged.Visibility == Visibility.Visible ||
+											  AlbumChanged.Visibility == Visibility.Visible ||
+											  GenreChanged.Visibility == Visibility.Visible ||
+											  YearChanged.Visibility == Visibility.Visible ||
+											  LyricsChanged.Visibility == Visibility.Visible;
+	}
+
 	private async void BrowseCoverArtButton_Click(object sender, RoutedEventArgs e)
 	{
 		var filePicker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
@@ -896,6 +931,8 @@ public sealed partial class MainPage : Page
 			CoverArtImage.Height = targetHeight;
 			CoverArtImage.Width = targetWidth;
 			CoverArtImage.Source = bitmapImage;
+			CoverArtChanged.Visibility = Visibility.Visible;
+			EditInfoSaveButtonEnableUpdate();
 		}
 	}
 
@@ -904,5 +941,78 @@ public sealed partial class MainPage : Page
 		CoverArtImage.Height = 250;
 		CoverArtImage.Width = 250;
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+		CoverArtChanged.Visibility = Visibility.Visible;
+		EditSongInfo.IsPrimaryButtonEnabled = true;
+		EditInfoSaveButtonEnableUpdate();
+	}
+
+	private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			TitleChanged.Visibility = TitleTextBox.Text != _songData.Title ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void ArtistTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			ArtistChanged.Visibility = ArtistTextBox.Text != _songData.Artists ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void AlbumTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			AlbumChanged.Visibility = AlbumTextBox.Text != _songData.Album ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void GenreAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+	{
+		if (_songData is not null)
+		{
+			GenreChanged.Visibility = GenreAutoSuggestBox.Text != _songData.Genre ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void LyricsTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			LyricsChanged.Visibility = LyricsTextBox.Text != _songData.Lyrics ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void YearNumberBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		TextBox textBox = sender as TextBox;
+		string newText = textBox.Text;
+
+		string filtered = new string(newText.Where(char.IsDigit).ToArray());
+
+		if (filtered.Length > 4)
+			filtered = filtered.Substring(0, 4);
+
+		if (newText != filtered)
+		{
+			int caretPos = textBox.SelectionStart;
+			textBox.Text = filtered;
+
+			textBox.SelectionStart = Math.Min(caretPos, filtered.Length);
+		}
+
+		if (_songData is not null)
+		{
+			YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
 	}
 }
