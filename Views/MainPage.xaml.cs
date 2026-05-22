@@ -1,9 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using TagLib;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using Windows.Foundation;
@@ -11,6 +13,7 @@ using Windows.Graphics;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using File = System.IO.File;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
@@ -24,6 +27,7 @@ public sealed partial class MainPage : Page
 	public static MainPage? _instance;
 	private bool _isUpdatingSlider = false;
 	private Song? _songData = null;
+	private string? _frontCoverArtPath = null;
 
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
@@ -697,6 +701,7 @@ public sealed partial class MainPage : Page
 			if (result == ContentDialogResult.Primary)
 			{
 				_songData = songData;
+				_frontCoverArtPath = null;
 
 				var coverArtImagePixelWidth = bitmapImage.PixelWidth;
 				var coverArtImagePixelHeight = bitmapImage.PixelHeight;
@@ -737,7 +742,75 @@ public sealed partial class MainPage : Page
 
 				if (editResult == ContentDialogResult.Primary)
 				{
+					using var audioModel = TagLib.File.Create(songData.Path);
 
+					if (CoverArtChanged.Visibility == Visibility.Visible)
+					{
+						if (_frontCoverArtPath is not null)
+						{
+							var picture = new TagLib.Picture(_frontCoverArtPath)
+							{
+								Type = TagLib.PictureType.FrontCover,
+							};
+
+							audioModel.Tag.Pictures = new IPicture[] { picture };
+						}
+						else
+						{
+							audioModel.Tag.Pictures = Array.Empty<IPicture>();
+						}
+						songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
+						_frontCoverArtPath = null;
+					}
+					if (TitleChanged.Visibility == Visibility.Visible)
+					{
+						var title = string.IsNullOrEmpty(TitleTextBox.Text) ? null : TitleTextBox.Text;
+						audioModel.Tag.Title = title;
+						songData.Title = title ?? Path.GetFileNameWithoutExtension(songData.Path);
+					}
+					if (ArtistChanged.Visibility == Visibility.Visible)
+					{
+						var artist = string.IsNullOrEmpty(ArtistTextBox.Text) ? null : ArtistTextBox.Text;
+						audioModel.Tag.Performers = artist != null ? new[] { artist } : Array.Empty<string>();
+						songData.Artists = artist ?? "Unknown Artist";
+					}
+					if (AlbumChanged.Visibility == Visibility.Visible)
+					{
+						var album = string.IsNullOrEmpty(AlbumTextBox.Text) ? null : AlbumTextBox.Text;
+						songData.Album = album ?? "Unknown Album";
+						audioModel.Tag.Album = album;
+					}
+					if (GenreChanged.Visibility == Visibility.Visible)
+					{
+						var genre = string.IsNullOrEmpty(GenreAutoSuggestBox.Text) ? null : GenreAutoSuggestBox.Text;
+						audioModel.Tag.Genres = genre != null ? new[] { genre } : Array.Empty<string>();
+						songData.Genre = genre ?? "Unknown Genre";
+					}
+					if (YearChanged.Visibility == Visibility.Visible)
+					{
+						var year = string.IsNullOrEmpty(YearNumberBox.Text) ? 0 : uint.Parse(YearNumberBox.Text);
+						audioModel.Tag.Year = year;
+						songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
+					}
+					if (LyricsChanged.Visibility == Visibility.Visible)
+					{
+						var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
+						audioModel.Tag.Lyrics = lyrics;
+						songData.Lyrics = lyrics;
+					}
+
+					await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
+					try
+					{
+						audioModel.Save();
+					}
+					catch (IOException)
+					{
+						await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path);
+
+						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+					}
+					//await UpdateUI();
 				}
 
 				_songData = null;
@@ -912,6 +985,9 @@ public sealed partial class MainPage : Page
 		filePicker.Title = "Select Cover Art";
 
 		filePicker.FileTypeChoices.Add("Image Files", new List<string>() { ".jpg", ".jpeg", ".png", ".gif" });
+		filePicker.FileTypeChoices.Add("JPEG Images", new List<string>() { ".jpg", ".jpeg" });
+		filePicker.FileTypeChoices.Add("PNG Images", new List<string>() { ".png" });
+		filePicker.FileTypeChoices.Add("GIF Images", new List<string>() { ".gif" });
 
 		var imageFile = await filePicker.PickSingleFileAsync();
 		if (imageFile != null)
@@ -932,6 +1008,9 @@ public sealed partial class MainPage : Page
 			CoverArtImage.Width = targetWidth;
 			CoverArtImage.Source = bitmapImage;
 			CoverArtChanged.Visibility = Visibility.Visible;
+
+			_frontCoverArtPath = imageFile.Path;
+
 			EditInfoSaveButtonEnableUpdate();
 		}
 	}
@@ -943,6 +1022,7 @@ public sealed partial class MainPage : Page
 		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		CoverArtChanged.Visibility = Visibility.Visible;
 		EditSongInfo.IsPrimaryButtonEnabled = true;
+		_frontCoverArtPath = null;
 		EditInfoSaveButtonEnableUpdate();
 	}
 
