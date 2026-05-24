@@ -105,7 +105,7 @@ public sealed partial class MainPlayerPage : Page
 				if (!string.IsNullOrEmpty(songPath))
 				{
 					var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
-					if (File.Exists(track?.Path))
+					if (track != null && File.Exists(track?.Path))
 					{
 						Title.Text = track?.Title;
 						ToolTipService.SetToolTip(Title, track?.Title);
@@ -119,11 +119,11 @@ public sealed partial class MainPlayerPage : Page
 						Title.FontSize = Album.FontSize * 1.5;
 						Artist.FontSize = Album.FontSize * 1.1;
 
-						var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), track?.Cover.Substring(track.Cover.LastIndexOf("Cover_")));
+						var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(track.Cover));
 						if (!File.Exists(thumbnailFilePath))
 						{
 							using var audioModel = TagLib.File.Create(track.Path);
-							ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+							ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(track.Cover));
 						}
 
 						StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);

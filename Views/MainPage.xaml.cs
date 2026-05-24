@@ -661,11 +661,11 @@ public sealed partial class MainPage : Page
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
 
-			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), songData.Cover.Substring(songData.Cover.LastIndexOf("Cover_")));
+			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
 			if (!File.Exists(thumbnailFilePath))
 			{
 				using var audioModel = TagLib.File.Create(songData.Path);
-				ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, thumbnailFilePath);
+				ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(songData.Cover));
 			}
 
 			StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
