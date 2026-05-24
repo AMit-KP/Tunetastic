@@ -13,6 +13,7 @@ using Windows.Graphics;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.System;
 using File = System.IO.File;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
@@ -1120,5 +1121,15 @@ public sealed partial class MainPage : Page
 			YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
 			EditInfoSaveButtonEnableUpdate();
 		}
+	}
+
+	private async void OpenContainingFolderButton_Click(object sender, RoutedEventArgs e)
+	{
+		StorageFile file = await StorageFile.GetFileFromPathAsync(SongPath.Text);
+		var options = new FolderLauncherOptions();
+		options.ItemsToSelect.Add(file);
+
+		StorageFolder folder = await file.GetParentAsync();
+		await Launcher.LaunchFolderAsync(folder, options);
 	}
 }
