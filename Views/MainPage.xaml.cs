@@ -744,59 +744,77 @@ public sealed partial class MainPage : Page
 				{
 					using var audioModel = TagLib.File.Create(songData.Path);
 
+					int PendingCover = 0;
+					int PendingTitle = 0;
+					int PendingArtist = 0;
+					int PendingAlbum = 0;
+					int PendingGenre = 0;
+					int PendingYear = 0;
+					int PendingLyrics = 0;
+
 					if (CoverArtChanged.Visibility == Visibility.Visible)
 					{
 						if (_frontCoverArtPath is not null)
 						{
+							if(!File.Exists(_frontCoverArtPath))
+								GlobalNotification.Error($"File not found: {_frontCoverArtPath}");
+
 							var picture = new TagLib.Picture(_frontCoverArtPath)
 							{
 								Type = TagLib.PictureType.FrontCover,
 							};
 
 							audioModel.Tag.Pictures = new IPicture[] { picture };
+							PendingCover = 1;
 						}
 						else
 						{
 							audioModel.Tag.Pictures = Array.Empty<IPicture>();
+							PendingCover = 2;
 						}
 						songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
-						_frontCoverArtPath = null;
 					}
 					if (TitleChanged.Visibility == Visibility.Visible)
 					{
 						var title = string.IsNullOrEmpty(TitleTextBox.Text) ? null : TitleTextBox.Text;
 						audioModel.Tag.Title = title;
 						songData.Title = title ?? Path.GetFileNameWithoutExtension(songData.Path);
+						PendingTitle = title != null ? 1 : 2;
 					}
 					if (ArtistChanged.Visibility == Visibility.Visible)
 					{
 						var artist = string.IsNullOrEmpty(ArtistTextBox.Text) ? null : ArtistTextBox.Text;
 						audioModel.Tag.Performers = artist != null ? new[] { artist } : Array.Empty<string>();
 						songData.Artists = artist ?? "Unknown Artist";
+						PendingArtist = artist != null ? 1 : 2;
 					}
 					if (AlbumChanged.Visibility == Visibility.Visible)
 					{
 						var album = string.IsNullOrEmpty(AlbumTextBox.Text) ? null : AlbumTextBox.Text;
 						songData.Album = album ?? "Unknown Album";
 						audioModel.Tag.Album = album;
+						PendingAlbum = album != null ? 1 : 2;
 					}
 					if (GenreChanged.Visibility == Visibility.Visible)
 					{
 						var genre = string.IsNullOrEmpty(GenreAutoSuggestBox.Text) ? null : GenreAutoSuggestBox.Text;
 						audioModel.Tag.Genres = genre != null ? new[] { genre } : Array.Empty<string>();
 						songData.Genre = genre ?? "Unknown Genre";
+						PendingGenre = genre != null ? 1 : 2;
 					}
 					if (YearChanged.Visibility == Visibility.Visible)
 					{
 						var year = string.IsNullOrEmpty(YearNumberBox.Text) ? 0 : uint.Parse(YearNumberBox.Text);
 						audioModel.Tag.Year = year;
 						songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
+						PendingYear = year > 0 ? 1 : 2;
 					}
 					if (LyricsChanged.Visibility == Visibility.Visible)
 					{
 						var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
 						audioModel.Tag.Lyrics = lyrics;
 						songData.Lyrics = lyrics;
+						PendingLyrics = 1;
 					}
 
 					await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
@@ -806,7 +824,14 @@ public sealed partial class MainPage : Page
 					}
 					catch (IOException)
 					{
-						await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path);
+						await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics);
+
+						if (_frontCoverArtPath is not null)
+						{
+							var coverArtTempPath = Path.Combine(Constants.TemporaryFolder, Path.GetFileName(songData.Cover));
+							Directory.CreateDirectory(Path.GetDirectoryName(coverArtTempPath));
+							File.Copy(_frontCoverArtPath, coverArtTempPath, overwrite: true);
+						}
 
 						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 					}
@@ -814,6 +839,7 @@ public sealed partial class MainPage : Page
 				}
 
 				_songData = null;
+				_frontCoverArtPath = null;
 			}
 		}
 	}

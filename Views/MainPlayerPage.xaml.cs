@@ -862,7 +862,7 @@ public sealed partial class MainPlayerPage : Page
 					}
 					catch (IOException)
 					{
-						await DatabaseHelper.Instance.AddPendingTagWrite(songPath);
+						await DatabaseHelper.Instance.AddPendingTagWrite(songPath, pendingLyrics: 1);
 						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 					}
 					await UpdateUI();
@@ -893,7 +893,7 @@ public sealed partial class MainPlayerPage : Page
 				}
 				catch (IOException)
 				{
-					await DatabaseHelper.Instance.AddPendingTagWrite(songPath);
+					await DatabaseHelper.Instance.AddPendingTagWrite(songPath, pendingLyrics: 1);
 					GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 				}
 				await UpdateUI();

@@ -1,7 +1,9 @@
 ﻿using FlyleafLib;
 using FlyleafLib.MediaPlayer;
+using TagLib;
 using Windows.Media;
 using Windows.Media.Playback;
+using File = System.IO.File;
 
 namespace Tunetastic.Common.Services;
 
@@ -746,7 +748,7 @@ public class MusicPlayer
 			{
 				try
 				{
-					AudioTagSaveToFile(path, track);
+					await AudioTagSaveToFile(path, track);
 					success = true;
 					break;
 				}
@@ -768,11 +770,50 @@ public class MusicPlayer
 		}
 	}
 
-	private static void AudioTagSaveToFile(string path, Song track)
+	private static async Task AudioTagSaveToFile(string path, Song track)
 	{
+		var DB = DatabaseHelper.Instance;
 		using var audioModel = TagLib.File.Create(path);
-		//TODO: Add more tags
-		audioModel.Tag.Lyrics = track.Lyrics;
+
+		if (await DB.PendingTagWritesExist(path, "Cover") is int pendingTrack && pendingTrack > 0)
+		{
+			if (pendingTrack == 1)
+			{
+				var coverArtTempPath = Path.Combine(Constants.TemporaryFolder, Path.GetFileName(track.Cover));
+				if (System.IO.File.Exists(coverArtTempPath))
+				{
+					var picture = new TagLib.Picture(coverArtTempPath)
+					{
+						Type = TagLib.PictureType.FrontCover,
+					};
+
+					audioModel.Tag.Pictures = new IPicture[] { picture };
+
+					System.IO.File.Delete(coverArtTempPath);
+				}
+			}
+			else
+				audioModel.Tag.Pictures = Array.Empty<IPicture>();
+		}
+
+		if (await DB.PendingTagWritesExist(path, "Title") is int pendingTitle && pendingTitle > 0)
+			audioModel.Tag.Title = pendingTitle == 1 ? track.Title : null;
+
+		if (await DB.PendingTagWritesExist(path, "Artist") is int pendingArtist && pendingArtist > 0)
+			audioModel.Tag.Performers = pendingArtist == 1 ? new[] { track.Artists } : Array.Empty<string>();
+
+		if (await DB.PendingTagWritesExist(path, "Album") is int pendingAlbum && pendingAlbum > 0)
+			audioModel.Tag.Album = pendingAlbum == 1 ? track.Album : null;
+
+		if (await DB.PendingTagWritesExist(path, "Genre") is int pendingGenre && pendingGenre > 0)
+			audioModel.Tag.Genres = pendingGenre == 1 ? new[] { track.Genre } : Array.Empty<string>();
+
+		if (await DB.PendingTagWritesExist(path, "Year") is int pendingYear && pendingYear > 0)
+			audioModel.Tag.Year = pendingYear == 1 ? uint.Parse(track.Year) : 0;
+
+		if (await DB.PendingTagWritesExist(path, "Lyrics") > 0)
+			audioModel.Tag.Lyrics = track.Lyrics;
+
 		audioModel.Save();
 	}
 

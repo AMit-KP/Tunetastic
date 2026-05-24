@@ -234,6 +234,15 @@ public class DatabaseHelper
 									   Path TEXT PRIMARY KEY,
 									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
+		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics" })
+		{
+			try
+			{
+				await _database.ExecuteAsync($"ALTER TABLE PendingTagWrites ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0");
+			}
+			catch { }
+		}
+
 		await _database.ExecuteAsync(@"CREATE VIRTUAL TABLE IF NOT EXISTS SongFTS
 									   USING fts5(
 									   Title,
@@ -727,9 +736,21 @@ public class DatabaseHelper
 	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
 	/// </summary>
 	/// <param name="path">The file path of the song whose tag write is pending.</param>
-	public async Task AddPendingTagWrite(string path)
+	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0)
 	{
-		await _database.ExecuteAsync("INSERT OR IGNORE INTO PendingTagWrites (Path) VALUES (?)", path);
+		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics);
+	}
+
+	/// <summary>
+	/// Checks if a pending tag write entry exists for the specified file path.
+	/// </summary>
+	/// <param name="path">The file path to check for pending tag writes.</param>
+	/// <param name="attribute">The attribute to check for pending tag writes.</param>
+	/// <returns></returns> 
+	public async Task<int> PendingTagWritesExist(string path, string attribute)
+	{
+		return await _database.ExecuteScalarAsync<int>($"SELECT {attribute} FROM PendingTagWrites WHERE Path = ?", path);
 	}
 
 	/// <summary>
