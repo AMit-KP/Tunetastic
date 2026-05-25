@@ -1,9 +1,87 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:Tunetastic.Common.Controls">
 
 	<x:Double x:Key="TitleBarCompactHeight">48</x:Double>
 
 	<Thickness x:Key="ContentPageMargin">10,10,0,0</Thickness>
 	<Thickness x:Key="ContentPagePadding">0,0,10,0</Thickness>
+	<!--
+    Paste this <Style> block inside your Styles.xaml.
+    Make sure xmlns:local="using:YourApp.Controls" is on the ResourceDictionary.
+
+    APPROACH:
+    We re-template the inner TextBox. Its ControlTemplate normally has a
+    ScrollViewer named ContentElement that contains the editable text surface.
+    We wrap that ScrollViewer in a Grid and place PART_GhostBlock in the same
+    Grid cell behind it — same coordinate space, same padding, same font metrics.
+    The ghost TextBlock uses a negative left margin equal to the caret X offset
+    which we set from code. This is the only layout-correct approach.	-->
+	<Style TargetType="local:InlineSuggestBox">
+		<Setter Property="HorizontalAlignment" Value="Stretch" />
+		<Setter Property="VerticalAlignment" Value="Top" />
+		<Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+		<Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="local:InlineSuggestBox">
+
+					<Border x:Name="RootBorder"
+					        MinHeight="{ThemeResource TextControlThemeMinHeight}"
+					        Background="{ThemeResource TextControlBackground}"
+					        BorderBrush="{ThemeResource TextControlBorderBrush}"
+					        BorderThickness="{ThemeResource TextControlBorderThemeThickness}"
+					        CornerRadius="{ThemeResource ControlCornerRadius}">
+
+						<TextBox x:Name="PART_TextBox"
+						         HorizontalAlignment="Stretch"
+						         VerticalAlignment="Stretch"
+						         AcceptsReturn="{TemplateBinding AcceptsReturn}"
+						         FontFamily="{TemplateBinding FontFamily}"
+						         FontSize="{TemplateBinding FontSize}"
+						         IsReadOnly="{TemplateBinding IsReadOnly}"
+						         MaxLength="{TemplateBinding MaxLength}"
+						         PlaceholderText="{TemplateBinding PlaceholderText}"
+						         TextWrapping="{TemplateBinding TextWrapping}">
+							<TextBox.Style>
+								<Style TargetType="TextBox">
+									<Setter Property="Template">
+										<Setter.Value>
+											<ControlTemplate TargetType="TextBox">
+												<Grid>
+													<TextBlock x:Name="PART_GhostBlock"
+													           Padding="11,5,11,5"
+													           VerticalAlignment="Top"
+													           IsHitTestVisible="False"
+													           TextWrapping="{TemplateBinding TextWrapping}"><Run x:Name="PART_GhostTypedRun" Foreground="Transparent" CharacterSpacing="30" /><Run x:Name="PART_GhostRemainderRun" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+														<!--Don't let the above line break. It needds to be one line.-->
+													</TextBlock>
+
+													<ScrollViewer x:Name="ContentElement"
+													              Padding="11,5,11,5"
+																  Margin="0"
+													              AutomationProperties.AccessibilityView="Raw"
+													              Background="Transparent"
+													              Foreground="{ThemeResource TextControlForeground}"
+													              HorizontalScrollBarVisibility="Hidden"
+													              HorizontalScrollMode="Auto"
+													              IsTabStop="False"
+													              VerticalScrollBarVisibility="Hidden"
+													              VerticalScrollMode="Auto" />
+												</Grid>
+											</ControlTemplate>
+										</Setter.Value>
+									</Setter>
+								</Style>
+							</TextBox.Style>
+						</TextBox>
+
+					</Border>
+
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
 </ResourceDictionary>
