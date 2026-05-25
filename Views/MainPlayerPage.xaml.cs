@@ -35,7 +35,6 @@ public sealed partial class MainPlayerPage : Page
 	private double lyricsTargetHeight;
 	private bool lyricsVisible = false;
 	private string? lyricsText = null;
-	private static readonly Regex SyncedLinePattern = new(@"^\[\d{1,2}:\d{2}([.:]\d{1,3})?\]", RegexOptions.Multiline | RegexOptions.Compiled);
 
 	// Synced lyrics fields
 	private List<LrcLine> _lines = new();
@@ -163,9 +162,7 @@ public sealed partial class MainPlayerPage : Page
 						LyricMenuOptions(embeddedLyrics: true);
 						lyricsText = track?.Lyrics;
 
-						// Auto-discover external .lrc file if DB lyrics is missing or unsynced
-						// Priority: DB synced > external .lrc synced > DB unsynced > nothing
-						if (!IsSyncedLyrics(lyricsText))
+						if (!LrcParser.IsSyncedLyrics(lyricsText))
 						{
 							var externalContent = TryLoadExternalLrc(songPath);
 							if (externalContent != null)
@@ -183,7 +180,7 @@ public sealed partial class MainPlayerPage : Page
 						}
 						else
 						{
-							_externalLrcPath = null; // DB has synced lyrics, ignore external file
+							_externalLrcPath = null;
 						}
 
 						return Task.CompletedTask;
@@ -302,7 +299,6 @@ public sealed partial class MainPlayerPage : Page
 		UpdateCoverArtSize();
 		UpdateLyricsGrid();
 
-		// Recalculate centering padding when window resizes and synced lyrics are active
 		if (_lyricButtons.Count > 0 && _centeringPaddingSet)
 			SetCenteringPadding();
 	}
@@ -486,21 +482,6 @@ public sealed partial class MainPlayerPage : Page
 
 	private void CloseLyricsButton_Click(object sender, RoutedEventArgs e) => HideLyricsAndResetCoverArt();
 
-	public static bool IsSyncedLyrics(string lyrics)
-	{
-		if (string.IsNullOrWhiteSpace(lyrics))
-			return false;
-
-		int matchCount = 0;
-		foreach (Match match in SyncedLinePattern.Matches(lyrics))
-		{
-			if (++matchCount >= 2)
-				return true;
-		}
-
-		return false;
-	}
-
 	/// <summary>
 	/// Tries to load an external .lrc file from the same directory as the audio file.
 	/// Returns the content only if it contains valid synced lyrics.
@@ -515,7 +496,7 @@ public sealed partial class MainPlayerPage : Page
 			try
 			{
 				var content = File.ReadAllText(lrcPath);
-				if (IsSyncedLyrics(content))
+				if (LrcParser.IsSyncedLyrics(content))
 					return content;
 			}
 			catch
@@ -532,7 +513,7 @@ public sealed partial class MainPlayerPage : Page
 
 		if (!string.IsNullOrEmpty(lyricsText))
 		{
-			if (IsSyncedLyrics(lyricsText))
+			if (LrcParser.IsSyncedLyrics(lyricsText))
 				DisplaySyncedLyrics();
 			else
 				DisplayUnsyncedLyrics();
@@ -575,7 +556,6 @@ public sealed partial class MainPlayerPage : Page
 			FrameworkElement content;
 			if (isEmpty)
 			{
-				// Placeholder: single-space text in a capsule to reserve vertical space
 				var spacerText = new TextBlock
 				{
 					Text = " ",
@@ -617,7 +597,6 @@ public sealed partial class MainPlayerPage : Page
 			var scaleTransform = new ScaleTransform { ScaleX = 1.0, ScaleY = 1.0 };
 			button.RenderTransform = scaleTransform;
 
-			// Only wire events for non-empty lines
 			if (!isEmpty)
 			{
 				button.Click += LyricButton_Click;
@@ -633,7 +612,6 @@ public sealed partial class MainPlayerPage : Page
 		_lrcTimer.Tick += LrcTimer_Tick;
 		_lrcTimer.Start();
 
-		// Defer centering padding setup until layout settles
 		_centeringPaddingSet = false;
 		SetCenteringPadding();
 	}
@@ -648,20 +626,17 @@ public sealed partial class MainPlayerPage : Page
 		double viewportHeight = LyricsScrollView.ViewportHeight;
 		double halfViewport = viewportHeight / 2;
 
-		// Preserve the existing horizontal padding (24) and add vertical centering padding
 		LyricsPanel.Padding = new Thickness(24, halfViewport, 24, halfViewport);
 		_centeringPaddingSet = true;
 	}
 
 	private void LrcTimer_Tick(object? sender, object e)
 	{
-		// Only sync when actually playing — prevents phantom seeking when cycling tracks
 		if (!_musicPlayer.IsPlaying) return;
 
 		long currentTicks = _musicPlayer.CurTimeTicks;
 		TimeSpan currentTime = TimeSpan.FromTicks(currentTicks);
 
-		// Find the active line: last line whose Time <= current position
 		int activeIdx = -1;
 		for (int i = _lines.Count - 1; i >= 0; i--)
 		{
@@ -679,13 +654,11 @@ public sealed partial class MainPlayerPage : Page
 			int oldIndex = _activeIndex;
 			_activeIndex = activeIdx;
 
-			// Deactivate old line
 			if (oldIndex >= 0 && oldIndex < _lyricButtons.Count)
 			{
 				AnimateLyricButton(_lyricButtons[oldIndex], targetOpacity: 0.30, targetScale: 1.0);
 			}
 
-			// Activate new line
 			if (_activeIndex >= 0 && _activeIndex < _lyricButtons.Count)
 			{
 				AnimateLyricButton(_lyricButtons[_activeIndex], targetOpacity: 1.0, targetScale: 1.05);
@@ -699,7 +672,6 @@ public sealed partial class MainPlayerPage : Page
 	{
 		var storyboard = new Storyboard();
 
-		// Opacity animation
 		var opacityAnim = new DoubleAnimation
 		{
 			To = targetOpacity,
@@ -711,7 +683,6 @@ public sealed partial class MainPlayerPage : Page
 		Storyboard.SetTargetProperty(opacityAnim, "Opacity");
 		storyboard.Children.Add(opacityAnim);
 
-		// Scale X animation
 		var scaleXAnim = new DoubleAnimation
 		{
 			To = targetScale,
@@ -723,7 +694,6 @@ public sealed partial class MainPlayerPage : Page
 		Storyboard.SetTargetProperty(scaleXAnim, "ScaleX");
 		storyboard.Children.Add(scaleXAnim);
 
-		// Scale Y animation
 		var scaleYAnim = new DoubleAnimation
 		{
 			To = targetScale,
@@ -742,41 +712,33 @@ public sealed partial class MainPlayerPage : Page
 	{
 		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
 
-		// Wait for layout to settle
 		await Task.Delay(50);
 
-		// Guard: list may have been cleared by CleanupSyncedLyrics during the delay
 		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
 
-		// If the padding was never set (e.g. first activation before SetCenteringPadding finished), recalculate now
 		if (!_centeringPaddingSet)
 		{
 			double vh = LyricsScrollView.ViewportHeight;
 			LyricsPanel.Padding = new Thickness(24, vh / 2, 24, vh / 2);
 			_centeringPaddingSet = true;
-			await Task.Delay(50); // let the new padding take effect
+			await Task.Delay(50);
 		}
 
-		// Guard again after the second delay
 		if (_activeIndex < 0 || _activeIndex >= _lyricButtons.Count) return;
 
 		var activeButton = _lyricButtons[_activeIndex];
 		var scrollView = LyricsScrollView;
 
-		// Get the Y position of the active button relative to the ScrollView
 		var transform = activeButton.TransformToVisual(scrollView);
 		var position = transform.TransformPoint(new Windows.Foundation.Point(0, 0));
 
-		// Calculate the offset that centers the button in the viewport
 		double viewportHeight = scrollView.ViewportHeight;
 		double buttonHeight = activeButton.ActualHeight;
 		double targetOffset = scrollView.VerticalOffset + position.Y - (viewportHeight / 2) + (buttonHeight / 2);
 
-		// Clamp to valid range
 		double maxOffset = scrollView.ScrollableHeight;
 		targetOffset = Math.Max(0, Math.Min(targetOffset, maxOffset));
 
-		// Always animate scrolling — even on large seeks, a smooth scroll feels better
 		var options = new ScrollingScrollOptions(
 			ScrollingAnimationMode.Enabled,
 			ScrollingSnapPointsMode.Ignore
@@ -784,13 +746,13 @@ public sealed partial class MainPlayerPage : Page
 		scrollView.ScrollTo(0, targetOffset, options);
 	}
 
+
 	private void LyricButton_Click(object sender, RoutedEventArgs e)
 	{
 		if (sender is Button button && button.Tag is int index && index >= 0 && index < _lines.Count)
 		{
 			var time = _lines[index].Time;
 
-			// Seek on the actual player
 			_musicPlayer.CurTimeTicks = time.Ticks;
 
 			var vm = App.GetService<MusicControlViewModel>();
