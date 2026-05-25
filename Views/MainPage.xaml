@@ -19,7 +19,7 @@
 			<Setter Property="Template">
 				<Setter.Value>
 					<ControlTemplate TargetType="ContentControl">
-						<Border Padding="8,3"
+						<Border Padding="8,3,8,4"
 						        HorizontalAlignment="Left"
 						        VerticalAlignment="Center"
 						        Background="{ThemeResource AccentFillColorDefaultBrush}"
@@ -28,9 +28,9 @@
 							           VerticalAlignment="Center"
 							           CharacterSpacing="50"
 							           FontSize="10"
-							           FontWeight="SemiBold"
+							           FontWeight="Bold"
 							           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-							           Text="CHANGED" />
+							           Text="{TemplateBinding Content}" />
 						</Border>
 					</ControlTemplate>
 				</Setter.Value>
@@ -222,6 +222,31 @@
 			               DefaultButton="Close"
 			               PrimaryButtonText="Edit Details"
 			               Visibility="Visible">
+				<ContentDialog.Resources>
+					<DataTemplate x:Key="LyricsTitleTemplate">
+						<StackPanel VerticalAlignment="Center"
+						            Orientation="Horizontal"
+						            Spacing="10">
+							<TextBlock Text="Song/Track Information" />
+							<ContentControl Content="🎵 Has Lyrics"
+							                Style="{StaticResource NewBadgeStyle}" />
+						</StackPanel>
+					</DataTemplate>
+
+					<DataTemplate x:Key="SyncedLyricsTitleTemplate">
+						<StackPanel VerticalAlignment="Center"
+						            Orientation="Horizontal"
+						            Spacing="10">
+							<TextBlock Text="Song/Track Information" />
+							<ContentControl Content="🎵 Has Synced Lyrics"
+							                Style="{StaticResource NewBadgeStyle}" />
+						</StackPanel>
+					</DataTemplate>
+
+					<DataTemplate x:Key="DefaultTitleTemplate">
+						<TextBlock Text="Song/Track Information" />
+					</DataTemplate>
+				</ContentDialog.Resources>
 				<Grid RowSpacing="10">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto" />
@@ -591,6 +616,7 @@
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Cover Art" />
 								<ContentControl x:Name="CoverArtChanged"
+								                Content="CHANGED"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
@@ -643,6 +669,7 @@
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Title" />
 								<ContentControl x:Name="TitleChanged"
+								                Content="CHANGED"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
@@ -658,6 +685,7 @@
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Artist(s)" />
 								<ContentControl x:Name="ArtistChanged"
+								                Content="CHANGED"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
@@ -710,6 +738,7 @@
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Album" />
 								<ContentControl x:Name="AlbumChanged"
+								                Content="CHANGED"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
@@ -720,7 +749,7 @@
 							         TextWrapping="Wrap" />
 						</StackPanel>
 
-						<Grid ColumnSpacing="12">
+						<Grid ColumnSpacing="8">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
 								<ColumnDefinition Width="160" />
@@ -733,6 +762,7 @@
 									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 									           Text="Genre" />
 									<ContentControl x:Name="GenreChanged"
+									                Content="CHANGED"
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
@@ -749,6 +779,7 @@
 									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 									           Text="Year" />
 									<ContentControl x:Name="YearChanged"
+									                Content="CHANGED"
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
@@ -770,6 +801,7 @@
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
 								           Text="Lyrics" />
 								<ContentControl x:Name="LyricsChanged"
+								                Content="CHANGED"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>

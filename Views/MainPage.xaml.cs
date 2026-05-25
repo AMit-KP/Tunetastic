@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
+using CommunityToolkit.WinUI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
@@ -688,6 +689,17 @@ public sealed partial class MainPage : Page
 			SongSampleRate.Text = songData.AudioSampleRate ?? string.Empty;
 			SongCodecDescription.Text = songData.AudioCodecDescription ?? string.Empty;
 			SongPlayCount.Text = songData.PlayCount.ToString() ?? "0";
+			
+			if (!string.IsNullOrEmpty(songData.Lyrics))
+			{
+				if(LrcParser.IsSyncedLyrics(songData.Lyrics))
+					SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["SyncedLyricsTitleTemplate"];
+				else
+					SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["LyricsTitleTemplate"];
+			}
+			else
+				SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["DefaultTitleTemplate"];
+
 			if (songData.DateLastPlayed != null)
 				SongLastPlayed.Text = new DateFormatConverter().Convert(songData.DateLastPlayed, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateLastPlayed, null, "T", null).ToString();
 			else
