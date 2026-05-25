@@ -3,6 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:common="using:Tunetastic.Common"
+      xmlns:controls="using:Tunetastic.Common.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
       xmlns:local="using:Tunetastic"
@@ -766,12 +767,14 @@
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
-								<dev:InlineAutoCompleteTextBox x:Name="GenreAutoSuggestBox"
-								                               IsSuggestionCaseSensitive="False"
-								                               PlaceholderText="Enter Genre"
-								                               SuggestionSuffix=" ? [Press Right]"
-								                               SuggestionsSource="{x:Bind GenreSuggestions, Mode=OneWay}"
-								                               TextChanged="GenreAutoSuggestBox_TextChanged" />
+								<controls:InlineSuggestBox x:Name="GenreAutoSuggestBox"
+								                           AcceptKey="Both"
+								                           CaseSensitiveSuggestion="False"
+								                           PlaceholderText="Enter genre"
+								                           SuggestionSource="{x:Bind GenreSuggestions, Mode=OneWay}"
+								                           SuggestionSuffix=" [Press → or TAB]"
+								                           TextChanged="GenreAutoSuggestBox_TextChanged"
+								                           TextWrapping="Wrap" />
 							</StackPanel>
 
 							<StackPanel Grid.Column="1"
