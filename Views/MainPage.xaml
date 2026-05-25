@@ -766,10 +766,12 @@
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
-								<AutoSuggestBox x:Name="GenreAutoSuggestBox"
-								                PlaceholderText="Enter Genre"
-								                QueryIcon="Find"
-								                TextChanged="GenreAutoSuggestBox_TextChanged" />
+								<dev:InlineAutoCompleteTextBox x:Name="GenreAutoSuggestBox"
+								                               IsSuggestionCaseSensitive="False"
+								                               PlaceholderText="Enter Genre"
+								                               SuggestionSuffix=" ? [Press Right]"
+								                               SuggestionsSource="{x:Bind GenreSuggestions, Mode=OneWay}"
+								                               TextChanged="GenreAutoSuggestBox_TextChanged" />
 							</StackPanel>
 
 							<StackPanel Grid.Column="1"

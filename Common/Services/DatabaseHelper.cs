@@ -1855,6 +1855,12 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
 	}
 
+	public async Task<List<string>> GetAllGenres()
+	{
+		var genres = await _database.QueryAsync<Song>("SELECT DISTINCT Genre FROM Songs WHERE Genre IS NOT NULL AND Genre != '' AND Genre != 'Unknown' AND Genre != 'Unknown Genre' ORDER BY Genre ASC");
+		return genres.Select(x => x.Genre).ToList();
+	}
+
 	/// <summary>
 	/// Parses the user-provided search input into groups of terms for advanced search functionality.
 	/// The input is split into <b>OR</b> groups using the <b>';'</b> delimiter, and within each group, <b>AND</b> terms are identified using the <b>'+'</b> delimiter.

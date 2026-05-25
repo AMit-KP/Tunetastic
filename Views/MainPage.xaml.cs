@@ -30,6 +30,7 @@ public sealed partial class MainPage : Page
 	private bool _isUpdatingSlider = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
+	private List<string> GenreSuggestions { get; } = new();
 
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
@@ -749,6 +750,8 @@ public sealed partial class MainPage : Page
 
 				EditSongInfo.IsPrimaryButtonEnabled = false;
 
+				GenreSuggestions.AddRange(await DatabaseHelper.Instance.GetAllGenres());
+
 				MainWindow._instance.WindowResizePermission(false);
 				var editResult = await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
@@ -848,7 +851,7 @@ public sealed partial class MainPage : Page
 
 						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 					}
-					//await UpdateUI();
+					//TODO: await UpdateUI();
 				}
 
 				_songData = null;
@@ -1092,7 +1095,7 @@ public sealed partial class MainPage : Page
 		}
 	}
 
-	private void GenreAutoSuggestBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+	private void GenreAutoSuggestBox_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		if (_songData is not null)
 		{
