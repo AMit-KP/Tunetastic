@@ -30,6 +30,8 @@ public sealed partial class MainPage : Page
 	private bool _isUpdatingSlider = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
+	private List<string> ArtistSuggestions { get; } = new();
+	private List<string> AlbumSuggestions { get; } = new();
 	private List<string> GenreSuggestions { get; } = new();
 
 	/// <summary>
@@ -750,6 +752,7 @@ public sealed partial class MainPage : Page
 
 				EditSongInfo.IsPrimaryButtonEnabled = false;
 
+				AlbumSuggestions.AddRange(await DatabaseHelper.Instance.GetAllAlbums());
 				GenreSuggestions.AddRange(await DatabaseHelper.Instance.GetAllGenres());
 
 				MainWindow._instance.WindowResizePermission(false);

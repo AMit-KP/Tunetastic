@@ -744,10 +744,14 @@
 								                Visibility="Collapsed" />
 							</StackPanel>
 
-							<TextBox x:Name="AlbumTextBox"
-							         PlaceholderText="Enter Album Name"
-							         TextChanged="AlbumTextBox_TextChanged"
-							         TextWrapping="Wrap" />
+							<controls:InlineSuggestBox x:Name="AlbumTextBox"
+							                           AcceptKey="Both"
+							                           CaseSensitiveSuggestion="False"
+							                           PlaceholderText="Enter Album Name"
+							                           SuggestionSource="{x:Bind AlbumSuggestions, Mode=OneWay}"
+							                           SuggestionSuffix=" [Press → or TAB]"
+							                           TextChanged="AlbumTextBox_TextChanged"
+							                           TextWrapping="Wrap" />
 						</StackPanel>
 
 						<Grid ColumnSpacing="8">

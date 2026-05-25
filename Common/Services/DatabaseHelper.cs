@@ -1855,6 +1855,12 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
 	}
 
+	public async Task<List<string>> GetAllAlbums()
+	{
+		var albums = await _database.QueryAsync<Song>("SELECT DISTINCT Album FROM Songs WHERE Album IS NOT NULL AND Album != '' ORDER BY Album ASC");
+		return albums.Select(x => x.Album).ToList();
+	}
+
 	public async Task<List<string>> GetAllGenres()
 	{
 		var genres = await _database.QueryAsync<Song>("SELECT DISTINCT Genre FROM Songs WHERE Genre IS NOT NULL AND Genre != '' AND Genre != 'Unknown' AND Genre != 'Unknown Genre' ORDER BY Genre ASC");
