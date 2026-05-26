@@ -699,41 +699,25 @@
 							                           PlaceholderText="Enter Artist Name(s)"
 							                           SplitRules="{x:Bind ArtistSplitRules, Mode=OneWay}"
 							                           SuggestionSource="{x:Bind ArtistSuggestions, Mode=OneWay}"
-							                           SuggestionSuffix=" [Press → or TAB]"
+							                           SuggestionSuffix=" [Press →]"
 							                           TextChanged="ArtistTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
-							             Title="Enter Artist Name(s)"
+							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+							             BackgroundSizing="InnerBorderEdge"
 							             Target="{x:Bind ArtistTextBox}">
 								<TeachingTip.Content>
-									<TextBlock>
-										<Run Text="For multiple artists, separate with:" />
-										<LineBreak />
-										<Run Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" ," />
-										<LineBreak />
-										<Run Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" and" />
-										<LineBreak />
-										<Run Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" &amp;" />
-										<LineBreak />
-										<Run Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" feat." />
-										<LineBreak />
-										<Run Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" ft." />
-										<LineBreak />
-										<Run Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" x" />
-									</TextBlock>
+									<StackPanel>
+										<TextBlock Name="ArtistTeachingTipContent"
+										           TextWrapping="Wrap" />
+										<Grid x:Name="DelimitersGrid">
+											<Grid.ColumnDefinitions>
+												<ColumnDefinition Width="70" />
+												<ColumnDefinition Width="70" />
+											</Grid.ColumnDefinitions>
+										</Grid>
+									</StackPanel>
 								</TeachingTip.Content>
 							</TeachingTip>
 
@@ -756,13 +740,12 @@
 							                           LostFocus="AlbumTextBox_LostFocus"
 							                           PlaceholderText="Enter Album Name"
 							                           SuggestionSource="{x:Bind AlbumSuggestions, Mode=OneWay}"
-							                           SuggestionSuffix=" [Press → or TAB]"
+							                           SuggestionSuffix=" [Press →]"
 							                           TextChanged="AlbumTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
 							<TeachingTip x:Name="AlbumTeachingTip"
-							             Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 							             BackgroundSizing="InnerBorderEdge"
-							             IsLightDismissEnabled="True"
 							             Target="{x:Bind AlbumTextBox}">
 								<TeachingTip.Content>
 									<TextBlock TextWrapping="Wrap">
@@ -772,18 +755,28 @@
 										     Text="·" />
 										<Run Text=" Press" />
 										<Run FontWeight="Bold"
-										     Text="Right Arrow (→)" />
-										<Run Text="or" />
+										     Text="Up (↑)" />
+										<Run Text="/" />
 										<Run FontWeight="Bold"
-										     Text="TAB" />
-										<Run Text="to select suggestion." />
+										     Text="Down (↓)" />
+										<Run Text="to cycle suggestions." />
 										<LineBreak />
 										<Run FontWeight="ExtraBold"
 										     Text="·" />
 										<Run Text=" Press" />
 										<Run FontWeight="Bold"
-										     Text="Down Arrow (↓)" />
-										<Run Text="to cycle suggestions." />
+										     Text="Right Arrow (→)" />
+										<Run Text="to accept." />
+										<LineBreak />
+										<Run FontWeight="ExtraBold"
+										     Text="·" />
+										<Run FontWeight="Bold"
+										     Text=" Type" />
+										<Run Text="or" />
+										<Run Text="Press" />
+										<Run FontWeight="Bold"
+										     Text="Right Arrow (→)" />
+										<Run Text="to preview suggestions if dismissed." />
 									</TextBlock>
 								</TeachingTip.Content>
 							</TeachingTip>
@@ -812,13 +805,12 @@
 								                           LostFocus="GenreAutoSuggestBox_LostFocus"
 								                           PlaceholderText="Enter genre"
 								                           SuggestionSource="{x:Bind GenreSuggestions, Mode=OneWay}"
-								                           SuggestionSuffix=" [Press → or TAB]"
+								                           SuggestionSuffix=" [Press →]"
 								                           TextChanged="GenreAutoSuggestBox_TextChanged"
 								                           TextWrapping="Wrap" />
 								<TeachingTip x:Name="GenreTeachingTip"
-								             Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+								             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 								             BackgroundSizing="InnerBorderEdge"
-								             IsLightDismissEnabled="True"
 								             Target="{x:Bind GenreAutoSuggestBox}">
 									<TeachingTip.Content>
 										<TextBlock TextWrapping="Wrap">
@@ -828,18 +820,28 @@
 											     Text="·" />
 											<Run Text=" Press" />
 											<Run FontWeight="Bold"
-											     Text="Right Arrow (→)" />
-											<Run Text="or" />
+											     Text="Up (↑)" />
+											<Run Text="/" />
 											<Run FontWeight="Bold"
-											     Text="TAB" />
-											<Run Text="to select suggestion." />
+											     Text="Down (↓)" />
+											<Run Text="to cycle suggestions." />
 											<LineBreak />
 											<Run FontWeight="ExtraBold"
 											     Text="·" />
 											<Run Text=" Press" />
 											<Run FontWeight="Bold"
-											     Text="Down Arrow (↓)" />
-											<Run Text="to cycle suggestions." />
+											     Text="Right Arrow (→)" />
+											<Run Text="to accept." />
+											<LineBreak />
+											<Run FontWeight="ExtraBold"
+											     Text="·" />
+											<Run FontWeight="Bold"
+											     Text=" Type" />
+											<Run Text="or" />
+											<Run Text="Press" />
+											<Run FontWeight="Bold"
+											     Text="Right Arrow (→)" />
+											<Run Text="to preview suggestions if dismissed." />
 										</TextBlock>
 									</TeachingTip.Content>
 								</TeachingTip>

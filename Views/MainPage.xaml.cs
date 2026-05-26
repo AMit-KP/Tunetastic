@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
-using CommunityToolkit.WinUI;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
@@ -694,10 +693,10 @@ public sealed partial class MainPage : Page
 			SongSampleRate.Text = songData.AudioSampleRate ?? string.Empty;
 			SongCodecDescription.Text = songData.AudioCodecDescription ?? string.Empty;
 			SongPlayCount.Text = songData.PlayCount.ToString() ?? "0";
-			
+
 			if (!string.IsNullOrEmpty(songData.Lyrics))
 			{
-				if(LrcParser.IsSyncedLyrics(songData.Lyrics))
+				if (LrcParser.IsSyncedLyrics(songData.Lyrics))
 					SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["SyncedLyricsTitleTemplate"];
 				else
 					SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["LyricsTitleTemplate"];
@@ -754,10 +753,17 @@ public sealed partial class MainPage : Page
 
 				EditSongInfo.IsPrimaryButtonEnabled = false;
 
+				ArtistSuggestions.Clear();
+				ArtistSplitRules.Clear();
+				AlbumSuggestions.Clear();
+				GenreSuggestions.Clear();
+
 				ArtistSuggestions.AddRange(await DatabaseHelper.Instance.GetAllArtists());
 				ArtistSplitRules.AddRange(await DatabaseHelper.Instance.GetArtistSplitRules());
 				AlbumSuggestions.AddRange(await DatabaseHelper.Instance.GetAllAlbums());
 				GenreSuggestions.AddRange(await DatabaseHelper.Instance.GetAllGenres());
+
+				PopulateArtistTeachingTip(ArtistSplitRules);
 
 				MainWindow._instance.WindowResizePermission(false);
 				var editResult = await EditSongInfo.ShowAsync();
@@ -779,7 +785,7 @@ public sealed partial class MainPage : Page
 					{
 						if (_frontCoverArtPath is not null)
 						{
-							if(!File.Exists(_frontCoverArtPath))
+							if (!File.Exists(_frontCoverArtPath))
 								GlobalNotification.Error($"File not found: {_frontCoverArtPath}");
 
 							var picture = new TagLib.Picture(_frontCoverArtPath)
@@ -1168,10 +1174,76 @@ public sealed partial class MainPage : Page
 	private void GenreAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
 	{
 		GenreTeachingTip.IsOpen = true;
-    }
+	}
 
 	private void GenreAutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
 	{
 		GenreTeachingTip.IsOpen = false;
-    }
+	}
+
+	private void PopulateArtistTeachingTip(List<ArtistSplitRule> splitters)
+	{
+		var activeDelimiters = splitters
+			.Where(s => s.Active == true)
+			.Select(s => s.IsRegex == true ? ToReadable(s.Pattern) : s.Pattern)
+			.ToList();
+
+		ArtistTeachingTipContent.Inlines.Clear();
+		
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Up (↑)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " / " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Down (↓)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = " Type" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " or Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions if dismissed." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "For multiple artists, separate with:" });
+
+		int row = 0;
+		for (int i = 0; i < activeDelimiters.Count; i++)
+		{
+			int col = i % 2;
+			if (col == 0)
+			{
+				DelimitersGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+			}
+
+			var tb = new TextBlock();
+			tb.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "·  " });
+			tb.Inlines.Add(new Run { Text = activeDelimiters[i], FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+
+			Grid.SetRow(tb, row);
+			Grid.SetColumn(tb, col);
+			DelimitersGrid.Children.Add(tb);
+
+			if (col == 1) row++;
+		}
+	}
+
+	private string ToReadable(string regexPattern)
+	{
+		// \bfeat\.?\s+ → "feat."  |  \band\b → "and"  |  \bx\b → "x"
+		var result = Regex.Replace(regexPattern, @"\\b|\\s\+", "").Trim();
+		result = result.Replace(@"\.", ".");   // keep the actual dot
+		result = result.Replace(@"?", "");     // remove regex quantifier ?
+		return result;
+	}
 }
