@@ -1,30 +1,26 @@
 ﻿using System.Text.RegularExpressions;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Common.Controls;
 
-public enum SuggestionAcceptKey { RightArrow, Tab, Both }
-
 [TemplatePart(Name = PartTextBox, Type = typeof(TextBox))]
-[TemplatePart(Name = PartGhostBlock, Type = typeof(TextBlock))]
 public sealed class InlineSuggestBox : Control
 {
 	private const string PartTextBox = "PART_TextBox";
-	private const string PartGhostBlock = "PART_GhostBlock";
-	private const string PartGhostTypedRun = "PART_GhostTypedRun";
-	private const string PartGhostRemainderRun = "PART_GhostRemainderRun";
 
 	private TextBox? _textBox;
-	private TextBlock? _ghostBlock;
-	private Run? _ghostTypedRun;
-	private Run? _ghostRemainderRun;
 
 	private List<string> _matches = new();
 	private int _matchIndex = -1;
 	private string _currentFullMatch = string.Empty;
+	private bool _suggestionDismissed;
+
+	// The exact string we last wrote into _textBox.Text internally (to show a
+	// suggestion). TextBox_TextChanged compares against this to decide whether
+	// the change came from us or from the user. Cleared whenever the user makes
+	// a real edit or the suggestion is dismissed/accepted.
+	private string _lastInternalBoxText = string.Empty;
 
 	// ── Dependency Properties ────────────────────────────────────────────
 
@@ -42,8 +38,12 @@ public sealed class InlineSuggestBox : Control
 	public static readonly DependencyProperty SuggestionSuffixProperty =
 		DependencyProperty.Register(nameof(SuggestionSuffix), typeof(string),
 			typeof(InlineSuggestBox), new PropertyMetadata(string.Empty,
-				(d, _) => ((InlineSuggestBox)d).UpdateGhost()));
+				(d, _) => ((InlineSuggestBox)d).UpdateSuggestionSelection()));
 
+	/// <summary>
+	/// Visual-only hint appended after the suggestion remainder in the selection.
+	/// Never written to the Text DP and never included in accepted text.
+	/// </summary>
 	public string SuggestionSuffix
 	{
 		get => (string)GetValue(SuggestionSuffixProperty);
@@ -59,16 +59,6 @@ public sealed class InlineSuggestBox : Control
 	{
 		get => (bool)GetValue(CaseSensitiveSuggestionProperty);
 		set => SetValue(CaseSensitiveSuggestionProperty, value);
-	}
-
-	public static readonly DependencyProperty AcceptKeyProperty =
-		DependencyProperty.Register(nameof(AcceptKey), typeof(SuggestionAcceptKey),
-			typeof(InlineSuggestBox), new PropertyMetadata(SuggestionAcceptKey.RightArrow));
-
-	public SuggestionAcceptKey AcceptKey
-	{
-		get => (SuggestionAcceptKey)GetValue(AcceptKeyProperty);
-		set => SetValue(AcceptKeyProperty, value);
 	}
 
 	public static readonly DependencyProperty TextProperty =
@@ -132,8 +122,8 @@ public sealed class InlineSuggestBox : Control
 	}
 
 	public static readonly DependencyProperty MultiSuggestEnabledProperty =
-	DependencyProperty.Register(nameof(MultiSuggestEnabled), typeof(bool),
-		typeof(InlineSuggestBox), new PropertyMetadata(false));
+		DependencyProperty.Register(nameof(MultiSuggestEnabled), typeof(bool),
+			typeof(InlineSuggestBox), new PropertyMetadata(false));
 
 	public bool MultiSuggestEnabled
 	{
@@ -173,74 +163,45 @@ public sealed class InlineSuggestBox : Control
 		{
 			_textBox.TextChanged -= TextBox_TextChanged;
 			_textBox.PreviewKeyDown -= TextBox_PreviewKeyDown;
-			_textBox.KeyDown -= TextBox_KeyDown;
-			_textBox.LayoutUpdated -= TextBox_LayoutUpdated;
+			_textBox.PointerPressed -= TextBox_PointerPressed;
+			_textBox.SelectionChanged -= TextBox_SelectionChanged;
+			_textBox.LostFocus -= TextBox_LostFocus;
 		}
 
 		_textBox = GetTemplateChild(PartTextBox) as TextBox;
-		_ghostBlock = null;
 
 		if (_textBox is not null)
 		{
 			_textBox.TextChanged += TextBox_TextChanged;
 			_textBox.PreviewKeyDown += TextBox_PreviewKeyDown;
-			_textBox.AddHandler(
-				UIElement.KeyDownEvent,
-				new KeyEventHandler(TextBox_KeyDown),
-				handledEventsToo: true);
-
-			// PART_GhostBlock is inside the TextBox's own ControlTemplate.
-			// Its visual tree is not built until after the first layout pass.
-			// LayoutUpdated fires after every layout pass — we hook it once
-			// and unhook as soon as we find the element.
-			_textBox.LayoutUpdated += TextBox_LayoutUpdated;
+			_textBox.PointerPressed += TextBox_PointerPressed;
+			_textBox.SelectionChanged += TextBox_SelectionChanged;
+			_textBox.LostFocus += TextBox_LostFocus;
 
 			if (!string.IsNullOrEmpty(Text))
 				_textBox.Text = Text;
 		}
 	}
 
-	private void TextBox_LayoutUpdated(object? sender, object e)
-	{
-		if (_ghostBlock is not null)
-		{
-			// Already found — unhook to avoid repeated searches every frame
-			_textBox!.LayoutUpdated -= TextBox_LayoutUpdated;
-			return;
-		}
-
-		var found = FindDescendantByName<TextBlock>(_textBox!, PartGhostBlock);
-		if (found is null) return; // not in tree yet, wait for next pass
-
-		// Found it — unhook, apply colour, and trigger any pending suggestion
-		_textBox!.LayoutUpdated -= TextBox_LayoutUpdated;
-		_ghostBlock = found;
-
-		// Get Runs directly from Inlines — VisualTreeHelper cannot find them
-		_ghostTypedRun = _ghostBlock.Inlines.OfType<Run>()
-			.FirstOrDefault(r => r.Name == PartGhostTypedRun);
-		_ghostRemainderRun = _ghostBlock.Inlines.OfType<Run>()
-			.FirstOrDefault(r => r.Name == PartGhostRemainderRun);
-
-		// Apply theme disabled-text colour.
-		// ThemeResource/TemplateBinding both silently fail on elements inside
-		// a nested ControlTemplate in WinUI 3, so we set it in code instead.
-		if (Application.Current.Resources.TryGetValue(
-		"TextFillColorTertiaryBrush", out var res) && res is Brush brush)
-		{
-			_ghostBlock.Foreground = brush; // keep as fallback
-		}
-
-		// Replay any suggestion that was already computed before ghost was ready
-		if (!string.IsNullOrEmpty(_currentFullMatch))
-			UpdateGhost();
-	}
-
 	// ── Event handlers ───────────────────────────────────────────────────
 
 	private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		Text = _textBox!.Text;
+		string boxText = _textBox!.Text;
+
+		// If the box text exactly matches what we last wrote internally, this
+		// TextChanged is our own async notification — ignore it entirely.
+		// This works even when TextChanged fires on the next dispatcher frame
+		// after our write, because _lastInternalBoxText is a persistent field
+		// (not a try/finally flag that resets before the callback fires).
+		if (boxText == _lastInternalBoxText) return;
+
+		// Real user edit. Clear the internal-text record and update the Text DP.
+		_lastInternalBoxText = string.Empty;
+		_suggestionDismissed = false;
+		ClearState();
+
+		Text = boxText;
 		RefreshSuggestion();
 		TextChanged?.Invoke(this, e);
 	}
@@ -251,63 +212,92 @@ public sealed class InlineSuggestBox : Control
 
 		switch (e.Key)
 		{
-			case Windows.System.VirtualKey.Right
-				when hasSuggestion && IsAcceptKey(SuggestionAcceptKey.RightArrow):
-				if (_textBox!.SelectionStart == _textBox.Text.Length)
+			// ── Accept: Right arrow ───────────────────────────────────────
+			case Windows.System.VirtualKey.Right:
+				if (hasSuggestion && _textBox!.SelectionLength > 0)
 				{
 					AcceptSuggestion();
 					e.Handled = true;
 				}
+				else if (!hasSuggestion && _suggestionDismissed && _textBox!.SelectionStart == _textBox.Text.Length)
+				{
+					_suggestionDismissed = false;
+					RefreshSuggestion();
+					e.Handled = true;
+				}
 				break;
 
-			case Windows.System.VirtualKey.Tab
-				when hasSuggestion && IsAcceptKey(SuggestionAcceptKey.Tab):
+			// ── Cycle down through matches ────────────────────────────────
+			case Windows.System.VirtualKey.Down when _matches.Count > 0:
 				e.Handled = true;
-				break;
-
-			case Windows.System.VirtualKey.Down when _matches.Count > 1:
 				_matchIndex = (_matchIndex + 1) % _matches.Count;
 				ShowMatch(_matchIndex);
-				e.Handled = true;
 				break;
 
-			case Windows.System.VirtualKey.Up when _matches.Count > 1:
+			case Windows.System.VirtualKey.Up when _matches.Count > 0:
+				e.Handled = true;
 				_matchIndex = (_matchIndex - 1 + _matches.Count) % _matches.Count;
 				ShowMatch(_matchIndex);
-				e.Handled = true;
 				break;
 
+			// ── Dismiss ───────────────────────────────────────────────────
+
+			case Windows.System.VirtualKey.Left when hasSuggestion:
+				DismissSuggestion();
+				break;
+
+			case Windows.System.VirtualKey.Back when hasSuggestion:
+				{
+					e.Handled = true;
+					string current = Text;
+					if (current.Length == 0) { DismissSuggestion(); break; }
+					string trimmed = current.Substring(0, current.Length - 1);
+					_lastInternalBoxText = trimmed; // allow TextChanged to treat next write as real
+					Text = trimmed;
+					_textBox!.Text = trimmed;
+					_textBox.SelectionStart = trimmed.Length;
+					_textBox.SelectionLength = 0;
+					// Now re-evaluate suggestions based on the shortened typed text
+					RefreshSuggestion();
+					break;
+				}
+
 			case Windows.System.VirtualKey.Escape when hasSuggestion:
-				ClearGhost();
+				DismissSuggestion();
 				e.Handled = true;
 				break;
 		}
 	}
 
-	private void TextBox_KeyDown(object sender, KeyRoutedEventArgs e)
+	private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
 	{
-		if (e.Key == Windows.System.VirtualKey.Tab
-			&& !string.IsNullOrEmpty(_currentFullMatch)
-			&& IsAcceptKey(SuggestionAcceptKey.Tab))
-		{
-			AcceptSuggestion();
-			e.Handled = true;
-		}
+		if (string.IsNullOrEmpty(_currentFullMatch)) return;
+		DismissSuggestion();
+		e.Handled = true;
+	}
+
+	private void TextBox_SelectionChanged(object sender, RoutedEventArgs e)
+	{
+		if (string.IsNullOrEmpty(_currentFullMatch)) return;
+		if (_textBox!.SelectionLength == 0 && _textBox.Text == _lastInternalBoxText)
+			DismissSuggestion();
+	}
+
+	private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		DismissSuggestion();
 	}
 
 	// ── Suggestion logic ─────────────────────────────────────────────────
 
 	private void RefreshSuggestion()
 	{
-		string fullText = _textBox?.Text ?? string.Empty;
+		string fullText = Text;
 		var (typed, _) = GetCurrentToken(fullText);
 
 		if (string.IsNullOrEmpty(typed) || SuggestionSource is null)
 		{
-			_matches.Clear();
-			_matchIndex = -1;
-			_currentFullMatch = string.Empty;
-			ClearGhost();
+			ClearState();
 			return;
 		}
 
@@ -321,9 +311,7 @@ public sealed class InlineSuggestBox : Control
 
 		if (_matches.Count == 0)
 		{
-			_matchIndex = -1;
-			_currentFullMatch = string.Empty;
-			ClearGhost();
+			ClearState();
 			return;
 		}
 
@@ -335,81 +323,90 @@ public sealed class InlineSuggestBox : Control
 	{
 		if (index < 0 || index >= _matches.Count) return;
 		_currentFullMatch = _matches[index];
-		UpdateGhost();
+		UpdateSuggestionSelection();
 	}
 
-	private void UpdateGhost()
+	/// <summary>
+	/// Writes prefix+fullMatch+suffix into the TextBox and selects the untyped
+	/// tail so it appears highlighted. Records the exact string written into
+	/// _lastInternalBoxText so TextBox_TextChanged can recognise it as ours.
+	/// The Text DP is NOT updated — it stays as the real typed text only.
+	/// </summary>
+	private void UpdateSuggestionSelection()
 	{
-		if (_ghostTypedRun is null || _ghostRemainderRun is null || _textBox is null) return;
+		if (_textBox is null || string.IsNullOrEmpty(_currentFullMatch)) return;
 
-		_ghostBlock!.FontSize = _textBox.FontSize;
-		_ghostBlock.FontFamily = _textBox.FontFamily;
-		_ghostBlock.FontWeight = _textBox.FontWeight;
-		_ghostBlock.FontStyle = _textBox.FontStyle;
-		_ghostBlock.FontStretch = _textBox.FontStretch;
+		string realTyped = Text;
+		var (typed, tokenStart) = GetCurrentToken(realTyped);
 
-		if (string.IsNullOrEmpty(_currentFullMatch))
-		{
-			_ghostTypedRun.Text = string.Empty;
-			_ghostRemainderRun.Text = string.Empty;
-			return;
-		}
+		string prefix = realTyped.Substring(0, tokenStart);
+		string suffix = SuggestionSuffix ?? string.Empty;
 
-		string fullText = _textBox.Text;
-		var (typed, tokenStart) = GetCurrentToken(fullText);
-		
-		_ghostTypedRun.Text = fullText.Substring(0, tokenStart + typed.Length);
-		_ghostRemainderRun.Text = _currentFullMatch.Substring(typed.Length)
-								  + (SuggestionSuffix ?? string.Empty);
+		string newBoxText = prefix + _currentFullMatch + suffix;
+		int selectionStart = tokenStart + typed.Length;
+		int selectionLength = newBoxText.Length - selectionStart;
+
+		// Record before writing so TextBox_TextChanged (async) can match it.
+		_lastInternalBoxText = newBoxText;
+
+		_textBox.Text = newBoxText;
+		_textBox.SelectionStart = selectionStart;
+		_textBox.SelectionLength = selectionLength;
 	}
 
-	private void ClearGhost()
-	{
-		_currentFullMatch = string.Empty;
-		if (_ghostTypedRun is not null) _ghostTypedRun.Text = string.Empty;
-		if (_ghostRemainderRun is not null) _ghostRemainderRun.Text = string.Empty;
-	}
-
+	/// <summary>
+	/// Accepts the current suggestion. Writes prefix+fullMatch (no suffix) into
+	/// the TextBox, moves caret to end, updates Text DP, fires SuggestionAccepted.
+	/// </summary>
 	private void AcceptSuggestion()
 	{
 		if (_textBox is null || string.IsNullOrEmpty(_currentFullMatch)) return;
 
-		string fullText = _textBox.Text;
-		var (_, tokenStart) = GetCurrentToken(fullText);
-		string prefix = fullText.Substring(0, tokenStart);
+		string acceptedToken = _currentFullMatch;
+		string realTyped = Text;
+		var (_, tokenStart) = GetCurrentToken(realTyped);
+		string prefix = realTyped.Substring(0, tokenStart);
+		string acceptedFullText = prefix + acceptedToken; // suffix intentionally excluded
 
-		string accepted = prefix + _currentFullMatch;
-		_textBox.Text = accepted;
-		_textBox.SelectionStart = accepted.Length;
+		_lastInternalBoxText = acceptedFullText;
+
+		_textBox.Text = acceptedFullText;
+		_textBox.SelectionStart = acceptedFullText.Length;
 		_textBox.SelectionLength = 0;
 
+		Text = acceptedFullText;
+		ClearState();
+		SuggestionAccepted?.Invoke(this, acceptedToken);
+	}
+
+	/// <summary>
+	/// Dismisses the suggestion by restoring the TextBox to the real typed text.
+	/// </summary>
+	private void DismissSuggestion()
+	{
+		if (_textBox is null) return;
+
+		string realTyped = Text;
+
+		_lastInternalBoxText = realTyped;
+
+		_textBox.Text = realTyped;
+		_textBox.SelectionStart = realTyped.Length;
+		_textBox.SelectionLength = 0;
+
+		_suggestionDismissed = true;
+		ClearState();
+	}
+
+	/// <summary>Resets match state. Does not touch the TextBox.</summary>
+	private void ClearState()
+	{
+		_currentFullMatch = string.Empty;
 		_matches.Clear();
 		_matchIndex = -1;
-		_currentFullMatch = string.Empty;
-		ClearGhost();
-
-		SuggestionAccepted?.Invoke(this, _currentFullMatch);
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────
-
-	private bool IsAcceptKey(SuggestionAcceptKey key)
-		=> AcceptKey == key || AcceptKey == SuggestionAcceptKey.Both;
-
-	private static T? FindDescendantByName<T>(DependencyObject root, string name)
-	where T : DependencyObject
-	{
-		int count = VisualTreeHelper.GetChildrenCount(root);
-		for (int i = 0; i < count; i++)
-		{
-			var child = VisualTreeHelper.GetChild(root, i);
-			if (child is T dep && (dep as FrameworkElement)?.Name == name)
-				return dep;
-			var result = FindDescendantByName<T>(child, name);
-			if (result is not null) return result;
-		}
-		return null;
-	}
 
 	private (string token, int startIndex) GetCurrentToken(string fullText)
 	{
@@ -432,7 +429,6 @@ public sealed class InlineSuggestBox : Control
 
 		if (lastSplitEnd < 0) return (fullText, 0);
 
-		// Find actual start after trimming leading spaces
 		int tokenStart = lastSplitEnd;
 		while (tokenStart < fullText.Length && fullText[tokenStart] == ' ')
 			tokenStart++;

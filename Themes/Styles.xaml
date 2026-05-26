@@ -7,6 +7,7 @@
 
 	<Thickness x:Key="ContentPageMargin">10,10,0,0</Thickness>
 	<Thickness x:Key="ContentPagePadding">0,0,10,0</Thickness>
+
 	<Style TargetType="local:InlineSuggestBox">
 		<Setter Property="HorizontalAlignment" Value="Stretch" />
 		<Setter Property="VerticalAlignment" Value="Top" />
@@ -32,39 +33,7 @@
 						         IsReadOnly="{TemplateBinding IsReadOnly}"
 						         MaxLength="{TemplateBinding MaxLength}"
 						         PlaceholderText="{TemplateBinding PlaceholderText}"
-						         TextWrapping="{TemplateBinding TextWrapping}">
-							<TextBox.Style>
-								<Style TargetType="TextBox">
-									<Setter Property="Template">
-										<Setter.Value>
-											<ControlTemplate TargetType="TextBox">
-												<Grid>
-													<TextBlock x:Name="PART_GhostBlock"
-													           Padding="11,5,11,5"
-													           VerticalAlignment="Top"
-													           IsHitTestVisible="False"
-													           TextWrapping="{TemplateBinding TextWrapping}"><Run x:Name="PART_GhostTypedRun" Foreground="Transparent" CharacterSpacing="30" /><Run x:Name="PART_GhostRemainderRun" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-														<!--Don't let the above line break. It needds to be one line.-->
-													</TextBlock>
-
-													<ScrollViewer x:Name="ContentElement"
-													              Padding="11,5,11,5"
-																  Margin="0"
-													              AutomationProperties.AccessibilityView="Raw"
-													              Background="Transparent"
-													              Foreground="{ThemeResource TextControlForeground}"
-													              HorizontalScrollBarVisibility="Hidden"
-													              HorizontalScrollMode="Auto"
-													              IsTabStop="False"
-													              VerticalScrollBarVisibility="Hidden"
-													              VerticalScrollMode="Auto" />
-												</Grid>
-											</ControlTemplate>
-										</Setter.Value>
-									</Setter>
-								</Style>
-							</TextBox.Style>
-						</TextBox>
+						         TextWrapping="{TemplateBinding TextWrapping}" />
 
 					</Border>
 

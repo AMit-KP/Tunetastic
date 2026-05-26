@@ -692,7 +692,6 @@
 								                Visibility="Collapsed" />
 							</StackPanel>
 							<controls:InlineSuggestBox x:Name="ArtistTextBox"
-							                           AcceptKey="Both"
 							                           CaseSensitiveSuggestion="False"
 							                           GotFocus="ArtistTextBox_GotFocus"
 							                           LostFocus="ArtistTextBox_LostFocus"
@@ -752,7 +751,6 @@
 							</StackPanel>
 
 							<controls:InlineSuggestBox x:Name="AlbumTextBox"
-							                           AcceptKey="Both"
 							                           CaseSensitiveSuggestion="False"
 							                           GotFocus="AlbumTextBox_GotFocus"
 							                           LostFocus="AlbumTextBox_LostFocus"
@@ -809,7 +807,6 @@
 									                Visibility="Collapsed" />
 								</StackPanel>
 								<controls:InlineSuggestBox x:Name="GenreAutoSuggestBox"
-								                           AcceptKey="Both"
 								                           CaseSensitiveSuggestion="False"
 								                           GotFocus="GenreAutoSuggestBox_GotFocus"
 								                           LostFocus="GenreAutoSuggestBox_LostFocus"
