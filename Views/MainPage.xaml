@@ -604,10 +604,11 @@
 			               IsPrimaryButtonEnabled="False"
 			               PrimaryButtonText="Save">
 
-				<ScrollViewer Height="500"
+				<ScrollViewer Width="550"
 				              HorizontalAlignment="Stretch"
 				              VerticalScrollBarVisibility="Visible">
-					<StackPanel Margin="8"
+					<StackPanel Width="530"
+					            Margin="8"
 					            HorizontalAlignment="Stretch"
 					            Spacing="15">
 
@@ -747,11 +748,41 @@
 							<controls:InlineSuggestBox x:Name="AlbumTextBox"
 							                           AcceptKey="Both"
 							                           CaseSensitiveSuggestion="False"
+							                           GotFocus="AlbumTextBox_GotFocus"
+							                           LostFocus="AlbumTextBox_LostFocus"
 							                           PlaceholderText="Enter Album Name"
 							                           SuggestionSource="{x:Bind AlbumSuggestions, Mode=OneWay}"
 							                           SuggestionSuffix=" [Press → or TAB]"
 							                           TextChanged="AlbumTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
+							<TeachingTip x:Name="AlbumTeachingTip"
+							             Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+							             BackgroundSizing="InnerBorderEdge"
+							             IsLightDismissEnabled="True"
+							             Target="{x:Bind AlbumTextBox}">
+								<TeachingTip.Content>
+									<TextBlock TextWrapping="Wrap">
+										<Run Text="Inline auto-suggestion for existing albums." />
+										<LineBreak />
+										<Run FontWeight="ExtraBold"
+										     Text="·" />
+										<Run Text=" Press" />
+										<Run FontWeight="Bold"
+										     Text="Right Arrow (→)" />
+										<Run Text="or" />
+										<Run FontWeight="Bold"
+										     Text="TAB" />
+										<Run Text="to select suggestion." />
+										<LineBreak />
+										<Run FontWeight="ExtraBold"
+										     Text="·" />
+										<Run Text=" Press" />
+										<Run FontWeight="Bold"
+										     Text="Down Arrow (↓)" />
+										<Run Text="to cycle suggestions." />
+									</TextBlock>
+								</TeachingTip.Content>
+							</TeachingTip>
 						</StackPanel>
 
 						<Grid ColumnSpacing="8">
@@ -774,11 +805,41 @@
 								<controls:InlineSuggestBox x:Name="GenreAutoSuggestBox"
 								                           AcceptKey="Both"
 								                           CaseSensitiveSuggestion="False"
+								                           GotFocus="GenreAutoSuggestBox_GotFocus"
+								                           LostFocus="GenreAutoSuggestBox_LostFocus"
 								                           PlaceholderText="Enter genre"
 								                           SuggestionSource="{x:Bind GenreSuggestions, Mode=OneWay}"
 								                           SuggestionSuffix=" [Press → or TAB]"
 								                           TextChanged="GenreAutoSuggestBox_TextChanged"
 								                           TextWrapping="Wrap" />
+								<TeachingTip x:Name="GenreTeachingTip"
+								             Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+								             BackgroundSizing="InnerBorderEdge"
+								             IsLightDismissEnabled="True"
+								             Target="{x:Bind GenreAutoSuggestBox}">
+									<TeachingTip.Content>
+										<TextBlock TextWrapping="Wrap">
+											<Run Text="Inline auto-suggestion for existing genres." />
+											<LineBreak />
+											<Run FontWeight="ExtraBold"
+											     Text="·" />
+											<Run Text=" Press" />
+											<Run FontWeight="Bold"
+											     Text="Right Arrow (→)" />
+											<Run Text="or" />
+											<Run FontWeight="Bold"
+											     Text="TAB" />
+											<Run Text="to select suggestion." />
+											<LineBreak />
+											<Run FontWeight="ExtraBold"
+											     Text="·" />
+											<Run Text=" Press" />
+											<Run FontWeight="Bold"
+											     Text="Down Arrow (↓)" />
+											<Run Text="to cycle suggestions." />
+										</TextBlock>
+									</TeachingTip.Content>
+								</TeachingTip>
 							</StackPanel>
 
 							<StackPanel Grid.Column="1"

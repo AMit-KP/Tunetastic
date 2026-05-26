@@ -30,7 +30,7 @@ public sealed partial class MainPage : Page
 	private bool _isUpdatingSlider = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
-	private List<string> ArtistSuggestions { get; } = new();
+
 	private List<string> AlbumSuggestions { get; } = new();
 	private List<string> GenreSuggestions { get; } = new();
 
@@ -1150,4 +1150,24 @@ public sealed partial class MainPage : Page
 		StorageFolder folder = await file.GetParentAsync();
 		await Launcher.LaunchFolderAsync(folder, options);
 	}
+
+	private void AlbumTextBox_GotFocus(object sender, RoutedEventArgs e)
+	{
+		AlbumTeachingTip.IsOpen = true;
+	}
+
+	private void AlbumTextBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		AlbumTeachingTip.IsOpen = false;
+	}
+
+	private void GenreAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
+	{
+		GenreTeachingTip.IsOpen = true;
+    }
+
+	private void GenreAutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		GenreTeachingTip.IsOpen = false;
+    }
 }
