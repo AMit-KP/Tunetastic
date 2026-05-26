@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+﻿using System.Text.RegularExpressions;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -133,6 +129,26 @@ public sealed class InlineSuggestBox : Control
 	{
 		get => (int)GetValue(MaxLengthProperty);
 		set => SetValue(MaxLengthProperty, value);
+	}
+
+	public static readonly DependencyProperty MultiSuggestEnabledProperty =
+	DependencyProperty.Register(nameof(MultiSuggestEnabled), typeof(bool),
+		typeof(InlineSuggestBox), new PropertyMetadata(false));
+
+	public bool MultiSuggestEnabled
+	{
+		get => (bool)GetValue(MultiSuggestEnabledProperty);
+		set => SetValue(MultiSuggestEnabledProperty, value);
+	}
+
+	public static readonly DependencyProperty SplitRulesProperty =
+		DependencyProperty.Register(nameof(SplitRules), typeof(IList<ArtistSplitRule>),
+			typeof(InlineSuggestBox), new PropertyMetadata(null));
+
+	public IList<ArtistSplitRule>? SplitRules
+	{
+		get => (IList<ArtistSplitRule>?)GetValue(SplitRulesProperty);
+		set => SetValue(SplitRulesProperty, value);
 	}
 
 	// ── Events ───────────────────────────────────────────────────────────
@@ -283,7 +299,8 @@ public sealed class InlineSuggestBox : Control
 
 	private void RefreshSuggestion()
 	{
-		string typed = _textBox?.Text ?? string.Empty;
+		string fullText = _textBox?.Text ?? string.Empty;
+		var (typed, _) = GetCurrentToken(fullText);
 
 		if (string.IsNullOrEmpty(typed) || SuggestionSource is null)
 		{
@@ -338,11 +355,12 @@ public sealed class InlineSuggestBox : Control
 			return;
 		}
 
-		string typed = _textBox.Text;
-		_ghostTypedRun.Text = typed;
+		string fullText = _textBox.Text;
+		var (typed, tokenStart) = GetCurrentToken(fullText);
+		
+		_ghostTypedRun.Text = fullText.Substring(0, tokenStart + typed.Length);
 		_ghostRemainderRun.Text = _currentFullMatch.Substring(typed.Length)
 								  + (SuggestionSuffix ?? string.Empty);
-		System.Diagnostics.Debug.WriteLine($"textbox font={_textBox.FontSize}, ghost font={_ghostBlock!.FontSize}, outer={FontSize}");
 	}
 
 	private void ClearGhost()
@@ -356,7 +374,11 @@ public sealed class InlineSuggestBox : Control
 	{
 		if (_textBox is null || string.IsNullOrEmpty(_currentFullMatch)) return;
 
-		string accepted = _currentFullMatch;
+		string fullText = _textBox.Text;
+		var (_, tokenStart) = GetCurrentToken(fullText);
+		string prefix = fullText.Substring(0, tokenStart);
+
+		string accepted = prefix + _currentFullMatch;
 		_textBox.Text = accepted;
 		_textBox.SelectionStart = accepted.Length;
 		_textBox.SelectionLength = 0;
@@ -366,7 +388,7 @@ public sealed class InlineSuggestBox : Control
 		_currentFullMatch = string.Empty;
 		ClearGhost();
 
-		SuggestionAccepted?.Invoke(this, accepted);
+		SuggestionAccepted?.Invoke(this, _currentFullMatch);
 	}
 
 	// ── Helpers ──────────────────────────────────────────────────────────
@@ -387,5 +409,34 @@ public sealed class InlineSuggestBox : Control
 			if (result is not null) return result;
 		}
 		return null;
+	}
+
+	private (string token, int startIndex) GetCurrentToken(string fullText)
+	{
+		if (!MultiSuggestEnabled || SplitRules is null || SplitRules.Count == 0)
+			return (fullText, 0);
+
+		int lastSplitEnd = -1;
+
+		foreach (var rule in SplitRules.Where(r => r.Active && r.Type == "Splitter"))
+		{
+			string pattern = rule.IsRegex ? rule.Pattern : Regex.Escape(rule.Pattern);
+			var matches = Regex.Matches(fullText, pattern, RegexOptions.IgnoreCase);
+			foreach (System.Text.RegularExpressions.Match m in matches)
+			{
+				int end = m.Index + m.Length;
+				if (end > lastSplitEnd)
+					lastSplitEnd = end;
+			}
+		}
+
+		if (lastSplitEnd < 0) return (fullText, 0);
+
+		// Find actual start after trimming leading spaces
+		int tokenStart = lastSplitEnd;
+		while (tokenStart < fullText.Length && fullText[tokenStart] == ' ')
+			tokenStart++;
+
+		return (fullText.Substring(tokenStart), tokenStart);
 	}
 }

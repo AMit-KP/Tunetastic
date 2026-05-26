@@ -7,17 +7,6 @@
 
 	<Thickness x:Key="ContentPageMargin">10,10,0,0</Thickness>
 	<Thickness x:Key="ContentPagePadding">0,0,10,0</Thickness>
-	<!--
-    Paste this <Style> block inside your Styles.xaml.
-    Make sure xmlns:local="using:YourApp.Controls" is on the ResourceDictionary.
-
-    APPROACH:
-    We re-template the inner TextBox. Its ControlTemplate normally has a
-    ScrollViewer named ContentElement that contains the editable text surface.
-    We wrap that ScrollViewer in a Grid and place PART_GhostBlock in the same
-    Grid cell behind it — same coordinate space, same padding, same font metrics.
-    The ghost TextBlock uses a negative left margin equal to the caret X offset
-    which we set from code. This is the only layout-correct approach.	-->
 	<Style TargetType="local:InlineSuggestBox">
 		<Setter Property="HorizontalAlignment" Value="Stretch" />
 		<Setter Property="VerticalAlignment" Value="Top" />
