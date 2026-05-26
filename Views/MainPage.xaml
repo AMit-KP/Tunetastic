@@ -691,12 +691,18 @@
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
-							<TextBox x:Name="ArtistTextBox"
-							         GotFocus="ArtistTextBox_GotFocus"
-							         LostFocus="ArtistTextBox_LostFocus"
-							         PlaceholderText="Enter Artist Name(s)"
-							         TextChanged="ArtistTextBox_TextChanged"
-							         TextWrapping="Wrap" />
+							<controls:InlineSuggestBox x:Name="ArtistTextBox"
+							                           AcceptKey="Both"
+							                           CaseSensitiveSuggestion="False"
+							                           GotFocus="ArtistTextBox_GotFocus"
+							                           LostFocus="ArtistTextBox_LostFocus"
+							                           MultiSuggestEnabled="True"
+							                           PlaceholderText="Enter Artist Name(s)"
+							                           SplitRules="{x:Bind ArtistSplitRules, Mode=OneWay}"
+							                           SuggestionSource="{x:Bind ArtistSuggestions, Mode=OneWay}"
+							                           SuggestionSuffix=" [Press → or TAB]"
+							                           TextChanged="ArtistTextBox_TextChanged"
+							                           TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
 							             Title="Enter Artist Name(s)"

@@ -1276,13 +1276,15 @@ public class DatabaseHelper
 			(",", false),
 			("&", false),
 			(@"\band\b", true),
-			(@"\bfeat\.?\b", true),
-			(@"\bft\.?\b", true),
+			(@"\bfeat\.?\s+", true),
+			(@"\bft\.?\s+", true),
 			(@"\bx\b", true),
 		};
 
 		await _database.RunInTransactionAsync(conn =>
 		{
+			conn.Execute(@"DELETE from ArtistSplitRules where Pattern in ('\bfeat\.?\b', '\bft\.?\b') and IsBuiltIn = 1");
+
 			foreach (var d in defaults)
 			{
 				conn.Execute(@"INSERT OR IGNORE INTO ArtistSplitRules (Type, Pattern, IsRegex, Active, IsBuiltIn) VALUES ('Splitter', ?, ?, 1, 1)", d.Pattern, d.IsRegex ? 1 : 0);
@@ -1853,6 +1855,12 @@ public class DatabaseHelper
 		}
 		await _database.ExecuteAsync("INSERT INTO SongFTS(SongFTS) VALUES('rebuild')");
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
+	}
+
+	public async Task<List<string>> GetAllArtists()
+	{
+		var artists =  await _database.QueryAsync<Artist>("SELECT Name FROM Artists ORDER BY Name ASC");
+		return artists.Select(x => x.Name).ToList();
 	}
 
 	public async Task<List<string>> GetAllAlbums()

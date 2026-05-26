@@ -31,6 +31,8 @@ public sealed partial class MainPage : Page
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
 
+	private List<string> ArtistSuggestions { get; } = new();
+	private List<ArtistSplitRule> ArtistSplitRules { get; } = new();
 	private List<string> AlbumSuggestions { get; } = new();
 	private List<string> GenreSuggestions { get; } = new();
 
@@ -752,6 +754,8 @@ public sealed partial class MainPage : Page
 
 				EditSongInfo.IsPrimaryButtonEnabled = false;
 
+				ArtistSuggestions.AddRange(await DatabaseHelper.Instance.GetAllArtists());
+				ArtistSplitRules.AddRange(await DatabaseHelper.Instance.GetArtistSplitRules());
 				AlbumSuggestions.AddRange(await DatabaseHelper.Instance.GetAllAlbums());
 				GenreSuggestions.AddRange(await DatabaseHelper.Instance.GetAllGenres());
 
