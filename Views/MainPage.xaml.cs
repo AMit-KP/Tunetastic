@@ -771,98 +771,120 @@ public sealed partial class MainPage : Page
 
 				if (editResult == ContentDialogResult.Primary)
 				{
-					using var audioModel = TagLib.File.Create(songData.Path);
-
-					int PendingCover = 0;
-					int PendingTitle = 0;
-					int PendingArtist = 0;
-					int PendingAlbum = 0;
-					int PendingGenre = 0;
-					int PendingYear = 0;
-					int PendingLyrics = 0;
-
-					if (CoverArtChanged.Visibility == Visibility.Visible)
+					ContentDialog confirmationDialog = new ContentDialog()
 					{
-						if (_frontCoverArtPath is not null)
-						{
-							if (!File.Exists(_frontCoverArtPath))
-								GlobalNotification.Error($"File not found: {_frontCoverArtPath}");
+						Title = "Confirm Changes",
+						CloseButtonText = "No",
+						PrimaryButtonText = "Yes",
 
-							var picture = new TagLib.Picture(_frontCoverArtPath)
+						Content = new TextBlock
+						{
+							Text = "Are you sure you want to make these changes?",
+						},
+
+						DefaultButton = ContentDialogButton.Primary,
+						XamlRoot = App.MainWindow.Content.XamlRoot
+					};
+
+					MainWindow._instance.WindowResizePermission(false);
+					ContentDialogResult confirmationResult = await confirmationDialog.ShowAsync();
+					MainWindow._instance.WindowResizePermission(true);
+
+					if (confirmationResult == ContentDialogResult.Primary)
+					{
+						using var audioModel = TagLib.File.Create(songData.Path);
+
+						int PendingCover = 0;
+						int PendingTitle = 0;
+						int PendingArtist = 0;
+						int PendingAlbum = 0;
+						int PendingGenre = 0;
+						int PendingYear = 0;
+						int PendingLyrics = 0;
+
+						if (CoverArtChanged.Visibility == Visibility.Visible)
+						{
+							if (_frontCoverArtPath is not null)
 							{
-								Type = TagLib.PictureType.FrontCover,
-							};
+								if (!File.Exists(_frontCoverArtPath))
+									GlobalNotification.Error($"File not found: {_frontCoverArtPath}");
 
-							audioModel.Tag.Pictures = new IPicture[] { picture };
-							PendingCover = 1;
+								var picture = new TagLib.Picture(_frontCoverArtPath)
+								{
+									Type = TagLib.PictureType.FrontCover,
+								};
+
+								audioModel.Tag.Pictures = new IPicture[] { picture };
+								PendingCover = 1;
+							}
+							else
+							{
+								audioModel.Tag.Pictures = Array.Empty<IPicture>();
+								PendingCover = 2;
+							}
+							songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
 						}
-						else
+						if (TitleChanged.Visibility == Visibility.Visible)
 						{
-							audioModel.Tag.Pictures = Array.Empty<IPicture>();
-							PendingCover = 2;
+							var title = string.IsNullOrEmpty(TitleTextBox.Text) ? null : TitleTextBox.Text;
+							audioModel.Tag.Title = title;
+							songData.Title = title ?? Path.GetFileNameWithoutExtension(songData.Path);
+							PendingTitle = title != null ? 1 : 2;
 						}
-						songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
-					}
-					if (TitleChanged.Visibility == Visibility.Visible)
-					{
-						var title = string.IsNullOrEmpty(TitleTextBox.Text) ? null : TitleTextBox.Text;
-						audioModel.Tag.Title = title;
-						songData.Title = title ?? Path.GetFileNameWithoutExtension(songData.Path);
-						PendingTitle = title != null ? 1 : 2;
-					}
-					if (ArtistChanged.Visibility == Visibility.Visible)
-					{
-						var artist = string.IsNullOrEmpty(ArtistTextBox.Text) ? null : ArtistTextBox.Text;
-						audioModel.Tag.Performers = artist != null ? new[] { artist } : Array.Empty<string>();
-						songData.Artists = artist ?? "Unknown Artist";
-						PendingArtist = artist != null ? 1 : 2;
-					}
-					if (AlbumChanged.Visibility == Visibility.Visible)
-					{
-						var album = string.IsNullOrEmpty(AlbumTextBox.Text) ? null : AlbumTextBox.Text;
-						songData.Album = album ?? "Unknown Album";
-						audioModel.Tag.Album = album;
-						PendingAlbum = album != null ? 1 : 2;
-					}
-					if (GenreChanged.Visibility == Visibility.Visible)
-					{
-						var genre = string.IsNullOrEmpty(GenreAutoSuggestBox.Text) ? null : GenreAutoSuggestBox.Text;
-						audioModel.Tag.Genres = genre != null ? new[] { genre } : Array.Empty<string>();
-						songData.Genre = genre ?? "Unknown Genre";
-						PendingGenre = genre != null ? 1 : 2;
-					}
-					if (YearChanged.Visibility == Visibility.Visible)
-					{
-						var year = string.IsNullOrEmpty(YearNumberBox.Text) ? 0 : uint.Parse(YearNumberBox.Text);
-						audioModel.Tag.Year = year;
-						songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
-						PendingYear = year > 0 ? 1 : 2;
-					}
-					if (LyricsChanged.Visibility == Visibility.Visible)
-					{
-						var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
-						audioModel.Tag.Lyrics = lyrics;
-						songData.Lyrics = lyrics;
-						PendingLyrics = 1;
-					}
-
-					await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
-					try
-					{
-						audioModel.Save();
-					}
-					catch (IOException)
-					{
-						await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics);
-
-						if (_frontCoverArtPath is not null)
+						if (ArtistChanged.Visibility == Visibility.Visible)
 						{
-							var coverArtTempPath = Path.Combine(Constants.TemporaryFolder, Path.GetFileName(songData.Cover));
-							Directory.CreateDirectory(Path.GetDirectoryName(coverArtTempPath));
-							File.Copy(_frontCoverArtPath, coverArtTempPath, overwrite: true);
+							var artist = string.IsNullOrEmpty(ArtistTextBox.Text) ? null : ArtistTextBox.Text;
+							audioModel.Tag.Performers = artist != null ? new[] { artist } : Array.Empty<string>();
+							songData.Artists = artist ?? "Unknown Artist";
+							PendingArtist = artist != null ? 1 : 2;
+						}
+						if (AlbumChanged.Visibility == Visibility.Visible)
+						{
+							var album = string.IsNullOrEmpty(AlbumTextBox.Text) ? null : AlbumTextBox.Text;
+							songData.Album = album ?? "Unknown Album";
+							audioModel.Tag.Album = album;
+							PendingAlbum = album != null ? 1 : 2;
+						}
+						if (GenreChanged.Visibility == Visibility.Visible)
+						{
+							var genre = string.IsNullOrEmpty(GenreAutoSuggestBox.Text) ? null : GenreAutoSuggestBox.Text;
+							audioModel.Tag.Genres = genre != null ? new[] { genre } : Array.Empty<string>();
+							songData.Genre = genre ?? "Unknown Genre";
+							PendingGenre = genre != null ? 1 : 2;
+						}
+						if (YearChanged.Visibility == Visibility.Visible)
+						{
+							var year = string.IsNullOrEmpty(YearNumberBox.Text) ? 0 : uint.Parse(YearNumberBox.Text);
+							audioModel.Tag.Year = year;
+							songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
+							PendingYear = year > 0 ? 1 : 2;
+						}
+						if (LyricsChanged.Visibility == Visibility.Visible)
+						{
+							var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
+							audioModel.Tag.Lyrics = lyrics;
+							songData.Lyrics = lyrics;
+							PendingLyrics = 1;
 						}
 
-						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
+						try
+						{
+							audioModel.Save();
+						}
+						catch (IOException)
+						{
+							await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics);
+
+							if (_frontCoverArtPath is not null)
+							{
+								var coverArtTempPath = Path.Combine(Constants.TemporaryFolder, Path.GetFileName(songData.Cover));
+								Directory.CreateDirectory(Path.GetDirectoryName(coverArtTempPath));
+								File.Copy(_frontCoverArtPath, coverArtTempPath, overwrite: true);
+							}
+
+							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+						}
 					}
 					//TODO: await UpdateUI();
 				}
@@ -1189,7 +1211,7 @@ public sealed partial class MainPage : Page
 			.ToList();
 
 		ArtistTeachingTipContent.Inlines.Clear();
-		
+
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums." });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
