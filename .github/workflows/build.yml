@@ -21,6 +21,9 @@ jobs:
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
 
+      - name: Add CommunityToolkit Labs NuGet source
+        run: nuget sources add -Name "CommunityToolkit-Labs" -Source "https://pkgs.dev.azure.com/dotnet/CommunityToolkit/_packaging/CommunityToolkit-Labs/nuget/v3/index.json"
+
       - name: Restore NuGet packages
         run: nuget restore Tunetastic.sln
 
