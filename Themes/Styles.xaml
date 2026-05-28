@@ -16,27 +16,16 @@
 		<Setter Property="Template">
 			<Setter.Value>
 				<ControlTemplate TargetType="local:InlineSuggestBox">
-
-					<Border x:Name="RootBorder"
-					        MinHeight="{ThemeResource TextControlThemeMinHeight}"
-					        Background="{ThemeResource TextControlBackground}"
-					        BorderBrush="{ThemeResource TextControlBorderBrush}"
-					        BorderThickness="{ThemeResource TextControlBorderThemeThickness}"
-					        CornerRadius="{ThemeResource ControlCornerRadius}">
-
-						<TextBox x:Name="PART_TextBox"
-						         HorizontalAlignment="Stretch"
-						         VerticalAlignment="Stretch"
-						         AcceptsReturn="{TemplateBinding AcceptsReturn}"
-						         FontFamily="{TemplateBinding FontFamily}"
-						         FontSize="{TemplateBinding FontSize}"
-						         IsReadOnly="{TemplateBinding IsReadOnly}"
-						         MaxLength="{TemplateBinding MaxLength}"
-						         PlaceholderText="{TemplateBinding PlaceholderText}"
-						         TextWrapping="{TemplateBinding TextWrapping}" />
-
-					</Border>
-
+					<TextBox x:Name="PART_TextBox"
+					         HorizontalAlignment="Stretch"
+					         VerticalAlignment="Stretch"
+					         AcceptsReturn="{TemplateBinding AcceptsReturn}"
+					         FontFamily="{TemplateBinding FontFamily}"
+					         FontSize="{TemplateBinding FontSize}"
+					         IsReadOnly="{TemplateBinding IsReadOnly}"
+					         MaxLength="{TemplateBinding MaxLength}"
+					         PlaceholderText="{TemplateBinding PlaceholderText}"
+					         TextWrapping="{TemplateBinding TextWrapping}" />
 				</ControlTemplate>
 			</Setter.Value>
 		</Setter>

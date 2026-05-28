@@ -766,7 +766,7 @@
 										<Run Text=" Press" />
 										<Run FontWeight="Bold"
 										     Text="Right Arrow (→)" />
-										<Run Text="to accept." />
+										<Run Text="to preview suggestions." />
 										<LineBreak />
 										<Run FontWeight="ExtraBold"
 										     Text="·" />
@@ -776,7 +776,7 @@
 										<Run Text="Press" />
 										<Run FontWeight="Bold"
 										     Text="Right Arrow (→)" />
-										<Run Text="to preview suggestions if dismissed." />
+										<Run Text="to accept." />
 									</TextBlock>
 								</TeachingTip.Content>
 							</TeachingTip>
@@ -831,7 +831,7 @@
 											<Run Text=" Press" />
 											<Run FontWeight="Bold"
 											     Text="Right Arrow (→)" />
-											<Run Text="to accept." />
+											<Run Text="to preview suggestions." />
 											<LineBreak />
 											<Run FontWeight="ExtraBold"
 											     Text="·" />
@@ -841,7 +841,7 @@
 											<Run Text="Press" />
 											<Run FontWeight="Bold"
 											     Text="Right Arrow (→)" />
-											<Run Text="to preview suggestions if dismissed." />
+											<Run Text="to accept." />
 										</TextBlock>
 									</TeachingTip.Content>
 								</TeachingTip>

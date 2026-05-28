@@ -62,8 +62,13 @@ public sealed class InlineSuggestBox : Control
 	}
 
 	public static readonly DependencyProperty TextProperty =
-		DependencyProperty.Register(nameof(Text), typeof(string),
-			typeof(InlineSuggestBox), new PropertyMetadata(string.Empty));
+	DependencyProperty.Register(nameof(Text), typeof(string),
+		typeof(InlineSuggestBox), new PropertyMetadata(string.Empty, (d, e) =>
+		{
+			var box = (InlineSuggestBox)d;
+			if (box._textBox is not null && box._textBox.Text != (string)e.NewValue)
+				box._textBox.Text = (string)e.NewValue;
+		}));
 
 	public string Text
 	{
@@ -169,6 +174,9 @@ public sealed class InlineSuggestBox : Control
 		}
 
 		_textBox = GetTemplateChild(PartTextBox) as TextBox;
+		_lastInternalBoxText = string.Empty;
+		_suggestionDismissed = false;
+		ClearState();
 
 		if (_textBox is not null)
 		{
@@ -292,6 +300,8 @@ public sealed class InlineSuggestBox : Control
 
 	private void RefreshSuggestion()
 	{
+		if (_textBox is null || _textBox.FocusState == FocusState.Unfocused) return;
+
 		string fullText = Text;
 		var (typed, _) = GetCurrentToken(fullText);
 

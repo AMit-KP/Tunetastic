@@ -1226,14 +1226,14 @@ public sealed partial class MainPage : Page
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = " Type" });
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " or Press " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions if dismissed." });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
