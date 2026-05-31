@@ -12,6 +12,7 @@ public static class LrcParser
 	private static readonly Regex MetadataLineRegex = new(@"^\[(ar|ti|al|by|offset|re|ve|au|length|id):", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 	private static readonly Regex KaraokeTagRegex = new(@"<\d{1,2}:\d{2}[.:]\d{1,3}>", RegexOptions.Compiled);
 	private static readonly Regex OffsetRegex = new(@"^\[offset:(-?\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+	private static readonly Regex SyncedLinePattern = new(@"^\[\d{1,2}:\d{2}([.:]\d{1,3})?\]", RegexOptions.Multiline | RegexOptions.Compiled);
 
 	/// <summary>
 	/// Parses LRC-formatted lyrics text into a sorted list of <see cref="LrcLine"/>.
@@ -89,5 +90,20 @@ public static class LrcParser
 		}
 
 		return lines;
+	}
+
+	public static bool IsSyncedLyrics(string? lyrics)
+	{
+		if (string.IsNullOrWhiteSpace(lyrics))
+			return false;
+
+		int matchCount = 0;
+		foreach (Match match in SyncedLinePattern.Matches(lyrics))
+		{
+			if (++matchCount >= 2)
+				return true;
+		}
+
+		return false;
 	}
 }

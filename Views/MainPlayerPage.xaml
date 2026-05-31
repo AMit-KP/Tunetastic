@@ -483,7 +483,6 @@
 					         AcceptsReturn="True"
 					         AutomationProperties.Name="multi-line TextBox"
 					         IsSpellCheckEnabled="True"
-					         SelectionHighlightColor="DodgerBlue"
 					         TextWrapping="Wrap" />
 				</Grid>
 			</ContentDialog>

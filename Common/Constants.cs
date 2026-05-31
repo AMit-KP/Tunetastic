@@ -38,4 +38,9 @@ public static partial class Constants
 	/// under the root directory defined by <see cref="Constants.RootDirectoryPath"/>.
 	/// </remarks>
 	public static readonly string ThumbnailsFolder = Path.Combine(RootDirectoryPath, "Thumbnails");
+
+	/// <summary>
+	/// Represents the directory path where temporary files are stored.
+	/// </summary>
+	public static readonly string TemporaryFolder = Path.Combine(RootDirectoryPath, "Temporary");
 }
