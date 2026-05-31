@@ -22,7 +22,7 @@ jobs:
         uses: NuGet/setup-nuget@v2
 
       - name: Restore NuGet packages
-        run: nuget restore Tunetastic.sln
+        run: dotnet restore Tunetastic.sln --configfile nuget.config
 
       - name: Build and package MSIX (${{ matrix.platform }})
         run: |
