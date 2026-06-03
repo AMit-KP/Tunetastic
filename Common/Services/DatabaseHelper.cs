@@ -608,6 +608,24 @@ public class DatabaseHelper
 		}
 	}
 
+	public async Task<bool> CheckIfTotalPlayTimeIsAbove1Hour()
+	{
+		try
+		{
+			return await _database.ExecuteScalarAsync<bool>(@"SELECT 
+																	CASE 
+																		WHEN SUM(CASE WHEN PlayCount > 1 THEN playcount * duration * 0.6 ELSE 0 END) > 3600
+																		THEN 1
+																		ELSE 0
+																	END AS condition_met
+																FROM Songs");
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Retrieves a song from the database by its file path.
 	/// This method queries the Songs table to find a song that matches the provided path.
@@ -1859,7 +1877,7 @@ public class DatabaseHelper
 
 	public async Task<List<string>> GetAllArtists()
 	{
-		var artists =  await _database.QueryAsync<Artist>("SELECT Name FROM Artists ORDER BY Name ASC");
+		var artists = await _database.QueryAsync<Artist>("SELECT Name FROM Artists ORDER BY Name ASC");
 		return artists.Select(x => x.Name).ToList();
 	}
 
