@@ -1150,4 +1150,8 @@ public sealed partial class SettingsPage : Page
 		MainPage._instance?.StoreRating(userInvoked: true);
 	}
 
+	private async void GitHubIssues_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/AMit-KP/Tunetastic/issues"));
+	}
 }
