@@ -439,6 +439,9 @@
 								       Height="30" />
 								<HyperlinkButton Content="Source Code"
 								                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
+								<TextBlock Text="(Please, leave a star ⭐)"
+										   Foreground="{ThemeResource SystemColorDisabledTextColor}"
+										   VerticalAlignment="Center"/>
 							</StackPanel>
 							<StackPanel Orientation="Horizontal"
 							            Spacing="2">
@@ -451,6 +454,13 @@
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
+			
+			<dev:SettingsCard Description="Share your feedback by rating the app. Your input helps us improve features and deliver a better experience."
+			                  Header="Feedback &amp; Rating">
+				<Button x:Name="RateThisAppButton"
+				        Click="RateThisAppButton_Click"
+				        Content="⭐ Rate this app" />
+			</dev:SettingsCard>
 
 			<!--  Reset  -->
 
