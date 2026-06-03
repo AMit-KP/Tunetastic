@@ -1,4 +1,4 @@
-﻿name: Release
+name: Release
 
 on:
   release:
@@ -7,9 +7,11 @@ on:
 jobs:
   release:
     runs-on: windows-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
-        platform: [ x64, arm64 ]
+        platform: [ x64, ARM64 ]
 
     steps:
       - name: Checkout code
@@ -23,27 +25,48 @@ jobs:
 
       - name: Build and package MSIX (${{ matrix.platform }})
         run: |
-          msbuild Tunetastic.sln `
+          msbuild Tunetastic.csproj `
+            /t:Build `
             /p:Configuration=Release `
             /p:Platform=${{ matrix.platform }} `
-            /p:AppxPackageDir="${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" `
-            /p:AppxBundle=Never `
+            /p:AppxPackageSigningEnabled=false `
             /p:UapAppxPackageBuildMode=SideloadOnly `
-            /p:AppxPackageSigningEnabled=false
+            /p:AppxBundle=Never `
+            /p:GenerateAppxPackageOnBuild=true `
+            /p:AppxPackageDir="${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\"
 
       - name: Find MSIX file (${{ matrix.platform }})
         id: find_msix
         run: |
-          $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" -Filter "*.msix" | Select-Object -First 1
+          $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}" -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $msix) {
+            Write-Host "Falling back to workspace search..."
+            $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}" -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $msix) { Write-Error "No .msix file found!"; exit 1 }
+          Write-Host "Found MSIX at: $($msix.FullName)"
           echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_OUTPUT
 
+      - name: Rename MSIX (${{ matrix.platform }})
+        id: rename_msix
+        run: |
+          $msix = "${{ steps.find_msix.outputs.MSIX_PATH }}"
+          $platform = "${{ matrix.platform }}".ToLower()
+          $version = "${{ github.ref_name }}"
+          # Strip leading 'v' if present, and trailing '.0' if present
+          $version = $version -replace '^v', '' -replace '\.0$', ''
+          $newName = "Tunetastic_${version}_${platform}.msix"
+          $newPath = Join-Path (Split-Path $msix) $newName
+          Rename-Item -Path $msix -NewName $newName
+          echo "MSIX_RENAMED=$newPath" >> $env:GITHUB_OUTPUT
+      
       - name: Upload MSIX to release (${{ matrix.platform }})
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.find_msix.outputs.MSIX_PATH }}
-
+          files: ${{ steps.rename_msix.outputs.MSIX_RENAMED }}
+    
       - name: Upload CER to release (x64 only)
         if: matrix.platform == 'x64'
         uses: softprops/action-gh-release@v2
         with:
-          files: Tunetastic/Assets/Store/Tunetastic_Store_Publisher_Certificate.cer
+          files: ${{ github.workspace }}/Assets/Store/Tunetastic_Store_Publisher_Certificate.cer
