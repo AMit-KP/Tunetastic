@@ -25,4 +25,4 @@ jobs:
         run: dotnet restore Tunetastic.sln --configfile nuget.config
 
       - name: Build (${{ matrix.platform }})
-        run: msbuild Tunetastic.sln /p:Configuration=Release /p:Platform=${{ matrix.platform }}
+        run: msbuild Tunetastic.sln /p:Configuration=Release /p:Platform=${{ matrix.platform }} /p:AppxPackageSigningEnabled=false

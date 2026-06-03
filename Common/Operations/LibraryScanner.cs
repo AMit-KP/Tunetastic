@@ -196,11 +196,11 @@ public class GetMusicData
 							{
 								Title = audioModel.Tag.Title ?? Path.GetFileNameWithoutExtension(filePath),
 								Album = audioModel.Tag.Album ?? "Unknown Album",
-								Artists = (audioModel.Tag.Performers != null && audioModel.Tag.Performers.Length > 0 ? audioModel.Tag.Performers[0] : audioModel.Tag.FirstAlbumArtist) ?? "Unknown Artist",
+								Artists = audioModel.Tag.Performers?.FirstOrDefault(p => !string.IsNullOrEmpty(p)) ?? "Unknown Artist",
 								Duration = audioModel.Properties.Duration.TotalSeconds,
 								Path = filePath,
 								Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
-								Genre = (audioModel.Tag.Genres != null && audioModel.Tag.Genres.Length > 0 ? audioModel.Tag.Genres[0] : "Unknown Genre"),
+								Genre = audioModel.Tag.Genres?.FirstOrDefault(g => !string.IsNullOrEmpty(g)) ?? "Unknown Genre",
 								Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
 								Lyrics = audioModel.Tag.Lyrics,
 								DateAdded = fileInfo.LastWriteTime,

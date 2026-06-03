@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   release:
@@ -17,9 +17,6 @@ jobs:
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
-
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
 
       - name: Restore NuGet packages
         run: dotnet restore Tunetastic.sln --configfile nuget.config
@@ -40,15 +37,6 @@ jobs:
           $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" -Filter "*.msix" | Select-Object -First 1
           echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_OUTPUT
 
-      - name: Find and rename CER file (x64 only)
-        id: find_cer
-        if: matrix.platform == 'x64'
-        run: |
-          $cer = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}\" -Filter "*.cer" | Select-Object -First 1
-          $renamed = Join-Path $cer.DirectoryName "Tunetastic_Store_Publisher_Certificate.cer"
-          Rename-Item -Path $cer.FullName -NewName "Tunetastic_Store_Publisher_Certificate.cer"
-          echo "CER_PATH=$renamed" >> $env:GITHUB_OUTPUT
-
       - name: Upload MSIX to release (${{ matrix.platform }})
         uses: softprops/action-gh-release@v2
         with:
@@ -58,4 +46,4 @@ jobs:
         if: matrix.platform == 'x64'
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ steps.find_cer.outputs.CER_PATH }}
+          files: Tunetastic/Assets/Store/Tunetastic_Store_Publisher_Certificate.cer

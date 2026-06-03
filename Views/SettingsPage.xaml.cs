@@ -1144,4 +1144,19 @@ public sealed partial class SettingsPage : Page
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)] = ForwardRewindButtonVisibility.IsOn;
 		App.GetService<MusicControlViewModel>().Forward_Rewind_Visibility = ForwardRewindButtonVisibility.IsOn ? Visibility.Visible : Visibility.Collapsed;
 	}
+
+	private async void RateThisAppButton_Click(object sender, RoutedEventArgs e)
+	{
+		MainPage._instance?.StoreRating(userInvoked: true);
+	}
+
+	private async void GitHubIssues_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/AMit-KP/Tunetastic/issues"));
+	}
+
+	private async void BuyMeACoffee_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://ko-fi.com/tunetastic"));
+	}
 }

@@ -234,6 +234,15 @@ public class DatabaseHelper
 									   Path TEXT PRIMARY KEY,
 									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
+		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics" })
+		{
+			try
+			{
+				await _database.ExecuteAsync($"ALTER TABLE PendingTagWrites ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0");
+			}
+			catch { }
+		}
+
 		await _database.ExecuteAsync(@"CREATE VIRTUAL TABLE IF NOT EXISTS SongFTS
 									   USING fts5(
 									   Title,
@@ -599,6 +608,24 @@ public class DatabaseHelper
 		}
 	}
 
+	public async Task<bool> CheckIfTotalPlayTimeIsAbove1Hour()
+	{
+		try
+		{
+			return await _database.ExecuteScalarAsync<bool>(@"SELECT 
+																	CASE 
+																		WHEN SUM(CASE WHEN PlayCount > 1 THEN playcount * duration * 0.6 ELSE 0 END) > 3600
+																		THEN 1
+																		ELSE 0
+																	END AS condition_met
+																FROM Songs");
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Retrieves a song from the database by its file path.
 	/// This method queries the Songs table to find a song that matches the provided path.
@@ -727,9 +754,21 @@ public class DatabaseHelper
 	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
 	/// </summary>
 	/// <param name="path">The file path of the song whose tag write is pending.</param>
-	public async Task AddPendingTagWrite(string path)
+	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0)
 	{
-		await _database.ExecuteAsync("INSERT OR IGNORE INTO PendingTagWrites (Path) VALUES (?)", path);
+		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics);
+	}
+
+	/// <summary>
+	/// Checks if a pending tag write entry exists for the specified file path.
+	/// </summary>
+	/// <param name="path">The file path to check for pending tag writes.</param>
+	/// <param name="attribute">The attribute to check for pending tag writes.</param>
+	/// <returns></returns> 
+	public async Task<int> PendingTagWritesExist(string path, string attribute)
+	{
+		return await _database.ExecuteScalarAsync<int>($"SELECT {attribute} FROM PendingTagWrites WHERE Path = ?", path);
 	}
 
 	/// <summary>
@@ -1255,13 +1294,15 @@ public class DatabaseHelper
 			(",", false),
 			("&", false),
 			(@"\band\b", true),
-			(@"\bfeat\.?\b", true),
-			(@"\bft\.?\b", true),
+			(@"\bfeat\.?\s+", true),
+			(@"\bft\.?\s+", true),
 			(@"\bx\b", true),
 		};
 
 		await _database.RunInTransactionAsync(conn =>
 		{
+			conn.Execute(@"DELETE from ArtistSplitRules where Pattern in ('\bfeat\.?\b', '\bft\.?\b') and IsBuiltIn = 1");
+
 			foreach (var d in defaults)
 			{
 				conn.Execute(@"INSERT OR IGNORE INTO ArtistSplitRules (Type, Pattern, IsRegex, Active, IsBuiltIn) VALUES ('Splitter', ?, ?, 1, 1)", d.Pattern, d.IsRegex ? 1 : 0);
@@ -1832,6 +1873,24 @@ public class DatabaseHelper
 		}
 		await _database.ExecuteAsync("INSERT INTO SongFTS(SongFTS) VALUES('rebuild')");
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
+	}
+
+	public async Task<List<string>> GetAllArtists()
+	{
+		var artists = await _database.QueryAsync<Artist>("SELECT Name FROM Artists ORDER BY Name ASC");
+		return artists.Select(x => x.Name).ToList();
+	}
+
+	public async Task<List<string>> GetAllAlbums()
+	{
+		var albums = await _database.QueryAsync<Song>("SELECT DISTINCT Album FROM Songs WHERE Album IS NOT NULL AND Album != '' ORDER BY Album ASC");
+		return albums.Select(x => x.Album).ToList();
+	}
+
+	public async Task<List<string>> GetAllGenres()
+	{
+		var genres = await _database.QueryAsync<Song>("SELECT DISTINCT Genre FROM Songs WHERE Genre IS NOT NULL AND Genre != '' AND Genre != 'Unknown' AND Genre != 'Unknown Genre' ORDER BY Genre ASC");
+		return genres.Select(x => x.Genre).ToList();
 	}
 
 	/// <summary>

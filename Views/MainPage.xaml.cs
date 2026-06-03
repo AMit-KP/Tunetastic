@@ -1,9 +1,11 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using TagLib;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using Windows.Foundation;
@@ -11,6 +13,8 @@ using Windows.Graphics;
 using Windows.Services.Store;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.System;
+using File = System.IO.File;
 using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Views;
@@ -23,6 +27,13 @@ public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
 	private bool _isUpdatingSlider = false;
+	private Song? _songData = null;
+	private string? _frontCoverArtPath = null;
+
+	private List<string> ArtistSuggestions { get; } = new();
+	private List<ArtistSplitRule> ArtistSplitRules { get; } = new();
+	private List<string> AlbumSuggestions { get; } = new();
+	private List<string> GenreSuggestions { get; } = new();
 
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
@@ -98,6 +109,9 @@ public sealed partial class MainPage : Page
 
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
+
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.GivenStoreRating)]?.ToString() ?? "false"))
+			StoreRating();
 	}
 
 	/// <summary>
@@ -592,11 +606,9 @@ public sealed partial class MainPage : Page
 		//TODO: Drag n Drop
 		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
 
-		picker.FileTypeFilter.Add("*.m3u");
-		picker.FileTypeFilter.Add("*.m3u8");
-		picker.FileTypeFilter.Add("*.pls");
-		picker.FileTypeFilter.Add("*.wpl");
-		picker.FileTypeFilter.Add("*.zpl");
+		picker.FileTypeChoices.Add("Playlist Files", new List<string>() { ".m3u", ".m3u8", ".pls", ".wpl", ".zpl" });
+
+		picker.Title = "Select Playlist File";
 
 		picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
 		picker.CommitButtonText = "Import Playlist";
@@ -657,10 +669,19 @@ public sealed partial class MainPage : Page
 			SongTitle.Text = songData.Title;
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
-			StorageFile file = await StorageFile.GetFileFromPathAsync(songData.Cover);
+
+			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
+			if (!File.Exists(thumbnailFilePath))
+			{
+				using var audioModel = TagLib.File.Create(songData.Path);
+				ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(songData.Cover));
+			}
+
+			StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
+			BitmapImage bitmapImage;
 			using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
 			{
-				BitmapImage bitmapImage = new BitmapImage();
+				bitmapImage = new BitmapImage();
 				await bitmapImage.SetSourceAsync(stream);
 				SongCoverImage.Source = bitmapImage;
 			}
@@ -675,6 +696,17 @@ public sealed partial class MainPage : Page
 			SongSampleRate.Text = songData.AudioSampleRate ?? string.Empty;
 			SongCodecDescription.Text = songData.AudioCodecDescription ?? string.Empty;
 			SongPlayCount.Text = songData.PlayCount.ToString() ?? "0";
+
+			if (!string.IsNullOrEmpty(songData.Lyrics))
+			{
+				if (LrcParser.IsSyncedLyrics(songData.Lyrics))
+					SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["SyncedLyricsTitleTemplate"];
+				else
+					SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["LyricsTitleTemplate"];
+			}
+			else
+				SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["DefaultTitleTemplate"];
+
 			if (songData.DateLastPlayed != null)
 				SongLastPlayed.Text = new DateFormatConverter().Convert(songData.DateLastPlayed, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateLastPlayed, null, "T", null).ToString();
 			else
@@ -683,8 +715,186 @@ public sealed partial class MainPage : Page
 			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
 
 			MainWindow._instance.WindowResizePermission(false);
-			await SongInfo.ShowAsync();
+			var result = await SongInfo.ShowAsync();
 			MainWindow._instance.WindowResizePermission(true);
+
+			if (result == ContentDialogResult.Primary)
+			{
+				_songData = songData;
+				_frontCoverArtPath = null;
+
+				var coverArtImagePixelWidth = bitmapImage.PixelWidth;
+				var coverArtImagePixelHeight = bitmapImage.PixelHeight;
+				var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
+				double targetHeight = 250;
+				double targetWidth = coverArtAspectRatio * targetHeight;
+
+				CoverArtImage.Height = targetHeight;
+				CoverArtImage.Width = targetWidth;
+				CoverArtImage.Source = bitmapImage;
+				CoverArtImage.Visibility = Visibility.Visible;
+				CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+				CoverArtChanged.Visibility = Visibility.Collapsed;
+
+				TitleTextBox.Text = songData.Title;
+				TitleChanged.Visibility = Visibility.Collapsed;
+
+				ArtistTextBox.Text = songData.Artists;
+				ArtistChanged.Visibility = Visibility.Collapsed;
+
+				AlbumTextBox.Text = songData.Album;
+				AlbumChanged.Visibility = Visibility.Collapsed;
+
+				GenreAutoSuggestBox.Text = songData.Genre;
+				GenreChanged.Visibility = Visibility.Collapsed;
+
+				YearNumberBox.Text = _songData.Year;
+				YearChanged.Visibility = Visibility.Collapsed;
+
+				LyricsTextBox.Text = songData.Lyrics;
+				LyricsChanged.Visibility = Visibility.Collapsed;
+
+				EditSongInfo.IsPrimaryButtonEnabled = false;
+
+				ArtistSuggestions.Clear();
+				ArtistSplitRules.Clear();
+				AlbumSuggestions.Clear();
+				GenreSuggestions.Clear();
+
+				ArtistSuggestions.AddRange(await DatabaseHelper.Instance.GetAllArtists());
+				ArtistSplitRules.AddRange(await DatabaseHelper.Instance.GetArtistSplitRules());
+				AlbumSuggestions.AddRange(await DatabaseHelper.Instance.GetAllAlbums());
+				GenreSuggestions.AddRange(await DatabaseHelper.Instance.GetAllGenres());
+
+				PopulateArtistTeachingTip(ArtistSplitRules);
+
+				MainWindow._instance.WindowResizePermission(false);
+				var editResult = await EditSongInfo.ShowAsync();
+				MainWindow._instance.WindowResizePermission(true);
+
+				if (editResult == ContentDialogResult.Primary)
+				{
+					ContentDialog confirmationDialog = new ContentDialog()
+					{
+						Title = "Confirm Changes",
+						CloseButtonText = "No",
+						PrimaryButtonText = "Yes",
+
+						Content = new TextBlock
+						{
+							Text = "Are you sure you want to make these changes?",
+						},
+
+						DefaultButton = ContentDialogButton.Primary,
+						XamlRoot = App.MainWindow.Content.XamlRoot
+					};
+
+					MainWindow._instance.WindowResizePermission(false);
+					ContentDialogResult confirmationResult = await confirmationDialog.ShowAsync();
+					MainWindow._instance.WindowResizePermission(true);
+
+					if (confirmationResult == ContentDialogResult.Primary)
+					{
+						using var audioModel = TagLib.File.Create(songData.Path);
+
+						int PendingCover = 0;
+						int PendingTitle = 0;
+						int PendingArtist = 0;
+						int PendingAlbum = 0;
+						int PendingGenre = 0;
+						int PendingYear = 0;
+						int PendingLyrics = 0;
+
+						if (CoverArtChanged.Visibility == Visibility.Visible)
+						{
+							if (_frontCoverArtPath is not null)
+							{
+								if (!File.Exists(_frontCoverArtPath))
+									GlobalNotification.Error($"File not found: {_frontCoverArtPath}");
+
+								var picture = new TagLib.Picture(_frontCoverArtPath)
+								{
+									Type = TagLib.PictureType.FrontCover,
+								};
+
+								audioModel.Tag.Pictures = new IPicture[] { picture };
+								PendingCover = 1;
+							}
+							else
+							{
+								audioModel.Tag.Pictures = Array.Empty<IPicture>();
+								PendingCover = 2;
+							}
+							songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
+						}
+						if (TitleChanged.Visibility == Visibility.Visible)
+						{
+							var title = string.IsNullOrEmpty(TitleTextBox.Text) ? null : TitleTextBox.Text;
+							audioModel.Tag.Title = title;
+							songData.Title = title ?? Path.GetFileNameWithoutExtension(songData.Path);
+							PendingTitle = title != null ? 1 : 2;
+						}
+						if (ArtistChanged.Visibility == Visibility.Visible)
+						{
+							var artist = string.IsNullOrEmpty(ArtistTextBox.Text) ? null : ArtistTextBox.Text;
+							audioModel.Tag.Performers = artist != null ? new[] { artist } : Array.Empty<string>();
+							songData.Artists = artist ?? "Unknown Artist";
+							PendingArtist = artist != null ? 1 : 2;
+						}
+						if (AlbumChanged.Visibility == Visibility.Visible)
+						{
+							var album = string.IsNullOrEmpty(AlbumTextBox.Text) ? null : AlbumTextBox.Text;
+							songData.Album = album ?? "Unknown Album";
+							audioModel.Tag.Album = album;
+							PendingAlbum = album != null ? 1 : 2;
+						}
+						if (GenreChanged.Visibility == Visibility.Visible)
+						{
+							var genre = string.IsNullOrEmpty(GenreAutoSuggestBox.Text) ? null : GenreAutoSuggestBox.Text;
+							audioModel.Tag.Genres = genre != null ? new[] { genre } : Array.Empty<string>();
+							songData.Genre = genre ?? "Unknown Genre";
+							PendingGenre = genre != null ? 1 : 2;
+						}
+						if (YearChanged.Visibility == Visibility.Visible)
+						{
+							var year = string.IsNullOrEmpty(YearNumberBox.Text) ? 0 : uint.Parse(YearNumberBox.Text);
+							audioModel.Tag.Year = year;
+							songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
+							PendingYear = year > 0 ? 1 : 2;
+						}
+						if (LyricsChanged.Visibility == Visibility.Visible)
+						{
+							var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
+							audioModel.Tag.Lyrics = lyrics;
+							songData.Lyrics = lyrics;
+							PendingLyrics = 1;
+						}
+
+						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
+						try
+						{
+							audioModel.Save();
+						}
+						catch (IOException)
+						{
+							await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics);
+
+							if (_frontCoverArtPath is not null)
+							{
+								var coverArtTempPath = Path.Combine(Constants.TemporaryFolder, Path.GetFileName(songData.Cover));
+								Directory.CreateDirectory(Path.GetDirectoryName(coverArtTempPath));
+								File.Copy(_frontCoverArtPath, coverArtTempPath, overwrite: true);
+							}
+
+							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+						}
+					}
+					//TODO: await UpdateUI();
+				}
+
+				_songData = null;
+				_frontCoverArtPath = null;
+			}
 		}
 	}
 
@@ -824,4 +1034,274 @@ public sealed partial class MainPage : Page
 				MusicPlayer.Instance.Pause();
 		});
 	}
+
+	private void ArtistTextBox_GotFocus(object sender, RoutedEventArgs e)
+	{
+		ArtistTeachingTip.IsOpen = true;
+	}
+
+	private void ArtistTextBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		ArtistTeachingTip.IsOpen = false;
+	}
+
+	private void EditInfoSaveButtonEnableUpdate()
+	{
+		EditSongInfo.IsPrimaryButtonEnabled = CoverArtChanged.Visibility == Visibility.Visible ||
+											  TitleChanged.Visibility == Visibility.Visible ||
+											  ArtistChanged.Visibility == Visibility.Visible ||
+											  AlbumChanged.Visibility == Visibility.Visible ||
+											  GenreChanged.Visibility == Visibility.Visible ||
+											  YearChanged.Visibility == Visibility.Visible ||
+											  LyricsChanged.Visibility == Visibility.Visible;
+	}
+
+	private async void BrowseCoverArtButton_Click(object sender, RoutedEventArgs e)
+	{
+		var filePicker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		filePicker.ViewMode = PickerViewMode.Thumbnail;
+		filePicker.SuggestedStartLocation = PickerLocationId.Downloads;
+		filePicker.CommitButtonText = "Select Cover Art";
+		filePicker.Title = "Select Cover Art";
+
+		filePicker.FileTypeChoices.Add("Image Files", new List<string>() { ".jpg", ".jpeg", ".png", ".gif" });
+		filePicker.FileTypeChoices.Add("JPEG Images", new List<string>() { ".jpg", ".jpeg" });
+		filePicker.FileTypeChoices.Add("PNG Images", new List<string>() { ".png" });
+		filePicker.FileTypeChoices.Add("GIF Images", new List<string>() { ".gif" });
+
+		var imageFile = await filePicker.PickSingleFileAsync();
+		if (imageFile != null)
+		{
+			StorageFile file = await StorageFile.GetFileFromPathAsync(imageFile.Path);
+			BitmapImage bitmapImage;
+			using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
+			bitmapImage = new BitmapImage();
+			await bitmapImage.SetSourceAsync(stream);
+
+			var coverArtImagePixelWidth = bitmapImage.PixelWidth;
+			var coverArtImagePixelHeight = bitmapImage.PixelHeight;
+			var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
+			double targetHeight = 250;
+			double targetWidth = coverArtAspectRatio * targetHeight;
+
+			CoverArtImage.Height = targetHeight;
+			CoverArtImage.Width = targetWidth;
+			CoverArtImage.Source = bitmapImage;
+			CoverArtChanged.Visibility = Visibility.Visible;
+
+			_frontCoverArtPath = imageFile.Path;
+
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void RemoveCoverArtButton_Click(object sender, RoutedEventArgs e)
+	{
+		CoverArtImage.Height = 250;
+		CoverArtImage.Width = 250;
+		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+		CoverArtChanged.Visibility = Visibility.Visible;
+		EditSongInfo.IsPrimaryButtonEnabled = true;
+		_frontCoverArtPath = null;
+		EditInfoSaveButtonEnableUpdate();
+	}
+
+	private void TitleTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			TitleChanged.Visibility = TitleTextBox.Text != _songData.Title ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void ArtistTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			ArtistChanged.Visibility = ArtistTextBox.Text != _songData.Artists ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void AlbumTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			AlbumChanged.Visibility = AlbumTextBox.Text != _songData.Album ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void GenreAutoSuggestBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			GenreChanged.Visibility = GenreAutoSuggestBox.Text != _songData.Genre ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void LyricsTextBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (_songData is not null)
+		{
+			LyricsChanged.Visibility = LyricsTextBox.Text != _songData.Lyrics ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private void YearNumberBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		TextBox textBox = sender as TextBox;
+		string newText = textBox.Text;
+
+		string filtered = new string(newText.Where(char.IsDigit).ToArray());
+
+		if (filtered.Length > 4)
+			filtered = filtered.Substring(0, 4);
+
+		if (newText != filtered)
+		{
+			int caretPos = textBox.SelectionStart;
+			textBox.Text = filtered;
+
+			textBox.SelectionStart = Math.Min(caretPos, filtered.Length);
+		}
+
+		if (_songData is not null)
+		{
+			YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+			EditInfoSaveButtonEnableUpdate();
+		}
+	}
+
+	private async void OpenContainingFolderButton_Click(object sender, RoutedEventArgs e)
+	{
+		StorageFile file = await StorageFile.GetFileFromPathAsync(SongPath.Text);
+		var options = new FolderLauncherOptions();
+		options.ItemsToSelect.Add(file);
+
+		StorageFolder folder = await file.GetParentAsync();
+		await Launcher.LaunchFolderAsync(folder, options);
+	}
+
+	private void AlbumTextBox_GotFocus(object sender, RoutedEventArgs e)
+	{
+		AlbumTeachingTip.IsOpen = true;
+	}
+
+	private void AlbumTextBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		AlbumTeachingTip.IsOpen = false;
+	}
+
+	private void GenreAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
+	{
+		GenreTeachingTip.IsOpen = true;
+	}
+
+	private void GenreAutoSuggestBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		GenreTeachingTip.IsOpen = false;
+	}
+
+	private void PopulateArtistTeachingTip(List<ArtistSplitRule> splitters)
+	{
+		var activeDelimiters = splitters
+			.Where(s => s.Active == true)
+			.Select(s => s.IsRegex == true ? ToReadable(s.Pattern) : s.Pattern)
+			.ToList();
+
+		ArtistTeachingTipContent.Inlines.Clear();
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Up (↑)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " / " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Down (↓)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = " Type" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " or Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "For multiple artists, separate with:" });
+
+		int row = 0;
+		for (int i = 0; i < activeDelimiters.Count; i++)
+		{
+			int col = i % 2;
+			if (col == 0)
+			{
+				DelimitersGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+			}
+
+			var tb = new TextBlock();
+			tb.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "·  " });
+			tb.Inlines.Add(new Run { Text = activeDelimiters[i], FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+
+			Grid.SetRow(tb, row);
+			Grid.SetColumn(tb, col);
+			DelimitersGrid.Children.Add(tb);
+
+			if (col == 1) row++;
+		}
+	}
+
+	private string ToReadable(string regexPattern)
+	{
+		// \bfeat\.?\s+ → "feat."  |  \band\b → "and"  |  \bx\b → "x"
+		var result = Regex.Replace(regexPattern, @"\\b|\\s\+", "").Trim();
+		result = result.Replace(@"\.", ".");   // keep the actual dot
+		result = result.Replace(@"?", "");     // remove regex quantifier ?
+		return result;
+	}
+
+	public async void StoreRating(bool userInvoked = false)
+	{
+		try
+		{
+			if (!userInvoked && !await DatabaseHelper.Instance.CheckIfTotalPlayTimeIsAbove1Hour())
+				return;
+
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+			var _storeContext = StoreContext.GetDefault();
+
+			WinRT.Interop.InitializeWithWindow.Initialize(_storeContext, App.Hwnd);
+
+			var result = await _storeContext.RequestRateAndReviewAppAsync();
+
+			if (result.Status == StoreRateAndReviewStatus.Error || result.Status == StoreRateAndReviewStatus.NetworkError)
+				await LaunchStoreFallbackAsync();
+			else if (result.Status == StoreRateAndReviewStatus.Succeeded)
+				localSettings.Values[nameof(LocalSave.GivenStoreRating)] = true;
+			else if (result.Status == StoreRateAndReviewStatus.CanceledByUser)
+				localSettings.Values[nameof(LocalSave.GivenStoreRating)] = false;
+		}
+		catch
+		{
+			await LaunchStoreFallbackAsync();
+		}
+	}
+
+	private static async Task LaunchStoreFallbackAsync()
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://apps.microsoft.com/detail/9PCCNQZTD6PX?mode=full"));
+	}
+
 }
