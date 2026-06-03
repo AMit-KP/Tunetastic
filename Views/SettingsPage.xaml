@@ -468,6 +468,13 @@
 				        Click="GitHubIssues_Click"
 				        Content="GitHub Issues" />
 			</dev:SettingsCard>
+
+			<dev:SettingsCard Description="Love tuning in? Buy me a coffee to keep the playback smooth and the updates rolling!"
+			                  Header="Support My Work">
+				<Button x:Name="BuyMeACoffee"
+				        Click="BuyMeACoffee_Click"
+				        Content="Support Development ☕" />
+			</dev:SettingsCard>
 			<!--  Reset  -->
 
 			<StackPanel Orientation="Horizontal"

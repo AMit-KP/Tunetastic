@@ -1154,4 +1154,9 @@ public sealed partial class SettingsPage : Page
 	{
 		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://github.com/AMit-KP/Tunetastic/issues"));
 	}
+
+	private async void BuyMeACoffee_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://ko-fi.com/tunetastic"));
+	}
 }
