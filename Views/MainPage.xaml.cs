@@ -223,15 +223,15 @@ public sealed partial class MainPage : Page
 			switch (item.Type)
 			{
 				case SearchItemType.Title:
-					SuggestionList.Add(new(SearchItemType.Title, item.Title.Title + "\n" + item.Title.Artists));
+					SuggestionList.Add(new(SearchItemType.Title, item.Title!.Title + "\n" + item.Title.Artists));
 					break;
 
 				case SearchItemType.Artist:
-					SuggestionList.Add(new(SearchItemType.Artist, item.Artist));
+					SuggestionList.Add(new(SearchItemType.Artist, item.Artist!));
 					break;
 
 				case SearchItemType.Album:
-					SuggestionList.Add(new(SearchItemType.Album, item.Album.Album));
+					SuggestionList.Add(new(SearchItemType.Album, item.Album!.Album));
 					break;
 			}
 		}
@@ -252,12 +252,12 @@ public sealed partial class MainPage : Page
 	{
 		if (args.SelectedItem is NavigationViewItem selectedItem)
 		{
-			string? selectedTag = selectedItem.Tag.ToString();
+			string? selectedTag = selectedItem.Tag?.ToString();
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
-		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString(), @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
+		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString()!, @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
 		{
-			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup).Title);
+			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup)!.Title);
 		}
 	}
 
@@ -370,7 +370,7 @@ public sealed partial class MainPage : Page
 	/// </returns>
 	private bool CreateNewPlaylist(string playlistName)
 	{
-		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
 		var tag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(playlistName, @"\s+", "_") + "CustomPlaylist";
 		if (playlistsGroup != null)
 		{
@@ -418,33 +418,36 @@ public sealed partial class MainPage : Page
 		{
 			var playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
-			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
-			var lastItem = playlistsGroup.MenuItems[playlistsGroup.MenuItems.Count - 1];
-			playlistsGroup.MenuItems.Remove(lastItem);
-
-			foreach (var playlistName in playLists)
+			var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
+			if (playlistsGroup != null)
 			{
-				var tag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(playlistName, @"\s+", "_") + "CustomPlaylist";
-				DataGroup dataGroup = new();
-				dataGroup.UniqueId = tag;
-				dataGroup.Title = playlistName;
+				var lastItem = playlistsGroup.MenuItems[playlistsGroup.MenuItems.Count - 1];
+				playlistsGroup.MenuItems.Remove(lastItem);
 
-				NavigationViewItem newItem = new NavigationViewItem
+				foreach (var playlistName in playLists)
 				{
-					Content = new TextBlock
+					var tag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(playlistName, @"\s+", "_") + "CustomPlaylist";
+					DataGroup dataGroup = new();
+					dataGroup.UniqueId = tag;
+					dataGroup.Title = playlistName;
+
+					NavigationViewItem newItem = new NavigationViewItem
 					{
-						Text = playlistName,
-						TextTrimming = TextTrimming.CharacterEllipsis
-					},
-					Tag = tag,
-					Icon = new FontIcon { Glyph = "\uE728" },
-					DataContext = dataGroup
-				};
-				ToolTipService.SetToolTip(newItem, playlistName);
-				playlistsGroup.MenuItems.Add(newItem);
-				NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
+						Content = new TextBlock
+						{
+							Text = playlistName,
+							TextTrimming = TextTrimming.CharacterEllipsis
+						},
+						Tag = tag,
+						Icon = new FontIcon { Glyph = "\uE728" },
+						DataContext = dataGroup
+					};
+					ToolTipService.SetToolTip(newItem, playlistName);
+					playlistsGroup.MenuItems.Add(newItem);
+					NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
+				}
+				playlistsGroup.MenuItems.Add(lastItem);
 			}
-			playlistsGroup.MenuItems.Add(lastItem);
 		}
 		catch (Exception)
 		{
@@ -521,7 +524,7 @@ public sealed partial class MainPage : Page
 	{
 		try
 		{
-			var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+			var librariesGroup = App.Current.NavService?.MenuItems?[1] as NavigationViewItem;
 			var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.{libraryName}ViewPage");
 			if (libraryNavigationItem != null) libraryNavigationItem.Visibility = Visibility.Collapsed;
 			RemovePageFromHistory(libraryName);
@@ -546,7 +549,7 @@ public sealed partial class MainPage : Page
 	{
 		try
 		{
-			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+			var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
 			var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.PlaylistViews.{playlistName.Replace(" ", "")}");
 			if (playListNavigationItem != null) playListNavigationItem.Visibility = Visibility.Collapsed;
 			RemovePageFromHistory(playlistName);
@@ -604,7 +607,7 @@ public sealed partial class MainPage : Page
 	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
 	{
 		//TODO: Drag n Drop
-		var picker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		var picker = new FileOpenPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
 
 		picker.FileTypeChoices.Add("Playlist Files", new List<string>() { ".m3u", ".m3u8", ".pls", ".wpl", ".zpl" });
 
@@ -882,7 +885,8 @@ public sealed partial class MainPage : Page
 							if (_frontCoverArtPath is not null)
 							{
 								var coverArtTempPath = Path.Combine(Constants.TemporaryFolder, Path.GetFileName(songData.Cover));
-								Directory.CreateDirectory(Path.GetDirectoryName(coverArtTempPath));
+								var directoryName = Path.GetDirectoryName(coverArtTempPath);
+								if (directoryName != null) Directory.CreateDirectory(directoryName);
 								File.Copy(_frontCoverArtPath, coverArtTempPath, overwrite: true);
 							}
 
@@ -1058,7 +1062,7 @@ public sealed partial class MainPage : Page
 
 	private async void BrowseCoverArtButton_Click(object sender, RoutedEventArgs e)
 	{
-		var filePicker = new FileOpenPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		var filePicker = new FileOpenPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
 		filePicker.ViewMode = PickerViewMode.Thumbnail;
 		filePicker.SuggestedStartLocation = PickerLocationId.Downloads;
 		filePicker.CommitButtonText = "Select Cover Art";
@@ -1153,26 +1157,28 @@ public sealed partial class MainPage : Page
 
 	private void YearNumberBox_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		TextBox textBox = sender as TextBox;
-		string newText = textBox.Text;
-
-		string filtered = new string(newText.Where(char.IsDigit).ToArray());
-
-		if (filtered.Length > 4)
-			filtered = filtered.Substring(0, 4);
-
-		if (newText != filtered)
+		if (sender is TextBox textBox)
 		{
-			int caretPos = textBox.SelectionStart;
-			textBox.Text = filtered;
+			string newText = textBox.Text;
 
-			textBox.SelectionStart = Math.Min(caretPos, filtered.Length);
-		}
+			string filtered = new string(newText.Where(char.IsDigit).ToArray());
 
-		if (_songData is not null)
-		{
-			YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
-			EditInfoSaveButtonEnableUpdate();
+			if (filtered.Length > 4)
+				filtered = filtered.Substring(0, 4);
+
+			if (newText != filtered)
+			{
+				int caretPos = textBox.SelectionStart;
+				textBox.Text = filtered;
+
+				textBox.SelectionStart = Math.Min(caretPos, filtered.Length);
+			}
+
+			if (_songData is not null)
+			{
+				YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+				EditInfoSaveButtonEnableUpdate();
+			}
 		}
 	}
 

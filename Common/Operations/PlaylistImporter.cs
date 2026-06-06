@@ -219,6 +219,7 @@ public static class ImportExportPlaylist
 			".pls" => ParsePLS(filePath),
 			".wpl" => ParseWPL(filePath),
 			".zpl" => ParseZPL(filePath),
+			_ => new List<string>()
 		};
 	}
 
@@ -253,12 +254,13 @@ public static class ImportExportPlaylist
 	/// </summary>
 	/// <param name="filePath">The full file path of the WPL file to be parsed.</param>
 	/// <returns>A list of file paths representing the media items contained in the WPL playlist.</returns>
-	private static List<string?> ParseWPL(string filePath)
+	private static List<string> ParseWPL(string filePath)
 	{
 		var doc = XDocument.Load(filePath);
 		return doc.Descendants("media")
 					.Select(x => x.Attribute("src")?.Value)
 					.Where(src => !string.IsNullOrWhiteSpace(src))
+					.Select(src => src!)
 					.ToList();
 	}
 
@@ -267,12 +269,13 @@ public static class ImportExportPlaylist
 	/// </summary>
 	/// <param name="filePath">The full file path of the ZPL file to be parsed.</param>
 	/// <returns>A list of strings representing the file paths of the tracks contained in the playlist.</returns>
-	private static List<string?> ParseZPL(string filePath)
+	private static List<string> ParseZPL(string filePath)
 	{
 		var doc = XDocument.Load(filePath);
 		return doc.Descendants("media")
 				.Select(x => x.Attribute("src")?.Value)
 				.Where(src => !string.IsNullOrWhiteSpace(src))
+				.Select(src => src!)
 				.ToList();
 	}
 }

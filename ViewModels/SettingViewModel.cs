@@ -5,6 +5,7 @@ namespace Tunetastic.ViewModels;
 
 public partial class SettingViewModel : ObservableObject
 {
+#pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 	[ObservableProperty]
 	public string currentVersion;
 
@@ -22,6 +23,7 @@ public partial class SettingViewModel : ObservableObject
 
 	[ObservableProperty]
 	public string loadingStatus = "Status";
+#pragma warning restore MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
 
 	private string ChangeLog = string.Empty;
 
