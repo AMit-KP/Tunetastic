@@ -24,7 +24,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private PlaybackTracker _playbackTracker = new();
 	private DispatcherTimer? _midpointTimer;
 	private double _startupPosition = 0;
-	private ThumbnailToolBarButton Play_Pause_Button;
+	private ThumbnailToolBarButton Play_Pause_Button = null!;
 
 	// ── Custom smooth progress bar ────────────────────────────────
 	// Set this from MusicControl code-behind after InitializeComponent():
@@ -170,7 +170,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 		SetShuffleAndRepeat();
 		_ = LoadLastPlayedTrack();
 
-		App.TrayIcon.LeftClick += OnTrayIconLeftClick;
+		if (App.TrayIcon != null)
+			App.TrayIcon.LeftClick += OnTrayIconLeftClick;
 
 		if (_musicPlayer.SMTC != null)
 		{
@@ -180,7 +181,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				{
 					case SystemMediaTransportControlsButton.Play:
 					case SystemMediaTransportControlsButton.Pause:
-						_dispatcherQueue.TryEnqueue(() => TogglePlayPause());
+						_dispatcherQueue.TryEnqueue(async () => await TogglePlayPause());
 						break;
 					case SystemMediaTransportControlsButton.Next:
 						_dispatcherQueue.TryEnqueue(() => NextSong());
@@ -192,8 +193,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 			};
 		}
 
-		MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
-		MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
+		if (MainWindow._instance?.Content != null)
+		{
+			MainWindow._instance.Content.PreviewKeyDown += PreviewKeyDownMusicControl;
+			MainWindow._instance.Content.ProcessKeyboardAccelerators += keyboardInput;
+		}
 
 		SetupTaskbarThumbnailToolBar();
 	}
@@ -201,9 +205,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 	// ─────────────────────────────────────────────────────────
 	//  Tray click Event handlers
 	// ─────────────────────────────────────────────────────────
-	private void OnTrayIconLeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+	private async void OnTrayIconLeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
 	{
-		TogglePlayPause();
+		await TogglePlayPause();
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -232,8 +236,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 					_vinylEffect?.Pause();
 					ProgressBar?.NotifyPaused();
 
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
-					MainPage._instance.AnimateTitle(startAnimation: false);
+					if (MusicPlayer.Instance.SMTC != null)
+						MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+					MainPage._instance?.AnimateTitle(startAnimation: false);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
 					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"play_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
 
@@ -254,8 +259,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 					_vinylEffect?.Resume();
 					ProgressBar?.NotifyPlaying();
 
-					MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
-					MainPage._instance.AnimateTitle(startAnimation: true);
+					if (MusicPlayer.Instance.SMTC != null)
+						MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+					MainPage._instance?.AnimateTitle(startAnimation: true);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"pause_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
 
@@ -314,10 +320,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	private void PreviewKeyDownMusicControl(object sender, KeyRoutedEventArgs e)
 	{
-		if (!MainPage._instance.searchBoxFocused && e.Key == Windows.System.VirtualKey.Space)
+		if (!(MainPage._instance?.searchBoxFocused ?? false) && e.Key == Windows.System.VirtualKey.Space)
 		{
 			e.Handled = true;
-			TogglePlayPause();
+			_ = TogglePlayPause();
 		}
 		else if (e.Key == Windows.System.VirtualKey.Tab)
 		{
@@ -373,13 +379,15 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		if (_musicPlayer.IsPlaying)
 		{
-			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+			if (MusicPlayer.Instance.SMTC != null)
+				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
 			_musicPlayer.Pause();
 			_playbackTracker.PausePlayback();
 		}
 		else
 		{
-			MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
+			if (MusicPlayer.Instance.SMTC != null)
+				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Playing;
 			_musicPlayer.Play(playBackPosition: ProgressBarValue);
 			_playbackTracker.StartPlayback();
 		}
@@ -685,7 +693,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 
 		prevButton.Click += (s, e) => PreviousSong();
-		Play_Pause_Button.Click += (s, e) => TogglePlayPause();
+		Play_Pause_Button.Click += async (s, e) => await TogglePlayPause();
 		nextButton.Click += (s, e) => NextSong();
 
 		TaskbarManager.Instance.ThumbnailToolBars.AddButtons(App.Hwnd, prevButton, Play_Pause_Button, nextButton);

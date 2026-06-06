@@ -118,16 +118,17 @@ public sealed partial class MainPlayerPage : Page
 						Title.FontSize = Album.FontSize * 1.5;
 						Artist.FontSize = Album.FontSize * 1.1;
 
-						var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(track.Cover));
-						if (!File.Exists(thumbnailFilePath))
+						var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(track?.Cover ?? ""));
+						if (!string.IsNullOrEmpty(track?.Cover) && !File.Exists(thumbnailFilePath))
 						{
-							using var audioModel = TagLib.File.Create(track.Path);
-							ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(track.Cover));
+							using var audioModel = TagLib.File.Create(track?.Path);
+							ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(track?.Cover ?? ""));
 						}
 
-						StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
-						using (IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read))
+						if (File.Exists(thumbnailFilePath))
 						{
+							StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
+							using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
 							BitmapImage bitmapImage = new BitmapImage();
 							await bitmapImage.SetSourceAsync(stream);
 
@@ -141,20 +142,25 @@ public sealed partial class MainPlayerPage : Page
 
 							CoverArtImage.Source = bitmapImage;
 						}
+
 						if ((Title.Text + "\n" + Artist.Text).Length > 128)
 							App.TrayIcon?.Tooltip = Title.Text;
 						else
 							App.TrayIcon?.Tooltip = Title.Text + "\n" + Artist.Text;
 
-						var updater = MusicPlayer.Instance.SMTC.DisplayUpdater;
-						updater.Type = MediaPlaybackType.Music;
-						updater.Thumbnail = RandomAccessStreamReference.CreateFromFile(await StorageFile.GetFileFromPathAsync(track?.Cover));
-						updater.MusicProperties.Title = Title.Text;
-						updater.MusicProperties.Artist = Artist.Text;
-						updater.MusicProperties.AlbumTitle = Album.Text;
-						updater.MusicProperties.AlbumArtist = Artist.Text;
-						updater.MusicProperties.AlbumTrackCount = 1;
-						updater.Update();
+						if (MusicPlayer.Instance.SMTC != null)
+						{
+							var updater = MusicPlayer.Instance.SMTC.DisplayUpdater;
+							updater.Type = MediaPlaybackType.Music;
+							if (!string.IsNullOrEmpty(track?.Cover))
+								updater.Thumbnail = RandomAccessStreamReference.CreateFromFile(await StorageFile.GetFileFromPathAsync(track?.Cover));
+							updater.MusicProperties.Title = Title.Text;
+							updater.MusicProperties.Artist = Artist.Text;
+							updater.MusicProperties.AlbumTitle = Album.Text;
+							updater.MusicProperties.AlbumArtist = Artist.Text;
+							updater.MusicProperties.AlbumTrackCount = 1;
+							updater.Update();
+						}
 
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
@@ -204,7 +210,8 @@ public sealed partial class MainPlayerPage : Page
 				GlobalNotification.Error("Could not load track/song.");
 		}
 
-		MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
+		if (MusicPlayer.Instance.SMTC != null)
+			MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
 		BGbitmapImage = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		if (!backNavigation)
 			BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
@@ -523,7 +530,7 @@ public sealed partial class MainPlayerPage : Page
 	private void DisplayUnsyncedLyrics()
 	{
 		LyricsPanel.Children.Clear();
-		foreach (var line in lyricsText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+		foreach (var line in lyricsText!.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
 		{
 			var text = new TextBlock
 			{

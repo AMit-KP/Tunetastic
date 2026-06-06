@@ -75,13 +75,16 @@ public sealed partial class PlayListTemplate : Page
 
 			NavigationPageMappings.PageDictionary.Remove(playListTag);
 
-			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
-			foreach (NavigationViewItem item in playlistsGroup.MenuItems)
+			var playlistsGroup = App.Current.NavService.MenuItems![2] as NavigationViewItem;
+			if (playlistsGroup != null)
 			{
-				if (item.Tag.ToString() == playListTag)
+				foreach (NavigationViewItem item in playlistsGroup.MenuItems)
 				{
-					playlistsGroup.MenuItems.Remove(item);
-					break;
+					if (item.Tag?.ToString() == playListTag)
+					{
+						playlistsGroup.MenuItems.Remove(item);
+						break;
+					}
 				}
 			}
 			GlobalNotification.Info($"{playListName} PlayList deleted.");
@@ -161,7 +164,6 @@ public sealed partial class PlayListTemplate : Page
 		var list = await DatabaseHelper.Instance.GetSongsInPlaylist(PlaylistHeader.Text);
 		PlayListSongs.Clear();
 		PlayListSongs.AddRange(list);
-		list = null;
 		HandleEmptyPlayList(scrollToSelectedItem: true);
 	}
 
@@ -594,7 +596,7 @@ public sealed partial class PlayListTemplate : Page
 	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
+		if (songData is not null) MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>
@@ -793,10 +795,10 @@ public sealed partial class PlayListTemplate : Page
 
 
 			GlobalNotification.Info($"Song/Track removed from {PlaylistHeader.Text}." +
-									$"\nTitle: {songData.Title}" +
-									$"\nArtist: {songData.Artists}" +
-									$"\nAlbum: {songData.Album}" +
-									$"\nFile: {songData.Path}");
+									$"\nTitle: {songData!.Title}" +
+									$"\nArtist: {songData!.Artists}" +
+									$"\nAlbum: {songData!.Album}" +
+									$"\nFile: {songData!.Path}");
 
 			HandleAfterRemove(index);
 		}
@@ -940,7 +942,7 @@ public sealed partial class PlayListTemplate : Page
 
 		if (result == ContentDialogResult.Primary)
 		{
-			var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+			var playlistsGroup = App.Current.NavService.MenuItems![2] as NavigationViewItem;
 			var tag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(PlaylistNameBox.Text.Trim(), @"\s+", "_") + "CustomPlaylist";
 			if (playlistsGroup != null)
 			{

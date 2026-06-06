@@ -697,8 +697,8 @@
 							                           LostFocus="ArtistTextBox_LostFocus"
 							                           MultiSuggestEnabled="True"
 							                           PlaceholderText="Enter Artist Name(s)"
-							                           SplitRules="{x:Bind ArtistSplitRules, Mode=OneWay}"
-							                           SuggestionSource="{x:Bind ArtistSuggestions, Mode=OneWay}"
+							                           SplitRules="{x:Bind ArtistSplitRules}"
+							                           SuggestionSource="{x:Bind ArtistSuggestions}"
 							                           SuggestionSuffix=" [Press →]"
 							                           TextChanged="ArtistTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
@@ -739,7 +739,7 @@
 							                           GotFocus="AlbumTextBox_GotFocus"
 							                           LostFocus="AlbumTextBox_LostFocus"
 							                           PlaceholderText="Enter Album Name"
-							                           SuggestionSource="{x:Bind AlbumSuggestions, Mode=OneWay}"
+							                           SuggestionSource="{x:Bind AlbumSuggestions}"
 							                           SuggestionSuffix=" [Press →]"
 							                           TextChanged="AlbumTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
@@ -804,7 +804,7 @@
 								                           GotFocus="GenreAutoSuggestBox_GotFocus"
 								                           LostFocus="GenreAutoSuggestBox_LostFocus"
 								                           PlaceholderText="Enter genre"
-								                           SuggestionSource="{x:Bind GenreSuggestions, Mode=OneWay}"
+								                           SuggestionSource="{x:Bind GenreSuggestions}"
 								                           SuggestionSuffix=" [Press →]"
 								                           TextChanged="GenreAutoSuggestBox_TextChanged"
 								                           TextWrapping="Wrap" />

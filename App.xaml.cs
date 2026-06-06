@@ -15,7 +15,7 @@ public partial class App : Application
 
 	public static SystemTrayIcon? TrayIcon { get; set; }
 
-	public AudioService AudioService { get; private set; }
+	public AudioService AudioService { get; private set; } = null!;
 
 	public static T GetService<T>() where T : class
 	{
@@ -62,7 +62,7 @@ public partial class App : Application
 
 		MainWindow = new MainWindow();
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
-		MainWindow.AppWindow.SetIcon("Assets/AppIcon.png");
+		MainWindow.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
 
 		var rootFrame = new Frame();
 		MainWindow.Content = rootFrame;

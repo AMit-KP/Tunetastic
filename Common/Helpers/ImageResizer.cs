@@ -24,10 +24,11 @@ public static class ImageResizer
 	/// <returns>
 	/// The file path of the created thumbnail image.
 	/// </returns>
-	public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[] pictures, int width, int height)
+	public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[]? pictures, int width, int height)
 	{
 		var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, thumbnailFolder.ToString(), "Cover_" + new string(Enumerable.Range(0, 10).Select(_ => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[new Random().Next(62)]).ToArray()) + ".png");
-		Directory.CreateDirectory(Path.GetDirectoryName(thumbnailFilePath));
+		var dir = Path.GetDirectoryName(thumbnailFilePath);
+		if (dir != null) Directory.CreateDirectory(dir);
 		byte[] imageData;
 		try
 		{
@@ -66,10 +67,11 @@ public static class ImageResizer
 	/// <returns>
 	/// The file path of the created thumbnail image.
 	/// </returns>
-	public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[] pictures, string? fileName = null)
+	public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[]? pictures, string? fileName = null)
 	{
 		var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, thumbnailFolder.ToString(), fileName ?? "Cover_" + new string(Enumerable.Range(0, 10).Select(_ => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"[new Random().Next(62)]).ToArray()) + ".png");
-		Directory.CreateDirectory(Path.GetDirectoryName(thumbnailFilePath));
+		var dir = Path.GetDirectoryName(thumbnailFilePath);
+		if (dir != null) Directory.CreateDirectory(dir);
 		byte[] imageData;
 		try
 		{
@@ -102,7 +104,7 @@ public static class ImageResizer
 	/// <returns>
 	/// The file path of the created thumbnail image.
 	/// </returns>
-	public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[] pictures, int size)
+	public static string CreateThumbnailImage(ThumbnailFolder thumbnailFolder, IPicture[]? pictures, int size)
 	{
 		return CreateThumbnailImage(thumbnailFolder, pictures, size, size);
 	}

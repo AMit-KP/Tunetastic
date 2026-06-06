@@ -64,7 +64,7 @@ public sealed partial class SettingsPage : Page
 
 		LoadAppearanceAndBehaviourSettings();
 
-		LoadLibrarySettings();
+		_ = LoadLibrarySettings();
 
 		LoadAudioAndPlayBackSettings();
 
@@ -103,7 +103,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of EventArgs containing the event data.</param>
 	private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
 	{
-		var picker = new FolderPicker((sender as Button).XamlRoot.ContentIslandEnvironment.AppWindowId);
+		var picker = new FolderPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
 		picker.CommitButtonText = "Add Folder";
 		picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
 
@@ -111,16 +111,19 @@ public sealed partial class SettingsPage : Page
 		{
 			var musicfolder = await picker.PickSingleFolderAsync();
 
-			var libraryModel = new LibraryModel
+			if (musicfolder != null)
 			{
-				Name = Path.GetFileName(musicfolder.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
-				Path = musicfolder.Path
-			};
+				var libraryModel = new LibraryModel
+				{
+					Name = Path.GetFileName(musicfolder.Path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+					Path = musicfolder.Path
+				};
 
-			await DatabaseHelper.Instance.AddOrUpdateLibrary(libraryModel);
+				await DatabaseHelper.Instance.AddOrUpdateLibrary(libraryModel);
 
-			Libraries?.Clear();
-			Libraries.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
+				Libraries?.Clear();
+				Libraries?.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
+			}
 		}
 		catch (Exception)
 		{
@@ -202,9 +205,9 @@ public sealed partial class SettingsPage : Page
 				},
 				XamlRoot = this.Content.XamlRoot
 			};
-			MainWindow._instance.WindowResizePermission(false);
+			MainWindow._instance?.WindowResizePermission(false);
 			var result = await dialog.ShowAsync();
-			MainWindow._instance.WindowResizePermission(true);
+			MainWindow._instance?.WindowResizePermission(true);
 
 			if (result != ContentDialogResult.Primary)
 			{
@@ -282,7 +285,7 @@ public sealed partial class SettingsPage : Page
 	{
 		var numberBox = sender as NumberBox;
 
-		if (numberBox?.Value < 0 || double.IsNaN(numberBox.Value))
+		if (numberBox?.Value < 0 || double.IsNaN(numberBox!.Value))
 		{
 			numberBox.Value = 0;
 		}
@@ -597,7 +600,6 @@ public sealed partial class SettingsPage : Page
 
 			if (TintSettings.Visibility == Visibility.Visible)
 			{
-				var actualTheme = App.Current.ThemeService.ActualTheme;
 				Color color = Color.FromArgb(0, 0, 0, 0);
 				TintBox.Fill = new SolidColorBrush(color);
 			}
@@ -877,7 +879,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void ArtistsToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var librariesGroup = App.Current.NavService.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = ArtistsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
@@ -886,8 +888,8 @@ public sealed partial class SettingsPage : Page
 
 		if (!ArtistsToggle.IsOn)
 		{
-			MainPage._instance.RemovePageFromHistory("Artists");
-			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.ArtistDetailPage");
+			MainPage._instance?.RemovePageFromHistory("Artists");
+			MainPage._instance?.RemovePageFromHistory("Tunetastic.Views.LibraryViews.ArtistDetailPage");
 		}
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -910,7 +912,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void AlbumsToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = AlbumsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
@@ -919,8 +921,8 @@ public sealed partial class SettingsPage : Page
 
 		if (!AlbumsToggle.IsOn)
 		{
-			MainPage._instance.RemovePageFromHistory("Albums");
-			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.AlbumDetailPage");
+			MainPage._instance?.RemovePageFromHistory("Albums");
+			MainPage._instance?.RemovePageFromHistory("Tunetastic.Views.LibraryViews.AlbumDetailPage");
 		}
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -943,7 +945,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void GenresToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.GenresViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = GenresToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
@@ -952,8 +954,8 @@ public sealed partial class SettingsPage : Page
 
 		if (!GenresToggle.IsOn)
 		{
-			MainPage._instance.RemovePageFromHistory("Genres");
-			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.GenreDetailPage");
+			MainPage._instance?.RemovePageFromHistory("Genres");
+			MainPage._instance?.RemovePageFromHistory("Tunetastic.Views.LibraryViews.GenreDetailPage");
 		}
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -975,7 +977,7 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void YearsToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.YearsViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = YearsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
@@ -985,8 +987,8 @@ public sealed partial class SettingsPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (!YearsToggle.IsOn)
 		{
-			MainPage._instance.RemovePageFromHistory("Years");
-			MainPage._instance.RemovePageFromHistory("Tunetastic.Views.LibraryViews.YearDetailPage");
+			MainPage._instance?.RemovePageFromHistory("Years");
+			MainPage._instance?.RemovePageFromHistory("Tunetastic.Views.LibraryViews.YearDetailPage");
 		}
 
 		localSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
@@ -1008,14 +1010,14 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void RecentlyAddedToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playlistsGroup = App.Current.NavService!.MenuItems![2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyAdded");
 
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyAddedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 
 		//TODO: Ask confirmation when currently playing from it
 
-		if (!RecentlyAddedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Added");
+		if (!RecentlyAddedToggle.IsOn) MainPage._instance?.RemovePageFromHistory("Recently Added");
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)] = RecentlyAddedToggle.IsOn;
@@ -1036,14 +1038,14 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void RecentlyPlayedToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playlistsGroup = App.Current.NavService!.MenuItems![2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyPlayed");
 
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 
 		//TODO: Ask confirmation when currently playing from it
 
-		if (!RecentlyPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Recently Played");
+		if (!RecentlyPlayedToggle.IsOn) MainPage._instance?.RemovePageFromHistory("Recently Played");
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)] = RecentlyPlayedToggle.IsOn;
@@ -1064,14 +1066,14 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void MostPlayedToggle_Toggled(object sender, RoutedEventArgs e)
 	{
-		var playlistsGroup = App.Current.NavService.MenuItems[2] as NavigationViewItem;
+		var playlistsGroup = App.Current.NavService!.MenuItems![2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.MostPlayed");
 
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = MostPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
 
 		//TODO: Ask confirmation when currently playing from it
 
-		if (!MostPlayedToggle.IsOn) MainPage._instance.RemovePageFromHistory("Most Played");
+		if (!MostPlayedToggle.IsOn) MainPage._instance?.RemovePageFromHistory("Most Played");
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.MostPlayedEnabled)] = MostPlayedToggle.IsOn;

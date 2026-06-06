@@ -386,7 +386,7 @@ public sealed partial class ArtistsViewPage : Page
 		if (ArtistTileView.IsMultiSelectCheckBoxEnabled)
 		{
 			var artistModels = ArtistTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)).ToList(),
+			var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)!).ToList(),
 																		   orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
 																		   ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
 																		   matchAll: false);
@@ -405,11 +405,11 @@ public sealed partial class ArtistsViewPage : Page
 
 			if (playlist != null && artistModel != null)
 			{
-				var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel?.Artist == "Unknown" ? "Unknown Artist" : artistModel?.Artist,
+				var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel?.Artist == "Unknown" ? "Unknown Artist" : artistModel?.Artist!,
 																			  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
 																			  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Artist {artistModel.Artist} added to {playlist} playlist.");
+				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Artist {artistModel!.Artist} added to {playlist} playlist.");
 			}
 		}
 	}
@@ -428,13 +428,16 @@ public sealed partial class ArtistsViewPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var artistModel = (sender as MenuFlyoutItem)?.DataContext as ArtistModel;
-		var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel?.Artist == "Unknown" ? "Unknown Artist" : artistModel?.Artist,
-																	  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
-																	  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
-		List<string> songPaths = songList.Select(s => s.Path).ToList();
-		MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"ArtistGroup>{artistModel?.Artist}";
-		ArtistTileView.SelectedItem = artistModel;
+		if (artistModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel.Artist == "Unknown" ? "Unknown Artist" : artistModel.Artist ?? "",
+																		  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
+																		  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
+			List<string> songPaths = songList.Select(s => s.Path).ToList();
+			MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"ArtistGroup>{artistModel.Artist}";
+			ArtistTileView.SelectedItem = artistModel;
+		}
 	}
 
 	/// <summary>
@@ -451,14 +454,17 @@ public sealed partial class ArtistsViewPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var artistModel = (sender as MenuFlyoutItem)?.DataContext as ArtistModel;
-		var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel?.Artist == "Unknown" ? "Unknown Artist" : artistModel?.Artist,
-																	  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
-																	  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
-		List<string> songPaths = songList.Select(s => s.Path).ToList();
+		if (artistModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel.Artist == "Unknown" ? "Unknown Artist" : artistModel.Artist ?? "",
+																		  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
+																		  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
+			List<string> songPaths = songList.Select(s => s.Path).ToList();
 
-		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+			await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Artist {artistModel?.Artist} added to queue.");
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Artist {artistModel.Artist} added to queue.");
+		}
 	}
 
 	/// <summary>
@@ -479,40 +485,43 @@ public sealed partial class ArtistsViewPage : Page
 		DeleteDialog.Visibility = Visibility.Visible;
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var artistModel = (sender as MenuFlyoutItem)?.DataContext as ArtistModel;
-		var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel?.Artist == "Unknown" ? "Unknown Artist" : artistModel?.Artist,
-																	  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
-																	  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
-		List<string> songPaths = songList.Select(s => s.Path).ToList();
-
-		if (songPaths?.Count > 0)
+		if (artistModel != null)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Artist {artistModel?.Artist} from your system?";
+			var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel.Artist == "Unknown" ? "Unknown Artist" : artistModel.Artist ?? "",
+																		  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
+																		  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
+			List<string> songPaths = songList.Select(s => s.Path).ToList();
 
-			MainWindow._instance.WindowResizePermission(false);
-			var result = await DeleteDialog.ShowAsync();
-			MainWindow._instance.WindowResizePermission(true);
-			if (result == ContentDialogResult.Primary)
+			if (songPaths?.Count > 0)
 			{
-				foreach (string songPath in songPaths)
+				DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Artist {artistModel.Artist} from your system?";
+
+				MainWindow._instance.WindowResizePermission(false);
+				var result = await DeleteDialog.ShowAsync();
+				MainWindow._instance.WindowResizePermission(true);
+				if (result == ContentDialogResult.Primary)
 				{
-					if (File.Exists(songPath))
+					foreach (string songPath in songPaths)
 					{
-						File.Delete(songPath);
-						await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
+						if (File.Exists(songPath))
+						{
+							File.Delete(songPath);
+							await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
+						}
 					}
+					ArtistsGroup.Remove(artistModel);
+					MusicPlayer.Instance.HandleAfterDelete();
+					GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Artist {artistModel.Artist} deleted.");
 				}
-				ArtistsGroup.Remove(artistModel);
-				MusicPlayer.Instance.HandleAfterDelete();
-				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Artist {artistModel?.Artist} deleted.");
-			}
-			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
-			{
-				GoToSettings.Visibility = Visibility.Visible;
-				PageButtons.Visibility = Visibility.Collapsed;
-			}
-			else
-			{
-				NavigationPanelEvaluate();
+				if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
+				{
+					GoToSettings.Visibility = Visibility.Visible;
+					PageButtons.Visibility = Visibility.Collapsed;
+				}
+				else
+				{
+					NavigationPanelEvaluate();
+				}
 			}
 		}
 	}
@@ -588,7 +597,7 @@ public sealed partial class ArtistsViewPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var artistModels = ArtistTileView.SelectedItems;
-		var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)).ToList(),
+		var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)!).ToList(),
 																	   orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
 																	   ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
 																	   matchAll: false);
@@ -614,7 +623,7 @@ public sealed partial class ArtistsViewPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		var artistModels = ArtistTileView.SelectedItems;
-		var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)).ToList(),
+		var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)!).ToList(),
 																	   orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
 																	   ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
 																	   matchAll: false);
@@ -718,7 +727,7 @@ public sealed partial class ArtistsViewPage : Page
 	{
 		base.OnNavigatedTo(e);
 
-		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string && e.Parameter == "Artists");
+		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string s && s == "Artists");
 	}
 
 	/// <summary>

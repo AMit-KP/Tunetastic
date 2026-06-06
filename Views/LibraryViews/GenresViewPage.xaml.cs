@@ -506,7 +506,7 @@ public sealed partial class GenresViewPage : Page
 						await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
 					}
 				}
-				GenresGroup.Remove(genreModel);
+				GenresGroup.Remove(genreModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
 				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Genre {genreModel?.Genre} deleted.");
 			}
@@ -721,7 +721,7 @@ public sealed partial class GenresViewPage : Page
 	{
 		base.OnNavigatedTo(e);
 
-		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string && e.Parameter == "Genres");
+		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string s && s == "Genres");
 	}
 
 	/// <summary>

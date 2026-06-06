@@ -2097,7 +2097,7 @@ public class DatabaseHelper
 	/// </summary>
 	private sealed class ArtistNameRow
 	{
-		public string Name { get; set; }
+		public string? Name { get; set; }
 	}
 
 	/// <summary>
@@ -2107,7 +2107,7 @@ public class DatabaseHelper
 	/// </summary>
 	private sealed class AlbumNameRow
 	{
-		public string Album { get; set; }
+		public string? Album { get; set; }
 	}
 
 	/// <summary>
@@ -2259,7 +2259,7 @@ public class DatabaseHelper
 								   LIMIT {limitPerCategory}";
 
 				var rows = await _database.QueryAsync<ArtistNameRow>(artistSql, artistArgs.ToArray());
-				results.Artists = rows.Select(r => r.Name).ToList();
+				results.Artists = rows.Select(r => r.Name).ToList()!;
 			}
 		}
 
@@ -2429,26 +2429,26 @@ public class DatabaseHelper
 
 		if (Is("Title"))
 		{
-			AddSongs(results.Titles);
+			AddSongs(results!.Titles);
 			AddArtists(results.Artists);
 			AddAlbums(results.Albums);
 		}
 		else if (Is("Artist"))
 		{
-			AddArtists(results.Artists);
+			AddArtists(results!.Artists);
 			AddSongs(results.Titles);
 			AddAlbums(results.Albums);
 		}
 		else if (Is("Album"))
 		{
-			AddAlbums(results.Albums);
+			AddAlbums(results!.Albums);
 			AddSongs(results.Titles);
 			AddArtists(results.Artists);
 		}
 		else
 		{
 			// All/Unknown: keep your natural per-category ordering
-			AddSongs(results.Titles);
+			AddSongs(results!.Titles);
 			AddArtists(results.Artists);
 			AddAlbums(results.Albums);
 		}

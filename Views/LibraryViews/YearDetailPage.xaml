@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.LibraryViews.YearDetailPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -125,19 +125,19 @@
 						<DropDownButton.Flyout>
 							<MenuFlyout x:Name="Sort"
 							            Placement="BottomEdgeAlignedRight">
-								<RadioMenuFlyoutItem x:Name="Title"
+								<RadioMenuFlyoutItem x:Name="TitleSort"
 								                     Click="SortButton_OnClick"
 								                     GroupName="SortBy"
 								                     Text="Title" />
-								<RadioMenuFlyoutItem x:Name="Artists"
+								<RadioMenuFlyoutItem x:Name="ArtistsSort"
 								                     Click="SortButton_OnClick"
 								                     GroupName="SortBy"
 								                     Text="Artists" />
-								<RadioMenuFlyoutItem x:Name="Album"
+								<RadioMenuFlyoutItem x:Name="AlbumSort"
 								                     Click="SortButton_OnClick"
 								                     GroupName="SortBy"
 								                     Text="Album" />
-								<RadioMenuFlyoutItem x:Name="Duration"
+								<RadioMenuFlyoutItem x:Name="DurationSort"
 								                     Click="SortButton_OnClick"
 								                     GroupName="SortBy"
 								                     Text="Duration" />

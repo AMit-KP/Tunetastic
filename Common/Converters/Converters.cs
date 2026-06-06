@@ -144,7 +144,7 @@ public class DateFormatConverter : IValueConverter
 	{
 		if (value is DateTime dt)
 		{
-			string format = parameter as string;
+			string? format = parameter as string;
 
 			if (string.IsNullOrEmpty(format))
 				return dt.ToString("d", CultureInfo.CurrentCulture);
@@ -195,7 +195,7 @@ public class RelativeTimeConverter : IValueConverter
 	/// <param name="parameter">Additional parameter for the converter. Not used in this implementation.</param>
 	/// <param name="language">The culture or language information for the conversion. Not used in this implementation.</param>
 	/// <returns>A string containing a user-friendly, relative time description based on the difference between the current time and the provided <see cref="DateTime"/> value.</returns>
-	public object Convert(object value, Type targetType, object parameter, string language)
+	public object Convert(object value, Type? targetType, object? parameter, string? language)
 	{
 		if (value is not DateTime dateTime)
 			return string.Empty;

@@ -502,7 +502,7 @@ public sealed partial class AlbumsViewPage : Page
 						await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
 					}
 				}
-				AlbumsGroup.Remove(albumModel);
+				AlbumsGroup.Remove(albumModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
 				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Album {albumModel?.Album} deleted.");
 			}
@@ -717,7 +717,7 @@ public sealed partial class AlbumsViewPage : Page
 	{
 		base.OnNavigatedTo(e);
 
-		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string && e.Parameter == "Albums");
+		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string s && s == "Albums");
 
 		if (ShimmerRepeater.Visibility == Visibility.Visible && (ContentGrid.ActualWidth > 0 && ContentGrid.ActualHeight > 0))
 		{

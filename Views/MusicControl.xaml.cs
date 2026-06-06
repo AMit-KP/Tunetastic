@@ -19,7 +19,8 @@ public sealed partial class MusicControl : Page
 
 		_instance = this;
 
-		MainPage._instance.MainPlayerPageOpened += FloatingPlayer;
+		if (MainPage._instance != null)
+			MainPage._instance.MainPlayerPageOpened += FloatingPlayer;
 		VinylEffectStoryBoard();
 	}
 

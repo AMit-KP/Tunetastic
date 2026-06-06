@@ -184,16 +184,16 @@ public sealed partial class ArtistDetailPage : Page
 		switch (sortBy)
 		{
 			case "Album":
-				Album.IsChecked = true;
+				AlbumSort.IsChecked = true;
 				break;
 
 			case "Duration":
-				Duration.IsChecked = true;
+				DurationSort.IsChecked = true;
 				break;
 
 			case "Title":
 			default:
-				Title.IsChecked = true;
+				TitleSort.IsChecked = true;
 				break;
 		}
 		switch (sortOrder)
@@ -881,7 +881,7 @@ public sealed partial class ArtistDetailPage : Page
 	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
+		if (songData is not null) MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>
@@ -933,7 +933,7 @@ public sealed partial class ArtistDetailPage : Page
 			if (ArtistGroupSongs.Count <= 0)
 			{
 				App.Current.NavService.GoBack();
-				MainPage._instance.RemovePageFromHistory(ActualArtistGroup.Text == "Unknown Artist" ? "Unknown" : ActualArtistGroup.Text);
+				MainPage._instance?.RemovePageFromHistory(ActualArtistGroup.Text == "Unknown Artist" ? "Unknown" : ActualArtistGroup.Text);
 			}
 		}
 	}
@@ -1066,7 +1066,7 @@ public sealed partial class ArtistDetailPage : Page
 		if (ArtistGroupSongs.Count <= 0)
 		{
 			App.Current.NavService.GoBack();
-			MainPage._instance.RemovePageFromHistory(ActualArtistGroup.Text == "Unknown Artist" ? "Unknown" : ActualArtistGroup.Text);
+			MainPage._instance?.RemovePageFromHistory(ActualArtistGroup.Text == "Unknown Artist" ? "Unknown" : ActualArtistGroup.Text);
 		}
 	}
 
@@ -1087,9 +1087,9 @@ public sealed partial class ArtistDetailPage : Page
 	/// </summary>
 	private static void SelectArtistOnNavigation()
 	{
-		var librariesGroup = App.Current.NavService.MenuItems[1] as NavigationViewItem;
+		var librariesGroup = App.Current.NavService.MenuItems![1] as NavigationViewItem;
 
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == $"Tunetastic.Views.LibraryViews.ArtistsViewPage");
-		libraryNavigationItem.IsSelected = true;
+		libraryNavigationItem!.IsSelected = true;
 	}
 }
