@@ -217,7 +217,7 @@ public sealed partial class MainPage : Page
 	{
 		var SuggestionList = new List<KeyValuePair<SearchItemType, string>>();
 
-		var result = await DatabaseHelper.Instance.Search(searchText, limitPerCategory: 3);
+		var result = await DatabaseHelper.Instance.Search(searchText, limitPerCategory: 5);
 		foreach (var item in result.Items)
 		{
 			switch (item.Type)
