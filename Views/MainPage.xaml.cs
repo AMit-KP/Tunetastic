@@ -239,6 +239,16 @@ public sealed partial class MainPage : Page
 		return SuggestionList;
 	}
 
+	private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
+	{
+		SearchTeachingTip.IsOpen = true;
+	}
+
+	private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
+	{
+		SearchTeachingTip.IsOpen = false;
+	}
+
 	/// <summary>
 	/// Handles the selection changed event of the NavigationView component.
 	/// </summary>
@@ -1221,31 +1231,30 @@ public sealed partial class MainPage : Page
 
 		ArtistTeachingTipContent.Inlines.Clear();
 
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums." });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums.", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Up (↑)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " / " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Down (↓)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
-		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " Press " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "· " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = " Type" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " or Press " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Right Arrow (→)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
-		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Up (↑)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " / " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Down (↓)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
+		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+
+
+		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "For multiple artists, separate with:" });
 
 		int row = 0;
@@ -1258,7 +1267,7 @@ public sealed partial class MainPage : Page
 			}
 
 			var tb = new TextBlock();
-			tb.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.ExtraBold, Text = "·  " });
+			tb.Inlines.Add(new Run { Text = "•  " });
 			tb.Inlines.Add(new Run { Text = activeDelimiters[i], FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 
 			Grid.SetRow(tb, row);
@@ -1309,5 +1318,4 @@ public sealed partial class MainPage : Page
 	{
 		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://apps.microsoft.com/detail/9PCCNQZTD6PX?mode=full"));
 	}
-
 }

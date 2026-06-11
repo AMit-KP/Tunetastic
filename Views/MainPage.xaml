@@ -87,6 +87,8 @@
 				<AutoSuggestBox x:Name="SearchBox"
 				                Width="320"
 				                VerticalAlignment="Center"
+				                GotFocus="SearchBox_GotFocus"
+				                LostFocus="SearchBox_LostFocus"
 				                PlaceholderText="Quick Search"
 				                QueryIcon="Find"
 				                QuerySubmitted="OnQuerySubmitted"
@@ -120,6 +122,26 @@
 							</StackPanel>
 						</DataTemplate>
 					</AutoSuggestBox.ItemTemplate>
+					<TeachingTip x:Name="SearchTeachingTip"
+					             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+					             PreferredPlacement="RightBottom"
+					             Target="{x:Bind SearchBox}">
+						<TextBlock LineHeight="20"
+						           TextWrapping="Wrap">
+							<Run FontWeight="Bold"
+							     Text="Search tips" />
+							<LineBreak />
+							<Run Text="• Use " />
+							<Run FontWeight="SemiBold"
+							     Text="+" />
+							<Run Text=" to combine terms — match results across title, artist, album, genre, and year together" />
+							<LineBreak />
+							<Run Text="• Use " />
+							<Run FontWeight="SemiBold"
+							     Text=";" />
+							<Run Text=" to search for either term — results matching any one of them" />
+						</TextBlock>
+					</TeachingTip>
 				</AutoSuggestBox>
 				<TitleBar.RightHeader>
 					<Grid Margin="0,0,-50,0"
@@ -749,32 +771,28 @@
 							             Target="{x:Bind AlbumTextBox}">
 								<TeachingTip.Content>
 									<TextBlock TextWrapping="Wrap">
-										<Run Text="Inline auto-suggestion for existing albums." />
+										<Run FontWeight="Bold"
+										     Text="Inline auto-suggestion for existing albums." />
 										<LineBreak />
-										<Run FontWeight="ExtraBold"
-										     Text="·" />
-										<Run Text=" Press" />
-										<Run FontWeight="Bold"
-										     Text="Up (↑)" />
-										<Run Text="/" />
-										<Run FontWeight="Bold"
-										     Text="Down (↓)" />
-										<Run Text="to cycle suggestions." />
-										<LineBreak />
-										<Run FontWeight="ExtraBold"
-										     Text="·" />
-										<Run Text=" Press" />
-										<Run FontWeight="Bold"
+										<Run Text="•" />
+										<Run FontWeight="SemiBold"
+										     Text="Type" />
+										<Run Text="and/or" />
+										<Run Text="Press" />
+										<Run FontWeight="SemiBold"
 										     Text="Right Arrow (→)" />
 										<Run Text="to preview suggestions." />
 										<LineBreak />
-										<Run FontWeight="ExtraBold"
-										     Text="·" />
-										<Run FontWeight="Bold"
-										     Text=" Type" />
-										<Run Text="or" />
-										<Run Text="Press" />
-										<Run FontWeight="Bold"
+										<Run Text="• Press" />
+										<Run FontWeight="SemiBold"
+										     Text="Up (↑)" />
+										<Run Text="/" />
+										<Run FontWeight="SemiBold"
+										     Text="Down (↓)" />
+										<Run Text="to cycle suggestions." />
+										<LineBreak />
+										<Run Text="• Press" />
+										<Run FontWeight="SemiBold"
 										     Text="Right Arrow (→)" />
 										<Run Text="to accept." />
 									</TextBlock>
@@ -814,32 +832,28 @@
 								             Target="{x:Bind GenreAutoSuggestBox}">
 									<TeachingTip.Content>
 										<TextBlock TextWrapping="Wrap">
-											<Run Text="Inline auto-suggestion for existing genres." />
+											<Run FontWeight="Bold"
+											     Text="Inline auto-suggestion for existing genres." />
 											<LineBreak />
-											<Run FontWeight="ExtraBold"
-											     Text="·" />
-											<Run Text=" Press" />
-											<Run FontWeight="Bold"
-											     Text="Up (↑)" />
-											<Run Text="/" />
-											<Run FontWeight="Bold"
-											     Text="Down (↓)" />
-											<Run Text="to cycle suggestions." />
-											<LineBreak />
-											<Run FontWeight="ExtraBold"
-											     Text="·" />
-											<Run Text=" Press" />
-											<Run FontWeight="Bold"
+											<Run Text="•" />
+											<Run FontWeight="SemiBold"
+											     Text="Type" />
+											<Run Text="and/or" />
+											<Run Text="Press" />
+											<Run FontWeight="SemiBold"
 											     Text="Right Arrow (→)" />
 											<Run Text="to preview suggestions." />
 											<LineBreak />
-											<Run FontWeight="ExtraBold"
-											     Text="·" />
-											<Run FontWeight="Bold"
-											     Text=" Type" />
-											<Run Text="or" />
-											<Run Text="Press" />
-											<Run FontWeight="Bold"
+											<Run Text="• Press" />
+											<Run FontWeight="SemiBold"
+											     Text="Up (↑)" />
+											<Run Text="/" />
+											<Run FontWeight="SemiBold"
+											     Text="Down (↓)" />
+											<Run Text="to cycle suggestions." />
+											<LineBreak />
+											<Run Text="• Press" />
+											<Run FontWeight="SemiBold"
 											     Text="Right Arrow (→)" />
 											<Run Text="to accept." />
 										</TextBlock>
