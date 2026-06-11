@@ -1981,10 +1981,15 @@ public class DatabaseHelper
 	/// <returns>A formatted string representing an FTS query for matching artist names.</returns>
 	private static string BuildArtistFtsMatchForGroup(List<string> andTerms)
 	{
-		var andExpr = BuildAndPrefix(andTerms);
-		return andTerms.Count == 1
-			? $"name:{EscapeFts(andTerms[0])}*"
-			: $"name:({andExpr})";
+		var tokens = andTerms
+			.SelectMany(t => t.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+			.Where(t => !string.IsNullOrWhiteSpace(t))
+			.Select(t => $"{EscapeFts(t)}*")
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.ToList();
+
+		var expr = tokens.Count == 1 ? tokens[0] : string.Join(" AND ", tokens);
+		return $"name:({expr})";
 	}
 
 
@@ -2160,7 +2165,7 @@ public class DatabaseHelper
 	/// <param name="limitPerCategory">Maximum number of results to return per category.</param>
 	/// <returns>A SearchResults object containing matched songs, artists, and albums, along with primary category information.</returns>
 	public async Task<SearchResults> Search(string input, SearchScope scope = SearchScope.All, int limitPerCategory = 5)
-	{   //TODO: + for AND doesnt work
+	{
 		var results = new SearchResults();
 		if (string.IsNullOrWhiteSpace(input)) return results;
 
