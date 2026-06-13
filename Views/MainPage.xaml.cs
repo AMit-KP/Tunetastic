@@ -154,7 +154,8 @@ public sealed partial class MainPage : Page
 	/// <param name="args">Provides data about the TextChanged event, including the reason for the text change.</param>
 	private async void OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
 	{
-		sender.ItemsSource = await GetSuggestions(sender.Text);
+		if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+			sender.ItemsSource = await GetSuggestions(sender.Text);
 	}
 
 	/// <summary>
@@ -165,7 +166,13 @@ public sealed partial class MainPage : Page
 	/// <param name="args">The event data containing the user's query text and details about the submitted query.</param>
 	private async void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
 	{
-		sender.ItemsSource = await GetSuggestions(args.QueryText);
+		if (args.ChosenSuggestion is KeyValuePair<SearchItemType, string> keyValuePair)
+		{
+			HandleItemSelected(keyValuePair);
+			sender.Text = keyValuePair.Value;
+		}
+		else
+			sender.ItemsSource = await GetSuggestions(args.QueryText);
 	}
 
 	/// <summary>
@@ -180,25 +187,18 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private void SearchBox_SuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
 	{
+		var downState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Down);
+		var upState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Up);
+
+		bool arrowKeyHeld = downState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down)
+						  || upState.HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+
+		if (arrowKeyHeld)
+			return;
+
 		if (args.SelectedItem is KeyValuePair<SearchItemType, string> keyValuePair)
 		{
-			switch (keyValuePair.Key)
-			{
-				case SearchItemType.Title:
-					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
-					App.Current.NavService.NavigateTo("Tunetastic.Views.LibraryViews.AllSongsViewPage", keyValuePair.Value);
-					break;
-
-				case SearchItemType.Artist:
-					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.ArtistsViewPage");
-					App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Artist" : keyValuePair.Value, false);
-					break;
-
-				case SearchItemType.Album:
-					App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AlbumsViewPage");
-					App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Album" : keyValuePair.Value, false);
-					break;
-			}
+			HandleItemSelected(keyValuePair);
 			sender.Text = keyValuePair.Value;
 		}
 		else
@@ -239,8 +239,40 @@ public sealed partial class MainPage : Page
 		return SuggestionList;
 	}
 
+	private void HandleItemSelected(KeyValuePair<SearchItemType, string> keyValuePair)
+	{
+		switch (keyValuePair.Key)
+		{
+			case SearchItemType.Title:
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
+				App.Current.NavService.NavigateTo("Tunetastic.Views.LibraryViews.AllSongsViewPage", keyValuePair.Value);
+				break;
+
+			case SearchItemType.Artist:
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.ArtistsViewPage");
+				App.Current.NavService.NavigateTo(typeof(ArtistDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Artist" : keyValuePair.Value, false);
+				break;
+
+			case SearchItemType.Album:
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AlbumsViewPage");
+				App.Current.NavService.NavigateTo(typeof(AlbumDetailPage), keyValuePair.Value == "Unknown" ? "Unknown Album" : keyValuePair.Value, false);
+				break;
+		}
+	}
+
 	private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
 	{
+		SearchTeachingTipContent.Inlines.Clear();
+
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = "• Use " });
+		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "+" });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = " to combine terms — match results across title, artist, album, genre, and year together" });
+		SearchTeachingTipContent.Inlines.Add(new LineBreak());
+
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = "• Use " });
+		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = ";" });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = " to search for either term — results matching any one of them" });
+
 		SearchTeachingTip.IsOpen = true;
 	}
 
@@ -1204,6 +1236,26 @@ public sealed partial class MainPage : Page
 
 	private void AlbumTextBox_GotFocus(object sender, RoutedEventArgs e)
 	{
+		AlbumTeachingTipContent.Inlines.Clear();
+
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = "• " });
+		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });
+		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
+		AlbumTeachingTipContent.Inlines.Add(new LineBreak());
+
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
+		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Up (↑)" });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " / " });
+		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Down (↓)" });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		AlbumTeachingTipContent.Inlines.Add(new LineBreak());
+
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
+		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+
 		AlbumTeachingTip.IsOpen = true;
 	}
 
@@ -1214,6 +1266,26 @@ public sealed partial class MainPage : Page
 
 	private void GenreAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
 	{
+		GenreTeachingTipContent.Inlines.Clear();
+
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = "• " });
+		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });
+		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
+		GenreTeachingTipContent.Inlines.Add(new LineBreak());
+
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
+		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Up (↑)" });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = " / " });
+		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Down (↓)" });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		GenreTeachingTipContent.Inlines.Add(new LineBreak());
+
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
+		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+
 		GenreTeachingTip.IsOpen = true;
 	}
 
@@ -1231,8 +1303,8 @@ public sealed partial class MainPage : Page
 
 		ArtistTeachingTipContent.Inlines.Clear();
 
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums.", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
+		//ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums.", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		//ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });

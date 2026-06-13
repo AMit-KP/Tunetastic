@@ -93,7 +93,8 @@
 				                QueryIcon="Find"
 				                QuerySubmitted="OnQuerySubmitted"
 				                SuggestionChosen="SearchBox_SuggestionChosen"
-				                TextChanged="OnTextChanged">
+				                TextChanged="OnTextChanged"
+				                TextMemberPath="Value">
 					<AutoSuggestBox.ItemTemplate>
 						<DataTemplate>
 							<StackPanel Orientation="Horizontal"
@@ -143,26 +144,6 @@
 							</StackPanel>
 						</DataTemplate>
 					</AutoSuggestBox.ItemTemplate>
-					<TeachingTip x:Name="SearchTeachingTip"
-					             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
-					             PreferredPlacement="RightBottom"
-					             Target="{x:Bind SearchBox}">
-						<TextBlock LineHeight="20"
-						           TextWrapping="Wrap">
-							<Run FontWeight="Bold"
-							     Text="Search tips" />
-							<LineBreak />
-							<Run Text="• Use " />
-							<Run FontWeight="SemiBold"
-							     Text="+" />
-							<Run Text=" to combine terms — match results across title, artist, album, genre, and year together" />
-							<LineBreak />
-							<Run Text="• Use " />
-							<Run FontWeight="SemiBold"
-							     Text=";" />
-							<Run Text=" to search for either term — results matching any one of them" />
-						</TextBlock>
-					</TeachingTip>
 				</AutoSuggestBox>
 				<TitleBar.RightHeader>
 					<Grid Margin="0,0,-50,0"
@@ -220,6 +201,23 @@
 				</Grid>
 			</NavigationView>
 		</Grid>
+		<TeachingTip x:Name="SearchTeachingTip"
+		             Title="Search tips"
+		             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+		             HeroContentPlacement="Bottom"
+		             PreferredPlacement="RightBottom"
+		             Target="{x:Bind SearchBox}">
+			<TeachingTip.HeroContent>
+				<Grid Margin="10"
+				      HorizontalAlignment="Stretch"
+				      VerticalAlignment="Stretch">
+					<TextBlock x:Name="SearchTeachingTipContent"
+					           LineHeight="20"
+					           TextWrapping="Wrap">
+					</TextBlock>
+				</Grid>
+			</TeachingTip.HeroContent>
+		</TeachingTip>
 		<Grid Width="Auto"
 		      Height="Auto"
 		      HorizontalAlignment="Center"
@@ -747,11 +745,15 @@
 							                           TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
+							             Title="Inline auto-suggestion for existing albums."
 							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 							             BackgroundSizing="InnerBorderEdge"
+							             HeroContentPlacement="Bottom"
 							             Target="{x:Bind ArtistTextBox}">
-								<TeachingTip.Content>
-									<StackPanel>
+								<TeachingTip.HeroContent>
+									<StackPanel Margin="10"
+									            HorizontalAlignment="Stretch"
+									            VerticalAlignment="Stretch">
 										<TextBlock Name="ArtistTeachingTipContent"
 										           TextWrapping="Wrap" />
 										<Grid x:Name="DelimitersGrid">
@@ -761,7 +763,7 @@
 											</Grid.ColumnDefinitions>
 										</Grid>
 									</StackPanel>
-								</TeachingTip.Content>
+								</TeachingTip.HeroContent>
 							</TeachingTip>
 
 						</StackPanel>
@@ -787,37 +789,20 @@
 							                           TextChanged="AlbumTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
 							<TeachingTip x:Name="AlbumTeachingTip"
+							             Title="Inline auto-suggestion for existing albums."
 							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 							             BackgroundSizing="InnerBorderEdge"
+							             HeroContentPlacement="Bottom"
 							             Target="{x:Bind AlbumTextBox}">
-								<TeachingTip.Content>
-									<TextBlock TextWrapping="Wrap">
-										<Run FontWeight="Bold"
-										     Text="Inline auto-suggestion for existing albums." />
-										<LineBreak />
-										<Run Text="•" />
-										<Run FontWeight="SemiBold"
-										     Text="Type" />
-										<Run Text="and/or" />
-										<Run Text="Press" />
-										<Run FontWeight="SemiBold"
-										     Text="Right Arrow (→)" />
-										<Run Text="to preview suggestions." />
-										<LineBreak />
-										<Run Text="• Press" />
-										<Run FontWeight="SemiBold"
-										     Text="Up (↑)" />
-										<Run Text="/" />
-										<Run FontWeight="SemiBold"
-										     Text="Down (↓)" />
-										<Run Text="to cycle suggestions." />
-										<LineBreak />
-										<Run Text="• Press" />
-										<Run FontWeight="SemiBold"
-										     Text="Right Arrow (→)" />
-										<Run Text="to accept." />
-									</TextBlock>
-								</TeachingTip.Content>
+								<TeachingTip.HeroContent>
+									<Grid Margin="10"
+									      HorizontalAlignment="Stretch"
+									      VerticalAlignment="Stretch">
+										<TextBlock x:Name="AlbumTeachingTipContent"
+										           TextWrapping="Wrap">
+										</TextBlock>
+									</Grid>
+								</TeachingTip.HeroContent>
 							</TeachingTip>
 						</StackPanel>
 
@@ -848,37 +833,20 @@
 								                           TextChanged="GenreAutoSuggestBox_TextChanged"
 								                           TextWrapping="Wrap" />
 								<TeachingTip x:Name="GenreTeachingTip"
+								             Title="Inline auto-suggestion for existing genres."
 								             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 								             BackgroundSizing="InnerBorderEdge"
+								             HeroContentPlacement="Bottom"
 								             Target="{x:Bind GenreAutoSuggestBox}">
-									<TeachingTip.Content>
-										<TextBlock TextWrapping="Wrap">
-											<Run FontWeight="Bold"
-											     Text="Inline auto-suggestion for existing genres." />
-											<LineBreak />
-											<Run Text="•" />
-											<Run FontWeight="SemiBold"
-											     Text="Type" />
-											<Run Text="and/or" />
-											<Run Text="Press" />
-											<Run FontWeight="SemiBold"
-											     Text="Right Arrow (→)" />
-											<Run Text="to preview suggestions." />
-											<LineBreak />
-											<Run Text="• Press" />
-											<Run FontWeight="SemiBold"
-											     Text="Up (↑)" />
-											<Run Text="/" />
-											<Run FontWeight="SemiBold"
-											     Text="Down (↓)" />
-											<Run Text="to cycle suggestions." />
-											<LineBreak />
-											<Run Text="• Press" />
-											<Run FontWeight="SemiBold"
-											     Text="Right Arrow (→)" />
-											<Run Text="to accept." />
-										</TextBlock>
-									</TeachingTip.Content>
+									<TeachingTip.HeroContent>
+										<Grid Margin="10"
+										      HorizontalAlignment="Stretch"
+										      VerticalAlignment="Stretch">
+											<TextBlock x:Name="GenreTeachingTipContent"
+											           TextWrapping="Wrap">
+											</TextBlock>
+										</Grid>
+									</TeachingTip.HeroContent>
 								</TeachingTip>
 							</StackPanel>
 
