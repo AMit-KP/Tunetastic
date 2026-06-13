@@ -101,19 +101,40 @@
 								<dev:SwitchPresenter TargetType="common:SearchItemType"
 								                     Value="{Binding Key, Mode=OneWay}">
 									<dev:Case Value="Artist">
-										<FontIcon VerticalAlignment="Center"
-										          FontFamily="Segoe MDL2 Assets"
-										          Glyph="&#xE77B;" />
+										<Viewbox Width="20"
+										         Height="20">
+											<Grid>
+												<Path Data="M12,1.2A2.8,2.8 0 0,1 14.8,4V11A2.8,2.8 0 0,1 12,13.8A2.8,2.8 0 0,1 9.2,11V4A2.8,2.8 0 0,1 12,1.2M18.5,11A0.9,0.9 0 0,1 19.4,11.9C19.4,15.13 17.05,17.79 14,18.27V20.4H15.5A0.9,0.9 0 0,1 16.4,21.3A0.9,0.9 0 0,1 15.5,22.2H8.5A0.9,0.9 0 0,1 7.6,21.3A0.9,0.9 0 0,1 8.5,20.4H10V18.27C6.95,17.79 4.6,15.13 4.6,11.9A0.9,0.9 0 0,1 5.5,11A0.9,0.9 0 0,1 6.4,11.9C6.4,14.5 8.5,16.6 11.1,16.7H12.9C15.5,16.6 17.6,14.5 17.6,11.9A0.9,0.9 0 0,1 18.5,11M9.3,5.5H14.7V6.4H9.3V5.5M9.3,7.95H14.7V8.85H9.3V7.95M9.3,10.4H14.7V11.3H9.3V10.4Z"
+												      Fill="{ThemeResource AccentFillColorDefaultBrush}"
+												      Stroke="{ThemeResource TextFillColorPrimaryBrush}"
+												      StrokeThickness="0" />
+
+											</Grid>
+										</Viewbox>
 									</dev:Case>
 									<dev:Case Value="Album">
-										<FontIcon VerticalAlignment="Center"
-										          FontFamily="Segoe MDL2 Assets"
-										          Glyph="&#xE93C;" />
+										<Viewbox Width="20"
+										         Height="20">
+											<Grid>
+												<Path Data="M 80,20 L 1320,20 A 60,60 0 0 1 1380,80 L 1380,1140 A 60,60 0 0 1 1320,1200 L 80,1200 A 60,60 0 0 1 20,1140 L 20,80 A 60,60 0 0 1 80,20 Z M 200,40 L 260,40 L 260,1010 A 30,30 0 0 1 200,1010 Z M 780,180 A 420,420 0 1 1 779.9,180 Z M 780,420 A 180,180 0 1 1 779.9,420 M 780,480 M 780,540 A 60,60 0 1 1 779.9,540"
+												      Fill="{ThemeResource AccentFillColorDefaultBrush}"
+												      Stroke="{ThemeResource TextFillColorPrimaryBrush}"
+												      StrokeThickness="1" />
+											</Grid>
+										</Viewbox>
+
 									</dev:Case>
 									<dev:Case Value="Title">
-										<FontIcon VerticalAlignment="Center"
-										          FontFamily="Segoe MDL2 Assets"
-										          Glyph="&#xE8D6;" />
+										<Viewbox Width="20"
+										         Height="20">
+											<Grid>
+												<Path Data="M11.5,3V16.15C11.05,15.95 10.55,15.85 10,15.85C8.41,15.85 7.15,17.16 7.15,19C7.15,20.84 8.41,22.15 10,22.15C11.59,22.15 12.85,20.84 12.85,19V7H19C19,5 17,3 14,3H11.5M2.2,9.5H3.4V14.5H2.2V9.5M4.4,7.5H5.6V16.5H4.4V7.5M6.6,8.5H7.8V15.5H6.6V8.5M8.8,9.5H10V14.5H8.8V9.5M15.6,8.5H16.8V15.5H15.6V8.5M17.8,7.5H19V16.5H17.8V7.5M20,9.5H21.2V14.5H20V9.5M22.2,10.5H23.4V13.5H22.2V10.5Z"
+												      Fill="{ThemeResource AccentFillColorDefaultBrush}"
+												      Stroke="{ThemeResource TextFillColorPrimaryBrush}"
+												      StrokeThickness="0" />
+											</Grid>
+										</Viewbox>
+
 									</dev:Case>
 								</dev:SwitchPresenter>
 								<TextBlock VerticalAlignment="Center"
