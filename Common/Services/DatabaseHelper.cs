@@ -1958,10 +1958,19 @@ public class DatabaseHelper
 	/// <param name="andTerms">A list of terms to be combined with an AND logic. These terms are matched within a column or across columns based on the scope.</param>
 	/// <param name="scope">The search scope determining which database columns are matched. Possible values include Title, Artist, Album, or All.</param>
 	/// <returns>A string representing the match query formatted according to the specified scope and terms. For example, a scope of Title will return a match string targeting only the title column, while a scope of All matches across multiple columns.</returns>
-	private static string BuildSongFtsMatchForGroup(List<string> andTerms, SearchScope scope)
+	private static string BuildSongFtsMatchForGroup(List<string> andTerms, SearchScope scope, bool isAndQuery = false)
 	{
-		var andExpr = BuildAndPrefix(andTerms);
+		if (isAndQuery)
+		{
+			var perTerm = andTerms.Select(t =>
+			{
+				var e = $"{EscapeFts(t)}*";
+				return $"title:({e}) OR album:({e}) OR artists:({e}) OR genre:({e}) OR year:({e})";
+			});
+			return string.Join(" AND ", perTerm.Select(expr => $"({expr})"));
+		}
 
+		var andExpr = BuildAndPrefix(andTerms);
 		return scope switch
 		{
 			SearchScope.Title => $"title:({andExpr})",
@@ -1981,10 +1990,15 @@ public class DatabaseHelper
 	/// <returns>A formatted string representing an FTS query for matching artist names.</returns>
 	private static string BuildArtistFtsMatchForGroup(List<string> andTerms)
 	{
-		var andExpr = BuildAndPrefix(andTerms);
-		return andTerms.Count == 1
-			? $"name:{EscapeFts(andTerms[0])}*"
-			: $"name:({andExpr})";
+		var tokens = andTerms
+			.SelectMany(t => t.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+			.Where(t => !string.IsNullOrWhiteSpace(t))
+			.Select(t => $"{EscapeFts(t)}*")
+			.Distinct(StringComparer.OrdinalIgnoreCase)
+			.ToList();
+
+		var expr = tokens.Count == 1 ? tokens[0] : string.Join(" AND ", tokens);
+		return $"name:({expr})";
 	}
 
 
@@ -2160,7 +2174,7 @@ public class DatabaseHelper
 	/// <param name="limitPerCategory">Maximum number of results to return per category.</param>
 	/// <returns>A SearchResults object containing matched songs, artists, and albums, along with primary category information.</returns>
 	public async Task<SearchResults> Search(string input, SearchScope scope = SearchScope.All, int limitPerCategory = 5)
-	{   //TODO: + for AND doesnt work
+	{
 		var results = new SearchResults();
 		if (string.IsNullOrWhiteSpace(input)) return results;
 
@@ -2182,7 +2196,7 @@ public class DatabaseHelper
 		var primary = await DetectPrimaryCategory(groups, scope);
 		results.PrimaryCategory = primary.ToString();
 
-		var songGroupMatches = groups.Select(g => BuildSongFtsMatchForGroup(g, scope)).ToList();
+		var songGroupMatches = groups.Select(g => BuildSongFtsMatchForGroup(g, scope, isAndQuery: g.Count > 1)).ToList();
 		var artistGroupMatches = groups.Select(BuildArtistFtsMatchForGroup).ToList();
 		var groupYears = groups.Select(g => ExtractYearTokens(g)).ToList();
 
