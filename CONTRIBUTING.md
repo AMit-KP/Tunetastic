@@ -1,4 +1,4 @@
-# Contributing to Tunetastic
+﻿# Contributing to Tunetastic
 
 Thanks for taking the time to contribute! Whether it's a bug fix, a new feature, or just improving the docs — all contributions are welcome.
 
@@ -16,7 +16,6 @@ Please read through this before opening an issue or submitting a pull request.
 ## Reporting Bugs
 
 When filing a bug report, please include:
-
 - Your Windows version (e.g. Windows 11 24H2, Windows 10 22H2)
 - Where you installed from (Microsoft Store or GitHub release)
 - Steps to reproduce the issue
@@ -28,7 +27,6 @@ When filing a bug report, please include:
 ## Suggesting Features
 
 Open a feature request issue and describe:
-
 - What you want the feature to do
 - Why it would be useful (your use case)
 - Any examples from other apps if relevant
@@ -41,6 +39,7 @@ Open a feature request issue and describe:
 2. Make your changes, keeping them focused — one fix or feature per PR
 3. Make sure the project builds cleanly in Visual Studio 2026 before submitting
 4. Write a clear PR description explaining what changed and why
+5. **Open your pull request against the `Development` branch** — this is the only branch contributors should target. Merges from `Development` into `master` are handled separately by the maintainer as part of releases.
 
 ### Code Style
 
