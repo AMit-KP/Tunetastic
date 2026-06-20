@@ -195,3 +195,39 @@ public enum LocalSave
 	ForwardRewindButtonVisibility,
 	GivenStoreRating
 }
+
+/// <summary>
+/// The visual theme applied to the overlay grid.
+/// </summary>
+public enum OverlayTheme
+{
+	Dark,
+	Light
+}
+
+/// <summary>
+/// All available overlay layout styles.
+/// Each value has a display name used in user-facing dropdowns.
+/// </summary>
+public enum OverlayLayout
+{
+	CompactPill,
+	HoverReveal,
+	WaveformEdge,
+	MarqueeTicker,
+	LeftPill,
+	RightDock,
+	FullArtBar,
+	WaveformOnly,
+	AccentEdge,
+	IconStrip,
+	StackedInfo,
+	CenteredPill,
+	TopStripe,
+	BottomStripe,
+	AlbumTint,
+	TextOnly,
+	ArcRing,
+	QueuePreview,
+	ArtistBadge
+}

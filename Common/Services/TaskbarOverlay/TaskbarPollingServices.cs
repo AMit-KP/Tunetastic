@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using Microsoft.UI.Dispatching;
 using static Tunetastic.Common.Services.TaskbarOverlay.NativeMethods;
 
 namespace Tunetastic.Common.Services.TaskbarOverlay;

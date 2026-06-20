@@ -1,5 +1,4 @@
 ﻿using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using static Tunetastic.Common.Services.TaskbarOverlay.NativeMethods;
 
