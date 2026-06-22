@@ -56,7 +56,7 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 		// Wrap user content in a transparent Grid for drag handling
 		_rootGrid = new Grid
 		{
-			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(1,0,0,0)),
 			ManipulationMode = ManipulationModes.None,
 		};
 		_rootGrid.Children.Add(content);
@@ -110,7 +110,7 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 	{
 		if (background is null)
 		{
-			_rootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+			_rootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(1, 0, 0, 0));
 			SystemBackdrop = new WinUIEx.TransparentTintBackdrop();
 		}
 		else

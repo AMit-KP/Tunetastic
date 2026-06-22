@@ -77,16 +77,69 @@ internal sealed class TaskbarDiscoveryService
 
 		ABE edge = isPrimary ? GetPrimaryEdge(hwnd, taskbarRect) : InferEdge(taskbarRect, monInfo.rcMonitor);
 
+		RECT visible = NarrowToVisibleTaskbar(edge, taskbarRect, monInfo.rcMonitor, monInfo.rcWork);
+
 		return new TaskbarInfo(
 			Hwnd: hwnd,
 			HMonitor: hMon,
 			MonitorDeviceName: monInfo.szDevice,
 			MonitorBounds: monInfo.rcMonitor,
 			MonitorWorkArea: monInfo.rcWork,
-			TaskbarBoundsScreen: taskbarRect,
+			TaskbarBoundsScreen: visible,
 			Edge: edge,
 			Dpi: dpi,
 			IsPrimary: isPrimary);
+	}
+
+	/// <summary>
+	   /// Returns the visible taskbar rect. If the Shell_TrayWnd host window
+	   /// already matches the OS-reserved strip on the taskbar's edge, returns
+	   /// <paramref name="host"/> unchanged. If the host is taller than the
+	   /// reserved strip (Win11 25H2+ ghost strip), narrows the rect to the
+	   /// reserved strip while keeping the host's perpendicular extent.
+	   /// </summary>
+	private static RECT NarrowToVisibleTaskbar(ABE edge, RECT host, RECT monitor, RECT workArea)
+	{
+		// Autohide / unusable work area: nothing to narrow against.
+		bool workMatchesMonitor =
+	  workArea.Left == monitor.Left && workArea.Top == monitor.Top &&
+	  workArea.Right == monitor.Right && workArea.Bottom == monitor.Bottom;
+		if (workMatchesMonitor) return host;
+
+		switch (edge)
+		{
+			case ABE.Bottom:
+				{
+					int reservedTop = workArea.Bottom; // visible bar starts here
+													   // Only adjust when the host actually extends ABOVE the reservation.
+					if (host.Top < reservedTop && reservedTop < host.Bottom)
+						return new RECT { Left = host.Left, Top = reservedTop, Right = host.Right, Bottom = host.Bottom };
+					return host;
+				}
+			case ABE.Top:
+				{
+					int reservedBottom = workArea.Top;
+					if (host.Bottom > reservedBottom && reservedBottom > host.Top)
+						return new RECT { Left = host.Left, Top = host.Top, Right = host.Right, Bottom = reservedBottom };
+					return host;
+				}
+			case ABE.Left:
+				{
+					int reservedRight = workArea.Left;
+					if (host.Right > reservedRight && reservedRight > host.Left)
+						return new RECT { Left = host.Left, Top = host.Top, Right = reservedRight, Bottom = host.Bottom };
+					return host;
+				}
+			case ABE.Right:
+				{
+					int reservedLeft = workArea.Right;
+					if (host.Left < reservedLeft && reservedLeft < host.Right)
+						return new RECT { Left = reservedLeft, Top = host.Top, Right = host.Right, Bottom = host.Bottom };
+					return host;
+				}
+			default:
+				return host;
+		}
 	}
 
 	private static ABE GetPrimaryEdge(IntPtr hwnd, RECT taskbarRect)
