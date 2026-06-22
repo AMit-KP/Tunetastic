@@ -282,6 +282,11 @@ internal static class NativeMethods
 
 	public const uint DWMWA_BORDER_COLOR = 34;
 	public const uint DWMWA_COLOR_NONE = 0xFFFFFFFE;
+	public const uint DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+	public const uint DWMWCP_DEFAULT = 0;
+	public const uint DWMWCP_DONOTROUND = 1;
+	public const uint DWMWCP_ROUND = 2;
+	public const uint DWMWCP_ROUNDSMALL = 3;
 }
 
 /// <summary>

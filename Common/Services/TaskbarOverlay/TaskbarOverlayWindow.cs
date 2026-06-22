@@ -30,6 +30,7 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 	private bool _dragEnabled;
 	private bool _isDragging;
 	private int _dragStartScreenX;
+	private bool _chromeReapplyPending;
 
 	public TaskbarOverlayWindow(TaskbarInfo tb, OverlayRect rect, FreeZone zone, UIElement content)
 	{
@@ -56,7 +57,7 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 		// Wrap user content in a transparent Grid for drag handling
 		_rootGrid = new Grid
 		{
-			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(1,0,0,0)),
+			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(1, 0, 0, 0)),
 			ManipulationMode = ManipulationModes.None,
 		};
 		_rootGrid.Children.Add(content);
@@ -67,7 +68,16 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 		{
 			Interval = TimeSpan.FromMilliseconds(20)
 		};
-		_topmostTimer.Tick += (_, _) => ReassertTopmost();
+		_topmostTimer.Tick += (_, _) =>
+		{
+			ReassertTopmost();
+			if (_chromeReapplyPending)
+			{
+				_chromeReapplyPending = false;
+				IntPtr h = this.GetWindowHandle();
+				if (h != IntPtr.Zero) ApplyChromeStripping(h);
+			}
+		};
 
 		Closed += (_, _) => _topmostTimer.Stop();
 	}
@@ -94,16 +104,30 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 	  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 
 		// Remove the thin DWM-rendered border (Windows 11+)
-		uint colorNone = NativeMethods.DWMWA_COLOR_NONE;
-		NativeMethods.DwmSetWindowAttribute(hwnd, NativeMethods.DWMWA_BORDER_COLOR, in colorNone, sizeof(uint));
-
-		// Extend frame fully into client area to eliminate any residual border
-		var margins = new NativeMethods.MARGINS { LeftWidth = -1, RightWidth = -1, TopHeight = -1, BottomHeight = -1 };
-		NativeMethods.DwmExtendFrameIntoClientArea(hwnd, in margins);
+		ApplyChromeStripping(hwnd);
 
 		ReassertTopmost();
 		ApplyRect(_pendingRect);
 		_topmostTimer.Start();
+		_chromeReapplyPending = true;
+	}
+
+	private static void ApplyChromeStripping(IntPtr hwnd)
+	{
+		uint colorNone = NativeMethods.DWMWA_COLOR_NONE;
+		NativeMethods.DwmSetWindowAttribute(hwnd, NativeMethods.DWMWA_BORDER_COLOR, in colorNone, sizeof(uint));
+
+		uint dontRound = NativeMethods.DWMWCP_DONOTROUND;
+		NativeMethods.DwmSetWindowAttribute(hwnd, NativeMethods.DWMWA_WINDOW_CORNER_PREFERENCE, in dontRound, sizeof(uint));
+
+		var margins = new NativeMethods.MARGINS
+		{
+			LeftWidth = -1,
+			RightWidth = -1,
+			TopHeight = -1,
+			BottomHeight = -1
+		};
+		NativeMethods.DwmExtendFrameIntoClientArea(hwnd, in margins);
 	}
 
 	public void SetBackground(Microsoft.UI.Xaml.Media.Brush? background)
