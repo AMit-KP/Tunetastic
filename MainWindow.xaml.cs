@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
+using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Graphics;
 using WinUIEx;
 
@@ -34,16 +35,16 @@ public sealed partial class MainWindow : WindowEx
 
 		AddTrayIcon();
 		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
+
+		TaskbarOverlayManager.Initialize();
+		TaskbarOverlayManager.SetSide(OverlaySide.Right);
+		TaskbarOverlayManager.SetMultiMonitor(false);
 	}
 
 	public void AddTrayIcon()
 	{
 		uint iconId = 7823;
-		if (App.TrayIcon is null)
-		{
-			App.TrayIcon = new SystemTrayIcon(iconId, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
-
-		}
+		App.TrayIcon ??= new SystemTrayIcon(iconId, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
 		App.TrayIcon.RightClick += OnTrayIconRightClick;
 		App.TrayIcon.IsVisible = true;
 	}
@@ -153,6 +154,7 @@ public sealed partial class MainWindow : WindowEx
 
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		App.Current.AudioService.Dispose();
+		TaskbarOverlayManager.Shutdown();
 		this.Close();
 	}
 
