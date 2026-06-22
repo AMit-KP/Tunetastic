@@ -60,6 +60,10 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(1, 0, 0, 0)),
 			ManipulationMode = ManipulationModes.None,
 		};
+
+		if (content is FrameworkElement fe && fe.Parent is Panel oldParent)
+			oldParent.Children.Remove(content);
+
 		_rootGrid.Children.Add(content);
 		Content = _rootGrid;
 
@@ -185,6 +189,8 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 	}
 
 	public IntPtr GetWindowHandle() => ((WindowEx)this).GetWindowHandle();
+
+	public void DetachContent() => _rootGrid.Children.Clear();
 
 	// ── Topmost enforcement ───────────────────────────────────────────────
 

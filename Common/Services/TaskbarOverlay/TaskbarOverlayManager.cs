@@ -285,7 +285,10 @@ internal static class TaskbarOverlayManager
 		_tbState!.Stop();
 
 		foreach (var o in _overlays)
+		{
+			try { o.DetachContent(); } catch { }
 			try { o.Close(); } catch { }
+		}
 		_overlays.Clear();
 		_monitorFullscreen.Clear();
 		_taskbarVisible.Clear();
@@ -389,7 +392,10 @@ internal static class TaskbarOverlayManager
 	private static void DisposeOverlays()
 	{
 		foreach (var o in _overlays)
+		{
+			try { o.DetachContent(); } catch { }
 			try { o.Close(); } catch { }
+		}
 		_overlays.Clear();
 		_monitorFullscreen.Clear();
 		_taskbarVisible.Clear();
