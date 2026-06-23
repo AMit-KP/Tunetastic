@@ -365,6 +365,23 @@
 				              Toggled="MinimizeToTray_OnToggled" />
 			</dev:SettingsCard>
 
+			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls."
+			                      Header="Taskbar Overlay Controls">
+				<ToggleSwitch x:Name="TaskBarOverlay"
+				              Toggled="TaskBarOverlay_Toggled" />
+				<dev:SettingsExpander.Items>
+					<dev:SettingsCard Description="Determine the position of the taskbar overlay controls."
+					                  Header="Taskbar Overlay Controls Side">
+						<ComboBox x:Name="TaskBarOverlayPosition">
+							<ComboBoxItem Content="Right"
+							              Tag="RightTBOL" />
+							<ComboBoxItem Content="Left"
+							              Tag="LeftTBOL" />
+						</ComboBox>
+					</dev:SettingsCard>
+				</dev:SettingsExpander.Items>
+			</dev:SettingsExpander>
+
 			<!--  About  -->
 
 			<StackPanel Orientation="Horizontal"

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using CommunityToolkit.WinUI.Animations;
 using Microsoft.UI.Windowing;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Graphics;
@@ -35,10 +36,18 @@ public sealed partial class MainWindow : WindowEx
 
 		AddTrayIcon();
 		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
+		InitializeTaskbarOverlay();
+	}
 
-		TaskbarOverlayManager.Initialize();
-		TaskbarOverlayManager.SetSide(OverlaySide.Right);
-		TaskbarOverlayManager.SetMultiMonitor(false);
+	private static void InitializeTaskbarOverlay()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true"))
+		{
+			TaskbarOverlayManager.Initialize();
+
+			TaskbarOverlayManager.SetSide((localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL") == "RightTBOL" ? OverlaySide.Right : OverlaySide.Left);
+		}
 	}
 
 	public void AddTrayIcon()

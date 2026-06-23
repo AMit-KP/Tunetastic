@@ -193,7 +193,9 @@ public enum LocalSave
 	CheckForUpdatesAtStatup,
 	ShowVersionInfoOnTitleBar,
 	ForwardRewindButtonVisibility,
-	GivenStoreRating
+	GivenStoreRating,
+	TaskBarOverlayStatus,
+	TaskBarOverlaySide
 }
 
 /// <summary>

@@ -35,7 +35,7 @@ internal static class TaskbarOverlayManager
 	private static DispatcherTimer? _repositionTimer;
 	private static readonly Dictionary<string, int> _draggedPositions = new();
 
-	private static bool _multiMonitor = true;
+	private static bool _multiMonitor = false;
 	private static string? _targetMonitor; // null = primary
 
 	private static bool _initialized;
