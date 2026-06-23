@@ -12,6 +12,8 @@ internal static class NativeMethods
 	public const int GWL_STYLE = -16;
 	public const int GWL_EXSTYLE = -20;
 
+	public const int GWLP_HWNDPARENT = -8;
+
 	public const uint WS_POPUP = 0x80000000;
 	public const uint WS_BORDER = 0x00800000;
 	public const uint WS_THICKFRAME = 0x00040000;
@@ -212,6 +214,7 @@ internal static class NativeMethods
 
 	// ── SetWindowPos ──────────────────────────────────────────────────────
 	public static readonly IntPtr HWND_TOPMOST = new(-1);
+	public static readonly IntPtr HWND_NOTOPMOST = new(-2);
 	public const uint SWP_NOMOVE = 0x0002;
 	public const uint SWP_NOSIZE = 0x0001;
 	public const uint SWP_NOACTIVATE = 0x0010;

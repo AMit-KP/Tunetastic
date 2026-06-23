@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Windowing;
+﻿using System.Runtime.InteropServices;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml.Input;
 using WinUIEx;
 using static Tunetastic.Common.Services.TaskbarOverlay.NativeMethods;
@@ -74,13 +75,13 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 		};
 		_topmostTimer.Tick += (_, _) =>
 		{
-			ReassertTopmost();
 			if (_chromeReapplyPending)
 			{
 				_chromeReapplyPending = false;
 				IntPtr h = this.GetWindowHandle();
 				if (h != IntPtr.Zero) ApplyChromeStripping(h);
 			}
+			_topmostTimer.Stop();
 		};
 
 		Closed += (_, _) => _topmostTimer.Stop();
@@ -109,6 +110,13 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 
 		// Remove the thin DWM-rendered border (Windows 11+)
 		ApplyChromeStripping(hwnd);
+
+		if (Taskbar.Hwnd != IntPtr.Zero)
+		{
+			nint prevOwner = SetWindowLongPtr(hwnd, NativeMethods.GWLP_HWNDPARENT, Taskbar.Hwnd);
+			int ownerErr = Marshal.GetLastWin32Error();
+			System.Diagnostics.Debug.WriteLine($"[TaskbarOverlay] SetOwner(taskbar=0x{Taskbar.Hwnd.ToInt64():X8} -> prevOwner=0x{prevOwner:X8} err={ownerErr})");
+		}
 
 		ReassertTopmost();
 		ApplyRect(_pendingRect);
@@ -199,9 +207,8 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 		IntPtr hwnd = this.GetWindowHandle();
 		if (hwnd == IntPtr.Zero) return;
 
-		SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST,
-		  0, 0, 0, 0,
-		  SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		SetWindowPos(hwnd, NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 	}
 
 	// ── Drag handlers ─────────────────────────────────────────────────────
