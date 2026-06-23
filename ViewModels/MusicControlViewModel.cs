@@ -615,6 +615,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				Title = track.Title;
 				Artist = track.Artists;
 				Cover = track.Cover;
+				UpdateInfoOnTaskbarOverlay(track);
 			}
 
 			_vinylEffect?.Begin();
@@ -725,35 +726,42 @@ public partial class MusicControlViewModel : ObservableRecipient
 		var track = await DatabaseHelper.Instance.GetSongByPath(song);
 		if (track is not null)
 		{
-			BitmapImage? albumArt = null;
-			try
-			{
-				StorageFile file = await StorageFile.GetFileFromPathAsync(track.Cover);
-				using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
-				albumArt = new BitmapImage();
-				await albumArt.SetSourceAsync(stream);
-			}
-			catch (Exception)
-			{
-				albumArt = null;
-			}
-
 			overlayGrid = OverlayFactory.Create(OverlayLayout.CompactPill, OverlayTheme.Dark);
 
 			if (overlayGrid.RootGrid is not null)
 			{
-				switch (overlayGrid)
-				{
-					case CompactPillOverlay cpo:
-						cpo.UpdateTrack(track.Title, track.Artists, albumArt);
-						break;
-				}
+				UpdateInfoOnTaskbarOverlay(track);
 
 				overlayGrid.PlayPauseButton?.Click += async (_, _) => await TogglePlayPause();
 				overlayGrid.PreviousButton?.Click += (_, _) => PreviousSong();
 				overlayGrid.NextButton?.Click += (_, _) => NextSong();
 				TaskbarOverlayManager.SetContent(overlayGrid.RootGrid);
 			}
+		}
+	}
+
+	private async void UpdateInfoOnTaskbarOverlay(Song track)
+	{
+		if (overlayGrid is null) return;
+
+		BitmapImage? albumArt = null;
+		try
+		{
+			StorageFile file = await StorageFile.GetFileFromPathAsync(track.Cover);
+			using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
+			albumArt = new BitmapImage();
+			await albumArt.SetSourceAsync(stream);
+		}
+		catch (Exception)
+		{
+			albumArt = null;
+		}
+
+		switch (overlayGrid)
+		{
+			case CompactPillOverlay cpo:
+				cpo.UpdateTrack(track.Title, track.Artists, albumArt);
+				break;
 		}
 	}
 }
