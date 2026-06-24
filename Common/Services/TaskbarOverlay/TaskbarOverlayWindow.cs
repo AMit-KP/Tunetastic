@@ -27,6 +27,17 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 	// Timer that re-asserts topmost Z-order every tick.
 	private readonly DispatcherTimer _topmostTimer;
 
+	private readonly DispatcherTimer _deferredRepinTimer;
+	private static readonly int[] s_repinScheduleMs = { 80, 250, 500, 1000, 2000, 4000 };
+	private int _repinStep;
+
+	private NativeMethods.SUBCLASSPROC? _hideFilter;
+	private const nuint HideFilterSubclassId = 0xC0FFEE;
+
+	private NativeMethods.WinEventDelegate? _foregroundHookProc;
+	private IntPtr _foregroundHook;
+	private bool _userIntendedVisible = true;
+
 	// ── Drag state ────────────────────────────────────────────────────────
 	private bool _dragEnabled;
 	private bool _isDragging;
@@ -84,7 +95,31 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 			_topmostTimer.Stop();
 		};
 
-		Closed += (_, _) => _topmostTimer.Stop();
+		_deferredRepinTimer = new DispatcherTimer();
+		_deferredRepinTimer.Tick += (_, _) =>
+		{
+			_deferredRepinTimer.Stop();
+
+			if (this.GetWindowHandle() == IntPtr.Zero) return;
+			if (!_userIntendedVisible) return;
+
+			ReassertTopmost();
+
+			if (IsAboveTaskbar()) return;
+
+			_repinStep++;
+			if (_repinStep >= s_repinScheduleMs.Length) return;
+			_deferredRepinTimer.Interval = TimeSpan.FromMilliseconds(s_repinScheduleMs[_repinStep]);
+			_deferredRepinTimer.Start();
+		};
+
+		Closed += (_, _) =>
+		{
+			_topmostTimer.Stop();
+			_deferredRepinTimer.Stop();
+			RemoveHideFilter(this.GetWindowHandle());
+			RemoveForegroundHook();
+		};
 	}
 
 	/// <summary>
@@ -118,6 +153,9 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 			System.Diagnostics.Debug.WriteLine($"[TaskbarOverlay] SetOwner(taskbar=0x{Taskbar.Hwnd.ToInt64():X8} -> prevOwner=0x{prevOwner:X8} err={ownerErr})");
 		}
 
+		InstallHideFilter(hwnd);
+		InstallForegroundHook();
+
 		ReassertTopmost();
 		ApplyRect(_pendingRect);
 		_topmostTimer.Start();
@@ -140,6 +178,118 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 			BottomHeight = -1
 		};
 		NativeMethods.DwmExtendFrameIntoClientArea(hwnd, in margins);
+	}
+
+	// --Hide-message filter (subclass)------
+	private void InstallHideFilter(IntPtr hwnd)
+	{
+		if (hwnd == IntPtr.Zero || _hideFilter is not null) return;
+
+		_hideFilter = HideFilterProc;
+		bool ok = NativeMethods.SetWindowSubclass(hwnd, _hideFilter, HideFilterSubclassId, 0);
+		System.Diagnostics.Debug.WriteLine($"[TaskbarOverlay] InstallHideFilter -> {ok}");
+	}
+
+	private void RemoveHideFilter(IntPtr hwnd)
+	{
+		if (hwnd == IntPtr.Zero || _hideFilter is null) return;
+
+		NativeMethods.RemoveWindowSubclass(hwnd, _hideFilter, HideFilterSubclassId);
+		_hideFilter = null;
+	}
+
+	private void InstallForegroundHook()
+	{
+		if (_foregroundHook != IntPtr.Zero) return;
+
+		_foregroundHookProc = ForegroundChangedProc;
+		_foregroundHook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND,
+														NativeMethods.EVENT_SYSTEM_MOVESIZEEND,
+														IntPtr.Zero,
+														_foregroundHookProc,
+														idProcess: 0,
+														idThread: 0,
+														NativeMethods.WINEVENT_OUTOFCONTEXT);
+
+		System.Diagnostics.Debug.WriteLine($"[TaskbarOverlay] InstallForegroundHook -> 0x{_foregroundHook.ToInt64():X}");
+	}
+
+	private void RemoveForegroundHook()
+	{
+		if (_foregroundHook == IntPtr.Zero) return;
+		NativeMethods.UnhookWinEvent(_foregroundHook);
+		_foregroundHook = IntPtr.Zero;
+		_foregroundHookProc = null;
+	}
+
+	private void ForegroundChangedProc(IntPtr hWinEventHook, uint eventTypr, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+	{
+		if (idObject != 0) return;
+		if (hwnd == IntPtr.Zero) return;
+
+		DispatcherQueue.TryEnqueue(() =>
+		{
+			if (this.GetWindowHandle() == IntPtr.Zero) return;
+			if (!_userIntendedVisible) return;
+			ReassertTopmost();
+
+			_deferredRepinTimer.Stop();
+			_repinStep = 0;
+			_deferredRepinTimer.Interval = TimeSpan.FromMilliseconds(s_repinScheduleMs[0]);
+			_deferredRepinTimer.Start();
+		});
+	}
+
+	private IntPtr HideFilterProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, nuint uIdSubclass, nuint dwRefData)
+	{
+		switch (uMsg)
+		{
+			case NativeMethods.WM_SHOWWINDOW:
+				if (_userIntendedVisible && (uint)lParam.ToInt64() == NativeMethods.SW_PARENTCLOSING)
+				{
+					System.Diagnostics.Debug.WriteLine("[TaskbarOverlay] swallowed WM_SHOWWINDOW(SW_PARENTCLOSING)");
+					return IntPtr.Zero;
+				}
+				break;
+
+			case NativeMethods.WM_SYSCOMMAND:
+				if (((uint)wParam.ToInt64() & 0xFFF0) == NativeMethods.SC_MINIMIZE)
+				{
+					System.Diagnostics.Debug.WriteLine("[TaskbarOverlay] swallowed WM_SYSCOMMAND(SC_MINIMIZE)");
+					return IntPtr.Zero;
+				}
+				break;
+
+			case NativeMethods.WM_WINDOWPOSCHANGING:
+				if (lParam != IntPtr.Zero)
+				{
+					var wp = Marshal.PtrToStructure<NativeMethods.WINDOWPOS>(lParam);
+					bool mutated = false;
+
+					if (_userIntendedVisible && (wp.flags & NativeMethods.SWP_HIDEWINDOW) != 0 && (wp.flags & NativeMethods.SWP_SHOWWINDOW) == 0)
+					{
+						wp.flags &= ~NativeMethods.SWP_HIDEWINDOW;
+						mutated = true;
+					}
+
+					if (_userIntendedVisible && (wp.flags & NativeMethods.SWP_NOZORDER) == 0)
+					{
+						if (wp.hwndInsertAfter != NativeMethods.HWND_TOPMOST)
+						{
+							wp.hwndInsertAfter = NativeMethods.HWND_TOPMOST;
+							mutated = true;
+						}
+					}
+
+					if (mutated)
+					{
+						Marshal.StructureToPtr(wp, lParam, fDeleteOld: false);
+					}
+				}
+				break;
+		}
+
+		return NativeMethods.DefSubclassProc(hWnd, uMsg, wParam, lParam);
 	}
 
 	public void SetBackground(Microsoft.UI.Xaml.Media.Brush? background)
@@ -175,6 +325,7 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 
 	public void SetVisible(bool visible)
 	{
+		_userIntendedVisible = visible;
 		if (visible)
 		{
 			AppWindow.Show(false);
@@ -209,6 +360,26 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 
 		SetWindowPos(hwnd, NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 		SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+	}
+
+	private bool IsAboveTaskbar()
+	{
+		IntPtr self = this.GetWindowHandle();
+		if (self == IntPtr.Zero) return true;
+
+		IntPtr taskbar = Taskbar.Hwnd;
+		if (taskbar == IntPtr.Zero) return true;
+
+		const int MaxHops = 256;
+		IntPtr cur = taskbar;
+		for (int i = 0; i < MaxHops; i++)
+		{
+			cur = NativeMethods.GetWindow(cur, NativeMethods.GW_HWNDPREV);
+			if (cur == IntPtr.Zero) return false;
+			if (cur == self) return true;
+		}
+
+		return false;
 	}
 
 	// ── Drag handlers ─────────────────────────────────────────────────────

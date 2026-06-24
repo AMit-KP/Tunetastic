@@ -143,9 +143,18 @@ internal sealed partial class FullscreenStateService : IDisposable
 		if (fg == IntPtr.Zero || fg == tb.Hwnd)
 			return false;
 
+		IntPtr root = GetAncestor(fg, GA_ROOTOWNER);
+		if (root == IntPtr.Zero) fg = root;
+
 		// Ignore our own process windows and the desktop/shell
 		GetWindowThreadProcessId(fg, out uint fgPid);
 		if (fgPid == Environment.ProcessId)
+			return false;
+
+		var classBuf = new System.Text.StringBuilder(64);
+		GetClassName(fg, classBuf, classBuf.Capacity);
+		string cls = classBuf.ToString();
+		if (cls == "Progman" || cls == "WorkerW")
 			return false;
 
 		if (!GetWindowRect(fg, out RECT fgRect))

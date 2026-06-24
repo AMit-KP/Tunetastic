@@ -19,6 +19,7 @@ internal static class NativeMethods
 	public const uint WS_THICKFRAME = 0x00040000;
 	public const uint WS_CAPTION = 0x00C00000;
 	public const uint WS_DLGFRAME = 0x00400000;
+	public const uint WS_MAXIMIZE = 0x01000000;
 	public const uint WS_EX_TOOLWINDOW = 0x00000080;
 	public const uint WS_EX_NOACTIVATE = 0x08000000;
 	public const uint WS_EX_TRANSPARENT = 0x00000020;
@@ -157,6 +158,37 @@ internal static class NativeMethods
 	[DllImport("user32.dll")]
 	public static extern IntPtr GetForegroundWindow();
 
+	public const uint GA_ROOT = 2;
+
+	public const uint GA_ROOTOWNER = 3;
+
+	[DllImport("user32.dll")]
+	public static extern IntPtr GetAncestor(IntPtr hwnd, uint gaFlags);
+
+	public const uint GW_HWNDPREV = 3;
+
+	[DllImport("user32.dll", SetLastError = true)]
+	public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+	public const int SW_SHOWNORMAL = 1;
+	public const int SW_SHOWMINIMIZED = 2;
+	public const int SW_SHOWMAXIMIZED = 3;
+
+	[StructLayout(LayoutKind.Sequential)]
+	public struct WINDOWPLACEMENT
+	{
+		public uint lenght;
+		public uint flags;
+		public uint showCmd;
+		public POINT ptMinPosition;
+		public POINT ptMaxPosition;
+		public RECT rcNormalPosition;
+	}
+
+	[DllImport("user32.dll")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+
 	[DllImport("user32.dll")]
 	public static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
 
@@ -219,6 +251,9 @@ internal static class NativeMethods
 	public const uint SWP_NOSIZE = 0x0001;
 	public const uint SWP_NOACTIVATE = 0x0010;
 	public const uint SWP_FRAMECHANGED = 0x0020;
+	public const uint SWP_NOZORDER = 0x0004;
+	public const uint SWP_HIDEWINDOW = 0x0080;
+	public const uint SWP_SHOWWINDOW = 0x0040;
 
 	[DllImport("user32.dll", SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
@@ -228,6 +263,13 @@ internal static class NativeMethods
 
 	// ── WM_WINDOWPOSCHANGING ──────────────────────────────────────────────
 	public const uint WM_WINDOWPOSCHANGING = 0x0046;
+	public const uint WM_SHOWWINDOW = 0x0018;
+	public const uint SW_PARENTCLOSING = 1;
+	public const uint WM_SYSCOMMAND = 0x0112;
+	public const uint SC_MINIMIZE = 0xF020;
+	public const uint WM_ACTIVATEAPP = 0x001C;
+	public const uint WM_NCACTIVATE = 0x0086;
+	public const uint WM_ACTIVATE = 0x0006;
 
 	[StructLayout(LayoutKind.Sequential)]
 	public struct WINDOWPOS
@@ -260,6 +302,20 @@ internal static class NativeMethods
 	[DllImport("comctl32.dll")]
 	public static extern IntPtr DefSubclassProc(
 	  IntPtr hwnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+
+	public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+	public const uint EVENT_SYSTEM_MOVESIZEEND = 0x000B;
+	public const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+	public const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
+
+	public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+	[DllImport("user32.dll", SetLastError = true)]
+	public static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+	[DllImport("user32.dll")]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool UnhookWinEvent(IntPtr hWinEventHook);
 
 	// ── kernel32.dll ──────────────────────────────────────────────────────
 	[DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
