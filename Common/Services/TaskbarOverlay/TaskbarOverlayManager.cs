@@ -144,6 +144,33 @@ internal static class TaskbarOverlayManager
 	}
 
 	/// <summary>
+	/// Sets the current drag position for a specific monitor device name.
+	/// </summary>
+	/// <param name="screenX">The current drag position (screen X)</param>
+	/// <param name="monitorDeviceName">The monitor device name</param>
+	public static void SetDragPosition(int screenX, string? monitorDeviceName = null)
+	{
+		string? deviceName = monitorDeviceName ?? ResolvePrimaryMonitorDeviceName();
+		if (deviceName is null) return;
+
+		_draggedPositions[deviceName] = screenX;
+		if (_initialized) RepositionAll();
+	}
+
+	/// <summary>
+	/// Clears the current drag position for a specific monitor device name.
+	/// </summary>
+	/// <param name="monitorDeviceName">The monitor device name</param>
+	public static void ClearDragPosition(string? monitorDeviceName = null)
+	{
+		string? deviceName = monitorDeviceName ?? ResolvePrimaryMonitorDeviceName();
+		if (deviceName is null) return;
+
+		if (_draggedPositions.Remove(deviceName) && _initialized)
+			RepositionAll();
+	}
+
+	/// <summary>
 	    /// Stops everything — closes overlay windows, disposes polling services and shell listener.
 	    /// </summary>
 	public static void Shutdown()
@@ -273,6 +300,12 @@ internal static class TaskbarOverlayManager
 			return desired > 0 ? desired : 200;
 		}
 		return 200;
+	}
+
+	private static string? ResolvePrimaryMonitorDeviceName()
+	{
+		var discovery = _discovery ?? new TaskbarDiscoveryService();
+		return discovery.Discover().FirstOrDefault(tb => tb.IsPrimary)?.MonitorDeviceName;
 	}
 
 	private static void RebuildOverlays()
