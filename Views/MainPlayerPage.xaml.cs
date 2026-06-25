@@ -70,8 +70,6 @@ public sealed partial class MainPlayerPage : Page
 	/// <param name="e">The string containing information about the new song, such as its identifier or name.</param>
 	private void OnCurrentSongChanged(object? sender, string e)
 	{
-		// Use Normal priority and move the delay outside the enqueue.
-		// High priority + async delay was blocking navigation/layout for 200ms+ on every song change.
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			await Task.Delay(200);

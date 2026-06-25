@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Services.Store;
 using Windows.UI;
 
@@ -85,6 +86,7 @@ public sealed partial class SettingsPage : Page
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
+		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
 		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
@@ -690,6 +692,8 @@ public sealed partial class SettingsPage : Page
 		RainbowToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false");
 		RainbowToggle_OnToggled(RainbowToggle, null);
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
+		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
+		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
 	}
 
 	/// <summary>
@@ -1160,5 +1164,22 @@ public sealed partial class SettingsPage : Page
 	private async void BuyMeACoffee_Click(object sender, RoutedEventArgs e)
 	{
 		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://ko-fi.com/tunetastic"));
+	}
+
+	private void TaskBarOverlay_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)] = TaskBarOverlay.IsOn;
+		TaskbarOverlayManager.SetVisible(TaskBarOverlay.IsOn);
+		TaskBarOverlayPosition.IsEnabled = TaskBarOverlay.IsOn;
+	}
+
+	private void TaskBarOverlayPosition_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (TaskBarOverlayPosition.SelectedItem is ComboBoxItem selctedItem)
+		{
+			var side = selctedItem.Tag.ToString();
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlaySide)] = side;
+			TaskbarOverlayManager.SetSide(side == "RightTBOL" ? OverlaySide.Right : OverlaySide.Left);
+		}
 	}
 }
