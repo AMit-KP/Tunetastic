@@ -1169,16 +1169,8 @@ public sealed partial class SettingsPage : Page
 	private void TaskBarOverlay_Toggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)] = TaskBarOverlay.IsOn;
-		if (TaskBarOverlay.IsOn)
-		{
-			TaskbarOverlayManager.Initialize();
-			TaskBarOverlayPosition.IsEnabled = true;
-		}
-		else
-		{
-			TaskbarOverlayManager.Shutdown();
-			TaskBarOverlayPosition.IsEnabled = false;
-		}
+		TaskbarOverlayManager.SetVisible(TaskBarOverlay.IsOn);
+		TaskBarOverlayPosition.IsEnabled = TaskBarOverlay.IsOn;
 	}
 
 	private void TaskBarOverlayPosition_SelectionChanged(object sender, SelectionChangedEventArgs e)

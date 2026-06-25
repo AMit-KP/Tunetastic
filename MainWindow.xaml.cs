@@ -42,13 +42,11 @@ public sealed partial class MainWindow : WindowEx
 	private static void InitializeTaskbarOverlay()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true"))
-		{
-			TaskbarOverlayManager.Initialize();
 
+		TaskbarOverlayManager.Initialize();
 			TaskbarOverlayManager.SetSide((localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL") == "RightTBOL" ? OverlaySide.Right : OverlaySide.Left);
+		TaskbarOverlayManager.SetVisible(bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true"));
 		}
-	}
 
 	public void AddTrayIcon()
 	{

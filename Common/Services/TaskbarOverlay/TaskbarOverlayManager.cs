@@ -40,6 +40,8 @@ internal static class TaskbarOverlayManager
 
 	private static bool _initialized;
 
+	private static bool _userVisible = true;
+
 	// ----------------------------------------------------------------------
 	//  PUBLIC API
 	// ----------------------------------------------------------------------
@@ -76,7 +78,7 @@ internal static class TaskbarOverlayManager
 			var overlay = _overlays.FirstOrDefault(o => o.Taskbar.Hwnd == tbHwnd);
 			if (overlay is null) return;
 			bool fsHidden = _monitorFullscreen.TryGetValue(overlay.Taskbar.HMonitor, out bool fs) && fs;
-			overlay.SetVisible(isVis && !fsHidden);
+			overlay.SetVisible(_userVisible && isVis && !fsHidden);
 		};
 
 		_shellNotify.TaskbarCreated += () =>
@@ -169,6 +171,23 @@ internal static class TaskbarOverlayManager
 		if (_draggedPositions.Remove(deviceName) && _initialized)
 			RepositionAll();
 	}
+
+	public static void SetVisible(bool visible)
+	{
+		if (_userVisible == visible) return;
+		_userVisible = visible;
+
+		if (!_initialized) return;
+
+		foreach (var overlay in _overlays)
+		{
+			bool fsHidden = _monitorFullscreen.TryGetValue(overlay.Taskbar.HMonitor, out bool fs) && fs;
+			bool tbVis = !_taskbarVisible.TryGetValue(overlay.Taskbar.Hwnd, out bool v) || v;
+			overlay.SetVisible(_userVisible && !fsHidden && tbVis);
+		}
+	}
+
+	public static bool IsVisible() => _userVisible;
 
 	/// <summary>
 	    /// Stops everything — closes overlay windows, disposes polling services and shell listener.
@@ -375,6 +394,10 @@ internal static class TaskbarOverlayManager
 
 			w.Activate();
 			w.ApplyPendingRect();
+
+			if (!_userVisible)
+				w.SetVisible(false);
+
 			_overlays.Add(w);
 			_taskbarVisible[tb.Hwnd] = true;
 			_monitorFullscreen[tb.HMonitor] = false;
@@ -440,7 +463,7 @@ internal static class TaskbarOverlayManager
 		foreach (var overlay in _overlays.Where(o => o.Taskbar.HMonitor == hMon))
 		{
 			bool tbVis = !_taskbarVisible.TryGetValue(overlay.Taskbar.Hwnd, out bool v) || v;
-			overlay.SetVisible(!fsHidden && tbVis);
+			overlay.SetVisible(_userVisible && !fsHidden && tbVis);
 		}
 	}
 }
