@@ -20,10 +20,8 @@ jobs:
             const headRef = pr.head.ref;
             const currentBase = pr.base.ref;
 
-            // Determine desired base
-            const desiredBase = headRef.toLowerCase() === 'development'
-              ? 'master'
-              : 'development';
+            // If PR is FROM Development, target master. Otherwise target Development.
+            const desiredBase = headRef === 'Development' ? 'master' : 'Development';
 
             if (currentBase === desiredBase) {
               core.info(`Base branch already correct (${currentBase}). No change needed.`);
