@@ -39,7 +39,10 @@ public abstract class OverlayBase
 	{
 		_isPlaying = isPlaying;
 		if (PlayPauseButton?.Content is FontIcon icon)
+		{
 			icon.Glyph = isPlaying ? "\uE769" : "\uE768"; // Pause : Play
+			ToolTipService.SetToolTip(PlayPauseButton, isPlaying ? "Pause" : "Play");
+		}
 	}
 
 	// ── Progress update — layouts that have a progress indicator ──────
@@ -122,6 +125,7 @@ public abstract class OverlayBase
 			: Color.FromArgb(255, 15, 15, 20);
 
 		PlayPauseButton = MakeIconButton("\uE768", size, fg); // Play glyph default
+		ToolTipService.SetToolTip(PlayPauseButton, "Play");
 		return PlayPauseButton;
 	}
 
@@ -129,6 +133,7 @@ public abstract class OverlayBase
 	protected Button MakePrevButton(double size = 13)
 	{
 		PreviousButton = MakeIconButton("\uE892", size); // Previous track
+		ToolTipService.SetToolTip(PreviousButton, "Previous song/track");
 		return PreviousButton;
 	}
 
@@ -136,11 +141,12 @@ public abstract class OverlayBase
 	protected Button MakeNextButton(double size = 13)
 	{
 		NextButton = MakeIconButton("\uE893", size); // Next track
+		ToolTipService.SetToolTip(NextButton, "Next song/track");
 		return NextButton;
 	}
 
 	/// <summary>Creates a TextBlock styled as a track title.</summary>
-	protected TextBlock MakeTitleText(string text = "Track Title")
+	protected TextBlock MakeTitleText(string text = "Track Title", double maxWidth = 100)
 	{
 		return new TextBlock
 		{
@@ -149,12 +155,13 @@ public abstract class OverlayBase
 			FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
 			Foreground = new SolidColorBrush(Text),
 			VerticalAlignment = VerticalAlignment.Center,
+			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
 	}
 
 	/// <summary>Creates a TextBlock styled as an artist / subtitle.</summary>
-	protected TextBlock MakeSubText(string text = "Artist Name")
+	protected TextBlock MakeSubText(string text = "Artist Name", double maxWidth = 100)
 	{
 		return new TextBlock
 		{
@@ -162,6 +169,7 @@ public abstract class OverlayBase
 			FontSize = 9,
 			Foreground = new SolidColorBrush(SubText),
 			VerticalAlignment = VerticalAlignment.Center,
+			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
 	}

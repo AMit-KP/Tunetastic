@@ -720,24 +720,22 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	private async void SetupTaskbarOverlay()
 	{
+		overlayGrid = OverlayFactory.Create(OverlayLayout.CompactPill, OverlayTheme.Dark);
+
+		if (overlayGrid.RootGrid is not null)
+		{
+			overlayGrid.PlayPauseButton?.Click += async (_, _) => await TogglePlayPause();
+			overlayGrid.PreviousButton?.Click += (_, _) => PreviousSong();
+			overlayGrid.NextButton?.Click += (_, _) => NextSong();
+			TaskbarOverlayManager.SetContent(overlayGrid.RootGrid);
+		}
+
 		var song = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
 		if (string.IsNullOrEmpty(song)) return;
 
 		var track = await DatabaseHelper.Instance.GetSongByPath(song);
 		if (track is not null)
-		{
-			overlayGrid = OverlayFactory.Create(OverlayLayout.CompactPill, OverlayTheme.Dark);
-
-			if (overlayGrid.RootGrid is not null)
-			{
-				UpdateInfoOnTaskbarOverlay(track);
-
-				overlayGrid.PlayPauseButton?.Click += async (_, _) => await TogglePlayPause();
-				overlayGrid.PreviousButton?.Click += (_, _) => PreviousSong();
-				overlayGrid.NextButton?.Click += (_, _) => NextSong();
-				TaskbarOverlayManager.SetContent(overlayGrid.RootGrid);
-			}
-		}
+			UpdateInfoOnTaskbarOverlay(track);
 	}
 
 	private async void UpdateInfoOnTaskbarOverlay(Song track)
@@ -760,7 +758,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		switch (overlayGrid)
 		{
 			case CompactPillOverlay cpo:
-				cpo.UpdateTrack(track.Title, track.Artists, albumArt);
+				cpo.UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
 		}
 	}
