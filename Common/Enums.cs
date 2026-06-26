@@ -195,7 +195,8 @@ public enum LocalSave
 	ForwardRewindButtonVisibility,
 	GivenStoreRating,
 	TaskBarOverlayStatus,
-	TaskBarOverlaySide
+	TaskBarOverlaySide,
+	TaskBarOverlayTheme
 }
 
 /// <summary>

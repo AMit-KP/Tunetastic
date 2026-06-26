@@ -8,7 +8,7 @@ public static class OverlayFactory
 	/// Creates and returns the overlay for the given layout and theme.
 	/// Pass overlay.RootGrid to your SetOverlayContent() call.
 	/// </summary>
-	public static OverlayBase Create(OverlayLayout layout, OverlayTheme theme)
+	public static OverlayBase Create(OverlayLayout? layout, OverlayTheme theme)
 	{
 		return layout switch
 		{

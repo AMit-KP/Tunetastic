@@ -379,6 +379,17 @@
 							              Tag="LeftTBOL" />
 						</ComboBox>
 					</dev:SettingsCard>
+					<dev:SettingsCard Description="Determine the theme of the taskbar overlay controls."
+					                  Header="Taskbar Overlay Control Theme">
+						<ComboBox x:Name="TaskBarOverlayTheme">
+							<ComboBoxItem Content="Default"
+							              Tag="DefaultTBOL" />
+							<ComboBoxItem Content="Light"
+							              Tag="LightTBOL" />
+							<ComboBoxItem Content="Dark"
+							              Tag="DarkTBOL" />
+						</ComboBox>
+					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
