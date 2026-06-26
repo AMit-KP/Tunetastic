@@ -107,12 +107,26 @@ internal static class TaskbarOverlayManager
 	    /// </summary>
 	public static void SetContent(UIElement content)
 	{
-		_content = content;
-		if (_initialized)
+		if (_dispatcherQueue is not null && !_dispatcherQueue.HasThreadAccess)
 		{
-			DisposeOverlays();
-			RebuildOverlays();
+			_dispatcherQueue.TryEnqueue(() => SetContent(content));
+			return;
 		}
+
+		_content = content;
+
+		if (!_initialized) return;
+
+		if (_overlays.Count == 0)
+		{
+			RebuildOverlays();
+			return;
+		}
+
+		foreach (var overlay in _overlays)
+			try { overlay.ReplaceContent(_content); } catch { }
+
+		RepositionAll();
 	}
 
 	/// <summary>

@@ -17,7 +17,7 @@ internal readonly record struct TaskbarIconLayout(
 	int TaskbarRightScreen,
 	int TrayLeftScreen,
 	int IconsLeftScreen,
-	int IconsRightScreen,
+	int IconsRightScreen, 
 	bool IconsFound,
 	TaskbarAlignment Alignment,
 	bool WidgetsEnabled);
