@@ -722,20 +722,18 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	public async void SetupTaskbarOverlay()
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-
-		var theme = localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString();
+		var theme = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString();
 
 		_uiSettings.ColorValuesChanged -= _uiSettings_ColorValuesChanged;
 
 		switch (theme)
 		{
 			case "LightTBOL":
-				OverlayGridCreation(OverlayLayout.CompactPill, OverlayTheme.Light);
+				OverlayGridCreation(OverlayTheme.Light);
 				break;
 
 			case "DarkTBOL":
-				OverlayGridCreation(OverlayLayout.CompactPill, OverlayTheme.Dark);
+				OverlayGridCreation(OverlayTheme.Dark);
 				break;
 
 			default:
@@ -753,14 +751,15 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_dispatcherQueue.TryEnqueue(() =>
 		{
 			bool isDark = sender.GetColorValue(UIColorType.Background) == Windows.UI.Color.FromArgb(255, 0, 0, 0);
-			OverlayGridCreation(OverlayLayout.CompactPill, isDark ? OverlayTheme.Dark : OverlayTheme.Light);
+			OverlayGridCreation(isDark ? OverlayTheme.Dark : OverlayTheme.Light);
 			SetContentAndUpdateLayoutWithData();
 		});
 	}
 
-	private void OverlayGridCreation(OverlayLayout? layout, OverlayTheme actualTheme)
+	private void OverlayGridCreation(OverlayTheme actualTheme)
 	{
-		_overlayGrid = OverlayFactory.Create(layout, actualTheme);
+		var overlay = OverlayLayoutCatalog.All.FirstOrDefault(item => item.DisplayName == (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"))?.Layout;
+		_overlayGrid = OverlayFactory.Create(overlay, actualTheme);
 
 		if (_overlayGrid.RootGrid is not null)
 		{

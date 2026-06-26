@@ -196,7 +196,8 @@ public enum LocalSave
 	GivenStoreRating,
 	TaskBarOverlayStatus,
 	TaskBarOverlaySide,
-	TaskBarOverlayTheme
+	TaskBarOverlayTheme,
+	TaskBarOverlayDesign
 }
 
 /// <summary>

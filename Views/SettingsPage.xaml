@@ -6,8 +6,14 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:overlay="using:Tunetastic.Overlay"
       ActualThemeChanged="Page_ActualThemeChanged"
       mc:Ignorable="d">
+
+	<Page.Resources>
+		<overlay:OverlayLayoutCatalog x:Key="LayoutProvider" />
+	</Page.Resources>
+
 	<ScrollView Margin="{ThemeResource ContentPageMargin}"
 	            Padding="{ThemeResource ContentPagePadding}"
 	            HorizontalAlignment="Stretch"
@@ -370,13 +376,34 @@
 				<ToggleSwitch x:Name="TaskBarOverlay"
 				              Toggled="TaskBarOverlay_Toggled" />
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard Description="Determine the position of the taskbar overlay controls."
-					                  Header="Taskbar Overlay Controls Side">
-						<ComboBox x:Name="TaskBarOverlayPosition">
-							<ComboBoxItem Content="Right"
-							              Tag="RightTBOL" />
-							<ComboBoxItem Content="Left"
-							              Tag="LeftTBOL" />
+					<dev:SettingsCard Description="The design of the taskbar overlay controls."
+					                  Header="Taskbar Overlay Design Catalog">
+						<ComboBox x:Name="TaskBarOverlayDesign"
+								  Height="{Binding ElementName=TaskBarOverlayTheme, Path=ActualHeight}"
+								  Width="180"
+						          ItemsSource="{Binding All, Source={StaticResource LayoutProvider}}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate x:DataType="common:OverlayLayoutInfo">
+									<StackPanel>
+
+										<!--  Primary label  -->
+										<TextBlock Style="{ThemeResource BaseTextBlockStyle}"
+										           Text="{x:Bind DisplayName}"
+										           TextTrimming="CharacterEllipsis"
+										           TextWrapping="NoWrap" />
+
+										<!--  Subtitle / description  -->
+										<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+										           Style="{ThemeResource CaptionTextBlockStyle}"
+										           Text="{x:Bind Description}"
+										           TextTrimming="CharacterEllipsis"
+										           TextWrapping="NoWrap"
+										           Visibility="{x:Bind Description}" />
+
+									</StackPanel>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+
 						</ComboBox>
 					</dev:SettingsCard>
 					<dev:SettingsCard Description="Determine the theme of the taskbar overlay controls."
@@ -388,6 +415,15 @@
 							              Tag="LightTBOL" />
 							<ComboBoxItem Content="Dark"
 							              Tag="DarkTBOL" />
+						</ComboBox>
+					</dev:SettingsCard>
+					<dev:SettingsCard Description="Determine the position of the taskbar overlay controls."
+					                  Header="Taskbar Overlay Controls Side">
+						<ComboBox x:Name="TaskBarOverlayPosition">
+							<ComboBoxItem Content="Right"
+							              Tag="RightTBOL" />
+							<ComboBoxItem Content="Left"
+							              Tag="LeftTBOL" />
 						</ComboBox>
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>

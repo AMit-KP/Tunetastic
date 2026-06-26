@@ -86,8 +86,10 @@ public sealed partial class SettingsPage : Page
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
+		TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
+
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
 		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
@@ -694,8 +696,9 @@ public sealed partial class SettingsPage : Page
 		RainbowToggle_OnToggled(RainbowToggle, null);
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
 		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
+		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.DisplayName == (localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"));
+		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "DefaultTBOL"));       //TODO: default based on overlay
 		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
-		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "DefaultTBOL"));		//TODO: default based on overlay
 	}
 
 	/// <summary>
@@ -1173,6 +1176,8 @@ public sealed partial class SettingsPage : Page
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)] = TaskBarOverlay.IsOn;
 		TaskbarOverlayManager.SetVisible(TaskBarOverlay.IsOn);
 		TaskBarOverlayPosition.IsEnabled = TaskBarOverlay.IsOn;
+		TaskBarOverlayTheme.IsEnabled = TaskBarOverlay.IsOn;
+		TaskBarOverlayDesign.IsEnabled = TaskBarOverlay.IsOn;
 	}
 
 	private void TaskBarOverlayPosition_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1187,11 +1192,20 @@ public sealed partial class SettingsPage : Page
 
 	private void TaskBarOverlayTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		if(TaskBarOverlayTheme.SelectedItem is ComboBoxItem selctedItem)
+		if (TaskBarOverlayTheme.SelectedItem is ComboBoxItem selctedItem)
 		{
 			var theme = selctedItem.Tag.ToString();
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)] = theme;
 			MusicControl._instance?.ViewModel.SetupTaskbarOverlay();
+		}
+	}
+
+	private void TaskBarOverlayDesign_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (TaskBarOverlayDesign.SelectedItem is OverlayLayoutInfo layoutInfo)
+		{
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)] = layoutInfo.DisplayName;
+			//TODO theme change based on selection
 		}
 	}
 }

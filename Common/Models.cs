@@ -217,3 +217,19 @@ public class SearchResults
 	/// </summary>
 	public List<SearchItem> Items { get; set; } = new();
 }
+
+
+/// <summary>
+/// Metadata for each layout, used to populate user-facing dropdowns.
+/// </summary>
+public class OverlayLayoutInfo
+{
+	/// <summary>The enum value this info describes.</summary>
+	public OverlayLayout Layout { get; init; }
+
+	/// <summary>Human-readable name shown in the dropdown.</summary>
+	public string? DisplayName { get; init; }
+
+	/// <summary>Short description shown as a subtitle or tooltip.</summary>
+	public string? Description { get; init; }
+}
