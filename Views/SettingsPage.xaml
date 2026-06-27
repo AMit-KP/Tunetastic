@@ -379,8 +379,8 @@
 					<dev:SettingsCard Description="The design of the taskbar overlay controls."
 					                  Header="Taskbar Overlay Design Catalog">
 						<ComboBox x:Name="TaskBarOverlayDesign"
-								  Height="{Binding ElementName=TaskBarOverlayTheme, Path=ActualHeight}"
-								  Width="180"
+						          Width="180"
+						          Height="{Binding ElementName=TaskBarOverlayTheme, Path=ActualHeight}"
 						          ItemsSource="{Binding All, Source={StaticResource LayoutProvider}}">
 							<ComboBox.ItemTemplate>
 								<DataTemplate x:DataType="common:OverlayLayoutInfo">

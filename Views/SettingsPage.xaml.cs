@@ -1214,6 +1214,7 @@ public sealed partial class SettingsPage : Page
 	private string BestOverlayThemeBasedOnLayout(OverlayLayout layout) => layout switch
 	{
 		OverlayLayout.CompactPill => "LightTBOL",
+		OverlayLayout.HoverReveal => "LightTBOL",
 		_ => "DefaultTBOL"
 	};
 }

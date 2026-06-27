@@ -13,11 +13,11 @@ public class OverlayLayoutCatalog
 				DisplayName = "Compact Pill",
 				Description = "Rounded pill with art, track info and controls always visible."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.HoverReveal,
-			//	DisplayName = "Hover Reveal",
-			//	Description = "Shows only track info at rest; controls fade in on hover."
-			//},
+			new() {
+				Layout      = OverlayLayout.HoverReveal,
+				DisplayName = "Hover Reveal",
+				Description = "Shows only track info at rest; controls fade in on hover."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.WaveformEdge,
 			//	DisplayName = "Waveform Edge",

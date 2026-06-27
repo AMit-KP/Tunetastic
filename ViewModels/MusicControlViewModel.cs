@@ -806,8 +806,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 		switch (_overlayGrid)
 		{
-			case CompactPillOverlay cpo:
-				cpo.UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
+			case CompactPillOverlay:
+			case HoverRevealOverlay:
+				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
 		}
 	}

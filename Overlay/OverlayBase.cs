@@ -155,6 +155,7 @@ public abstract class OverlayBase
 			FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
 			Foreground = new SolidColorBrush(Text),
 			VerticalAlignment = VerticalAlignment.Center,
+			HorizontalTextAlignment = TextAlignment.Left,
 			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
@@ -169,6 +170,7 @@ public abstract class OverlayBase
 			FontSize = 9,
 			Foreground = new SolidColorBrush(SubText),
 			VerticalAlignment = VerticalAlignment.Center,
+			HorizontalTextAlignment = TextAlignment.Left,
 			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
