@@ -697,7 +697,9 @@ public sealed partial class SettingsPage : Page
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
 		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
 		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.DisplayName == (localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"));
-		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "DefaultTBOL"));       //TODO: default based on overlay
+		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL"));
+
+		// TODO: set side options based on windows start position
 		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
 	}
 
@@ -1204,8 +1206,14 @@ public sealed partial class SettingsPage : Page
 	{
 		if (TaskBarOverlayDesign.SelectedItem is OverlayLayoutInfo layoutInfo)
 		{
-			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)] = layoutInfo.DisplayName;
-			//TODO theme change based on selection
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)] = layoutInfo.DisplayName;
+			TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == BestOverlayThemeBasedOnLayout(layoutInfo.Layout));
 		}
 	}
+
+	private string BestOverlayThemeBasedOnLayout(OverlayLayout layout) => layout switch
+	{
+		OverlayLayout.CompactPill => "LightTBOL",
+		_ => "DefaultTBOL"
+	};
 }

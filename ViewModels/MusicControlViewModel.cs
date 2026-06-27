@@ -722,7 +722,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	public async void SetupTaskbarOverlay()
 	{
-		var theme = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString();
+		var theme = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL";
 
 		_uiSettings.ColorValuesChanged -= _uiSettings_ColorValuesChanged;
 
