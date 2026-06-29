@@ -126,7 +126,7 @@ internal static class TaskbarOverlayManager
 		foreach (var overlay in _overlays)
 			try { overlay.ReplaceContent(_content); } catch { }
 
-		RepositionAll();
+		RepositionAll(forceMeasureWidth: true);
 	}
 
 	/// <summary>
@@ -432,7 +432,8 @@ internal static class TaskbarOverlayManager
 		}
 	}
 
-	private static void RepositionAll()
+	private static void RepositionAll() => RepositionAll(forceMeasureWidth: false);
+	private static void RepositionAll(bool forceMeasureWidth)
 	{
 		int fallbackDip = MeasureContentWidth();
 		foreach (var overlay in _overlays)
@@ -446,7 +447,7 @@ internal static class TaskbarOverlayManager
 			double scale = overlay.Taskbar.Dpi / 96.0;
 			int widthDip = fallbackDip;
 			IntPtr hwnd = overlay.GetWindowHandle();
-			if (hwnd != IntPtr.Zero && GetWindowRect(hwnd, out RECT actual) && actual.Width > 0)
+			if (!forceMeasureWidth && hwnd != IntPtr.Zero && GetWindowRect(hwnd, out RECT actual) && actual.Width > 0)
 			{
 				widthDip = (int)Math.Ceiling(actual.Width / scale);
 			}
