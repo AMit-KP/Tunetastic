@@ -808,6 +808,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		{
 			case CompactPillOverlay:
 			case HoverRevealOverlay:
+			case RightDockOverlay:
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
 		}

@@ -16,7 +16,6 @@ public static class OverlayFactory
 			OverlayLayout.HoverReveal => new HoverRevealOverlay(theme),
 			OverlayLayout.WaveformEdge => new WaveformEdgeOverlay(theme),
 			OverlayLayout.MarqueeTicker => new MarqueeTickerOverlay(theme),
-			OverlayLayout.LeftPill => new LeftPillOverlay(theme),
 			OverlayLayout.RightDock => new RightDockOverlay(theme),
 			OverlayLayout.FullArtBar => new FullArtBarOverlay(theme),
 			OverlayLayout.WaveformOnly => new WaveformOnlyOverlay(theme),

@@ -28,16 +28,11 @@ public class OverlayLayoutCatalog
 			//	DisplayName = "Marquee Ticker",
 			//	Description = "Scrolling track name ticker with a micro progress bar, no album art."
 			//},
-			//new() {
-			//	Layout      = OverlayLayout.LeftPill,
-			//	DisplayName = "Left Pill",
-			//	Description = "Left-anchored pill with circular art, title, artist and always-on controls."
-			//},
-			//new() {
-			//	Layout      = OverlayLayout.RightDock,
-			//	DisplayName = "Right Dock",
-			//	Description = "Right-anchored strip with controls leading and track info trailing."
-			//},
+			new() {
+				Layout      = OverlayLayout.RightDock,
+				DisplayName = "Right Dock",
+				Description = "Right-anchored strip with controls leading and track info trailing."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.FullArtBar,
 			//	DisplayName = "Full Art Bar",

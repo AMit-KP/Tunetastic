@@ -1207,6 +1207,7 @@ public sealed partial class SettingsPage : Page
 		if (TaskBarOverlayDesign.SelectedItem is OverlayLayoutInfo layoutInfo)
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)] = layoutInfo.DisplayName;
+			TaskBarOverlayTheme.SelectedIndex = -1;
 			TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == BestOverlayThemeBasedOnLayout(layoutInfo.Layout));
 		}
 	}
@@ -1214,7 +1215,8 @@ public sealed partial class SettingsPage : Page
 	private string BestOverlayThemeBasedOnLayout(OverlayLayout layout) => layout switch
 	{
 		OverlayLayout.CompactPill => "LightTBOL",
-		OverlayLayout.HoverReveal => "LightTBOL",
+		OverlayLayout.HoverReveal => "DarkTBOL",
+		OverlayLayout.RightDock => "LightTBOL",
 		_ => "DefaultTBOL"
 	};
 }
