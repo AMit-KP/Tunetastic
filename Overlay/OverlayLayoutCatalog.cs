@@ -33,11 +33,11 @@ public class OverlayLayoutCatalog
 				DisplayName = "Right Dock",
 				Description = "Right-anchored strip with controls leading and track info trailing."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.FullArtBar,
-			//	DisplayName = "Full Art Bar",
-			//	Description = "Album art bleeds full taskbar height; title, artist and progress bar beside it."
-			//},
+			new() {
+				Layout      = OverlayLayout.FullArtBar,
+				DisplayName = "Full Art Bar",
+				Description = "Album art bleeds full taskbar height; title, artist and progress bar beside it."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.WaveformOnly,
 			//	DisplayName = "Waveform Only",

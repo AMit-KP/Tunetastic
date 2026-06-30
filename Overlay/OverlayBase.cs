@@ -297,6 +297,7 @@ public abstract class OverlayBase
 	/// <summary>Default accent colour used for art placeholder boxes.</summary>
 	protected static Color AccentPurple => Color.FromArgb(255, 127, 119, 221);
 	protected static Color AccentGreen => Color.FromArgb(255, 29, 158, 117);
+	protected static Color NeonGreen => Color.FromArgb(255, 57, 255, 20);
 	protected static Color AccentOrange => Color.FromArgb(255, 216, 90, 48);
 	protected static Color AccentPink => Color.FromArgb(255, 212, 83, 126);
 	protected static Color AccentBlue => Color.FromArgb(255, 55, 138, 221);
