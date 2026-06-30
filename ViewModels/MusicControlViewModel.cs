@@ -55,6 +55,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_progressBarValue = seconds;
 		isUpdatingProgressBar = false;
 		_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(seconds).Ticks;
+		_overlayGrid?.UpdateProgress(seconds / DurationOfSong);
 	}
 
 	private TimeSpan _thresoldDuration = TimeSpan.Zero;
@@ -307,6 +308,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			// Drive the smooth control — it advances itself between these ticks
 			ProgressBar?.SyncPosition(seconds);
 			TaskbarHelper.SetProgressValue(App.Hwnd, seconds / DurationOfSong * 100, 100);
+			_overlayGrid?.UpdateProgress(seconds / DurationOfSong);
 		});
 	}
 
@@ -812,5 +814,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
 		}
+		_overlayGrid.UpdateProgress(ProgressBarValue / DurationOfSong);
 	}
 }
