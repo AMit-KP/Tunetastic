@@ -63,11 +63,11 @@ public class OverlayLayoutCatalog
 				DisplayName = "Centered Pill",
 				Description = "Controls positioned at the centre, art on the left and the track info on the right."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.TopStripe,
-			//	DisplayName = "Top Stripe",
-			//	Description = "Thin progress stripe runs along the top edge of the overlay — no separate bar."
-			//},
+			new() {
+				Layout      = OverlayLayout.TopAccentStripe,
+				DisplayName = "Top Accent Stripe",
+				Description = "Thin progress accent stripe runs along the top edge of the overlay."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.BottomStripe,
 			//	DisplayName = "Bottom Stripe",

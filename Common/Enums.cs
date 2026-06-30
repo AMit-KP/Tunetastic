@@ -227,7 +227,7 @@ public enum OverlayLayout
 	IconStrip,
 	StackedInfo,
 	CenteredPill,
-	TopStripe,
+	TopAccentStripe,
 	BottomStripe,
 	AlbumTint,
 	TextOnly,

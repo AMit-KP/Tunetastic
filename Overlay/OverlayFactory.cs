@@ -23,7 +23,7 @@ public static class OverlayFactory
 			OverlayLayout.IconStrip => new IconStripOverlay(theme),
 			OverlayLayout.StackedInfo => new StackedInfoOverlay(theme),
 			OverlayLayout.CenteredPill => new CenteredPillOverlay(theme),
-			OverlayLayout.TopStripe => new TopStripeOverlay(theme),
+			OverlayLayout.TopAccentStripe => new TopAccentStripeOverlay(theme),
 			OverlayLayout.BottomStripe => new BottomStripeOverlay(theme),
 			OverlayLayout.AlbumTint => new AlbumTintOverlay(theme),
 			OverlayLayout.TextOnly => new TextOnlyOverlay(theme),

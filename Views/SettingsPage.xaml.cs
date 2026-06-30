@@ -1221,6 +1221,7 @@ public sealed partial class SettingsPage : Page
 		OverlayLayout.CenteredPill => "LightTBOL",
 		OverlayLayout.TextOnly => "DefaultTBOL",
 		OverlayLayout.TextOnlyReversed => "DefaultTBOL",
+		OverlayLayout.TopAccentStripe => "LightTBOL",
 		_ => "DefaultTBOL"
 	};
 }
