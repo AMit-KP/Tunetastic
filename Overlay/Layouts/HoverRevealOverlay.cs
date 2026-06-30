@@ -36,7 +36,7 @@ public class HoverRevealOverlay : OverlayBase
 		};
 		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });           // col 0: art
 		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });         // col 1: gap
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(125) });		 // col 2: content
+		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(125) });       // col 2: content
 
 		// Art box — col 0
 		_artBox = MakeArtBox(30, 8, AccentGreen);

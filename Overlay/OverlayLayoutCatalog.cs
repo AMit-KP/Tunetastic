@@ -58,11 +58,11 @@ public class OverlayLayoutCatalog
 			//	DisplayName = "Stacked Info",
 			//	Description = "Two-row track block: title, artist and timestamp with a thin inline progress bar."
 			//},
-			//new() {
-			//	Layout      = OverlayLayout.CenteredPill,
-			//	DisplayName = "Centered Pill",
-			//	Description = "Pill positioned at the centre of the taskbar, controls left of the track info."
-			//},
+			new() {
+				Layout      = OverlayLayout.CenteredPill,
+				DisplayName = "Centered Pill",
+				Description = "Controls positioned at the centre, art on the left and the track info on the right."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.TopStripe,
 			//	DisplayName = "Top Stripe",

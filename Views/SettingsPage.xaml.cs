@@ -1218,6 +1218,7 @@ public sealed partial class SettingsPage : Page
 		OverlayLayout.HoverReveal => "DarkTBOL",
 		OverlayLayout.RightDock => "LightTBOL",
 		OverlayLayout.FullArtBar => "DarkTBOL",
+		OverlayLayout.CenteredPill => "LightTBOL",
 		_ => "DefaultTBOL"
 	};
 }
