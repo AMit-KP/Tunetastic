@@ -78,11 +78,11 @@ public class OverlayLayoutCatalog
 			//	DisplayName = "Album Tint",
 			//	Description = "Background and border tint adapts to the album's dominant colour."
 			//},
-			//new() {
-			//	Layout      = OverlayLayout.TextOnly,
-			//	DisplayName = "Text Only",
-			//	Description = "Pure text: track name, uppercase artist label, timestamp and controls. No art."
-			//},
+			new() {
+				Layout      = OverlayLayout.TextOnly,
+				DisplayName = "Text Only",
+				Description = "Pure text: track name, artists label, and controls. No art."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.ArcRing,
 			//	DisplayName = "Arc Ring",

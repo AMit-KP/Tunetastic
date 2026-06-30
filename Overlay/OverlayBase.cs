@@ -65,14 +65,14 @@ public abstract class OverlayBase
 	protected static Color DarkSurface => Color.FromArgb(180, 48, 48, 60);
 	protected static Color DarkBorder => Color.FromArgb(40, 255, 255, 255);
 	protected static Color DarkText => Color.FromArgb(255, 255, 255, 255);
-	protected static Color DarkSubText => Color.FromArgb(115, 255, 255, 255);
+	protected static Color DarkSubText => Color.FromArgb(155, 255, 255, 255);
 	protected static Color DarkDivider => Color.FromArgb(38, 255, 255, 255);
 
 	protected static Color LightBg => Color.FromArgb(255, 243, 243, 248);
 	protected static Color LightSurface => Color.FromArgb(200, 255, 255, 255);
 	protected static Color LightBorder => Color.FromArgb(60, 0, 0, 0);
 	protected static Color LightText => Color.FromArgb(255, 15, 15, 20);
-	protected static Color LightSubText => Color.FromArgb(130, 15, 15, 20);
+	protected static Color LightSubText => Color.FromArgb(155, 15, 15, 20);
 	protected static Color LightDivider => Color.FromArgb(38, 0, 0, 0);
 
 	protected Color Bg => Theme == OverlayTheme.Dark ? DarkBg : LightBg;

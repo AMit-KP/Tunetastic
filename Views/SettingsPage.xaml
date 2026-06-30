@@ -376,7 +376,7 @@
 				<ToggleSwitch x:Name="TaskBarOverlay"
 				              Toggled="TaskBarOverlay_Toggled" />
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard Description="The design of the taskbar overlay controls."
+					<dev:SettingsCard Description="The design of the taskbar overlay controls. If you have any control overlay design/style in mind, please let me know by creating GitHub Issue under About Section."
 					                  Header="Taskbar Overlay Design Catalog">
 						<ComboBox x:Name="TaskBarOverlayDesign"
 						          Width="180"

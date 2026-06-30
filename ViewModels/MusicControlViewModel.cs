@@ -815,6 +815,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 			case CenteredPillOverlay:
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
+
+			case TextOnlyOverlay:
+				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album);
+				break;
 		}
 		_overlayGrid.UpdateProgress(ProgressBarValue / DurationOfSong);
 	}
