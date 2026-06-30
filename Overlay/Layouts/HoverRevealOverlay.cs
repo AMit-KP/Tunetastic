@@ -31,12 +31,12 @@ public class HoverRevealOverlay : OverlayBase
 		// Outer layout: [art box | content area]
 		var inner = new Grid
 		{
-			Width = 145,
+			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center,
 		};
 		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });           // col 0: art
 		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });         // col 1: gap
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }); // col 2: content
+		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(125) });		 // col 2: content
 
 		// Art box — col 0
 		_artBox = MakeArtBox(30, 8, AccentGreen);
@@ -113,8 +113,8 @@ public class HoverRevealOverlay : OverlayBase
 		// Hover events on the pill
 		pill.PointerEntered += (_, _) =>
 		{
-			_titleText.MaxWidth = 35;
-			_artistText.MaxWidth = 35;
+			_titleText.MaxWidth = 45;
+			_artistText.MaxWidth = 45;
 			FadeIn(_controlsPanel, 150);
 		};
 		pill.PointerExited += (_, _) =>

@@ -34,7 +34,6 @@ public class RightDockOverlay : OverlayBase
 		{
 			VerticalAlignment = VerticalAlignment.Center,
 			HorizontalAlignment = HorizontalAlignment.Left,
-			Width = 200
 		};
 
 		// Columns: art | info | divider | prev | play | next

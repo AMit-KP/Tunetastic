@@ -28,13 +28,12 @@ public class CompactPillOverlay : OverlayBase
 		};
 
 		//Pill container
-		var pill = MakePillBorder(height: 36, radius: 20);
+		var pill = MakePillBorder(radius: 20);
 
 		var inner = new Grid
 		{
 			VerticalAlignment = VerticalAlignment.Center,
 			HorizontalAlignment = HorizontalAlignment.Left,
-			Width = 200
 		};
 
 		// Columns: art | info | divider | prev | play | next

@@ -33,6 +33,10 @@ internal static class TaskbarOverlayManager
 	private static bool _dragEnabled;
 	private static DispatcherTimer? _dragAutoStopTimer;
 	private static DispatcherTimer? _repositionTimer;
+	private static DispatcherTimer? _sizeSettleTimer;
+	private static int _sizeSettleLastWidth;
+	private static int _sizeSettleStableCount;
+	private static int _sizeSettleTicks;
 	private static readonly Dictionary<string, int> _draggedPositions = new();
 
 	private static bool _multiMonitor = false;
@@ -214,6 +218,8 @@ internal static class TaskbarOverlayManager
 		StopDrag();
 		_repositionTimer?.Stop();
 		_repositionTimer = null;
+		_sizeSettleTimer?.Stop();
+		_sizeSettleTimer = null;
 		DisposeOverlays();
 		_fullscreen?.Dispose();
 		_tbState?.Dispose();
@@ -425,10 +431,7 @@ internal static class TaskbarOverlayManager
 		// reposition tick to pick up the final live geometry.
 		if (_dispatcherQueue is not null)
 		{
-			_ = Task.Delay(150).ContinueWith(_ =>
-			  _dispatcherQueue.TryEnqueue(RepositionAll));
-			_ = Task.Delay(500).ContinueWith(_ =>
-			  _dispatcherQueue.TryEnqueue(RepositionAll));
+			StartSizeSettle();
 		}
 	}
 
@@ -458,6 +461,41 @@ internal static class TaskbarOverlayManager
 			overlay.UpdateFreeZone(zone);
 			overlay.ApplyRect(rect);
 		}
+	}
+
+	private static void StartSizeSettle()
+	{
+		if (_dispatcherQueue is null) return;
+
+		_sizeSettleTimer?.Stop();
+		_sizeSettleLastWidth = int.MinValue;
+		_sizeSettleStableCount = 0;
+		_sizeSettleTicks = 0;
+
+		var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+
+		_sizeSettleTimer = timer;
+		timer.Tick += (_, _) =>
+		{
+			_sizeSettleTicks++;
+
+			int width = MeasureContentWidth();
+
+			RepositionAll(forceMeasureWidth: true);
+
+			if (width != _sizeSettleLastWidth)
+			{
+				_sizeSettleStableCount++;
+			}
+			else
+			{
+				_sizeSettleStableCount = 0;
+				_sizeSettleLastWidth = width;
+			}
+			if (_sizeSettleStableCount >= 3 || _sizeSettleTicks >= 30)
+				timer.Stop();
+		};
+		timer.Start();
 	}
 
 	private static void DisposeOverlays()
