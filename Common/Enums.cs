@@ -231,6 +231,7 @@ public enum OverlayLayout
 	BottomStripe,
 	AlbumTint,
 	TextOnly,
+	TextOnlyReversed,
 	ArcRing,
 	QueuePreview,
 	ArtistBadge

@@ -4,17 +4,17 @@ using Microsoft.UI.Xaml.Media;
 namespace Tunetastic.Overlay.Layouts;
 
 // ══════════════════════════════════════════════════════════════════════
-// TEXT ONLY
-// prev/play/next controls
+// TEXT ONLY REVERSED
 // Zero art or icons · track name · artist label
+// prev/play/next controls
 // ══════════════════════════════════════════════════════════════════════
-public class TextOnlyOverlay : OverlayBase
+public class TextOnlyReversedOverlay : OverlayBase
 {
 	private TextBlock? _titleText;
 	private TextBlock? _artistText;
 	private TextBlock? _toolTipText;
 
-	public TextOnlyOverlay(OverlayTheme theme)
+	public TextOnlyReversedOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
@@ -37,29 +37,13 @@ public class TextOnlyOverlay : OverlayBase
 			ColumnSpacing = 2,
 			ColumnDefinitions =
 			{
+				new ColumnDefinition { Width = new GridLength(100) }, // info
+				new ColumnDefinition { Width = GridLength.Auto },	  // divider
 				new ColumnDefinition { Width = GridLength.Auto },	  // prev
 				new ColumnDefinition { Width = GridLength.Auto },	  // play/pause
 				new ColumnDefinition { Width = GridLength.Auto },	  // next
-				new ColumnDefinition { Width = GridLength.Auto },	  // divider
-				new ColumnDefinition { Width = new GridLength(100) }, // info
 			},
 		};
-
-		var prevButton = MakePrevButton();
-		Grid.SetColumn(prevButton, 0);
-		inner.Children.Add(prevButton);
-
-		var playPauseButton = MakePlayPauseButton(16);
-		Grid.SetColumn(playPauseButton, 1);
-		inner.Children.Add(playPauseButton);
-
-		var nextButton = MakeNextButton();
-		Grid.SetColumn(nextButton, 2);
-		inner.Children.Add(nextButton);
-
-		var divider = MakeDivider();
-		Grid.SetColumn(divider, 3);
-		inner.Children.Add(divider);
 
 		// Track + artist stacked
 		var infoStack = new Grid
@@ -70,20 +54,38 @@ public class TextOnlyOverlay : OverlayBase
 				new RowDefinition { Height = GridLength.Auto },
 				new RowDefinition { Height = GridLength.Auto },
 			},
-			Margin = new Thickness(2, 0, 0, 0),
+			Margin = new Thickness(0, 0, 2, 0),
 		};
 		_titleText = MakeTitleText();
 		_titleText.FontSize = 12;
+		_titleText.HorizontalAlignment = HorizontalAlignment.Right;
 		Grid.SetRow(_titleText, 0);
 		infoStack.Children.Add(_titleText);
 
 		_artistText = MakeSubText();
 		_artistText.FontSize = 11;
+		_artistText.HorizontalAlignment = HorizontalAlignment.Right;
 		Grid.SetRow(_artistText, 1);
 		infoStack.Children.Add(_artistText);
 
-		Grid.SetColumn(infoStack, 4);
+		Grid.SetColumn(infoStack, 0);
 		inner.Children.Add(infoStack);
+
+		var divider = MakeDivider();
+		Grid.SetColumn(divider, 1);
+		inner.Children.Add(divider);
+
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 2);
+		inner.Children.Add(prevButton);
+
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 3);
+		inner.Children.Add(playPauseButton);
+
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 4);
+		inner.Children.Add(nextButton);
 
 		//pill.Child = inner;
 		root.Children.Add(inner);

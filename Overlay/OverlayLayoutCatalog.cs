@@ -81,6 +81,11 @@ public class OverlayLayoutCatalog
 			new() {
 				Layout      = OverlayLayout.TextOnly,
 				DisplayName = "Text Only",
+				Description = "Pure text: controls and track name, artists label. No art."
+			},
+			new() {
+				Layout      = OverlayLayout.TextOnlyReversed,
+				DisplayName = "Text Only Reversed",
 				Description = "Pure text: track name, artists label, and controls. No art."
 			},
 			//new() {

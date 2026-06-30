@@ -27,6 +27,7 @@ public static class OverlayFactory
 			OverlayLayout.BottomStripe => new BottomStripeOverlay(theme),
 			OverlayLayout.AlbumTint => new AlbumTintOverlay(theme),
 			OverlayLayout.TextOnly => new TextOnlyOverlay(theme),
+			OverlayLayout.TextOnlyReversed => new TextOnlyReversedOverlay(theme),
 			OverlayLayout.ArcRing => new ArcRingOverlay(theme),
 			OverlayLayout.QueuePreview => new QueuePreviewOverlay(theme),
 			OverlayLayout.ArtistBadge => new ArtistBadgeOverlay(theme),
