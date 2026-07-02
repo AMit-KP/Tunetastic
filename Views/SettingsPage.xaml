@@ -379,7 +379,7 @@
 					<dev:SettingsCard Description="The design of the taskbar overlay controls. If you have any control overlay design/style in mind, please let me know by creating GitHub Issue under About Section."
 					                  Header="Taskbar Overlay Design Catalog">
 						<ComboBox x:Name="TaskBarOverlayDesign"
-						          Width="180"
+						          Width="200"
 						          Height="{Binding ElementName=TaskBarOverlayTheme, Path=ActualHeight}"
 						          ItemsSource="{Binding All, Source={StaticResource LayoutProvider}}">
 							<ComboBox.ItemTemplate>
@@ -397,7 +397,7 @@
 										           Style="{ThemeResource CaptionTextBlockStyle}"
 										           Text="{x:Bind Description}"
 										           TextTrimming="CharacterEllipsis"
-										           TextWrapping="NoWrap"
+										           TextWrapping="Wrap"
 										           Visibility="{x:Bind Description}" />
 
 									</StackPanel>

@@ -814,6 +814,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			case FullArtBarOverlay:
 			case CenteredPillOverlay:
 			case TopAccentStripeOverlay:
+			case BottomAccentStripeOverlay:
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
 

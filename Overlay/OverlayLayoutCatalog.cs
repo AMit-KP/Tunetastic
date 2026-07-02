@@ -68,11 +68,11 @@ public class OverlayLayoutCatalog
 				DisplayName = "Top Accent Stripe",
 				Description = "Thin progress accent stripe runs along the top edge of the overlay."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.BottomStripe,
-			//	DisplayName = "Bottom Stripe",
-			//	Description = "Thin progress stripe runs along the bottom edge, flush with the desktop."
-			//},
+			new() {
+				Layout      = OverlayLayout.BottomAccentStripe,
+				DisplayName = "Bottom Accent Stripe",
+				Description = "Thin progress accent stripe runs along the bottom edge of the overlay."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.AlbumTint,
 			//	DisplayName = "Album Tint",

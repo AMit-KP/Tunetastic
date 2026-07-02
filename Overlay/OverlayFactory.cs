@@ -24,7 +24,7 @@ public static class OverlayFactory
 			OverlayLayout.StackedInfo => new StackedInfoOverlay(theme),
 			OverlayLayout.CenteredPill => new CenteredPillOverlay(theme),
 			OverlayLayout.TopAccentStripe => new TopAccentStripeOverlay(theme),
-			OverlayLayout.BottomStripe => new BottomStripeOverlay(theme),
+			OverlayLayout.BottomAccentStripe => new BottomAccentStripeOverlay(theme),
 			OverlayLayout.AlbumTint => new AlbumTintOverlay(theme),
 			OverlayLayout.TextOnly => new TextOnlyOverlay(theme),
 			OverlayLayout.TextOnlyReversed => new TextOnlyReversedOverlay(theme),
