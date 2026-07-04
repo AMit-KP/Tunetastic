@@ -23,11 +23,11 @@ public class OverlayLayoutCatalog
 			//	DisplayName = "Waveform Edge",
 			//	Description = "Full-height album art on the left with animated waveform bars and controls."
 			//},
-			//new() {
-			//	Layout      = OverlayLayout.MarqueeTicker,
-			//	DisplayName = "Marquee Ticker",
-			//	Description = "Scrolling track name ticker with a micro progress bar, no album art."
-			//},
+			new() {
+				Layout      = OverlayLayout.MarqueeTicker,
+				DisplayName = "Marquee Ticker",
+				Description = "Scrolling track details ticker with a micro progress bar, no album art."
+			},
 			new() {
 				Layout      = OverlayLayout.RightDock,
 				DisplayName = "Right Dock",

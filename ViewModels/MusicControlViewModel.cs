@@ -820,6 +820,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 			case TextOnlyOverlay:
 			case TextOnlyReversedOverlay:
+			case MarqueeTickerOverlay:
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album);
 				break;
 		}
