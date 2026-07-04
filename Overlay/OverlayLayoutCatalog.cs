@@ -88,11 +88,11 @@ public class OverlayLayoutCatalog
 				DisplayName = "Text Only Reversed",
 				Description = "Pure text: track name, artists label, and controls. No art."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.ArcRing,
-			//	DisplayName = "Arc Ring",
-			//	Description = "Circular disc art with an SVG-style arc progress ring. No separate bar needed."
-			//},
+			new() {
+				Layout      = OverlayLayout.ArcRing,
+				DisplayName = "Arc Ring",
+				Description = "Circular disc art with an arc progress ring."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.QueuePreview,
 			//	DisplayName = "Queue Preview",
