@@ -48,11 +48,11 @@ public class OverlayLayoutCatalog
 			//	DisplayName = "Accent Edge",
 			//	Description = "Coloured 3px vertical bar on the left edge signals the active accent colour."
 			//},
-			//new() {
-			//	Layout      = OverlayLayout.IconStrip,
-			//	DisplayName = "Icon Strip",
-			//	Description = "Zero text — album art thumbnail plus five icon buttons including like and volume."
-			//},
+			new() {
+				Layout      = OverlayLayout.IconStrip,
+				DisplayName = "Icon Strip",
+				Description = "Zero text — album art thumbnail plus control icon buttons."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.StackedInfo,
 			//	DisplayName = "Stacked Info",

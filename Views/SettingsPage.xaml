@@ -371,7 +371,7 @@
 				              Toggled="MinimizeToTray_OnToggled" />
 			</dev:SettingsCard>
 
-			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls."
+			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information."
 			                      Header="Taskbar Overlay Controls">
 				<ToggleSwitch x:Name="TaskBarOverlay"
 				              Toggled="TaskBarOverlay_Toggled" />
