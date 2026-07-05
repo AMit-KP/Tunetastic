@@ -1019,6 +1019,7 @@ public class DatabaseHelper
 				conn.Execute(@"INSERT INTO QueuedPlayingList (Path, Position) VALUES (?, ?)", songPath, position++);
 			}
 		});
+		MusicControl._instance?.ViewModel.CurrentSongInfoForUpdateOverlay();
 	}
 
 	/// <summary>

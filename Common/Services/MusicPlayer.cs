@@ -649,6 +649,95 @@ public class MusicPlayer
 		}
 	}
 
+	public async Task<List<Song>?> GetUpcomingSongs(int count = 2)
+	{
+		if (GetMusicData.IsScanning) return null;
+
+		try
+		{
+			async Task<List<string>?> BuildPathsAsync()
+			{
+				var paths = new List<string>();
+
+				var queuedList = await DatabaseHelper.Instance.GetQueuedPlayingList();
+				if (queuedList?.Count > 0)
+				{
+					foreach (var item in queuedList)
+					{
+						if (paths.Count >= count) break;
+						paths.Add(item.Path);
+					}
+				}
+
+				if (paths.Count < count && OriginalPlaylist?.Count > 0 && ActualPlaylist?.Count > 0)
+				{
+					int simulatedIndex = currentIndex;
+					bool simulatedAlreadyPlayed = alreadyPlayed;
+
+					while (paths.Count < count)
+					{
+						if (simulatedIndex < OriginalPlaylist.Count - 1)
+						{
+							simulatedIndex++;
+						}
+						else
+						{
+							switch (RepeatStatus)
+							{
+								case RepeatMode.One:
+									if (!simulatedAlreadyPlayed)
+									{
+										simulatedIndex = 0;
+										simulatedAlreadyPlayed = true;
+									}
+									else
+									{
+										return paths.Count > 0 ? paths : null;
+									}
+									break;
+
+								case RepeatMode.All:
+									simulatedIndex = 0;
+									break;
+
+								case RepeatMode.None:
+								default:
+									return paths.Count > 0 ? paths : null;
+							}
+						}
+
+						if (simulatedIndex >= 0 && simulatedIndex < ActualPlaylist.Count)
+						{
+							paths.Add(ActualPlaylist[simulatedIndex]);
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+
+				return paths.Count > 0 ? paths : null;
+			}
+
+			var paths = await BuildPathsAsync();
+			if (paths == null || paths.Count == 0) return null;
+
+			var songs = new List<Song>();
+			foreach (var songPath in paths)
+			{
+				var song = await DatabaseHelper.Instance.GetSongByPath(songPath!);
+				if (song != null) songs.Add(song);
+			}
+
+			return songs.Count > 0 ? songs : null;
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
 	// ─────────────────────────────────────────────────────────
 	//  Playlist helpers
 	// ─────────────────────────────────────────────────────────

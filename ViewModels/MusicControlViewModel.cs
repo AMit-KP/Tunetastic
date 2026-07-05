@@ -511,6 +511,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
 		ToolTipTextShuffleButton = IsShuffleToggled ? "Shuffle On" : "Shuffle Off";
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShuffleStatus)] = IsShuffleToggled;
+
+		if (_overlayGrid is not null && _overlayGrid is QueuePreviewOverlay)
+			CurrentSongInfoForUpdateOverlay();
+
 	}
 
 	/// <summary>
@@ -555,6 +559,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 				break;
 		}
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RepeatStatus)] = _musicPlayer.RepeatStatus.ToString();
+
+		if (_overlayGrid is not null && _overlayGrid is QueuePreviewOverlay)
+			CurrentSongInfoForUpdateOverlay();
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -771,7 +778,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		}
 	}
 
-	private async void GetCurrentSongInfoForUpdate()
+	public async void CurrentSongInfoForUpdateOverlay()
 	{
 		var song = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
 		if (string.IsNullOrEmpty(song)) return;
@@ -786,25 +793,14 @@ public partial class MusicControlViewModel : ObservableRecipient
 		if (_overlayGrid is not null && _overlayGrid.RootGrid is not null)
 			TaskbarOverlayManager.SetContent(_overlayGrid.RootGrid);
 
-		GetCurrentSongInfoForUpdate();
+		CurrentSongInfoForUpdateOverlay();
 	}
 
 	private async void UpdateInfoOnTaskbarOverlay(Song track)
 	{
 		if (_overlayGrid is null) return;
 
-		BitmapImage? albumArt = null;
-		try
-		{
-			StorageFile file = await StorageFile.GetFileFromPathAsync(track.Cover);
-			using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
-			albumArt = new BitmapImage();
-			await albumArt.SetSourceAsync(stream);
-		}
-		catch (Exception)
-		{
-			albumArt = null;
-		}
+		var albumArt = await GetAlbumArt(track);
 
 		switch (_overlayGrid)
 		{
@@ -825,7 +821,41 @@ public partial class MusicControlViewModel : ObservableRecipient
 			case MarqueeTickerOverlay:
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album);
 				break;
+
+			case QueuePreviewOverlay qpo:
+				var nextSongs = await _musicPlayer.GetUpcomingSongs();
+
+				BitmapImage? nextSongArt1 = null, nextSongArt2 = null;
+
+				if (nextSongs is not null && nextSongs.Count > 0)
+				{
+					nextSongArt1 = await GetAlbumArt(nextSongs[0]);
+
+					if (nextSongs.Count > 1)
+						nextSongArt2 = await GetAlbumArt(nextSongs[1]);
+				}
+
+				qpo.UpdateTrack(track.Title, track.Artists, track.Album, albumArt, nextSongArt1, nextSongArt2);
+				break;
 		}
 		_overlayGrid.UpdateProgress(ProgressBarValue / DurationOfSong);
+
+		static async Task<BitmapImage?> GetAlbumArt(Song track)
+		{
+			BitmapImage? albumArt = null;
+			try
+			{
+				StorageFile file = await StorageFile.GetFileFromPathAsync(track.Cover);
+				using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
+				albumArt = new BitmapImage();
+				await albumArt.SetSourceAsync(stream);
+			}
+			catch (Exception)
+			{
+				albumArt = null;
+			}
+
+			return albumArt;
+		}
 	}
 }

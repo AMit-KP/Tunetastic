@@ -93,11 +93,11 @@ public class OverlayLayoutCatalog
 				DisplayName = "Arc Ring",
 				Description = "Circular disc art with an arc progress ring."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.QueuePreview,
-			//	DisplayName = "Queue Preview",
-			//	Description = "Current plus two upcoming album arts in a diminishing stack with controls."
-			//},
+			new() {
+				Layout      = OverlayLayout.QueuePreview,
+				DisplayName = "Queue Preview",
+				Description = "Current plus two upcoming album arts in a diminishing stack with controls."
+			},
 			//new() {
 			//	Layout      = OverlayLayout.ArtistBadge,
 			//	DisplayName = "Artist Badge",
