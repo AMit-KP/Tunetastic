@@ -381,7 +381,8 @@
 						<ComboBox x:Name="TaskBarOverlayDesign"
 						          Width="200"
 						          Height="{Binding ElementName=TaskBarOverlayTheme, Path=ActualHeight}"
-						          ItemsSource="{Binding All, Source={StaticResource LayoutProvider}}">
+						          ItemsSource="{Binding All, Source={StaticResource LayoutProvider}}"
+						          SelectionChanged="TaskBarOverlayDesign_SelectionChanged">
 							<ComboBox.ItemTemplate>
 								<DataTemplate x:DataType="common:OverlayLayoutInfo">
 									<StackPanel>

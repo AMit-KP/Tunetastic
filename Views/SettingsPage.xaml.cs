@@ -86,7 +86,7 @@ public sealed partial class SettingsPage : Page
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
-		TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
+		//TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
 
@@ -1209,6 +1209,8 @@ public sealed partial class SettingsPage : Page
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)] = layoutInfo.DisplayName;
 			TaskBarOverlayTheme.SelectedIndex = -1;
 			TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == BestOverlayThemeBasedOnLayout(layoutInfo.Layout));
+
+			TaskBarOverlayTheme.IsEnabled = !(layoutInfo.Layout == OverlayLayout.AlbumTint);
 		}
 	}
 

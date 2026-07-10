@@ -12,14 +12,14 @@ public static class ColorHelper
 		return DeltaE2000(c1, c2) < deltaEThreshold;
 	}
 
-	public static OverlayTheme GetForegroundColor(Color background)
+	public static OverlayTheme IsItDarkOrLight(Color background)
 	{
 		double bgLuminance = RelativeLuminance(background);
 
 		double contrastWithWhite = ContrastRatio(bgLuminance, 1.0);
 		double contrastWithBlack = ContrastRatio(bgLuminance, 0.0);
 
-		return contrastWithWhite >= contrastWithBlack ? OverlayTheme.Light : OverlayTheme.Dark;
+		return contrastWithWhite >= contrastWithBlack ? OverlayTheme.Dark : OverlayTheme.Light;
 	}
 
 	// WCAG contrast ratio formula: (L1 + 0.05) / (L2 + 0.05), L1 = lighter luminance

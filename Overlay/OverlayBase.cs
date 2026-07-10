@@ -118,11 +118,11 @@ public abstract class OverlayBase
 	}
 
 	/// <summary>Creates the play/pause button and stores it in PlayPauseButton.</summary>
-	protected Button MakePlayPauseButton(double size = 16)
+	protected Button MakePlayPauseButton(double size = 16, Color? foreground = null)
 	{
-		var fg = Theme == OverlayTheme.Dark
+		var fg = foreground ?? (Theme == OverlayTheme.Dark
 			? Colors.White
-			: Color.FromArgb(255, 15, 15, 20);
+			: Color.FromArgb(255, 15, 15, 20));
 
 		PlayPauseButton = MakeIconButton("\uE768", size, fg); // Play glyph default
 		ToolTipService.SetToolTip(PlayPauseButton, "Play");
@@ -130,17 +130,17 @@ public abstract class OverlayBase
 	}
 
 	/// <summary>Creates the previous button and stores it in PreviousButton.</summary>
-	protected Button MakePrevButton(double size = 13)
+	protected Button MakePrevButton(double size = 13, Color? foreground = null)
 	{
-		PreviousButton = MakeIconButton("\uE892", size); // Previous track
+		PreviousButton = MakeIconButton("\uE892", size, foreground); // Previous track
 		ToolTipService.SetToolTip(PreviousButton, "Previous song/track");
 		return PreviousButton;
 	}
 
 	/// <summary>Creates the next button and stores it in NextButton.</summary>
-	protected Button MakeNextButton(double size = 13)
+	protected Button MakeNextButton(double size = 13, Color? foreground = null)
 	{
-		NextButton = MakeIconButton("\uE893", size); // Next track
+		NextButton = MakeIconButton("\uE893", size, foreground); // Next track
 		ToolTipService.SetToolTip(NextButton, "Next song/track");
 		return NextButton;
 	}

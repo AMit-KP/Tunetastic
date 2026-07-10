@@ -838,8 +838,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 				qpo.UpdateTrack(track.Title, track.Artists, track.Album, albumArt, nextSongArt1, nextSongArt2);
 				break;
 
-			case AccentAncientScrollOverlay aeo:
-				aeo.UpdateTrack(track.Title, track.Artists, track.Album, track.Cover);
+			case AccentAncientScrollOverlay:
+			case AlbumTintOverlay:
+				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, track.Cover);
 				break;
 		}
 		_overlayGrid.UpdateProgress(ProgressBarValue / DurationOfSong);
