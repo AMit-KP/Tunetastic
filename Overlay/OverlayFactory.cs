@@ -19,7 +19,7 @@ public static class OverlayFactory
 			OverlayLayout.RightDock => new RightDockOverlay(theme),
 			OverlayLayout.FullArtBar => new FullArtBarOverlay(theme),
 			OverlayLayout.WaveformOnly => new WaveformOnlyOverlay(theme),
-			OverlayLayout.AccentEdge => new AccentEdgeOverlay(theme),
+			OverlayLayout.AccentAncientScroll => new AccentAncientScrollOverlay(theme),
 			OverlayLayout.IconStrip => new IconStripOverlay(theme),
 			OverlayLayout.StackedInfo => new StackedInfoOverlay(theme),
 			OverlayLayout.CenteredPill => new CenteredPillOverlay(theme),

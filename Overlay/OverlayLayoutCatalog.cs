@@ -43,11 +43,11 @@ public class OverlayLayoutCatalog
 			//	DisplayName = "Waveform Only",
 			//	Description = "No text at all — animated waveform bars as progress plus icon controls."
 			//},
-			//new() {
-			//	Layout      = OverlayLayout.AccentEdge,
-			//	DisplayName = "Accent Edge",
-			//	Description = "Coloured 3px vertical bar on the left edge signals the active accent colour."
-			//},
+			new() {
+				Layout      = OverlayLayout.AccentAncientScroll,
+				DisplayName = "Accent Ancient Scroll",
+				Description = "Ancient scroll with accent-coloured rods, controls and track info."
+			},
 			new() {
 				Layout      = OverlayLayout.IconStrip,
 				DisplayName = "Icon Strip",

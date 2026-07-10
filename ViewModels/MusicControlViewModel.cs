@@ -800,7 +800,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		if (_overlayGrid is null) return;
 
-		var albumArt = await GetAlbumArt(track);
+		var albumArt = await GetAlbumArt(track.Cover);
 
 		switch (_overlayGrid)
 		{
@@ -829,23 +829,27 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 				if (nextSongs is not null && nextSongs.Count > 0)
 				{
-					nextSongArt1 = await GetAlbumArt(nextSongs[0]);
+					nextSongArt1 = await GetAlbumArt(nextSongs[0].Cover);
 
 					if (nextSongs.Count > 1)
-						nextSongArt2 = await GetAlbumArt(nextSongs[1]);
+						nextSongArt2 = await GetAlbumArt(nextSongs[1].Cover);
 				}
 
 				qpo.UpdateTrack(track.Title, track.Artists, track.Album, albumArt, nextSongArt1, nextSongArt2);
 				break;
+
+			case AccentAncientScrollOverlay aeo:
+				aeo.UpdateTrack(track.Title, track.Artists, track.Album, track.Cover);
+				break;
 		}
 		_overlayGrid.UpdateProgress(ProgressBarValue / DurationOfSong);
 
-		static async Task<BitmapImage?> GetAlbumArt(Song track)
+		static async Task<BitmapImage?> GetAlbumArt(string coverArt)
 		{
 			BitmapImage? albumArt = null;
 			try
 			{
-				StorageFile file = await StorageFile.GetFileFromPathAsync(track.Cover);
+				StorageFile file = await StorageFile.GetFileFromPathAsync(coverArt);
 				using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
 				albumArt = new BitmapImage();
 				await albumArt.SetSourceAsync(stream);

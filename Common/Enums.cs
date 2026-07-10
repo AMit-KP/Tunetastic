@@ -223,7 +223,7 @@ public enum OverlayLayout
 	RightDock,
 	FullArtBar,
 	WaveformOnly,
-	AccentEdge,
+	AccentAncientScroll,
 	IconStrip,
 	StackedInfo,
 	CenteredPill,
