@@ -51,10 +51,6 @@ public class MarqueeTickerOverlay : OverlayBase
 			Width = 120,
 			VerticalAlignment = VerticalAlignment.Center,
 			Margin = new Thickness(4, 0, 4, 0),
-			//Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
-			//{
-			//	Rect = new Windows.Foundation.Rect(0, 0, 120, 16)
-			//},
 		};
 
 		var marquee = new AutoScrollView

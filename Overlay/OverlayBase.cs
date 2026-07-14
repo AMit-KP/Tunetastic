@@ -86,9 +86,6 @@ public abstract class OverlayBase
 		? Color.FromArgb(30, 255, 255, 255)
 		: Color.FromArgb(40, 0, 0, 0);
 
-	/// <summary>Taskbar height constant — 48px.</summary>
-	protected const double TaskbarHeight = 48d;
-
 	// ── Factory helpers ───────────────────────────────────────────────
 
 	/// <summary>Creates a standard icon button with a Segoe Fluent Icon glyph.</summary>

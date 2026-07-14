@@ -18,11 +18,6 @@ public class OverlayLayoutCatalog
 				DisplayName = "Hover Reveal",
 				Description = "Shows only track info at rest; controls fade in on hover."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.WaveformEdge,
-			//	DisplayName = "Waveform Edge",
-			//	Description = "Full-height album art on the left with animated waveform bars and controls."
-			//},
 			new() {
 				Layout      = OverlayLayout.MarqueeTicker,
 				DisplayName = "Marquee Ticker",
@@ -38,11 +33,6 @@ public class OverlayLayoutCatalog
 				DisplayName = "Full Art Bar",
 				Description = "Album art bleeds full taskbar height; title, artist and progress bar beside it."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.WaveformOnly,
-			//	DisplayName = "Waveform Only",
-			//	Description = "No text at all — animated waveform bars as progress plus icon controls."
-			//},
 			new() {
 				Layout      = OverlayLayout.AccentAncientScroll,
 				DisplayName = "Accent Ancient Scroll",
@@ -53,11 +43,6 @@ public class OverlayLayoutCatalog
 				DisplayName = "Icon Strip",
 				Description = "Zero text — album art thumbnail plus control icon buttons."
 			},
-			//new() {
-			//	Layout      = OverlayLayout.StackedInfo,
-			//	DisplayName = "Stacked Info",
-			//	Description = "Two-row track block: title, artist and timestamp with a thin inline progress bar."
-			//},
 			new() {
 				Layout      = OverlayLayout.CenteredPill,
 				DisplayName = "Centered Pill",
@@ -97,11 +82,6 @@ public class OverlayLayoutCatalog
 				Layout      = OverlayLayout.QueuePreview,
 				DisplayName = "Queue Preview",
 				Description = "Current plus two upcoming album arts in a diminishing stack with controls."
-			},
-			//new() {
-			//	Layout      = OverlayLayout.ArtistBadge,
-			//	DisplayName = "Artist Badge",
-			//	Description = "Artist name rendered as a coloured badge tag below the track title."
-			//},
+			}
 		};
 }

@@ -37,7 +37,6 @@ public class FullArtBarOverlay : OverlayBase
 		var outer = new Grid
 		{
 			Height = 48,
-			//Width = 250,
 			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center
 		};

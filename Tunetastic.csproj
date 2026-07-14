@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.51.291.3288</AssemblyVersion>
-    <FileVersion>1.51.291.3288</FileVersion>
+    <AssemblyVersion>1.51.302.3299</AssemblyVersion>
+    <FileVersion>1.51.302.3299</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -208,7 +208,6 @@
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
     <PackageReference Include="NAudio.Wasapi" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="NotifyIconEx" Version="1.1.2" />
     <PackageReference Include="nucs.JsonSettings" Version="2.0.2" />
     <PackageReference Include="nucs.JsonSettings.AutosaveGenerator" Version="2.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
