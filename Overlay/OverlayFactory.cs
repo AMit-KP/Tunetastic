@@ -27,6 +27,7 @@ public static class OverlayFactory
 			OverlayLayout.TextOnlyReversed => new TextOnlyReversedOverlay(theme),
 			OverlayLayout.ArcRing => new ArcRingOverlay(theme),
 			OverlayLayout.QueuePreview => new QueuePreviewOverlay(theme),
+			OverlayLayout.TopAlbumAccentStripe => new TopAlbumAccentStripeOverlay(theme),
 
 			_ => throw new ArgumentOutOfRangeException(nameof(layout),
 					 $"Unknown layout: {layout}")

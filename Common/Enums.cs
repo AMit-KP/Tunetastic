@@ -234,5 +234,6 @@ public enum OverlayLayout
 	TextOnlyReversed,
 	ArcRing,
 	QueuePreview,
-	ArtistBadge
+	ArtistBadge,
+	TopAlbumAccentStripe
 }

@@ -82,6 +82,11 @@ public class OverlayLayoutCatalog
 				Layout      = OverlayLayout.QueuePreview,
 				DisplayName = "Queue Preview",
 				Description = "Current plus two upcoming album arts in a diminishing stack with controls."
+			},
+			new() {
+				Layout      = OverlayLayout.TopAlbumAccentStripe,
+				DisplayName = "Top Album Accent Stripe",
+				Description = "Thin progress album accent stripe runs along the top edge of the overlay."
 			}
 		};
 }
