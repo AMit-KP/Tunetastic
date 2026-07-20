@@ -28,6 +28,7 @@ public static class OverlayFactory
 			OverlayLayout.ArcRing => new ArcRingOverlay(theme),
 			OverlayLayout.QueuePreview => new QueuePreviewOverlay(theme),
 			OverlayLayout.TopAlbumAccentStripe => new TopAlbumAccentStripeOverlay(theme),
+			OverlayLayout.AlbumTintProgress => new AlbumTintProgressOverlay(theme),
 
 			_ => throw new ArgumentOutOfRangeException(nameof(layout),
 					 $"Unknown layout: {layout}")

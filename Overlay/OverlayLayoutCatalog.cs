@@ -87,6 +87,11 @@ public class OverlayLayoutCatalog
 				Layout      = OverlayLayout.TopAlbumAccentStripe,
 				DisplayName = "Top Album Accent Stripe",
 				Description = "Thin progress album accent stripe runs along the top edge of the overlay."
-			}
+			},
+			new() {
+				Layout      = OverlayLayout.AlbumTintProgress,
+				DisplayName = "Album Tint Progress",
+				Description = "Background tint adapts to the album's colours which acts as a progress bar."
+			},
 		};
 }

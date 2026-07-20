@@ -841,6 +841,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			case AccentAncientScrollOverlay:
 			case AlbumTintOverlay:
 			case TopAlbumAccentStripeOverlay:
+			case AlbumTintProgressOverlay:
 				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, track.Cover);
 				break;
 		}

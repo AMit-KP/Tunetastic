@@ -235,5 +235,6 @@ public enum OverlayLayout
 	ArcRing,
 	QueuePreview,
 	ArtistBadge,
-	TopAlbumAccentStripe
+	TopAlbumAccentStripe,
+	AlbumTintProgress
 }
