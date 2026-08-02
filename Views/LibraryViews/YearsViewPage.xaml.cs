@@ -496,7 +496,7 @@ public sealed partial class YearsViewPage : Page
 						await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
 					}
 				}
-				YearsGroup.Remove(yearModel);
+				YearsGroup.Remove(yearModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
 				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Year {yearModel?.Year} deleted.");
 			}
@@ -703,7 +703,7 @@ public sealed partial class YearsViewPage : Page
 	{
 		base.OnNavigatedTo(e);
 
-		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string && e.Parameter == "Years");
+		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string param && param == "Years");
 	}
 
 	/// <summary>

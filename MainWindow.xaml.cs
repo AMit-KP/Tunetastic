@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
+using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Graphics;
 using WinUIEx;
 
@@ -34,16 +35,22 @@ public sealed partial class MainWindow : WindowEx
 
 		AddTrayIcon();
 		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
+		InitializeTaskbarOverlay();
+	}
+
+	private static void InitializeTaskbarOverlay()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		TaskbarOverlayManager.Initialize();
+		TaskbarOverlayManager.SetSide((localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL") == "RightTBOL" ? OverlaySide.Right : OverlaySide.Left);
+		TaskbarOverlayManager.SetVisible(bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true"));
 	}
 
 	public void AddTrayIcon()
 	{
 		uint iconId = 7823;
-		if (App.TrayIcon is null)
-		{
-			App.TrayIcon = new SystemTrayIcon(iconId, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
-
-		}
+		App.TrayIcon ??= new SystemTrayIcon(iconId, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
 		App.TrayIcon.RightClick += OnTrayIconRightClick;
 		App.TrayIcon.IsVisible = true;
 	}
@@ -67,7 +74,7 @@ public sealed partial class MainWindow : WindowEx
 		flyout.Items.Add(new MenuFlyoutItem() { Text = "Open" });
 		flyout.Items.Add(new MenuFlyoutItem() { Text = "Exit" });
 
-		((MenuFlyoutItem)flyout.Items[2]).Click += (s, e) => RestoreFromTray();
+		((MenuFlyoutItem)flyout.Items[2]).Click += (s, e) => RestoreFromTrayOrTaskbar();
 		((MenuFlyoutItem)flyout.Items[3]).Click += (s, e) => ExitApp();
 
 		args.Flyout = flyout;
@@ -131,7 +138,7 @@ public sealed partial class MainWindow : WindowEx
 	/// <remarks>
 	/// This method ensures that the application window is made visible and activated when it's restored from the system tray. It is typically invoked through the system tray context menu to allow the user to reopen the main window after minimizing it to the tray.
 	/// </remarks>
-	public void RestoreFromTray()
+	public void RestoreFromTrayOrTaskbar()
 	{
 		this.Show();
 		this.Activate();
@@ -153,6 +160,7 @@ public sealed partial class MainWindow : WindowEx
 
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		App.Current.AudioService.Dispose();
+		TaskbarOverlayManager.Shutdown();
 		this.Close();
 	}
 

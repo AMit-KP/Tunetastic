@@ -594,7 +594,7 @@ public sealed partial class RecentlyAdded : Page
 	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
+		if (songData is not null) MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>
@@ -884,7 +884,7 @@ public sealed partial class RecentlyAdded : Page
 		"“The freshness expired before anything arrived.”\nCheck your library or the page starts playing ambient regret.",
 	};
 
-	private DispatcherTimer _timer;
+	private DispatcherTimer _timer = null!;
 
 	private void StartLiveTimer()
 	{

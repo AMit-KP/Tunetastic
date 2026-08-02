@@ -126,7 +126,6 @@ public class MusicPlayer
 	private List<string>? ActualPlaylist;
 	private bool SongQueue = false;
 	private int currentIndex = 0;
-	private bool alreadyPlayed = false;
 
 	// ─────────────────────────────────────────────────────────
 	//  Construction
@@ -270,7 +269,7 @@ public class MusicPlayer
 
 			case var artist when artist?.StartsWith("ArtistGroup>") == true:
 				list = (await DatabaseHelper.Instance.GetSongsByArtist(
-					artistName: artist?["ArtistGroup>".Length..] == "Unknown" ? "Unknown Artist" : artist?["ArtistGroup>".Length..],
+					artistName: artist!["ArtistGroup>".Length..] == "Unknown" ? "Unknown Artist" : artist!["ArtistGroup>".Length..],
 					orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
 					ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending"))
 					.Select(s => s.Path).ToList();
@@ -380,7 +379,7 @@ public class MusicPlayer
 			if (string.IsNullOrWhiteSpace(songPath)) return;
 
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-			var position = MusicControl._instance.ViewModel.ProgressBarValue;
+			var position = MusicControl._instance?.ViewModel?.ProgressBarValue ?? 0;
 
 			var playerType = await DatabaseHelper.Instance.GetPlayerTypeByPath(songPath);
 			var requiredBackend = playerType == "Windows" ? BackendType.Windows : BackendType.Flyleaf;
@@ -460,7 +459,7 @@ public class MusicPlayer
 		catch (Exception)
 		{
 			GlobalNotification.Error($"Could not load song:\n{songPath}");
-			Next(autoChange: play);
+			Next();
 		}
 	}
 
@@ -566,7 +565,7 @@ public class MusicPlayer
 
 				if (!restartOnPrevious || TimeSpan.FromTicks(CurTimeTicks).TotalSeconds < 5)
 				{
-					currentIndex = !SongQueue ? currentIndex == 0 ? OriginalPlaylist.Count - 1 : currentIndex - 1 : currentIndex;
+					currentIndex = !SongQueue ? currentIndex == 0 ? RepeatStatus == RepeatMode.None ? 0 : OriginalPlaylist!.Count - 1 : currentIndex - 1 : currentIndex;
 					songToPlay = ActualPlaylist[currentIndex];
 				}
 				else
@@ -616,7 +615,11 @@ public class MusicPlayer
 
 			if (OriginalPlaylist?.Count > 0)
 			{
-				if (currentIndex < OriginalPlaylist.Count - 1)
+				if (autoChange && RepeatStatus == RepeatMode.One)
+				{
+					// Song ended naturally + Repeat One -> replay the same song, don't advance.
+				}
+				else if (currentIndex < OriginalPlaylist.Count - 1)
 				{
 					currentIndex++;
 				}
@@ -625,11 +628,9 @@ public class MusicPlayer
 					switch (RepeatStatus)
 					{
 						case RepeatMode.One:
-							if (!alreadyPlayed) { currentIndex = 0; alreadyPlayed = true; }
-							else { if (autoChange) Pause(); return; }
-							break;
 						case RepeatMode.All:
-							LoadPlaylist(OriginalPlaylist, ActualPlaylist[0], false);
+							if (OriginalPlaylist != null && ActualPlaylist != null && ActualPlaylist.Count > 0)
+								LoadPlaylist(OriginalPlaylist, ActualPlaylist[0], false);
 							currentIndex = 0;
 							break;
 						case RepeatMode.None:
@@ -637,13 +638,91 @@ public class MusicPlayer
 							return;
 					}
 				}
-				await LoadSong(ActualPlaylist[currentIndex], isPlaying, fadeType);
+				if (ActualPlaylist != null)
+					await LoadSong(ActualPlaylist[currentIndex], isPlaying, fadeType);
 			}
 		}
 		catch (Exception)
 		{
 			GlobalNotification.Error("Could not load next song.");
 			Next(autoChange);
+		}
+	}
+
+	public async Task<List<Song>?> GetUpcomingSongs(int count = 2)
+	{
+		if (GetMusicData.IsScanning) return null;
+
+		try
+		{
+			async Task<List<string>?> BuildPathsAsync()
+			{
+				var paths = new List<string>();
+
+				var queuedList = await DatabaseHelper.Instance.GetQueuedPlayingList();
+				if (queuedList?.Count > 0)
+				{
+					foreach (var item in queuedList)
+					{
+						if (paths.Count >= count) break;
+						paths.Add(item.Path);
+					}
+				}
+
+				if (paths.Count < count && OriginalPlaylist?.Count > 0 && ActualPlaylist?.Count > 0)
+				{
+					int simulatedIndex = currentIndex;
+
+					while (paths.Count < count)
+					{
+						if (simulatedIndex < OriginalPlaylist.Count - 1)
+						{
+							simulatedIndex++;
+						}
+						else
+						{
+							switch (RepeatStatus)
+							{
+								case RepeatMode.All:
+								case RepeatMode.One:
+									simulatedIndex = 0;
+									break;
+
+								case RepeatMode.None:
+								default:
+									return paths.Count > 0 ? paths : null;
+							}
+						}
+
+						if (simulatedIndex >= 0 && simulatedIndex < ActualPlaylist.Count)
+						{
+							paths.Add(ActualPlaylist[simulatedIndex]);
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+
+				return paths.Count > 0 ? paths : null;
+			}
+
+			var paths = await BuildPathsAsync();
+			if (paths == null || paths.Count == 0) return null;
+
+			var songs = new List<Song>();
+			foreach (var songPath in paths)
+			{
+				var song = await DatabaseHelper.Instance.GetSongByPath(songPath!);
+				if (song != null) songs.Add(song);
+			}
+
+			return songs.Count > 0 ? songs : null;
+		}
+		catch (Exception)
+		{
+			return null;
 		}
 	}
 
@@ -659,7 +738,7 @@ public class MusicPlayer
 	/// </param>
 	private void ReorderPlaylist(string startingSong)
 	{
-		var selectedIndex = ActualPlaylist.IndexOf(startingSong);
+		var selectedIndex = ActualPlaylist?.IndexOf(startingSong) ?? -1;
 		if (selectedIndex > 0 && selectedIndex < ActualPlaylist?.Count)
 		{
 			var reordered = ActualPlaylist.Skip(selectedIndex)
@@ -681,7 +760,7 @@ public class MusicPlayer
 	/// </param>
 	private void ShuffleSongs(string? startingSong = null)
 	{
-		currentIndex = startingSong != null ? OriginalPlaylist.IndexOf(startingSong) : 0;
+		currentIndex = startingSong != null ? OriginalPlaylist?.IndexOf(startingSong) ?? 0 : 0;
 
 		if (ShuffleStatus == ShuffleMode.On && OriginalPlaylist?.Count > 2)
 		{
@@ -705,7 +784,7 @@ public class MusicPlayer
 	public async Task SaveOnExitActionsAsync()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MusicControl._instance.ViewModel.ProgressBarValue;
+		localSettings.Values[nameof(LocalSave.PlayBackPosition)] = MusicControl._instance?.ViewModel?.ProgressBarValue ?? 0;
 
 		await ProcessPendingTagWritesAsync();
 	}
@@ -844,7 +923,7 @@ public class MusicPlayer
 			localSettings.Values.Remove(nameof(LocalSave.CurrentPlayinglist));
 			currentIndex = 0;
 
-			MusicControl._instance.ViewModel.ResetCurrentSongFloatingWindow();
+			MusicControl._instance?.ViewModel?.ResetCurrentSongFloatingWindow();
 		}
 		else
 		{

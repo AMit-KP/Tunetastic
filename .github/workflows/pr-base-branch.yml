@@ -1,0 +1,38 @@
+name: Set PR Base Branch
+
+on:
+  pull_request:
+    types: [opened, reopened, edited]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  set-base:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set base branch based on head branch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const headRef = pr.head.ref;
+            const currentBase = pr.base.ref;
+
+            // If PR is FROM Development, target master. Otherwise target Development.
+            const desiredBase = headRef === 'Development' ? 'master' : 'Development';
+
+            if (currentBase === desiredBase) {
+              core.info(`Base branch already correct (${currentBase}). No change needed.`);
+              return;
+            }
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              base: desiredBase,
+            });
+
+            core.info(`Changed base branch from "${currentBase}" to "${desiredBase}" for PR #${pr.number}`);

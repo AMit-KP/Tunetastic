@@ -129,20 +129,20 @@ public sealed partial class AllSongsViewPage : Page
 		switch (sortBy)
 		{
 			case "Artists":
-				Artists.IsChecked = true;
+				ArtistsSort.IsChecked = true;
 				break;
 
 			case "Album":
-				Album.IsChecked = true;
+				AlbumSort.IsChecked = true;
 				break;
 
 			case "Duration":
-				Duration.IsChecked = true;
+				DurationSort.IsChecked = true;
 				break;
 
 			case "Title":
 			default:
-				Title.IsChecked = true;
+				TitleSort.IsChecked = true;
 				break;
 		}
 		switch (sortOrder)
@@ -870,7 +870,7 @@ public sealed partial class AllSongsViewPage : Page
 	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		if (songData is not null) MainPage._instance.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
+		if (songData is not null) MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	/// <summary>

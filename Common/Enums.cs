@@ -193,5 +193,48 @@ public enum LocalSave
 	CheckForUpdatesAtStatup,
 	ShowVersionInfoOnTitleBar,
 	ForwardRewindButtonVisibility,
-	GivenStoreRating
+	GivenStoreRating,
+	TaskBarOverlayStatus,
+	TaskBarOverlaySide,
+	TaskBarOverlayTheme,
+	TaskBarOverlayDesign
+}
+
+/// <summary>
+/// The visual theme applied to the overlay grid.
+/// </summary>
+public enum OverlayTheme
+{
+	Dark,
+	Light
+}
+
+/// <summary>
+/// All available overlay layout styles.
+/// Each value has a display name used in user-facing dropdowns.
+/// </summary>
+public enum OverlayLayout
+{
+	CompactPill,
+	HoverReveal,
+	WaveformEdge,
+	MarqueeTicker,
+	LeftPill,
+	RightDock,
+	FullArtBar,
+	WaveformOnly,
+	AccentAncientScroll,
+	IconStrip,
+	StackedInfo,
+	CenteredPill,
+	TopAccentStripe,
+	BottomAccentStripe,
+	AlbumTint,
+	TextOnly,
+	TextOnlyReversed,
+	ArcRing,
+	QueuePreview,
+	ArtistBadge,
+	TopAlbumAccentStripe,
+	AlbumTintProgress
 }

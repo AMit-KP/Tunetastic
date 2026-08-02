@@ -117,12 +117,12 @@ public class GetMusicData
 
 		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();
 
-		List<string>? extensions = new();
+		List<string> extensions = new();
 
 		foreach (var format in formatList)
 			if (format.Enabled) extensions.Add(format.Extension);
 
-		if (extensions?.Count == 0) extensions.Add(".mp3");
+		if (extensions.Count == 0) extensions.Add(".mp3");
 
 		var path = Path.Combine(Constants.ThumbnailsFolder);
 		if (Directory.Exists(path)) Directory.Delete(path, true);
