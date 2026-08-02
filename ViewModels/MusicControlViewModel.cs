@@ -603,6 +603,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 			if (track != null)
 			{
 				DurationOfSong = double.Parse(track.Duration.ToString());
+
+				isUpdatingProgressBar = true;
+				ProgressBarValue = _startupPosition > 0 ? _startupPosition : 0;
+				isUpdatingProgressBar = false;
+
 				ProgressBar?.NotifyTrackChanged(DurationOfSong);
 				if (_musicPlayer.IsPlaying)
 					ProgressBar?.NotifyPlaying();
