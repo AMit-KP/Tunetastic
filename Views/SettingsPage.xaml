@@ -379,7 +379,7 @@
 					<dev:SettingsCard Description="The design of the taskbar overlay controls. If you have any control overlay design/style in mind, please let me know by creating GitHub Issue under About Section."
 					                  Header="Taskbar Overlay Design Catalog">
 						<ComboBox x:Name="TaskBarOverlayDesign"
-						          Width="200"
+						          Width="210"
 						          Height="{Binding ElementName=TaskBarOverlayTheme, Path=ActualHeight}"
 						          ItemsSource="{Binding All, Source={StaticResource LayoutProvider}}"
 						          SelectionChanged="TaskBarOverlayDesign_SelectionChanged">
