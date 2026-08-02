@@ -236,6 +236,9 @@ public class TopAlbumAccentStripeOverlay : OverlayBase
 
 	public async void UpdateTrack(string title, string artist, string album, string art)
 	{
+		_titleText?.Text = title ?? string.Empty;
+		_artistText?.Text = artist ?? string.Empty;
+
 		try
 		{
 			StorageFile file = await StorageFile.GetFileFromPathAsync(art);
