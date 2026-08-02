@@ -1,20 +1,24 @@
 ﻿using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Shapes;
 
 namespace Tunetastic.Overlay.Layouts;
 
 // ══════════════════════════════════════════════════════════════════════
-// CENTERED PILL
-// CONTROLS centred · left art · right title + artist
+// TOP STRIPE
+// 3px progress stripe along the TOP edge · art + title + artist + controls
 // ══════════════════════════════════════════════════════════════════════
-public class CenteredPillOverlay : OverlayBase
+public class TopAccentStripeOverlay : OverlayBase
 {
 	private TextBlock? _titleText;
 	private TextBlock? _artistText;
 	private Border? _artBox;
+	private Rectangle? _stripeFill;
 	private TextBlock? _toolTipText;
+	private double _stripeContainerWidth = 0;
 
-	public CenteredPillOverlay(OverlayTheme theme)
+	public TopAccentStripeOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
@@ -24,58 +28,80 @@ public class CenteredPillOverlay : OverlayBase
 	{
 		var root = new Grid
 		{
-			VerticalAlignment = VerticalAlignment.Center
+			HorizontalAlignment = HorizontalAlignment.Left,
 		};
 
-		var pill = MakePillBorder(34, 20);
-		pill.HorizontalAlignment = HorizontalAlignment.Left;
-		pill.VerticalAlignment = VerticalAlignment.Center;
+		// Outer border with no padding (stripe bleeds to edge)
+		var outer = new Border
+		{
+			CornerRadius = new CornerRadius(8),
+			Background = new SolidColorBrush(Surface),
+			BorderBrush = new SolidColorBrush(Border),
+			BorderThickness = new Thickness(0.5),
+		};
 
-		var inner = new Grid
+		var rootStack = new Grid();
+		rootStack.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) });
+		rootStack.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+		// Stripe row
+		var stripeGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
+		var stripeTrack = new Rectangle
+		{
+			Fill = new SolidColorBrush(ProgressTrack),
+			RadiusX = 2, RadiusY = 2,
+			HorizontalAlignment = HorizontalAlignment.Stretch,
+			Height = 3,
+		};
+		_stripeFill = new Rectangle
+		{
+			Fill = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]),
+			RadiusX = 2, RadiusY = 2,
+			Width = 0,
+			Height = 3,
+			HorizontalAlignment = HorizontalAlignment.Left,
+		};
+		stripeGrid.Children.Add(stripeTrack);
+		stripeGrid.Children.Add(_stripeFill);
+		Grid.SetRow(stripeGrid, 0);
+
+		// Register for size change so we can compute stripe fill width
+		stripeGrid.SizeChanged += (s, e) =>
+		{
+			_stripeContainerWidth = e.NewSize.Width;
+		};
+
+		// Content row
+		var content = new Grid
 		{
 			VerticalAlignment = VerticalAlignment.Center,
+			ColumnSpacing = 2,
+			Padding = new Thickness(6, 0, 10, 0),
 			ColumnDefinitions =
 			{
-				new ColumnDefinition { Width = GridLength.Auto }, // art
-				new ColumnDefinition { Width = GridLength.Auto }, // prev
-				new ColumnDefinition { Width = GridLength.Auto }, // play/pause
-				new ColumnDefinition { Width = GridLength.Auto }, // next
-				new ColumnDefinition { Width = GridLength.Auto }, // divider
+				new ColumnDefinition { Width = GridLength.Auto },	  // art
 				new ColumnDefinition { Width = new GridLength(100) }, // info
+				new ColumnDefinition { Width = GridLength.Auto },	  // divider
+				new ColumnDefinition { Width = GridLength.Auto },	  // prev
+				new ColumnDefinition { Width = GridLength.Auto },	  // play/pause
+				new ColumnDefinition { Width = GridLength.Auto },	  // next
 			},
 		};
 
-		_artBox = MakeArtBox(24, 12, AccentRose);
+		_artBox = MakeArtBox(26, 6, AccentTeal);
 		Grid.SetColumn(_artBox, 0);
-		inner.Children.Add(_artBox);
-
-		var prevButton = MakePrevButton(12);
-		Grid.SetColumn(prevButton, 1);
-		inner.Children.Add(prevButton);
-
-		var playPauseButton = MakePlayPauseButton(15);
-		Grid.SetColumn(playPauseButton, 2);
-		inner.Children.Add(playPauseButton);
-
-		var nextButton = MakeNextButton(12);
-		Grid.SetColumn(nextButton, 3);
-		inner.Children.Add(nextButton);
-
-		var divider = MakeDivider();
-		Grid.SetColumn(divider, 4);
-		inner.Children.Add(divider);
+		content.Children.Add(_artBox);
 
 		var info = new Grid
 		{
-			VerticalAlignment = VerticalAlignment.Center,
+			RowSpacing = 2,
 			RowDefinitions =
 			{
 				new RowDefinition { Height = GridLength.Auto },
 				new RowDefinition { Height = GridLength.Auto },
 			},
-			Margin = new Thickness(4, 0, 0, 0)
+			Margin = new Thickness(3, 0, 0, 0),
 		};
-
 		_titleText = MakeTitleText();
 		Grid.SetRow(_titleText, 0);
 		info.Children.Add(_titleText);
@@ -84,11 +110,31 @@ public class CenteredPillOverlay : OverlayBase
 		Grid.SetRow(_artistText, 1);
 		info.Children.Add(_artistText);
 
-		Grid.SetColumn(info, 5);
-		inner.Children.Add(info);
+		Grid.SetColumn(info, 1);
+		content.Children.Add(info);
 
-		pill.Child = inner;
-		root.Children.Add(pill);
+		var divider = MakeDivider();
+		Grid.SetColumn(divider, 2);
+		content.Children.Add(divider);
+
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 3);
+		content.Children.Add(prevButton);
+
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 4);
+		content.Children.Add(playPauseButton);
+
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 5);
+		content.Children.Add(nextButton);
+
+		Grid.SetRow(content, 1);
+
+		rootStack.Children.Add(stripeGrid);
+		rootStack.Children.Add(content);
+		outer.Child = rootStack;
+		root.Children.Add(outer);
 
 		_toolTipText = new TextBlock
 		{
@@ -102,6 +148,12 @@ public class CenteredPillOverlay : OverlayBase
 		root.PointerPressed += (s, e) => MainWindow._instance.RestoreFromTrayOrTaskbar();
 
 		return root;
+	}
+
+	public override void UpdateProgress(double value)
+	{
+		value = Math.Clamp(value, 0, 1);
+		_stripeFill?.Width = _stripeContainerWidth * value;
 	}
 
 	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)

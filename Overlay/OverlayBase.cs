@@ -39,7 +39,10 @@ public abstract class OverlayBase
 	{
 		_isPlaying = isPlaying;
 		if (PlayPauseButton?.Content is FontIcon icon)
+		{
 			icon.Glyph = isPlaying ? "\uE769" : "\uE768"; // Pause : Play
+			ToolTipService.SetToolTip(PlayPauseButton, isPlaying ? "Pause" : "Play");
+		}
 	}
 
 	// ── Progress update — layouts that have a progress indicator ──────
@@ -62,14 +65,14 @@ public abstract class OverlayBase
 	protected static Color DarkSurface => Color.FromArgb(180, 48, 48, 60);
 	protected static Color DarkBorder => Color.FromArgb(40, 255, 255, 255);
 	protected static Color DarkText => Color.FromArgb(255, 255, 255, 255);
-	protected static Color DarkSubText => Color.FromArgb(115, 255, 255, 255);
+	protected static Color DarkSubText => Color.FromArgb(155, 255, 255, 255);
 	protected static Color DarkDivider => Color.FromArgb(38, 255, 255, 255);
 
 	protected static Color LightBg => Color.FromArgb(255, 243, 243, 248);
 	protected static Color LightSurface => Color.FromArgb(200, 255, 255, 255);
 	protected static Color LightBorder => Color.FromArgb(60, 0, 0, 0);
 	protected static Color LightText => Color.FromArgb(255, 15, 15, 20);
-	protected static Color LightSubText => Color.FromArgb(130, 15, 15, 20);
+	protected static Color LightSubText => Color.FromArgb(155, 15, 15, 20);
 	protected static Color LightDivider => Color.FromArgb(38, 0, 0, 0);
 
 	protected Color Bg => Theme == OverlayTheme.Dark ? DarkBg : LightBg;
@@ -82,9 +85,6 @@ public abstract class OverlayBase
 	protected Color ProgressTrack => Theme == OverlayTheme.Dark
 		? Color.FromArgb(30, 255, 255, 255)
 		: Color.FromArgb(40, 0, 0, 0);
-
-	/// <summary>Taskbar height constant — 48px.</summary>
-	protected const double TaskbarHeight = 48d;
 
 	// ── Factory helpers ───────────────────────────────────────────────
 
@@ -115,32 +115,35 @@ public abstract class OverlayBase
 	}
 
 	/// <summary>Creates the play/pause button and stores it in PlayPauseButton.</summary>
-	protected Button MakePlayPauseButton(double size = 16)
+	protected Button MakePlayPauseButton(double size = 16, Color? foreground = null)
 	{
-		var fg = Theme == OverlayTheme.Dark
+		var fg = foreground ?? (Theme == OverlayTheme.Dark
 			? Colors.White
-			: Color.FromArgb(255, 15, 15, 20);
+			: Color.FromArgb(255, 15, 15, 20));
 
 		PlayPauseButton = MakeIconButton("\uE768", size, fg); // Play glyph default
+		ToolTipService.SetToolTip(PlayPauseButton, "Play");
 		return PlayPauseButton;
 	}
 
 	/// <summary>Creates the previous button and stores it in PreviousButton.</summary>
-	protected Button MakePrevButton(double size = 13)
+	protected Button MakePrevButton(double size = 13, Color? foreground = null)
 	{
-		PreviousButton = MakeIconButton("\uE892", size); // Previous track
+		PreviousButton = MakeIconButton("\uE892", size, foreground); // Previous track
+		ToolTipService.SetToolTip(PreviousButton, "Previous song/track");
 		return PreviousButton;
 	}
 
 	/// <summary>Creates the next button and stores it in NextButton.</summary>
-	protected Button MakeNextButton(double size = 13)
+	protected Button MakeNextButton(double size = 13, Color? foreground = null)
 	{
-		NextButton = MakeIconButton("\uE893", size); // Next track
+		NextButton = MakeIconButton("\uE893", size, foreground); // Next track
+		ToolTipService.SetToolTip(NextButton, "Next song/track");
 		return NextButton;
 	}
 
 	/// <summary>Creates a TextBlock styled as a track title.</summary>
-	protected TextBlock MakeTitleText(string text = "Track Title")
+	protected TextBlock MakeTitleText(string text = "Track Title", double maxWidth = 100)
 	{
 		return new TextBlock
 		{
@@ -149,12 +152,14 @@ public abstract class OverlayBase
 			FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
 			Foreground = new SolidColorBrush(Text),
 			VerticalAlignment = VerticalAlignment.Center,
+			HorizontalTextAlignment = TextAlignment.Left,
+			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
 	}
 
 	/// <summary>Creates a TextBlock styled as an artist / subtitle.</summary>
-	protected TextBlock MakeSubText(string text = "Artist Name")
+	protected TextBlock MakeSubText(string text = "Artist Name", double maxWidth = 100)
 	{
 		return new TextBlock
 		{
@@ -162,6 +167,8 @@ public abstract class OverlayBase
 			FontSize = 9,
 			Foreground = new SolidColorBrush(SubText),
 			VerticalAlignment = VerticalAlignment.Center,
+			HorizontalTextAlignment = TextAlignment.Left,
+			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
 	}
@@ -287,6 +294,7 @@ public abstract class OverlayBase
 	/// <summary>Default accent colour used for art placeholder boxes.</summary>
 	protected static Color AccentPurple => Color.FromArgb(255, 127, 119, 221);
 	protected static Color AccentGreen => Color.FromArgb(255, 29, 158, 117);
+	protected static Color NeonGreen => Color.FromArgb(255, 57, 255, 20);
 	protected static Color AccentOrange => Color.FromArgb(255, 216, 90, 48);
 	protected static Color AccentPink => Color.FromArgb(255, 212, 83, 126);
 	protected static Color AccentBlue => Color.FromArgb(255, 55, 138, 221);

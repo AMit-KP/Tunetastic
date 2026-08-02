@@ -195,7 +195,9 @@ public enum LocalSave
 	ForwardRewindButtonVisibility,
 	GivenStoreRating,
 	TaskBarOverlayStatus,
-	TaskBarOverlaySide
+	TaskBarOverlaySide,
+	TaskBarOverlayTheme,
+	TaskBarOverlayDesign
 }
 
 /// <summary>
@@ -221,15 +223,18 @@ public enum OverlayLayout
 	RightDock,
 	FullArtBar,
 	WaveformOnly,
-	AccentEdge,
+	AccentAncientScroll,
 	IconStrip,
 	StackedInfo,
 	CenteredPill,
-	TopStripe,
-	BottomStripe,
+	TopAccentStripe,
+	BottomAccentStripe,
 	AlbumTint,
 	TextOnly,
+	TextOnlyReversed,
 	ArcRing,
 	QueuePreview,
-	ArtistBadge
+	ArtistBadge,
+	TopAlbumAccentStripe,
+	AlbumTintProgress
 }

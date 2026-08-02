@@ -351,6 +351,18 @@ internal sealed class TaskbarOverlayWindow : WindowEx
 
 	public void DetachContent() => _rootGrid.Children.Clear();
 
+	public void ReplaceContent(UIElement newContent)
+	{
+		_rootGrid.Children.Clear();
+
+		if (newContent is null) return;
+
+		if (newContent is FrameworkElement fe && fe.Parent is Panel oldParent)
+			oldParent.Children.Remove(newContent);
+
+		_rootGrid.Children.Add(newContent);
+	}
+
 	// ── Topmost enforcement ───────────────────────────────────────────────
 
 	private void ReassertTopmost()

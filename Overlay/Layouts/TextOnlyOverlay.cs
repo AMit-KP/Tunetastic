@@ -1,17 +1,18 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Overlay.Layouts;
 
 // ══════════════════════════════════════════════════════════════════════
 // TEXT ONLY
-// Zero art or icons · track name · UPPERCASE artist label · timestamp
 // prev/play/next controls
+// Zero art or icons · track name · artist label
 // ══════════════════════════════════════════════════════════════════════
 public class TextOnlyOverlay : OverlayBase
 {
 	private TextBlock? _titleText;
 	private TextBlock? _artistText;
-	private TextBlock? _timestampText;
+	private TextBlock? _toolTipText;
 
 	public TextOnlyOverlay(OverlayTheme theme)
 	{
@@ -23,70 +24,108 @@ public class TextOnlyOverlay : OverlayBase
 	{
 		var root = new Grid
 		{
-			Height = TaskbarHeight,
 			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center,
+			Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
 		};
 
 		var pill = MakeRectBorder(36, 8);
 
-		var inner = new StackPanel
+		var inner = new Grid
 		{
-			Orientation = Orientation.Horizontal,
 			VerticalAlignment = VerticalAlignment.Center,
-			Spacing = 8,
+			ColumnSpacing = 2,
+			ColumnDefinitions =
+			{
+				new ColumnDefinition { Width = GridLength.Auto },	  // prev
+				new ColumnDefinition { Width = GridLength.Auto },	  // play/pause
+				new ColumnDefinition { Width = GridLength.Auto },	  // next
+				new ColumnDefinition { Width = GridLength.Auto },	  // divider
+				new ColumnDefinition { Width = new GridLength(100) }, // info
+			},
 		};
+
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 0);
+		inner.Children.Add(prevButton);
+
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 1);
+		inner.Children.Add(playPauseButton);
+
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 2);
+		inner.Children.Add(nextButton);
+
+		var divider = MakeDivider();
+		Grid.SetColumn(divider, 3);
+		inner.Children.Add(divider);
 
 		// Track + artist stacked
-		var infoStack = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2 };
-		_titleText = new TextBlock
+		var infoStack = new Grid
 		{
-			Text = "Ghost Town",
-			FontSize = 12,
-			FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-			Foreground = new SolidColorBrush(Text),
-			VerticalAlignment = VerticalAlignment.Center,
+			RowSpacing = 2,
+			RowDefinitions =
+			{
+				new RowDefinition { Height = GridLength.Auto },
+				new RowDefinition { Height = GridLength.Auto },
+			},
+			Margin = new Thickness(2, 0, 0, 0),
 		};
-		_artistText = new TextBlock
-		{
-			Text = "KANYE WEST",
-			FontSize = 8,
-			CharacterSpacing = 60,  // letter-spacing via CharacterSpacing (1/1000 em units)
-			Foreground = new SolidColorBrush(SubText),
-			VerticalAlignment = VerticalAlignment.Center,
-		};
+		_titleText = MakeTitleText();
+		_titleText.FontSize = 12;
+		Grid.SetRow(_titleText, 0);
 		infoStack.Children.Add(_titleText);
+
+		_artistText = MakeSubText();
+		_artistText.FontSize = 11;
+		Grid.SetRow(_artistText, 1);
 		infoStack.Children.Add(_artistText);
+
+		Grid.SetColumn(infoStack, 4);
 		inner.Children.Add(infoStack);
 
-		inner.Children.Add(MakeDivider());
+		//pill.Child = inner;
+		root.Children.Add(inner);
 
-		// Timestamp
-		_timestampText = new TextBlock
+		_toolTipText = new TextBlock
 		{
-			Text = "2:14 / 4:03",
-			FontSize = 9,
-			Foreground = new SolidColorBrush(SubText),
-			VerticalAlignment = VerticalAlignment.Center,
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
 		};
-		inner.Children.Add(_timestampText);
 
-		inner.Children.Add(MakeDivider());
-		inner.Children.Add(MakePrevButton());
-		inner.Children.Add(MakePlayPauseButton(16));
-		inner.Children.Add(MakeNextButton());
+		ToolTipService.SetToolTip(root, _toolTipText);
 
-		pill.Child = inner;
-		root.Children.Add(pill);
+		UpdateToolTipText();
+		root.PointerPressed += (s, e) => MainWindow._instance.RestoreFromTrayOrTaskbar();
+
 		return root;
 	}
 
-	/// <param name="artistUppercase">Pass artist name — it will display as-is. Uppercase it before passing if desired.</param>
-	/// <param name="timestamp">e.g. "2:14 / 4:03"</param>
-	public void UpdateTrack(string title, string artist, string timestamp = "")
+	public void UpdateTrack(string title, string artist, string album)
 	{
 		_titleText?.Text = title ?? string.Empty;
-		_artistText?.Text = (artist ?? string.Empty).ToUpper();
-		_timestampText?.Text = timestamp ?? string.Empty;
+		_artistText?.Text = artist ?? string.Empty;
+
+		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
+	}
+
+	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
+	{
+		if (_toolTipText is null) return;
+
+		_toolTipText.Inlines.Clear();
+		_toolTipText.Inlines.Add(new Run { Text = "Title: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = title, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Artists: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = artist, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Album: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = album, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 }

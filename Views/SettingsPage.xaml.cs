@@ -86,7 +86,10 @@ public sealed partial class SettingsPage : Page
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
+		//TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
+		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
+
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
 		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
@@ -693,6 +696,10 @@ public sealed partial class SettingsPage : Page
 		RainbowToggle_OnToggled(RainbowToggle, null);
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
 		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
+		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.DisplayName == (localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"));
+		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL"));
+
+		// TODO: set side options based on windows start position
 		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
 	}
 
@@ -1171,6 +1178,8 @@ public sealed partial class SettingsPage : Page
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)] = TaskBarOverlay.IsOn;
 		TaskbarOverlayManager.SetVisible(TaskBarOverlay.IsOn);
 		TaskBarOverlayPosition.IsEnabled = TaskBarOverlay.IsOn;
+		TaskBarOverlayTheme.IsEnabled = TaskBarOverlay.IsOn;
+		TaskBarOverlayDesign.IsEnabled = TaskBarOverlay.IsOn;
 	}
 
 	private void TaskBarOverlayPosition_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1182,4 +1191,40 @@ public sealed partial class SettingsPage : Page
 			TaskbarOverlayManager.SetSide(side == "RightTBOL" ? OverlaySide.Right : OverlaySide.Left);
 		}
 	}
+
+	private void TaskBarOverlayTheme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (TaskBarOverlayTheme.SelectedItem is ComboBoxItem selctedItem)
+		{
+			var theme = selctedItem.Tag.ToString();
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)] = theme;
+			MusicControl._instance?.ViewModel.SetupTaskbarOverlay();
+		}
+	}
+
+	private void TaskBarOverlayDesign_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (TaskBarOverlayDesign.SelectedItem is OverlayLayoutInfo layoutInfo)
+		{
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)] = layoutInfo.DisplayName;
+			TaskBarOverlayTheme.SelectedIndex = -1;
+			TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == BestOverlayThemeBasedOnLayout(layoutInfo.Layout));
+
+			TaskBarOverlayTheme.IsEnabled = !(layoutInfo.Layout == OverlayLayout.AlbumTint);
+		}
+	}
+
+	private string BestOverlayThemeBasedOnLayout(OverlayLayout layout) => layout switch
+	{
+		OverlayLayout.CompactPill => "LightTBOL",
+		OverlayLayout.HoverReveal => "DarkTBOL",
+		OverlayLayout.RightDock => "LightTBOL",
+		OverlayLayout.FullArtBar => "DarkTBOL",
+		OverlayLayout.CenteredPill => "LightTBOL",
+		OverlayLayout.TopAccentStripe => "LightTBOL",
+		OverlayLayout.BottomAccentStripe => "DarkTBOL",
+		OverlayLayout.ArcRing => "DarkTBOL",
+		OverlayLayout.AccentAncientScroll => "LightTBOL",
+		_ => "DefaultTBOL"
+	};
 }

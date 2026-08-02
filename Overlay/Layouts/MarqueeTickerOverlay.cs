@@ -1,29 +1,20 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 
 namespace Tunetastic.Overlay.Layouts;
 
 // ══════════════════════════════════════════════════════════════════════
 // MARQUEE TICKER 
-// Music-note icon · scrolling track+artist ticker · micro progress bar
+// Music-note icon · scrolling track+artist+album ticker · micro progress bar
 // prev/play/next controls
-// NOTE: Uses DevWinUI MarqueeText — see comment below for setup.
 // ══════════════════════════════════════════════════════════════════════
 public class MarqueeTickerOverlay : OverlayBase
 {
-	// Replace TextBlock below with DevWinUI MarqueeText once set up.
-	// Example:
-	//   var marquee = new DevWinUI.MarqueeText
-	//   {
-	//       Text     = "Track · Artist",
-	//       Speed    = 40,
-	//       Behavior = MarqueeBehavior.Ticker,
-	//   };
-	// Then swap _tickerText references for marquee.
-
-	private TextBlock? _tickerText;   // TODO: replace with DevWinUI MarqueeText
+	private TextBlock? _tickerText;
 	private Rectangle? _progressFill;
-	private double _progressWidth = 80; // container width for progress calc
+	private TextBlock? _toolTipText;
+	private double _progressWidth = 40;
 
 	public MarqueeTickerOverlay(OverlayTheme theme)
 	{
@@ -35,55 +26,59 @@ public class MarqueeTickerOverlay : OverlayBase
 	{
 		var root = new Grid
 		{
-			Height = TaskbarHeight,
 			HorizontalAlignment = HorizontalAlignment.Left,
 		};
 
-		var pill = MakeRectBorder(36, 8);
+		var pill = MakeRectBorder();
 
-		var inner = new StackPanel
+		var inner = new Grid
 		{
-			Orientation = Orientation.Horizontal,
 			VerticalAlignment = VerticalAlignment.Center,
-			Spacing = 8,
+			ColumnDefinitions =
+			{
+				new ColumnDefinition { Width = GridLength.Auto }, // 1: ticker clip
+				new ColumnDefinition { Width = GridLength.Auto }, // 2: progress bar
+				new ColumnDefinition { Width = GridLength.Auto }, // 3: divider
+				new ColumnDefinition { Width = GridLength.Auto }, // 4: prev button
+				new ColumnDefinition { Width = GridLength.Auto }, // 5: play/pause button
+				new ColumnDefinition { Width = GridLength.Auto }, // 6: next button
+			},
 		};
-
-		// Music note icon
-		inner.Children.Add(new FontIcon
-		{
-			Glyph = "\uEC4F",
-			FontSize = 14,
-			Foreground = new SolidColorBrush(SubText),
-			VerticalAlignment = VerticalAlignment.Center,
-		});
 
 		// Ticker text (clipped container)
 		var tickerClip = new Border
 		{
 			Width = 120,
-			Height = 16,
-			Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
-			{
-				Rect = new Windows.Foundation.Rect(0, 0, 120, 16)
-			},
+			VerticalAlignment = VerticalAlignment.Center,
+			Margin = new Thickness(4, 0, 4, 0),
 		};
-		// TODO: Replace _tickerText with DevWinUI MarqueeText (see comment above)
+
+		var marquee = new AutoScrollView
+		{
+			IsPlaying = true,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+
 		_tickerText = new TextBlock
 		{
 			Text = "Track Name · Artist",
-			FontSize = 11,
+			FontSize = 13,
 			FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
 			Foreground = new SolidColorBrush(Text),
 			VerticalAlignment = VerticalAlignment.Center,
 		};
-		tickerClip.Child = _tickerText;
+
+		marquee.Child = _tickerText;
+		tickerClip.Child = marquee;
+		Grid.SetColumn(tickerClip, 0);
 		inner.Children.Add(tickerClip);
 
 		// Micro progress bar
 		var progContainer = new Grid
 		{
-			Width = 60,
-			Height = 2,
+			Width = _progressWidth,
+			Height = 3,
+			Margin = new Thickness(4, 0, 8, 0),
 			VerticalAlignment = VerticalAlignment.Center,
 		};
 		var progTrack = new Rectangle
@@ -91,7 +86,7 @@ public class MarqueeTickerOverlay : OverlayBase
 			Fill = new SolidColorBrush(ProgressTrack),
 			RadiusX = 1,
 			RadiusY = 1,
-			Height = 2,
+			Height = 3,
 			HorizontalAlignment = HorizontalAlignment.Stretch,
 		};
 		_progressFill = new Rectangle
@@ -99,22 +94,46 @@ public class MarqueeTickerOverlay : OverlayBase
 			Fill = new SolidColorBrush(Text),
 			RadiusX = 1,
 			RadiusY = 1,
-			Height = 2,
+			Height = 3,
 			Width = 0,
 			HorizontalAlignment = HorizontalAlignment.Left,
 		};
-		_progressWidth = 60;
 		progContainer.Children.Add(progTrack);
 		progContainer.Children.Add(_progressFill);
+		Grid.SetColumn(progContainer, 1);
 		inner.Children.Add(progContainer);
 
-		inner.Children.Add(MakeDivider());
-		inner.Children.Add(MakePrevButton());
-		inner.Children.Add(MakePlayPauseButton(16));
-		inner.Children.Add(MakeNextButton());
+		var divider = MakeDivider();
+		divider.Margin = new Thickness(0, 0, 4, 0);
+		Grid.SetColumn(divider, 2);
+		inner.Children.Add(divider);
+
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 3);
+		inner.Children.Add(prevButton);
+
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 4);
+		inner.Children.Add(playPauseButton);
+
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 5);
+		inner.Children.Add(nextButton);
 
 		pill.Child = inner;
 		root.Children.Add(pill);
+
+		_toolTipText = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
+
+		ToolTipService.SetToolTip(root, _toolTipText);
+
+		UpdateToolTipText();
+		root.PointerPressed += (s, e) => MainWindow._instance.RestoreFromTrayOrTaskbar();
+
 		return root;
 	}
 
@@ -128,9 +147,29 @@ public class MarqueeTickerOverlay : OverlayBase
 
 	/// <param name="title">Track title shown in the ticker.</param>
 	/// <param name="artist">Artist name shown in the ticker.</param>
-	public void UpdateTrack(string title, string artist)
+	public void UpdateTrack(string title, string artist, string album)
 	{
-		// TODO: If using DevWinUI MarqueeText, set .Text on that control instead.
-		_tickerText?.Text = $"{title} · {artist}";
+		_tickerText?.Text = $"{title} • {artist} • {album}";
+
+		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
+	}
+
+	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
+	{
+		if (_toolTipText is null) return;
+
+		_toolTipText.Inlines.Clear();
+		_toolTipText.Inlines.Add(new Run { Text = "Title: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = title, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Artists: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = artist, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Album: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = album, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 }

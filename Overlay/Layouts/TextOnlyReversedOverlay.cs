@@ -1,20 +1,20 @@
 ﻿using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Overlay.Layouts;
 
 // ══════════════════════════════════════════════════════════════════════
-// COMPACT PILL
-// Rounded pill · art + title + artist · prev/play/next always visible
+// TEXT ONLY REVERSED
+// Zero art or icons · track name · artist label
+// prev/play/next controls
 // ══════════════════════════════════════════════════════════════════════
-public class CompactPillOverlay : OverlayBase
+public class TextOnlyReversedOverlay : OverlayBase
 {
 	private TextBlock? _titleText;
 	private TextBlock? _artistText;
-	private Border? _artBox;
 	private TextBlock? _toolTipText;
 
-	public CompactPillOverlay(OverlayTheme theme)
+	public TextOnlyReversedOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
@@ -24,72 +24,71 @@ public class CompactPillOverlay : OverlayBase
 	{
 		var root = new Grid
 		{
+			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center,
+			Background = new SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0)),
 		};
 
-		//Pill container
-		var pill = MakePillBorder(radius: 20);
+		var pill = MakeRectBorder(36, 8);
 
 		var inner = new Grid
 		{
 			VerticalAlignment = VerticalAlignment.Center,
-			HorizontalAlignment = HorizontalAlignment.Left,
+			ColumnSpacing = 2,
+			ColumnDefinitions =
+			{
+				new ColumnDefinition { Width = new GridLength(100) }, // info
+				new ColumnDefinition { Width = GridLength.Auto },	  // divider
+				new ColumnDefinition { Width = GridLength.Auto },	  // prev
+				new ColumnDefinition { Width = GridLength.Auto },	  // play/pause
+				new ColumnDefinition { Width = GridLength.Auto },	  // next
+			},
 		};
 
-		// Columns: art | info | divider | prev | play | next
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // 0: art
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(100) }); // 1: info
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // 2: divider
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // 3: prev
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // 4: play
-		inner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // 5: next
-
-		// Album art
-		_artBox = MakeArtBox(26, 13, AccentPurple);
-		_artBox.Margin = new Thickness(0, 0, 6, 0);
-		Grid.SetColumn(_artBox, 0);
-		inner.Children.Add(_artBox);
-
-		// Title + artist stacked
-		var info = new Grid();
-		info.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // 0: title
-		info.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // 1: artist
-		info.Margin = new Thickness(0, 0, 6, 0);
-		info.VerticalAlignment = VerticalAlignment.Center;
-
+		// Track + artist stacked
+		var infoStack = new Grid
+		{
+			RowSpacing = 2,
+			RowDefinitions =
+			{
+				new RowDefinition { Height = GridLength.Auto },
+				new RowDefinition { Height = GridLength.Auto },
+			},
+			Margin = new Thickness(0, 0, 2, 0),
+		};
 		_titleText = MakeTitleText();
+		_titleText.FontSize = 12;
+		_titleText.HorizontalAlignment = HorizontalAlignment.Right;
 		Grid.SetRow(_titleText, 0);
-		info.Children.Add(_titleText);
+		infoStack.Children.Add(_titleText);
 
 		_artistText = MakeSubText();
+		_artistText.FontSize = 11;
+		_artistText.HorizontalAlignment = HorizontalAlignment.Right;
 		Grid.SetRow(_artistText, 1);
-		info.Children.Add(_artistText);
+		infoStack.Children.Add(_artistText);
 
-		Grid.SetColumn(info, 1);
-		inner.Children.Add(info);
+		Grid.SetColumn(infoStack, 0);
+		inner.Children.Add(infoStack);
 
-		// Divider
 		var divider = MakeDivider();
-		Grid.SetColumn(divider, 2);
+		Grid.SetColumn(divider, 1);
 		inner.Children.Add(divider);
 
-		// Prev
-		var prev = MakePrevButton();
-		Grid.SetColumn(prev, 3);
-		inner.Children.Add(prev);
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 2);
+		inner.Children.Add(prevButton);
 
-		// Play/Pause
-		var play = MakePlayPauseButton(16);
-		Grid.SetColumn(play, 4);
-		inner.Children.Add(play);
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 3);
+		inner.Children.Add(playPauseButton);
 
-		// Next
-		var next = MakeNextButton();
-		Grid.SetColumn(next, 5);
-		inner.Children.Add(next);
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 4);
+		inner.Children.Add(nextButton);
 
-		pill.Child = inner;
-		root.Children.Add(pill);
+		//pill.Child = inner;
+		root.Children.Add(inner);
 
 		_toolTipText = new TextBlock
 		{
@@ -105,23 +104,10 @@ public class CompactPillOverlay : OverlayBase
 		return root;
 	}
 
-	/// <param name="title">Track title displayed in the pill.</param>
-	/// <param name="artist">Artist name displayed in the pill.</param>
-	/// <param name="art">Optional album art bitmap.</param>
-	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
+	public void UpdateTrack(string title, string artist, string album)
 	{
 		_titleText?.Text = title ?? string.Empty;
 		_artistText?.Text = artist ?? string.Empty;
-
-		if (art != null)
-		{
-			_artBox?.Background = null;
-			_artBox?.Child = new Microsoft.UI.Xaml.Controls.Image
-			{
-				Source = art,
-				Stretch = Microsoft.UI.Xaml.Media.Stretch.UniformToFill
-			};
-		}
 
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}

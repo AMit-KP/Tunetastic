@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 
@@ -15,6 +16,7 @@ public class FullArtBarOverlay : OverlayBase
 	private TextBlock? _artistText;
 	private Border? _artBox;
 	private Rectangle? _progressFill;
+	private TextBlock? _toolTipText;
 	private const double ProgressBarWidth = 100;
 
 	public FullArtBarOverlay(OverlayTheme theme)
@@ -27,61 +29,78 @@ public class FullArtBarOverlay : OverlayBase
 	{
 		var root = new Grid
 		{
-			Height = TaskbarHeight,
 			HorizontalAlignment = HorizontalAlignment.Left,
+			VerticalAlignment = VerticalAlignment.Center,
 		};
 
-		var outer = new StackPanel { Orientation = Orientation.Horizontal };
+		// Outer grid: col 0 = art, col 1 = body
+		var outer = new Grid
+		{
+			Height = 48,
+			HorizontalAlignment = HorizontalAlignment.Left,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		outer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+		outer.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
 		// Full-height art (radius only on left)
 		_artBox = new Border
 		{
-			Width = TaskbarHeight,
-			Height = TaskbarHeight,
+			VerticalAlignment = VerticalAlignment.Center,
+			Width = 48,
 			CornerRadius = new CornerRadius(8, 0, 0, 8),
 			Background = new SolidColorBrush(AccentGreen),
 		};
-		_artBox.Child = new FontIcon
-		{
-			Glyph = "\uEC4F",
-			FontSize = 18,
-			Foreground = new SolidColorBrush(Windows.UI.Color.FromArgb(180, 255, 255, 255)),
-			HorizontalAlignment = HorizontalAlignment.Center,
-			VerticalAlignment = VerticalAlignment.Center,
-		};
+
+		Grid.SetColumn(_artBox, 0);
 		outer.Children.Add(_artBox);
 
 		// Right body
 		var body = new Border
 		{
 			CornerRadius = new CornerRadius(0, 8, 8, 0),
+			VerticalAlignment = VerticalAlignment.Center,
+			Height = 48,
 			Background = new SolidColorBrush(Surface),
 			BorderBrush = new SolidColorBrush(Border),
-			BorderThickness = new Thickness(0.5),
-			Height = TaskbarHeight,
+			BorderThickness = new Thickness(0.5, 0, 0, 0),
 			Padding = new Thickness(10, 0, 10, 0),
 		};
 
-		var bodyInner = new StackPanel
+		// Body inner grid: col 0 = info+progress, col 1 = divider, col 2 = prev, col 3 = play/pause, col 4 = next
+		var bodyInner = new Grid
 		{
-			Orientation = Orientation.Horizontal,
 			VerticalAlignment = VerticalAlignment.Center,
-			Spacing = 8,
 		};
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // info stack
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3) }); // spacer
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // divider
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3) }); // spacer
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // prev
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // play/pause
+		bodyInner.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // next
 
-		// Info + progress stacked
-		var infoStack = new StackPanel
+		// Info + progress stacked: row 0 = title, row 1 = artist, row 2 = progress bar
+		var infoStack = new Grid
 		{
-			Orientation = Orientation.Vertical,
-			Spacing = 3,
 			MaxWidth = ProgressBarWidth,
 			VerticalAlignment = VerticalAlignment.Center,
 		};
-		_titleText = MakeTitleText("Midnight Drive");
-		_artistText = MakeSubText("The Glitch Mob");
+		infoStack.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // title
+		infoStack.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // artist
+		infoStack.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) }); // spacer
+		infoStack.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); // progress
+
+		_titleText = MakeTitleText();
+		Grid.SetRow(_titleText, 0);
+		infoStack.Children.Add(_titleText);
+
+		_artistText = MakeSubText();
+		Grid.SetRow(_artistText, 1);
+		infoStack.Children.Add(_artistText);
 
 		// Progress bar
-		var progGrid = new Grid { Width = ProgressBarWidth, Height = 2 };
+		var progGrid = new Grid { Width = ProgressBarWidth, Height = 3 };
 		var progTrack = new Rectangle
 		{
 			Fill = new SolidColorBrush(ProgressTrack),
@@ -90,7 +109,7 @@ public class FullArtBarOverlay : OverlayBase
 		};
 		_progressFill = new Rectangle
 		{
-			Fill = new SolidColorBrush(AccentGreen),
+			Fill = new SolidColorBrush(Theme == OverlayTheme.Dark ? AccentGreen : NeonGreen),
 			RadiusX = 1, RadiusY = 1,
 			Width = 35,
 			HorizontalAlignment = HorizontalAlignment.Left,
@@ -98,19 +117,45 @@ public class FullArtBarOverlay : OverlayBase
 		progGrid.Children.Add(progTrack);
 		progGrid.Children.Add(_progressFill);
 
-		infoStack.Children.Add(_titleText);
-		infoStack.Children.Add(_artistText);
+		Grid.SetRow(progGrid, 3);
 		infoStack.Children.Add(progGrid);
+
+		Grid.SetColumn(infoStack, 0);
 		bodyInner.Children.Add(infoStack);
 
-		bodyInner.Children.Add(MakeDivider());
-		bodyInner.Children.Add(MakePrevButton());
-		bodyInner.Children.Add(MakePlayPauseButton(16));
-		bodyInner.Children.Add(MakeNextButton());
+		var divider = MakeDivider();
+		Grid.SetColumn(divider, 2);
+		bodyInner.Children.Add(divider);
+
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 4);
+		bodyInner.Children.Add(prevButton);
+
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 5);
+		bodyInner.Children.Add(playPauseButton);
+
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 6);
+		bodyInner.Children.Add(nextButton);
 
 		body.Child = bodyInner;
+		Grid.SetColumn(body, 1);
 		outer.Children.Add(body);
+
 		root.Children.Add(outer);
+
+		_toolTipText = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
+
+		ToolTipService.SetToolTip(root, _toolTipText);
+
+		UpdateToolTipText();
+		root.PointerPressed += (s, e) => MainWindow._instance.RestoreFromTrayOrTaskbar();
+
 		return root;
 	}
 
@@ -120,7 +165,7 @@ public class FullArtBarOverlay : OverlayBase
 		_progressFill?.Width = ProgressBarWidth * value;
 	}
 
-	public void UpdateTrack(string title, string artist, BitmapImage? art = null)
+	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		_titleText?.Text = title ?? string.Empty;
 		_artistText?.Text = artist ?? string.Empty;
@@ -130,6 +175,27 @@ public class FullArtBarOverlay : OverlayBase
 			_artBox?.Child = new Microsoft.UI.Xaml.Controls.Image
 			{ Source = art, Stretch = Microsoft.UI.Xaml.Media.Stretch.UniformToFill };
 		}
+
+		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
+	}
+
+	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
+	{
+		if (_toolTipText is null) return;
+
+		_toolTipText.Inlines.Clear();
+		_toolTipText.Inlines.Add(new Run { Text = "Title: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = title, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Artists: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = artist, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Album: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = album, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 }
 

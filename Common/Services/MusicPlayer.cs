@@ -126,7 +126,6 @@ public class MusicPlayer
 	private List<string>? ActualPlaylist;
 	private bool SongQueue = false;
 	private int currentIndex = 0;
-	private bool alreadyPlayed = false;
 
 	// ─────────────────────────────────────────────────────────
 	//  Construction
@@ -460,7 +459,7 @@ public class MusicPlayer
 		catch (Exception)
 		{
 			GlobalNotification.Error($"Could not load song:\n{songPath}");
-			Next(autoChange: play);
+			Next();
 		}
 	}
 
@@ -566,7 +565,7 @@ public class MusicPlayer
 
 				if (!restartOnPrevious || TimeSpan.FromTicks(CurTimeTicks).TotalSeconds < 5)
 				{
-					currentIndex = !SongQueue ? currentIndex == 0 ? OriginalPlaylist!.Count - 1 : currentIndex - 1 : currentIndex;
+					currentIndex = !SongQueue ? currentIndex == 0 ? RepeatStatus == RepeatMode.None ? 0 : OriginalPlaylist!.Count - 1 : currentIndex - 1 : currentIndex;
 					songToPlay = ActualPlaylist[currentIndex];
 				}
 				else
@@ -616,7 +615,11 @@ public class MusicPlayer
 
 			if (OriginalPlaylist?.Count > 0)
 			{
-				if (currentIndex < OriginalPlaylist.Count - 1)
+				if (autoChange && RepeatStatus == RepeatMode.One)
+				{
+					// Song ended naturally + Repeat One -> replay the same song, don't advance.
+				}
+				else if (currentIndex < OriginalPlaylist.Count - 1)
 				{
 					currentIndex++;
 				}
@@ -625,9 +628,6 @@ public class MusicPlayer
 					switch (RepeatStatus)
 					{
 						case RepeatMode.One:
-							if (!alreadyPlayed) { currentIndex = 0; alreadyPlayed = true; }
-							else { if (autoChange) Pause(); return; }
-							break;
 						case RepeatMode.All:
 							if (OriginalPlaylist != null && ActualPlaylist != null && ActualPlaylist.Count > 0)
 								LoadPlaylist(OriginalPlaylist, ActualPlaylist[0], false);
@@ -646,6 +646,83 @@ public class MusicPlayer
 		{
 			GlobalNotification.Error("Could not load next song.");
 			Next(autoChange);
+		}
+	}
+
+	public async Task<List<Song>?> GetUpcomingSongs(int count = 2)
+	{
+		if (GetMusicData.IsScanning) return null;
+
+		try
+		{
+			async Task<List<string>?> BuildPathsAsync()
+			{
+				var paths = new List<string>();
+
+				var queuedList = await DatabaseHelper.Instance.GetQueuedPlayingList();
+				if (queuedList?.Count > 0)
+				{
+					foreach (var item in queuedList)
+					{
+						if (paths.Count >= count) break;
+						paths.Add(item.Path);
+					}
+				}
+
+				if (paths.Count < count && OriginalPlaylist?.Count > 0 && ActualPlaylist?.Count > 0)
+				{
+					int simulatedIndex = currentIndex;
+
+					while (paths.Count < count)
+					{
+						if (simulatedIndex < OriginalPlaylist.Count - 1)
+						{
+							simulatedIndex++;
+						}
+						else
+						{
+							switch (RepeatStatus)
+							{
+								case RepeatMode.All:
+								case RepeatMode.One:
+									simulatedIndex = 0;
+									break;
+
+								case RepeatMode.None:
+								default:
+									return paths.Count > 0 ? paths : null;
+							}
+						}
+
+						if (simulatedIndex >= 0 && simulatedIndex < ActualPlaylist.Count)
+						{
+							paths.Add(ActualPlaylist[simulatedIndex]);
+						}
+						else
+						{
+							break;
+						}
+					}
+				}
+
+				return paths.Count > 0 ? paths : null;
+			}
+
+			var paths = await BuildPathsAsync();
+			if (paths == null || paths.Count == 0) return null;
+
+			var songs = new List<Song>();
+			foreach (var songPath in paths)
+			{
+				var song = await DatabaseHelper.Instance.GetSongByPath(songPath!);
+				if (song != null) songs.Add(song);
+			}
+
+			return songs.Count > 0 ? songs : null;
+		}
+		catch (Exception)
+		{
+			return null;
 		}
 	}
 

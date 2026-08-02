@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Media;
+﻿using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
@@ -19,6 +20,7 @@ public class ArcRingOverlay : OverlayBase
 	private const double RingSize = 38d;
 	private const double RingRadius = 17d;  // just inside the 38px disc
 	private const double StrokeW = 2.5d;
+	private TextBlock? _toolTipText;
 
 	public ArcRingOverlay(OverlayTheme theme)
 	{
@@ -30,27 +32,35 @@ public class ArcRingOverlay : OverlayBase
 	{
 		var root = new Grid
 		{
-			Height = TaskbarHeight,
 			HorizontalAlignment = HorizontalAlignment.Left,
 			VerticalAlignment = VerticalAlignment.Center,
 		};
 
-		var pill = MakeRectBorder(44, 8);
+		var pill = MakeRectBorder(height: 45);
 
-		var inner = new StackPanel
+		var inner = new Grid
 		{
-			Orientation = Orientation.Horizontal,
 			VerticalAlignment = VerticalAlignment.Center,
-			Spacing = 8,
+			ColumnDefinitions =
+			{
+				new ColumnDefinition { Width = GridLength.Auto },	  // 0: disc + ring
+				new ColumnDefinition { Width = new GridLength(100) }, // 1: track info
+				new ColumnDefinition { Width = GridLength.Auto },	  // 2: divider
+				new ColumnDefinition { Width = GridLength.Auto },	  // 3: prev button
+				new ColumnDefinition { Width = GridLength.Auto },	  // 4: play/pause button
+				new ColumnDefinition { Width = GridLength.Auto },	  // 5: next button
+			},
 		};
 
 		// ── Disc + ring (overlay them in a Grid) ──────────────────────
 		var discGrid = new Grid
 		{
+			Margin = new Thickness(4, 0, 0, 0),
 			Width = RingSize,
 			Height = RingSize,
 			VerticalAlignment = VerticalAlignment.Center,
 		};
+		Grid.SetColumn(discGrid, 0);
 
 		// Track circle (background of the arc)
 		var arcTrack = new Ellipse
@@ -66,7 +76,7 @@ public class ArcRingOverlay : OverlayBase
 		// Arc fill — drawn as a Path using ArcSegment
 		_arcPath = new Microsoft.UI.Xaml.Shapes.Path
 		{
-			Stroke = new SolidColorBrush(AccentGold),
+			Stroke = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]),
 			StrokeThickness = StrokeW,
 			StrokeStartLineCap = PenLineCap.Round,
 			StrokeEndLineCap = PenLineCap.Round,
@@ -81,7 +91,7 @@ public class ArcRingOverlay : OverlayBase
 			Width = RingSize - StrokeW * 3,
 			Height = RingSize - StrokeW * 3,
 			CornerRadius = new CornerRadius((RingSize - StrokeW * 3) / 2),
-			Background = new SolidColorBrush(AccentGold),
+			Background = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SystemAccentColor"]),
 			HorizontalAlignment = HorizontalAlignment.Center,
 			VerticalAlignment = VerticalAlignment.Center,
 		};
@@ -98,20 +108,60 @@ public class ArcRingOverlay : OverlayBase
 		inner.Children.Add(discGrid);
 
 		// ── Track info ──────────────────────────────────────────────
-		var info = new StackPanel { Orientation = Orientation.Vertical, Spacing = 2, MaxWidth = 100 };
-		_titleText = MakeTitleText("Save Your Tears");
-		_artistText = MakeSubText("The Weeknd");
+		var info = new Grid
+		{
+			VerticalAlignment = VerticalAlignment.Center,
+			Margin = new Thickness(6, 0, 0, 0),
+			RowDefinitions =
+			{
+				new RowDefinition { Height = GridLength.Auto }, // 0: title
+				new RowDefinition { Height = GridLength.Auto }, // 1: artist
+			},
+		};
+		Grid.SetColumn(info, 1);
+
+		_titleText = MakeTitleText();
+		Grid.SetRow(_titleText, 0);
 		info.Children.Add(_titleText);
+
+		_artistText = MakeSubText();
+		_artistText.Margin = new Thickness(0, 2, 0, 0);
+		Grid.SetRow(_artistText, 1);
 		info.Children.Add(_artistText);
+
 		inner.Children.Add(info);
 
-		inner.Children.Add(MakeDivider());
-		inner.Children.Add(MakePrevButton());
-		inner.Children.Add(MakePlayPauseButton(16));
-		inner.Children.Add(MakeNextButton());
+		var divider = MakeDivider();
+		divider.Margin = new Thickness(4, 0, 4, 0);
+		Grid.SetColumn(divider, 2);
+		inner.Children.Add(divider);
+
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 3);
+		inner.Children.Add(prevButton);
+
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 4);
+		inner.Children.Add(playPauseButton);
+
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 5);
+		inner.Children.Add(nextButton);
 
 		pill.Child = inner;
 		root.Children.Add(pill);
+
+		_toolTipText = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
+
+		ToolTipService.SetToolTip(root, _toolTipText);
+
+		UpdateToolTipText();
+		root.PointerPressed += (s, e) => MainWindow._instance.RestoreFromTrayOrTaskbar();
+
 		return root;
 	}
 
@@ -153,7 +203,7 @@ public class ArcRingOverlay : OverlayBase
 		_arcPath?.Data = geo;
 	}
 
-	public void UpdateTrack(string title, string artist, BitmapImage? art = null)
+	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		_titleText?.Text = title ?? string.Empty;
 		_artistText?.Text = artist ?? string.Empty;
@@ -163,5 +213,26 @@ public class ArcRingOverlay : OverlayBase
 			_discArt?.Child = new Microsoft.UI.Xaml.Controls.Image
 			{ Source = art, Stretch = Microsoft.UI.Xaml.Media.Stretch.UniformToFill };
 		}
+
+		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
+	}
+
+	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
+	{
+		if (_toolTipText is null) return;
+
+		_toolTipText.Inlines.Clear();
+		_toolTipText.Inlines.Add(new Run { Text = "Title: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = title, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Artists: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = artist, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		_toolTipText.Inlines.Add(new LineBreak());
+		_toolTipText.Inlines.Add(new LineBreak());
+
+		_toolTipText.Inlines.Add(new Run { Text = "Album: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		_toolTipText.Inlines.Add(new Run { Text = album, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 }

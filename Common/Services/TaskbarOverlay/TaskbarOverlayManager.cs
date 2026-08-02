@@ -33,6 +33,10 @@ internal static class TaskbarOverlayManager
 	private static bool _dragEnabled;
 	private static DispatcherTimer? _dragAutoStopTimer;
 	private static DispatcherTimer? _repositionTimer;
+	private static DispatcherTimer? _sizeSettleTimer;
+	private static int _sizeSettleLastWidth;
+	private static int _sizeSettleStableCount;
+	private static int _sizeSettleTicks;
 	private static readonly Dictionary<string, int> _draggedPositions = new();
 
 	private static bool _multiMonitor = false;
@@ -107,12 +111,26 @@ internal static class TaskbarOverlayManager
 	    /// </summary>
 	public static void SetContent(UIElement content)
 	{
-		_content = content;
-		if (_initialized)
+		if (_dispatcherQueue is not null && !_dispatcherQueue.HasThreadAccess)
 		{
-			DisposeOverlays();
-			RebuildOverlays();
+			_dispatcherQueue.TryEnqueue(() => SetContent(content));
+			return;
 		}
+
+		_content = content;
+
+		if (!_initialized) return;
+
+		if (_overlays.Count == 0)
+		{
+			RebuildOverlays();
+			return;
+		}
+
+		foreach (var overlay in _overlays)
+			try { overlay.ReplaceContent(_content); } catch { }
+
+		RepositionAll(forceMeasureWidth: true);
 	}
 
 	/// <summary>
@@ -200,6 +218,8 @@ internal static class TaskbarOverlayManager
 		StopDrag();
 		_repositionTimer?.Stop();
 		_repositionTimer = null;
+		_sizeSettleTimer?.Stop();
+		_sizeSettleTimer = null;
 		DisposeOverlays();
 		_fullscreen?.Dispose();
 		_tbState?.Dispose();
@@ -411,14 +431,12 @@ internal static class TaskbarOverlayManager
 		// reposition tick to pick up the final live geometry.
 		if (_dispatcherQueue is not null)
 		{
-			_ = Task.Delay(150).ContinueWith(_ =>
-			  _dispatcherQueue.TryEnqueue(RepositionAll));
-			_ = Task.Delay(500).ContinueWith(_ =>
-			  _dispatcherQueue.TryEnqueue(RepositionAll));
+			StartSizeSettle();
 		}
 	}
 
-	private static void RepositionAll()
+	private static void RepositionAll() => RepositionAll(forceMeasureWidth: false);
+	private static void RepositionAll(bool forceMeasureWidth)
 	{
 		int fallbackDip = MeasureContentWidth();
 		foreach (var overlay in _overlays)
@@ -432,7 +450,7 @@ internal static class TaskbarOverlayManager
 			double scale = overlay.Taskbar.Dpi / 96.0;
 			int widthDip = fallbackDip;
 			IntPtr hwnd = overlay.GetWindowHandle();
-			if (hwnd != IntPtr.Zero && GetWindowRect(hwnd, out RECT actual) && actual.Width > 0)
+			if (!forceMeasureWidth && hwnd != IntPtr.Zero && GetWindowRect(hwnd, out RECT actual) && actual.Width > 0)
 			{
 				widthDip = (int)Math.Ceiling(actual.Width / scale);
 			}
@@ -443,6 +461,41 @@ internal static class TaskbarOverlayManager
 			overlay.UpdateFreeZone(zone);
 			overlay.ApplyRect(rect);
 		}
+	}
+
+	private static void StartSizeSettle()
+	{
+		if (_dispatcherQueue is null) return;
+
+		_sizeSettleTimer?.Stop();
+		_sizeSettleLastWidth = int.MinValue;
+		_sizeSettleStableCount = 0;
+		_sizeSettleTicks = 0;
+
+		var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+
+		_sizeSettleTimer = timer;
+		timer.Tick += (_, _) =>
+		{
+			_sizeSettleTicks++;
+
+			int width = MeasureContentWidth();
+
+			RepositionAll(forceMeasureWidth: true);
+
+			if (width != _sizeSettleLastWidth)
+			{
+				_sizeSettleStableCount++;
+			}
+			else
+			{
+				_sizeSettleStableCount = 0;
+				_sizeSettleLastWidth = width;
+			}
+			if (_sizeSettleStableCount >= 3 || _sizeSettleTicks >= 30)
+				timer.Stop();
+		};
+		timer.Start();
 	}
 
 	private static void DisposeOverlays()

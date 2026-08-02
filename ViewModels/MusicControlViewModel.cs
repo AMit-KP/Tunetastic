@@ -10,6 +10,7 @@ using Tunetastic.Overlay.Layouts;
 using Windows.Media;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.UI.ViewManagement;
 
 
 namespace Tunetastic.ViewModels;
@@ -31,7 +32,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private DispatcherTimer? _midpointTimer;
 	private double _startupPosition = 0;
 	private ThumbnailToolBarButton Play_Pause_Button = null!;
-	private OverlayBase? overlayGrid = null;
+	private OverlayBase? _overlayGrid = null;
+	private readonly UISettings _uiSettings = new();
 
 	private SmoothProgressBar? _progressBar;
 	public SmoothProgressBar? ProgressBar
@@ -53,6 +55,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_progressBarValue = seconds;
 		isUpdatingProgressBar = false;
 		_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(seconds).Ticks;
+		_overlayGrid?.UpdateProgress(seconds / DurationOfSong);
 	}
 
 	private TimeSpan _thresoldDuration = TimeSpan.Zero;
@@ -246,7 +249,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					MainPage._instance?.AnimateTitle(startAnimation: false);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
 					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"play_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
-					overlayGrid?.SetPlayingState(isPlaying: false);
+					_overlayGrid?.SetPlayingState(isPlaying: false);
 
 					await Task.Delay(500);
 
@@ -270,7 +273,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					MainPage._instance?.AnimateTitle(startAnimation: true);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"pause_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
-					overlayGrid?.SetPlayingState(isPlaying: true);
+					_overlayGrid?.SetPlayingState(isPlaying: true);
 
 					if (!_isRainbowActive)
 					{
@@ -305,6 +308,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 			// Drive the smooth control — it advances itself between these ticks
 			ProgressBar?.SyncPosition(seconds);
 			TaskbarHelper.SetProgressValue(App.Hwnd, seconds / DurationOfSong * 100, 100);
+			_overlayGrid?.UpdateProgress(seconds / DurationOfSong);
 		});
 	}
 
@@ -507,6 +511,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
 		ToolTipTextShuffleButton = IsShuffleToggled ? "Shuffle On" : "Shuffle Off";
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShuffleStatus)] = IsShuffleToggled;
+
+		if (_overlayGrid is not null && _overlayGrid is QueuePreviewOverlay)
+			CurrentSongInfoForUpdateOverlay();
+
 	}
 
 	/// <summary>
@@ -551,6 +559,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 				break;
 		}
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RepeatStatus)] = _musicPlayer.RepeatStatus.ToString();
+
+		if (_overlayGrid is not null && _overlayGrid is QueuePreviewOverlay)
+			CurrentSongInfoForUpdateOverlay();
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -592,6 +603,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 			if (track != null)
 			{
 				DurationOfSong = double.Parse(track.Duration.ToString());
+
+				isUpdatingProgressBar = true;
+				ProgressBarValue = _startupPosition > 0 ? _startupPosition : 0;
+				isUpdatingProgressBar = false;
+
 				ProgressBar?.NotifyTrackChanged(DurationOfSong);
 				if (_musicPlayer.IsPlaying)
 					ProgressBar?.NotifyPlaying();
@@ -718,50 +734,140 @@ public partial class MusicControlViewModel : ObservableRecipient
 	//  Taskbar Overlay
 	// ─────────────────────────────────────────────────────────
 
-	private async void SetupTaskbarOverlay()
+	public async void SetupTaskbarOverlay()
+	{
+		var theme = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL";
+
+		_uiSettings.ColorValuesChanged -= _uiSettings_ColorValuesChanged;
+
+		switch (theme)
+		{
+			case "LightTBOL":
+				OverlayGridCreation(OverlayTheme.Light);
+				break;
+
+			case "DarkTBOL":
+				OverlayGridCreation(OverlayTheme.Dark);
+				break;
+
+			default:
+			case "DefaultTBOL":
+				_uiSettings.ColorValuesChanged += _uiSettings_ColorValuesChanged;
+				_uiSettings_ColorValuesChanged(_uiSettings, null);
+				return;
+		}
+
+		SetContentAndUpdateLayoutWithData();
+	}
+
+	private void _uiSettings_ColorValuesChanged(UISettings sender, object? args)
+	{
+		_dispatcherQueue.TryEnqueue(() =>
+		{
+			bool isDark = sender.GetColorValue(UIColorType.Background) == Windows.UI.Color.FromArgb(255, 0, 0, 0);
+			OverlayGridCreation(isDark ? OverlayTheme.Dark : OverlayTheme.Light);
+			SetContentAndUpdateLayoutWithData();
+		});
+	}
+
+	private void OverlayGridCreation(OverlayTheme actualTheme)
+	{
+		var overlay = OverlayLayoutCatalog.All.FirstOrDefault(item => item.DisplayName == (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"))?.Layout;
+		_overlayGrid = OverlayFactory.Create(overlay, actualTheme);
+
+		if (_overlayGrid.RootGrid is not null)
+		{
+			_overlayGrid.PlayPauseButton?.Click += async (_, _) => await TogglePlayPause();
+			_overlayGrid.PreviousButton?.Click += (_, _) => PreviousSong();
+			_overlayGrid.NextButton?.Click += (_, _) => NextSong();
+		}
+	}
+
+	public async void CurrentSongInfoForUpdateOverlay()
 	{
 		var song = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
 		if (string.IsNullOrEmpty(song)) return;
 
 		var track = await DatabaseHelper.Instance.GetSongByPath(song);
 		if (track is not null)
-		{
-			overlayGrid = OverlayFactory.Create(OverlayLayout.CompactPill, OverlayTheme.Dark);
+			UpdateInfoOnTaskbarOverlay(track);
+	}
 
-			if (overlayGrid.RootGrid is not null)
-			{
-				UpdateInfoOnTaskbarOverlay(track);
+	private void SetContentAndUpdateLayoutWithData()
+	{
+		if (_overlayGrid is not null && _overlayGrid.RootGrid is not null)
+			TaskbarOverlayManager.SetContent(_overlayGrid.RootGrid);
 
-				overlayGrid.PlayPauseButton?.Click += async (_, _) => await TogglePlayPause();
-				overlayGrid.PreviousButton?.Click += (_, _) => PreviousSong();
-				overlayGrid.NextButton?.Click += (_, _) => NextSong();
-				TaskbarOverlayManager.SetContent(overlayGrid.RootGrid);
-			}
-		}
+		CurrentSongInfoForUpdateOverlay();
 	}
 
 	private async void UpdateInfoOnTaskbarOverlay(Song track)
 	{
-		if (overlayGrid is null) return;
+		if (_overlayGrid is null) return;
 
-		BitmapImage? albumArt = null;
-		try
-		{
-			StorageFile file = await StorageFile.GetFileFromPathAsync(track.Cover);
-			using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
-			albumArt = new BitmapImage();
-			await albumArt.SetSourceAsync(stream);
-		}
-		catch (Exception)
-		{
-			albumArt = null;
-		}
+		var albumArt = await GetAlbumArt(track.Cover);
 
-		switch (overlayGrid)
+		switch (_overlayGrid)
 		{
-			case CompactPillOverlay cpo:
-				cpo.UpdateTrack(track.Title, track.Artists, albumArt);
+			case CompactPillOverlay:
+			case HoverRevealOverlay:
+			case RightDockOverlay:
+			case FullArtBarOverlay:
+			case CenteredPillOverlay:
+			case TopAccentStripeOverlay:
+			case BottomAccentStripeOverlay:
+			case ArcRingOverlay:
+			case IconStripOverlay:
+				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, albumArt);
 				break;
+
+			case TextOnlyOverlay:
+			case TextOnlyReversedOverlay:
+			case MarqueeTickerOverlay:
+				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album);
+				break;
+
+			case QueuePreviewOverlay qpo:
+				var nextSongs = await _musicPlayer.GetUpcomingSongs();
+
+				BitmapImage? nextSongArt1 = null, nextSongArt2 = null;
+
+				if (nextSongs is not null && nextSongs.Count > 0)
+				{
+					nextSongArt1 = await GetAlbumArt(nextSongs[0].Cover);
+
+					if (nextSongs.Count > 1)
+						nextSongArt2 = await GetAlbumArt(nextSongs[1].Cover);
+				}
+
+				qpo.UpdateTrack(track.Title, track.Artists, track.Album, albumArt, nextSongArt1, nextSongArt2);
+				break;
+
+			case AccentAncientScrollOverlay:
+			case AlbumTintOverlay:
+			case TopAlbumAccentStripeOverlay:
+			case AlbumTintProgressOverlay:
+				((dynamic)_overlayGrid).UpdateTrack(track.Title, track.Artists, track.Album, track.Cover);
+				break;
+		}
+		_overlayGrid.UpdateProgress(ProgressBarValue / DurationOfSong);
+
+		static async Task<BitmapImage?> GetAlbumArt(string coverArt)
+		{
+			BitmapImage? albumArt = null;
+			try
+			{
+				StorageFile file = await StorageFile.GetFileFromPathAsync(coverArt);
+				using IRandomAccessStream stream = await file.OpenAsync(FileAccessMode.Read);
+				albumArt = new BitmapImage();
+				await albumArt.SetSourceAsync(stream);
+			}
+			catch (Exception)
+			{
+				albumArt = null;
+			}
+
+			return albumArt;
 		}
 	}
 }

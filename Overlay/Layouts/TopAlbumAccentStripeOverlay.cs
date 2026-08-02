@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.Foundation;
 using Windows.Storage;
@@ -10,27 +11,25 @@ using ColorHelper = Tunetastic.Common.Helpers.ColorHelper;
 namespace Tunetastic.Overlay.Layouts;
 
 // ══════════════════════════════════════════════════════════════════════
-// ALBUM TINT
-// Background and border tint adapts to the album's colours.
+// TOP ALBUM ACCENT STRIPE
+// 3px progress stripe along the TOP edge · art + title + artist + controls
 // ══════════════════════════════════════════════════════════════════════
-public class AlbumTintOverlay : OverlayBase
+public class TopAlbumAccentStripeOverlay : OverlayBase
 {
 	private TextBlock? _titleText;
 	private TextBlock? _artistText;
-	private Rectangle? _divider;
-	private Button? _prevButton;
-	private Button? _nextButton;
-	private Button? _playPauseButton;
 	private Border? _artBox;
 	private Image? _artImage;
-	private Border? _pill;
+	private Rectangle? _stripeFill;
 	private TextBlock? _toolTipText;
+	private double _stripeContainerWidth = 0;
+
 	private ColorAnalyzer? _colorAnalyzer;
 	private AccentColorAnalyzer? _accentColorAnalyzer;
 	private BaseColorAnalyzer? _baseColorAnalyzer;
 	private ColorWeightAnalyzer? _colorWeightAnalyzer;
 
-	public AlbumTintOverlay(OverlayTheme theme)
+	public TopAlbumAccentStripeOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
@@ -41,42 +40,72 @@ public class AlbumTintOverlay : OverlayBase
 		var root = new Grid
 		{
 			HorizontalAlignment = HorizontalAlignment.Left,
-			VerticalAlignment = VerticalAlignment.Center,
 		};
 
-		_pill = new Border
+		// Outer border with no padding (stripe bleeds to edge)
+		var outer = new Border
 		{
-			Height = 45,
 			CornerRadius = new CornerRadius(8),
+			Background = new SolidColorBrush(Surface),
+			BorderBrush = new SolidColorBrush(Border),
 			BorderThickness = new Thickness(0.5),
-			VerticalAlignment = VerticalAlignment.Center,
-			Padding = new Thickness(6, 0, 10, 0),
 		};
 
-		// Set default gradient (purple)
-		ApplyPillGradient(AccentBlue, AccentPink);
+		var rootStack = new Grid();
+		rootStack.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3) });
+		rootStack.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-		// --- inner grid: replaces the horizontal StackPanel ---
-		var inner = new Grid
+		// Stripe row
+		var stripeGrid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
+		var stripeTrack = new Rectangle
+		{
+			Fill = new SolidColorBrush(ProgressTrack),
+			RadiusX = 2, RadiusY = 2,
+			HorizontalAlignment = HorizontalAlignment.Stretch,
+			Height = 3,
+		};
+		_stripeFill = new Rectangle
+		{
+			RadiusX = 2, RadiusY = 2,
+			Width = 0,
+			Height = 3,
+			HorizontalAlignment = HorizontalAlignment.Left,
+		};
+
+		// Default gradient (matches AlbumTintOverlay's default) until album art loads
+		ApplyStripeGradient(AccentBlue, AccentPink);
+
+		stripeGrid.Children.Add(stripeTrack);
+		stripeGrid.Children.Add(_stripeFill);
+		Grid.SetRow(stripeGrid, 0);
+
+		// Register for size change so we can compute stripe fill width
+		stripeGrid.SizeChanged += (s, e) =>
+		{
+			_stripeContainerWidth = e.NewSize.Width;
+		};
+
+		// Content row
+		var content = new Grid
 		{
 			VerticalAlignment = VerticalAlignment.Center,
-			ColumnSpacing = 6,
+			ColumnSpacing = 2,
+			Padding = new Thickness(6, 0, 10, 0),
 			ColumnDefinitions =
 			{
-				new ColumnDefinition { Width = GridLength.Auto }, // art box
-				new ColumnDefinition { Width = new GridLength(100) }, // title/artist
-				new ColumnDefinition { Width = GridLength.Auto }, // divider
-				new ColumnDefinition { Width = GridLength.Auto }, // prev
-				new ColumnDefinition { Width = GridLength.Auto }, // play/pause
-				new ColumnDefinition { Width = GridLength.Auto }, // next
+				new ColumnDefinition { Width = GridLength.Auto },	  // art
+				new ColumnDefinition { Width = new GridLength(100) }, // info
+				new ColumnDefinition { Width = GridLength.Auto },	  // divider
+				new ColumnDefinition { Width = GridLength.Auto },	  // prev
+				new ColumnDefinition { Width = GridLength.Auto },	  // play/pause
+				new ColumnDefinition { Width = GridLength.Auto },	  // next
 			},
 		};
 
-		_artBox = MakeArtBox(26, 5, AccentPurple);
+		_artBox = MakeArtBox(26, 6, AccentTeal);
 		Grid.SetColumn(_artBox, 0);
-		inner.Children.Add(_artBox);
+		content.Children.Add(_artBox);
 
-		// --- info grid: replaces the vertical StackPanel ---
 		var info = new Grid
 		{
 			RowSpacing = 2,
@@ -85,49 +114,49 @@ public class AlbumTintOverlay : OverlayBase
 				new RowDefinition { Height = GridLength.Auto },
 				new RowDefinition { Height = GridLength.Auto },
 			},
+			Margin = new Thickness(3, 0, 0, 0),
 		};
-
 		_titleText = MakeTitleText();
-		_artistText = MakeSubText();
-
 		Grid.SetRow(_titleText, 0);
-		Grid.SetRow(_artistText, 1);
 		info.Children.Add(_titleText);
+
+		_artistText = MakeSubText();
+		Grid.SetRow(_artistText, 1);
 		info.Children.Add(_artistText);
 
 		Grid.SetColumn(info, 1);
-		inner.Children.Add(info);
+		content.Children.Add(info);
 
-		_divider = MakeDivider();
-		Grid.SetColumn(_divider, 2);
-		inner.Children.Add(_divider);
+		var divider = MakeDivider();
+		Grid.SetColumn(divider, 2);
+		content.Children.Add(divider);
 
-		_prevButton = MakePrevButton();
-		Grid.SetColumn(_prevButton, 3);
-		inner.Children.Add(_prevButton);
+		var prevButton = MakePrevButton();
+		Grid.SetColumn(prevButton, 3);
+		content.Children.Add(prevButton);
 
-		_playPauseButton = MakePlayPauseButton(16);
-		Grid.SetColumn(_playPauseButton, 4);
-		inner.Children.Add(_playPauseButton);
+		var playPauseButton = MakePlayPauseButton(16);
+		Grid.SetColumn(playPauseButton, 4);
+		content.Children.Add(playPauseButton);
 
-		_nextButton = MakeNextButton();
-		Grid.SetColumn(_nextButton, 5);
-		inner.Children.Add(_nextButton);
+		var nextButton = MakeNextButton();
+		Grid.SetColumn(nextButton, 5);
+		content.Children.Add(nextButton);
 
-		_pill.Child = inner;
-		root.Children.Add(_pill);
+		Grid.SetRow(content, 1);
 
-		_artImage = new Image
-		{
-			Stretch = Stretch.UniformToFill,
-		};
+		rootStack.Children.Add(stripeGrid);
+		rootStack.Children.Add(content);
+		outer.Child = rootStack;
+		root.Children.Add(outer);
+
+		// --- persistent art image + color analyzer chain ---
+		_artImage = new Image { Stretch = Stretch.UniformToFill };
 		_artBox.Background = null;
 		_artBox.Child = _artImage;
 		_artImage.ImageOpened += CoverArtImage_Opened;
 
-		_colorAnalyzer = new ColorAnalyzer();
-		_colorAnalyzer.Source = _artImage;
-
+		_colorAnalyzer = new ColorAnalyzer { Source = _artImage };
 		_accentColorAnalyzer = new AccentColorAnalyzer() { MinColorCount = 3 };
 		_baseColorAnalyzer = new BaseColorAnalyzer() { MinColorCount = 3 };
 		_colorWeightAnalyzer = new ColorWeightAnalyzer() { MinColorCount = 3 };
@@ -149,12 +178,12 @@ public class AlbumTintOverlay : OverlayBase
 		return root;
 	}
 
-	private void ApplyPillGradient(Color color1, Color color2)
+	private void ApplyStripeGradient(Color color1, Color color2)
 	{
 		var gradientBrush = new LinearGradientBrush
 		{
 			StartPoint = new Point(0, 0),
-			EndPoint = new Point(1, 1),
+			EndPoint = new Point(1, 0), // horizontal, matches the stripe's direction
 			GradientStops =
 			{
 				new GradientStop { Color = color1, Offset = 0.0 },
@@ -162,66 +191,51 @@ public class AlbumTintOverlay : OverlayBase
 			}
 		};
 
-		_pill?.Background = gradientBrush;
+		_stripeFill?.Fill = gradientBrush;
 	}
 
 	private async void CoverArtImage_Opened(object sender, RoutedEventArgs e)
 	{
-		if (_colorAnalyzer != null)
+		if (_colorAnalyzer is null) return;
+
+		await _colorAnalyzer.UpdateAnalyzerAsync();
+		await Task.Delay(10);
+
+		Color accentColor1, accentColor2;
+		if (_accentColorAnalyzer?.SelectedColors != null && _baseColorAnalyzer?.SelectedColors != null && _colorWeightAnalyzer?.SelectedColors != null)
 		{
-			await _colorAnalyzer.UpdateAnalyzerAsync();
-			await Task.Delay(10);
+			accentColor1 = _accentColorAnalyzer.SelectedColors[0];
 
-			Color accentColor1, accentColor2;
-			if (_accentColorAnalyzer != null && _accentColorAnalyzer?.SelectedColors != null && _baseColorAnalyzer != null && _baseColorAnalyzer?.SelectedColors != null && _colorWeightAnalyzer != null && _colorWeightAnalyzer?.SelectedColors != null)
+			var candidates = new[]
 			{
-				accentColor1 = _accentColorAnalyzer.SelectedColors[0];
+				_colorWeightAnalyzer.SelectedColors[0],
+				_colorWeightAnalyzer.SelectedColors[1],
+				_accentColorAnalyzer.SelectedColors[1],
+				_colorWeightAnalyzer.SelectedColors[2],
+				_accentColorAnalyzer.SelectedColors[2],
+				_baseColorAnalyzer.SelectedColors[1],
+				_baseColorAnalyzer.SelectedColors[2],
+			};
 
-				var candidates = new[]
-				{
-						_colorWeightAnalyzer.SelectedColors[0],
-						_colorWeightAnalyzer.SelectedColors[1],
-						_accentColorAnalyzer.SelectedColors[1],
-						_colorWeightAnalyzer.SelectedColors[2],
-						_accentColorAnalyzer.SelectedColors[2],
-						_baseColorAnalyzer.SelectedColors[1],
-						_baseColorAnalyzer.SelectedColors[2],
-					};
-
-				int index = Array.FindIndex(candidates, c => !ColorHelper.AreColorsTooSimilar(accentColor1, c, 40));
-				accentColor2 = index >= 0 ? candidates[index] : candidates[^1];
-			}
-			else
-			{
-				accentColor1 = accentColor2 = Surface;
-			}
-
-			ApplyPillGradient(accentColor1, accentColor2);
-
-			var bgColor1 = ColorHelper.IsItDarkOrLight(accentColor1);
-			var bgColor2 = ColorHelper.IsItDarkOrLight(accentColor2);
-
-			_titleText?.Foreground = new SolidColorBrush(bgColor1 == OverlayTheme.Dark ? DarkText : LightText);
-			_artistText?.Foreground = new SolidColorBrush(bgColor1 == OverlayTheme.Dark ? DarkSubText : LightSubText);
-
-			var buttonColor = bgColor2 == OverlayTheme.Dark ? Color.FromArgb(153, 255, 255, 255) : Color.FromArgb(153, 0, 0, 0);
-
-			if (_prevButton?.Content is FontIcon icon1)
-				icon1.Foreground = new SolidColorBrush(buttonColor);
-
-			if (_playPauseButton?.Content is FontIcon icon)
-				icon.Foreground = new SolidColorBrush(buttonColor);
-
-			if (_nextButton?.Content is FontIcon icon2)
-				icon2.Foreground = new SolidColorBrush(buttonColor);
+			int index = Array.FindIndex(candidates, c => !ColorHelper.AreColorsTooSimilar(accentColor1, c, 40));
+			accentColor2 = index >= 0 ? candidates[index] : candidates[^1];
 		}
+		else
+		{
+			accentColor1 = accentColor2 = Surface;
+		}
+
+		ApplyStripeGradient(accentColor1, accentColor2);
+	}
+
+	public override void UpdateProgress(double value)
+	{
+		value = Math.Clamp(value, 0, 1);
+		_stripeFill?.Width = _stripeContainerWidth * value;
 	}
 
 	public async void UpdateTrack(string title, string artist, string album, string art)
 	{
-		_titleText?.Text = title ?? string.Empty;
-		_artistText?.Text = artist ?? string.Empty;
-
 		try
 		{
 			StorageFile file = await StorageFile.GetFileFromPathAsync(art);
