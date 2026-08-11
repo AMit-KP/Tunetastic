@@ -14,12 +14,20 @@ public class CenteredPillOverlay : OverlayBase
 	private Border? _artBox;
 	private TextBlock? _toolTipText;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CenteredPillOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public CenteredPillOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the visual structure of the overlay.
+	/// </summary>
+	/// <returns>A Grid element representing the built overlay.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -104,6 +112,13 @@ public class CenteredPillOverlay : OverlayBase
 		return root;
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">The title of the track.</param>
+	/// <param name="artist">The artist of the track.</param>
+	/// <param name="album">The album of the track.</param>
+	/// <param name="art">Optional bitmap image for the track art.</param>
 	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -118,6 +133,12 @@ public class CenteredPillOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with the provided track information.
+	/// </summary>
+	/// <param name="title">The title of the track.</param>
+	/// <param name="artist">The artist of the track.</param>
+	/// <param name="album">The album of the track.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

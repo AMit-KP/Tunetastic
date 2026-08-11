@@ -48,12 +48,20 @@ public class AlbumTintProgressOverlay : OverlayBase
 	private Border? _nextPillBorder;
 	private Brush? _chipBrush;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AlbumTintProgressOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public AlbumTintProgressOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the visual structure of the album tint progress overlay.
+	/// </summary>
+	/// <returns>A Grid representing the overlay structure.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -247,6 +255,9 @@ public class AlbumTintProgressOverlay : OverlayBase
 		return root;
 	}
 
+	/// <summary>
+	/// Resets the background to default colors and clears progress.
+	/// </summary>
 	private void ResetToDefaultBackground()
 	{
 		_gradientLayer?.Background = new SolidColorBrush(Surface);
@@ -257,6 +268,10 @@ public class AlbumTintProgressOverlay : OverlayBase
 		SetGradientReveal(0);
 	}
 
+	/// <summary>
+	/// Sets the gradient reveal effect based on the specified progress value.
+	/// </summary>
+	/// <param name="value">The progress value between 0 and 1.</param>
 	private void SetGradientReveal(double value)
 	{
 		if (_gradientClip is null || _pill is null) return;
@@ -271,6 +286,11 @@ public class AlbumTintProgressOverlay : OverlayBase
 		RefreshChipReveal();
 	}
 
+	/// <summary>
+	/// Applies a gradient background using the specified colors.
+	/// </summary>
+	/// <param name="color1">The first color for the gradient.</param>
+	/// <param name="color2">The second color for the gradient.</param>
 	private void ApplyGradient(Color color1, Color color2)
 	{
 		var gradientBrush = new LinearGradientBrush
@@ -287,6 +307,11 @@ public class AlbumTintProgressOverlay : OverlayBase
 		_gradientLayer?.Background = gradientBrush;
 	}
 
+	/// <summary>
+	/// Handles the image opened event for cover art, analyzing colors and updating the overlay appearance.
+	/// </summary>
+	/// <param name="sender">The event sender.</param>
+	/// <param name="e">The event arguments.</param>
 	private async void CoverArtImage_Opened(object sender, RoutedEventArgs e)
 	{
 		if (_colorAnalyzer is null) return;
@@ -322,6 +347,13 @@ public class AlbumTintProgressOverlay : OverlayBase
 		SetGradientReveal(_lastProgress);
 	}
 
+	/// <summary>
+	/// Creates a revealing chip UI element with background and content.
+	/// </summary>
+	/// <param name="content">The content to display within the chip.</param>
+	/// <param name="bgTemplate">The background template for the chip.</param>
+	/// <param name="backgroundLayer">The background layer of the chip.</param>
+	/// <returns>A Grid representing the revealing chip.</returns>
 	private Grid CreateRevealingChip(UIElement content, Border bgTemplate, out Border backgroundLayer)
 	{
 		var chipGrid = new Grid
@@ -354,6 +386,9 @@ public class AlbumTintProgressOverlay : OverlayBase
 		return chipGrid;
 	}
 
+	/// <summary>
+	/// Refreshes the reveal state of all chips based on current gradient progress.
+	/// </summary>
 	private void RefreshChipReveal()
 	{
 		if (_pill is null || _gradientClip is null) return;
@@ -367,6 +402,11 @@ public class AlbumTintProgressOverlay : OverlayBase
 		SetChipRevealed(_nextPillBorder, revealedWidth);
 	}
 
+	/// <summary>
+	/// Sets the revealed state of a chip based on the specified revealed width.
+	/// </summary>
+	/// <param name="chip">The chip to update.</param>
+	/// <param name="revealedWidth">The width that should be revealed.</param>
 	private void SetChipRevealed(Border? chip, double revealedWidth)
 	{
 		if (chip is null || _pill is null) return;
@@ -402,6 +442,7 @@ public class AlbumTintProgressOverlay : OverlayBase
 		clip.Rect = new Rect(0, 0, localReveal, chipHeight);
 	}
 
+	/// <inheritdoc/>
 	public override void UpdateProgress(double value)
 	{
 		value = Math.Clamp(value, 0, 1);
@@ -409,6 +450,13 @@ public class AlbumTintProgressOverlay : OverlayBase
 		SetGradientReveal(value);
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
+	/// <param name="art">The path to the album art image.</param>
 	public async void UpdateTrack(string title, string artist, string album, string art)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -432,6 +480,12 @@ public class AlbumTintProgressOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

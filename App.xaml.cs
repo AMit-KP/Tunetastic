@@ -5,18 +5,59 @@ namespace Tunetastic;
 
 public partial class App : Application
 {
+	/// <summary>
+	/// Gets the current application instance.
+	/// </summary>
 	public new static App Current => (App)Application.Current;
+
+	/// <summary>
+	/// Gets or sets the main window of the application.
+	/// </summary>
 	public static Window MainWindow = null!;
+
+	/// <summary>
+	/// Gets the window handle (HWND) of the main window.
+	/// </summary>
 	public static IntPtr Hwnd => WinRT.Interop.WindowNative.GetWindowHandle(MainWindow);
+
+	/// <summary>
+	/// Gets the service provider for dependency injection.
+	/// </summary>
 	public IServiceProvider Services { get; }
+
+	/// <summary>
+	/// Gets the JSON navigation service for page navigation.
+	/// </summary>
 	public IJsonNavigationService NavService => GetService<IJsonNavigationService>();
+
+	/// <summary>
+	/// Gets the theme service for UI theming.
+	/// </summary>
 	public IThemeService ThemeService => GetService<IThemeService>();
+
+	/// <summary>
+	/// Gets the rainbow frame service for visual effects.
+	/// </summary>
 	public IRainbowFrame RainbowFrame => GetService<IRainbowFrame>();
 
+	/// <summary>
+	/// Gets or sets the system tray icon for the application.
+	/// </summary>
 	public static SystemTrayIcon? TrayIcon { get; set; }
 
+	/// <summary>
+	/// Gets the audio service for media playback control.
+	/// </summary>
 	public AudioService AudioService { get; private set; } = null!;
 
+	/// <summary>
+	/// Retrieves a service of type <typeparamref name="T"/> from the application's service container.
+	/// </summary>
+	/// <typeparam name="T">The type of service to retrieve.</typeparam>
+	/// <returns>An instance of the requested service type.</returns>
+	/// <exception cref="ArgumentException">
+	/// Thrown when the requested service type <typeparamref name="T"/> is not registered in the service container.
+	/// </exception>
 	public static T GetService<T>() where T : class
 	{
 		if ((App.Current as App)!.Services.GetService(typeof(T)) is not T service)
@@ -27,6 +68,10 @@ public partial class App : Application
 		return service;
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="App"/> class.
+	/// Sets up dependency injection services and initializes profiling.
+	/// </summary>
 	public App()
 	{
 		Services = ConfigureServices();
@@ -37,6 +82,10 @@ public partial class App : Application
 		System.Runtime.ProfileOptimization.StartProfile("Startup.Profile");
 	}
 
+	/// <summary>
+	/// Configures the dependency injection services for the application.
+	/// </summary>
+	/// <returns>The configured service provider.</returns>
 	private static IServiceProvider ConfigureServices()
 	{
 		var services = new ServiceCollection();
@@ -174,4 +223,3 @@ public partial class App : Application
 		}
 	}
 }
-

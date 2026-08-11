@@ -18,12 +18,20 @@ public class BottomAccentStripeOverlay : OverlayBase
 	private TextBlock? _toolTipText;
 	private double _stripeContainerWidth = 0;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="BottomAccentStripeOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public BottomAccentStripeOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the visual structure of the bottom accent stripe overlay.
+	/// </summary>
+	/// <returns>A Grid representing the overlay structure.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -145,12 +153,20 @@ public class BottomAccentStripeOverlay : OverlayBase
 		return root;
 	}
 
+	/// <inheritdoc/>
 	public override void UpdateProgress(double value)
 	{
 		value = Math.Clamp(value, 0, 1);
 		_stripeFill?.Width = _stripeContainerWidth * value;
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
+	/// <param name="art">The bitmap image for the album art (optional).</param>
 	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -164,6 +180,12 @@ public class BottomAccentStripeOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

@@ -28,113 +28,144 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// <pre>
-	/// Initializes the database by creating all required SQLite tables if they do not already exist.
-	/// The following tables are created, each with their purpose and column details:
-	/// <br/>
-	/// <br/>
-	/// <b>Library</b>: Stores user-added music library locations.<br/>
-	///   Columns:<br/>
-	///     - Name (TEXT, NOT NULL): The display name of the library.<br/>
-	///     - Path (TEXT, NOT NULL, COLLATE NOCASE, UNIQUE): The file system path to the library. Uniqueness ensures no duplicate libraries.<br/>
-	/// <br/>
-	/// <b>MusicFormats</b>: Stores supported music file formats.<br/>
-	///   Columns:<br/>
-	///     - Extension (TEXT, PRIMARY KEY, COLLATE NOCASE): File extension, unique and case-insensitive.<br/>
-	///     - Description (TEXT, NOT NULL): Description of the format.<br/>
-	///     - Enabled (INTEGER, NOT NULL): Indicates if the format is enabled (1) or not (0).<br/>
-	/// <br/>
-	/// <b>Songs</b>: Stores metadata for each song.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique song ID.<br/>
-	///     - Path (TEXT, UNIQUE): Unique file path for the song.<br/>
-	///     - Title (TEXT): Song title.<br/>
-	///     - Artists (TEXT): Raw artist string.<br/>
-	///     - Album (TEXT): Album name.<br/>
-	///     - Genre (TEXT): Genre name.<br/>
-	///     - Year (TEXT): Year of release.<br/>
-	///     - PlayCount (INTEGER): Number of times played.<br/>
-	///     - Cover (TEXT): Path or URI to cover image.<br/>
-	///     - Duration (REAL): Song duration in seconds.<br/>
-	///     - DateAdded (DATETIME): When the song was added.<br/>
-	///     - DateLastPlayed (DATETIME, DEFAULT NULL): Last played timestamp.<br/>
-	///     - Extension (TEXT): File extension.<br/>
-	///     - AudioBitrate (TEXT, DEFAULT NULL): Audio bitrate information.<br/>
-	///     - AudioChannels (TEXT, DEFAULT NULL): Audio channels information.<br/>
-	///     - AudioSampleRate (TEXT, DEFAULT NULL): Audio sample rate information.<br/>
-	///     - AudioDescription (TEXT, DEFAULT NULL): Audio description information.<br/>
-	///     - FileSize (TEXT): File size information.<br/>
-	///     - Lyrics (TEXT, DEFAULT NULL): Song Lyrics.<br/>
-	///     - PlayerType (TEXT, DEFAULT NULL): Player type information.<br/>
-	/// <br/>
-	/// <b>Playlists</b>: Stores user playlists.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique playlist ID.<br/>
-	///     - Name (TEXT): Playlist name.<br/>
-	/// <br/>
-	/// <b>PlaylistSongs</b>: Maps songs to playlists and their order.<br/>
-	///   Columns:<br/>
-	///     - PlaylistId (INTEGER): Foreign key to Playlists.Id.<br/>
-	///     - SongPath (TEXT): Foreign key to Songs.Path.<br/>
-	///     - Position (INTEGER, DEFAULT 0): Order of the song in the playlist.<br/>
-	///   Primary key is (PlaylistId, SongPath). Foreign keys ensure referential integrity and cascade deletes.<br/>
-	/// <br/>
-	/// <b>QueuedPlayingList</b>: Stores the current play queue.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique queue entry ID.<br/>
-	///     - Path (TEXT, NOT NULL): Foreign key to Songs.Path.<br/>
-	///     - Position (INTEGER): Order in the queue.<br/>
-	///   Foreign key ensures only valid songs are queued and cascades on delete.<br/>
-	/// <br/>
-	/// <b>Artists</b>: Stores unique artist metadata.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique artist ID.<br/>
-	///     - Name (TEXT, NOT NULL, COLLATE NOCASE, UNIQUE): Artist name, unique and case-insensitive.<br/>
-	///     - ArtistImage (TEXT): Path or URI to artist image.<br/>
-	///     - ArtistDescription (TEXT): Artist description.<br/>
-	/// <br/>
-	/// <b>SongArtists</b>: Maps songs to artists.<br/>
-	///   Columns:<br/>
-	///     - SongPath (TEXT, NOT NULL): Foreign key to Songs.Path.<br/>
-	///     - ArtistId (INTEGER, NOT NULL): Foreign key to Artists.Id.<br/>
-	///   Primary key is (SongPath, ArtistId). Foreign keys ensure referential integrity and cascade deletes.<br/>
-	///   Indexes on ArtistId and SongPath for efficient lookups.<br/>
-	/// <br/>
-	/// <b>ArtistSplitRules</b>: Stores rules for splitting or preserving artist names.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique rule ID.<br/>
-	///     - Type (TEXT, NOT NULL, CHECK IN ('Splitter','Exception')): Rule type.<br/>
-	///     - Pattern (TEXT, NOT NULL): Pattern to match.<br/>
-	///     - IsRegex (INTEGER, NOT NULL, DEFAULT 0): Whether the pattern is a regex.<br/>
-	///     - Active (INTEGER, NOT NULL, DEFAULT 1): Whether the rule is active.<br/>
-	///     - IsBuiltIn (INTEGER, NOT NULL, DEFAULT 0): Whether the rule is built-in.<br/>
-	///   Unique constraint on (Type, Pattern, IsRegex). Index on (Active, Type) for fast filtering.<br/>
-	/// <br/>
-	/// <b>PendingTagWrites</b>: Stores deferred tag write entries for files that were in use during editing.<br/>
-	///   Columns:<br/>
-	///     - Path (TEXT, PRIMARY KEY): Foreign key to Songs.Path. Unique file path of the song.<br/>
-	///   Foreign key ensures referential integrity and cascade deletes when a song is removed.<br/>
-	/// <br/>
-	/// <b>SongFTS</b>: Virtual FTS5 table for full-text search across song metadata.<br/>
-	///   Columns:<br/>
-	///     - Title (TEXT): Song title for searching.<br/>
-	///     - Album (TEXT): Album name for searching.<br/>
-	///     - Genre (TEXT): Genre for searching.<br/>
-	///     - Year (TEXT): Release year for searching.<br/>
-	///     - Artists (TEXT): Artists for searching.<br/>
-	///     - Path (TEXT, UNINDEXED): Song path reference.<br/>
-	///   Uses unicode61 tokenizer for better search capabilities.<br/>
-	/// <br/>
-	/// <b>ArtistFTS</b>: Virtual FTS5 table for full-text search across artist names.<br/>
-	///   Columns:<br/>
-	///     - Name (TEXT): Artist name for searching.<br/>
-	///   Uses unicode61 tokenizer for better search capabilities.<br/>
-	/// The database is located in the application's local storage folder.
-	/// </pre>
+	/// Opens (or creates) the app's local SQLite database and ensures the full schema exists.
+	/// Creates the following tables:
+	/// <list type="bullet">
+	/// <item>
+	/// <description><c>Library</c>
+	/// <list type="bullet">
+	/// <item><description><c>Name</c> (TEXT, NOT NULL) — Display name for the library entry.</description></item>
+	/// <item><description><c>Path</c> (TEXT, NOT NULL, UNIQUE, COLLATE NOCASE) — Filesystem path to the library root.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>MusicFormats</c>
+	/// <list type="bullet">
+	/// <item><description><c>Extension</c> (TEXT, PRIMARY KEY, COLLATE NOCASE) — File extension, e.g. mp3, flac.</description></item>
+	/// <item><description><c>Description</c> (TEXT, NOT NULL) — Human-readable format name.</description></item>
+	/// <item><description><c>Enabled</c> (INTEGER, NOT NULL) — 0/1 flag for whether this format is scanned.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>Songs</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Path</c> (TEXT, UNIQUE) — Filesystem path to the audio file.</description></item>
+	/// <item><description><c>Title</c> (TEXT) — Track title.</description></item>
+	/// <item><description><c>Artists</c> (TEXT) — Raw/unsplit artist string as read from tags.</description></item>
+	/// <item><description><c>Album</c> (TEXT) — Album name.</description></item>
+	/// <item><description><c>Genre</c> (TEXT) — Genre tag.</description></item>
+	/// <item><description><c>Year</c> (TEXT) — Release year.</description></item>
+	/// <item><description><c>PlayCount</c> (INTEGER) — Number of times played.</description></item>
+	/// <item><description><c>Cover</c> (TEXT) — Path or reference to cached cover art.</description></item>
+	/// <item><description><c>Duration</c> (REAL) — Track length.</description></item>
+	/// <item><description><c>DateAdded</c> (DATETIME) — When the row was inserted.</description></item>
+	/// <item><description><c>DateLastPlayed</c> (DATETIME, DEFAULT NULL) — Last played timestamp.</description></item>
+	/// <item><description><c>Extension</c> (TEXT) — File extension.</description></item>
+	/// <item><description><c>AudioBitrate</c> (TEXT, DEFAULT NULL) — Bitrate metadata.</description></item>
+	/// <item><description><c>AudioChannels</c> (TEXT, DEFAULT NULL) — Channel count/layout metadata.</description></item>
+	/// <item><description><c>AudioSampleRate</c> (TEXT, DEFAULT NULL) — Sample rate metadata.</description></item>
+	/// <item><description><c>AudioCodecDescription</c> (TEXT, DEFAULT NULL) — Human-readable codec description.</description></item>
+	/// <item><description><c>FileSize</c> (TEXT) — File size.</description></item>
+	/// <item><description><c>Lyrics</c> (TEXT, DEFAULT NULL) — Cached lyrics text.</description></item>
+	/// <item><description><c>PlayerType</c> (TEXT, NOT NULL, DEFAULT 'Flyleaf') — Playback engine for this file.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>Playlists</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Name</c> (TEXT) — Playlist name.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>PlaylistSongs</c>
+	/// <list type="bullet">
+	/// <item><description><c>PlaylistId</c> (INTEGER, PK composite, FK → Playlists.Id ON DELETE CASCADE) — Owning playlist.</description></item>
+	/// <item><description><c>SongPath</c> (TEXT, PK composite, FK → Songs.Path ON DELETE CASCADE) — Referenced song.</description></item>
+	/// <item><description><c>Position</c> (INTEGER, DEFAULT 0) — Sort order within the playlist.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>QueuedPlayingList</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Path</c> (TEXT, NOT NULL, FK → Songs.Path ON DELETE CASCADE) — Queued song.</description></item>
+	/// <item><description><c>Position</c> (INTEGER) — Order within the queue.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>Artists</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Name</c> (TEXT, NOT NULL, UNIQUE, COLLATE NOCASE) — Artist name.</description></item>
+	/// <item><description><c>ArtistImage</c> (TEXT) — Path or reference to cached artist image.</description></item>
+	/// <item><description><c>ArtistDescription</c> (TEXT) — Bio/description text.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>SongArtists</c>
+	/// <list type="bullet">
+	/// <item><description><c>SongPath</c> (TEXT, PK composite, NOT NULL, FK → Songs.Path ON DELETE CASCADE) — Song side of the link.</description></item>
+	/// <item><description><c>ArtistId</c> (INTEGER, PK composite, NOT NULL, FK → Artists.Id ON DELETE CASCADE) — Artist side of the link.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>ArtistSplitRules</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Type</c> (TEXT, NOT NULL, CHECK IN 'Splitter'/'Exception') — Rule type.</description></item>
+	/// <item><description><c>Pattern</c> (TEXT, NOT NULL) — Literal string or regex pattern to match.</description></item>
+	/// <item><description><c>IsRegex</c> (INTEGER, NOT NULL, DEFAULT 0) — 0/1 whether Pattern is a regex.</description></item>
+	/// <item><description><c>Active</c> (INTEGER, NOT NULL, DEFAULT 1) — 0/1 whether the rule is enabled.</description></item>
+	/// <item><description><c>IsBuiltIn</c> (INTEGER, NOT NULL, DEFAULT 0) — 0/1 whether this is an app-shipped default rule.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>PendingTagWrites</c>
+	/// <list type="bullet">
+	/// <item><description><c>Path</c> (TEXT, PRIMARY KEY, FK → Songs.Path ON DELETE CASCADE) — Song with pending changes.</description></item>
+	/// <item><description><c>Cover</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for cover art.</description></item>
+	/// <item><description><c>Title</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for title.</description></item>
+	/// <item><description><c>Artist</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for artist.</description></item>
+	/// <item><description><c>Album</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for album.</description></item>
+	/// <item><description><c>Genre</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for genre.</description></item>
+	/// <item><description><c>Year</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for year.</description></item>
+	/// <item><description><c>Lyrics</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for lyrics.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>SongFTS</c> (FTS5 virtual table, content='Songs', content_rowid='Id')
+	/// <list type="bullet">
+	/// <item><description><c>Title</c> — Indexed, mirrors Songs.Title.</description></item>
+	/// <item><description><c>Album</c> — Indexed, mirrors Songs.Album.</description></item>
+	/// <item><description><c>Genre</c> — Indexed, mirrors Songs.Genre.</description></item>
+	/// <item><description><c>Year</c> — Indexed, mirrors Songs.Year.</description></item>
+	/// <item><description><c>Artists</c> — Indexed, mirrors Songs.Artists.</description></item>
+	/// <item><description><c>Path</c> — UNINDEXED, carried through for row identification.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>ArtistFTS</c> (FTS5 virtual table, content='Artists', content_rowid='Id')
+	/// <list type="bullet">
+	/// <item><description><c>Name</c> — Indexed, mirrors Artists.Name.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// </list>
 	/// </summary>
-	/// <returns>
-	/// A task that represents the asynchronous operation of initializing the database.
-	/// </returns>
+	/// <returns>A <see cref="Task"/> that completes once schema creation, migration, and seeding have finished.</returns>
 	public async Task InitializeDatabase()
 	{
 		var dbPath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tunetastic.db3");

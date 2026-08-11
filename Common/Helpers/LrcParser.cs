@@ -7,11 +7,29 @@ namespace Tunetastic.Common.Helpers;
 /// </summary>
 public static class LrcParser
 {
-	// Matches [mm:ss.xx] or [mm:ss.xxx] timestamps (2 or 3 decimal places, dot or colon separator)
+	/// <summary>
+	/// Matches [mm:ss.xx] or [mm:ss.xxx] timestamps with 2 or 3 decimal places, supporting both dot and colon separators.
+	/// </summary>
 	private static readonly Regex TimestampRegex = new(@"\[(\d{1,2}):(\d{2})[.:](\d{1,3})\]", RegexOptions.Compiled);
+
+	/// <summary>
+	/// Matches metadata lines such as [ar:Artist], [ti:Title], [al:Album], [by:Lyricist], [offset:Offset], [re:Revision], [ve:Version], [au:Author], [length:Length], [id:ID].
+	/// </summary>
 	private static readonly Regex MetadataLineRegex = new(@"^\[(ar|ti|al|by|offset|re|ve|au|length|id):", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+	/// <summary>
+	/// Matches karaoke word-by-word highlighting tags like &lt;mm:ss.xx&gt;.
+	/// </summary>
 	private static readonly Regex KaraokeTagRegex = new(@"<\d{1,2}:\d{2}[.:]\d{1,3}>", RegexOptions.Compiled);
+
+	/// <summary>
+	/// Matches offset metadata lines in the format [offset:±number].
+	/// </summary>
 	private static readonly Regex OffsetRegex = new(@"^\[offset:(-?\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+	/// <summary>
+	/// Matches synced lyric lines with timestamps to determine if content contains synced lyrics.
+	/// </summary>
 	private static readonly Regex SyncedLinePattern = new(@"^\[\d{1,2}:\d{2}([.:]\d{1,3})?\]", RegexOptions.Multiline | RegexOptions.Compiled);
 
 	/// <summary>
@@ -92,6 +110,11 @@ public static class LrcParser
 		return lines;
 	}
 
+	/// <summary>
+	/// Determines whether the provided lyrics content contains synced timestamps.
+	/// </summary>
+	/// <param name="lyrics">The lyrics string to check.</param>
+	/// <returns>True if the lyrics contain at least 2 synced timestamp lines; otherwise, false.</returns>
 	public static bool IsSyncedLyrics(string? lyrics)
 	{
 		if (string.IsNullOrWhiteSpace(lyrics))

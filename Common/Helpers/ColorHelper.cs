@@ -3,15 +3,30 @@
 namespace Tunetastic.Common.Helpers;
 
 
+/// <summary>
+/// Provides color manipulation and analysis utilities.
+/// </summary>
 public static class ColorHelper
 {
 	// ---------- Public API ----------
 
+	/// <summary>
+	/// Determines whether two colors are visually similar based on the CIEDE2000 color difference formula.
+	/// </summary>
+	/// <param name="c1">The first color to compare.</param>
+	/// <param name="c2">The second color to compare.</param>
+	/// <param name="deltaEThreshold">The threshold for considering colors similar. Default is 10.0.</param>
+	/// <returns>True if the colors are visually similar; otherwise, false.</returns>
 	public static bool AreColorsTooSimilar(Color c1, Color c2, double deltaEThreshold = 10.0)
 	{
 		return DeltaE2000(c1, c2) < deltaEThreshold;
 	}
 
+	/// <summary>
+	/// Determines whether the background color is dark or light for proper text contrast.
+	/// </summary>
+	/// <param name="background">The background color to analyze.</param>
+	/// <returns>OverlayTheme.Dark if the background is dark, OverlayTheme.Light if it's light.</returns>
 	public static OverlayTheme IsItDarkOrLight(Color background)
 	{
 		double bgLuminance = RelativeLuminance(background);
@@ -23,6 +38,12 @@ public static class ColorHelper
 	}
 
 	// WCAG contrast ratio formula: (L1 + 0.05) / (L2 + 0.05), L1 = lighter luminance
+	/// <summary>
+	/// Calculates the WCAG contrast ratio between two relative luminance values.
+	/// </summary>
+	/// <param name="l1">The first luminance value (0-1).</param>
+	/// <param name="l2">The second luminance value (0-1).</param>
+	/// <returns>The contrast ratio between the two luminance values.</returns>
 	private static double ContrastRatio(double l1, double l2)
 	{
 		double lighter = Math.Max(l1, l2);
@@ -31,6 +52,11 @@ public static class ColorHelper
 	}
 
 	// WCAG relative luminance (0 = black, 1 = white), gamma-corrected
+	/// <summary>
+	/// Calculates the relative luminance of a color according to WCAG 2.0 standards.
+	/// </summary>
+	/// <param name="c">The color to calculate luminance for.</param>
+	/// <returns>The relative luminance value (0-1).</returns>
 	private static double RelativeLuminance(Color c)
 	{
 		double r = InverseGamma(c.R / 255.0);
@@ -43,6 +69,11 @@ public static class ColorHelper
 
 	private struct Lab { public double L, A, B; }
 
+	/// <summary>
+	/// Converts an RGB color to CIELAB color space.
+	/// </summary>
+	/// <param name="c">The RGB color to convert.</param>
+	/// <returns>The corresponding CIELAB color values.</returns>
 	private static Lab RgbToLab(Color c)
 	{
 		double r = InverseGamma(c.R / 255.0);
@@ -66,11 +97,21 @@ public static class ColorHelper
 		};
 	}
 
+	/// <summary>
+	/// Applies the inverse gamma correction to a color component.
+	/// </summary>
+	/// <param name="c">The color component value (0-1).</param>
+	/// <returns>The gamma-corrected value.</returns>
 	private static double InverseGamma(double c)
 	{
 		return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
 	}
 
+	/// <summary>
+	/// Calculates the Lab F function used in CIELAB color space conversions.
+	/// </summary>
+	/// <param name="t">The input value.</param>
+	/// <returns>The calculated F value.</returns>
 	private static double LabF(double t)
 	{
 		const double delta = 6.0 / 29.0;
@@ -81,6 +122,12 @@ public static class ColorHelper
 
 	// ---------- CIEDE2000 (private — internal implementation detail) ----------
 
+	/// <summary>
+	/// Calculates the CIEDE2000 color difference between two colors.
+	/// </summary>
+	/// <param name="c1">The first color.</param>
+	/// <param name="c2">The second color.</param>
+	/// <returns>The color difference value (Delta E).</returns>
 	private static double DeltaE2000(Color c1, Color c2)
 	{
 		var lab1 = RgbToLab(c1);
@@ -88,6 +135,12 @@ public static class ColorHelper
 		return CIEDE2000(lab1, lab2);
 	}
 
+	/// <summary>
+	/// Implements the CIEDE2000 color difference formula.
+	/// </summary>
+	/// <param name="lab1">The first CIELAB color.</param>
+	/// <param name="lab2">The second CIELAB color.</param>
+	/// <returns>The CIEDE2000 color difference value.</returns>
 	private static double CIEDE2000(Lab lab1, Lab lab2)
 	{
 		double L1 = lab1.L, a1 = lab1.A, b1 = lab1.B;
