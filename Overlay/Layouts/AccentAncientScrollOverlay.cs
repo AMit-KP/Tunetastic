@@ -25,12 +25,20 @@ public class AccentAncientScrollOverlay : OverlayBase
 	private AccentColorAnalyzer? _accentColorAnalyzer;
 	private TextBlock? _toolTipText;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AccentAncientScrollOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public AccentAncientScrollOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the visual structure of the ancient scroll overlay.
+	/// </summary>
+	/// <returns>A Grid representing the overlay structure.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -180,6 +188,11 @@ public class AccentAncientScrollOverlay : OverlayBase
 		return root;
 	}
 
+	/// <summary>
+	/// Creates a gradient brush for the scroll rods with specified mirroring.
+	/// </summary>
+	/// <param name="mirrored">Indicates whether the gradient should be mirrored.</param>
+	/// <returns>A LinearGradientBrush configured for the rod appearance.</returns>
 	private LinearGradientBrush BuildRodBrush(bool mirrored)
 	{
 		var stops = mirrored
@@ -209,6 +222,11 @@ public class AccentAncientScrollOverlay : OverlayBase
 		return brush;
 	}
 
+	/// <summary>
+	/// Applies new gradient stops to an existing rod brush.
+	/// </summary>
+	/// <param name="brush">The brush to update.</param>
+	/// <param name="mirrored">Indicates whether the gradient should be mirrored.</param>
 	private void ApplyRodStops(LinearGradientBrush brush, bool mirrored)
 	{
 		brush.GradientStops.Clear();
@@ -229,6 +247,10 @@ public class AccentAncientScrollOverlay : OverlayBase
 		}
 	}
 
+	/// <summary>
+	/// Updates the accent color of the scroll elements.
+	/// </summary>
+	/// <param name="newColor">The new accent color to apply.</param>
 	private void UpdateScrollAccentColor(Color newColor)
 	{
 		_scrollAccentColor = newColor;
@@ -238,6 +260,13 @@ public class AccentAncientScrollOverlay : OverlayBase
 		if (_bodyBorderBrush != null) _bodyBorderBrush.Color = newColor;
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
+	/// <param name="art">The path to the album art image.</param>
 	public async void UpdateTrack(string title, string artist, string album, string art)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -259,6 +288,11 @@ public class AccentAncientScrollOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Handles the image opened event for cover art, updating the accent color based on the image.
+	/// </summary>
+	/// <param name="sender">The event sender.</param>
+	/// <param name="e">The event arguments.</param>
 	private async void CoverArtImage_Opened(object sender, RoutedEventArgs e)
 	{
 		if (_colorAnalyzer != null)
@@ -270,6 +304,12 @@ public class AccentAncientScrollOverlay : OverlayBase
 		}
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

@@ -2,11 +2,14 @@
 
 /// <summary>
 /// Provides utility methods for displaying global notifications to the user.
+/// This class offers static methods to show different types of notifications
+/// such as information, error, and warning messages to the user in a global context.
 /// </summary>
 public static class GlobalNotification
 {
 	/// <summary>
 	/// Displays an informational notification to the user with the specified message.
+	/// The notification will be shown with a blue color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the notification.</param>
 	public static void Info(string message)
@@ -25,6 +28,7 @@ public static class GlobalNotification
 
 	/// <summary>
 	/// Displays an error notification to the user with the specified message.
+	/// The notification will be shown with an error color and will automatically close.
 	/// </summary>
 	/// <param name="message">The error message content to display in the notification.</param>
 	public static void Error(string message)
@@ -41,6 +45,7 @@ public static class GlobalNotification
 
 	/// <summary>
 	/// Displays a warning notification to the user with the specified message.
+	/// The notification will be shown with a warning color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the warning notification.</param>
 	public static void Warning(string message)

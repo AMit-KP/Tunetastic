@@ -12,12 +12,20 @@ public class IconStripOverlay : OverlayBase
 	private Border? _artBox;
 	private TextBlock? _toolTipText;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="IconStripOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public IconStripOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the UI layout for the icon strip overlay.
+	/// </summary>
+	/// <returns>A Grid representing the root of the overlay layout.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -78,7 +86,13 @@ public class IconStripOverlay : OverlayBase
 		return root;
 	}
 
-	/// <param name="art">Album art bitmap. No text fields in this layout.</param>
+	/// <summary>
+	/// Updates the track information displayed in the icon strip overlay.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
+	/// <param name="art">Optional album art bitmap.</param>
 	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		if (art != null)
@@ -91,6 +105,12 @@ public class IconStripOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

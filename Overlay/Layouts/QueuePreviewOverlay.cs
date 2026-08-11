@@ -22,12 +22,20 @@ public class QueuePreviewOverlay : OverlayBase
 	// Default accent colours for queue slots
 	private static readonly Color[] QueueColors = { AccentIndigo, AccentGreen, AccentOrange };
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="QueuePreviewOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public QueuePreviewOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the UI layout for the queue preview overlay.
+	/// </summary>
+	/// <returns>A Grid representing the root of the overlay layout.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -147,8 +155,12 @@ public class QueuePreviewOverlay : OverlayBase
 		return root;
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the queue preview overlay.
+	/// </summary>
 	/// <param name="title">Current track title.</param>
 	/// <param name="artist">Current track artist.</param>
+	/// <param name="album">Current track album.</param>
 	/// <param name="currentArt">Album art for the current track.</param>
 	/// <param name="nextArt1">Album art for the next track in queue.</param>
 	/// <param name="nextArt2">Album art for the track after that.</param>
@@ -174,6 +186,12 @@ public class QueuePreviewOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;
@@ -193,6 +211,12 @@ public class QueuePreviewOverlay : OverlayBase
 		_toolTipText.Inlines.Add(new Run { Text = album, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 
+	/// <summary>
+	/// Sets the album art for a given art box.
+	/// </summary>
+	/// <param name="box">The border element to update.</param>
+	/// <param name="img">The bitmap image to display.</param>
+	/// <param name="fallback">The fallback color if no image is provided.</param>
 	private static void SetArtBox(Border? box, BitmapImage? img, Color fallback)
 	{
 		if (img != null)

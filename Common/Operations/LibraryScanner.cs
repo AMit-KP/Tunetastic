@@ -8,13 +8,6 @@ namespace Tunetastic.Common.Operations;
 /// </summary>
 public class GetMusicData
 {
-	/// <summary>
-	/// Represents the asynchronous task that is responsible for scanning and updating the music libraries.
-	/// </summary>
-	/// <remarks>
-	/// This field is used to manage the lifecycle and execution state of the scan operation,
-	/// ensuring that the task can be awaited properly and no simultaneous scans occur.
-	/// </remarks>
 	private static Task? _scanTask;
 	private static bool _isScanning = false;
 

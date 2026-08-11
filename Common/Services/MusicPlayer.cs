@@ -7,12 +7,16 @@ using File = System.IO.File;
 
 namespace Tunetastic.Common.Services;
 
+/// <summary>
+/// Provides event arguments for playback state changes.
+/// </summary>
 public class PlaybackStateChangedArgs : EventArgs
 {
 	/// <summary>
 	/// Gets the current playback state.
 	/// </summary>
 	public PlaybackState State { get; }
+	
 	/// <summary>
 	/// Initializes a new instance of the <see cref="PlaybackStateChangedArgs"/> class with the specified playback state.
 	/// </summary>
@@ -37,6 +41,9 @@ public class MusicPlayer
 	//   • Always: provides SMTC (system media transport controls)
 	//   • When Windows backend active: also outputs audio at full volume
 	//   • When Flyleaf backend active: kept at Volume=0 for SMTC only
+	/// <summary>
+	/// Gets the System Media Transport Controls player used for SMTC functionality.
+	/// </summary>
 	public MediaPlayer SMTCPlayer { get; private set; } = null!;
 
 	/// <summary>
@@ -82,10 +89,16 @@ public class MusicPlayer
 	public event EventHandler<long>? PositionChanged;
 
 	// ── existing public events / properties ──────────────────
+	/// <summary>Fires when the currently playing song changes.</summary>
 	public event EventHandler<string>? CurrentSongChanged;
+	
+	/// <summary>Fires when the shuffle status changes.</summary>
 	public event EventHandler<ShuffleMode>? ShuffleStatusChanged;
 
 	private string _currentSong = string.Empty;
+	/// <summary>
+	/// Gets or sets the path of the currently playing song.
+	/// </summary>
 	public string CurrentSong
 	{
 		get => _currentSong;
@@ -100,6 +113,9 @@ public class MusicPlayer
 	}
 
 	private ShuffleMode _shuffleStatus = ShuffleMode.Off;
+	/// <summary>
+	/// Gets or sets the current shuffle mode.
+	/// </summary>
 	public ShuffleMode ShuffleStatus
 	{
 		get => _shuffleStatus;
@@ -113,9 +129,14 @@ public class MusicPlayer
 		}
 	}
 
+	/// <summary>
+	/// Gets or sets the current repeat mode.
+	/// </summary>
 	public RepeatMode RepeatStatus { get; private set; } = RepeatMode.All;
 
-	/// <summary>SMTC controls, always available via SMTCPlayer.</summary>
+	/// <summary>
+	/// Gets the System Media Transport Controls instance for SMTC functionality.
+	/// </summary>
 	public SystemMediaTransportControls? SMTC { get; private set; }
 
 	private bool isFading = false;
@@ -130,6 +151,9 @@ public class MusicPlayer
 	// ─────────────────────────────────────────────────────────
 	//  Construction
 	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Initializes a new instance of the MusicPlayer class.
+	/// </summary>
 	private MusicPlayer()
 	{
 		var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
@@ -156,6 +180,9 @@ public class MusicPlayer
 		ActivateBackend(BackendType.Windows);
 	}
 
+	/// <summary>
+	/// Gets the singleton instance of the MusicPlayer.
+	/// </summary>
 	public static MusicPlayer Instance
 	{
 		get
@@ -168,6 +195,10 @@ public class MusicPlayer
 	// ─────────────────────────────────────────────────────────
 	//  Backend switching
 	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Activates the specified backend type for audio playback.
+	/// </summary>
+	/// <param name="type">The backend type to activate.</param>
 	private void ActivateBackend(BackendType type)
 	{
 		if (_activeBackend != null)
@@ -190,15 +221,33 @@ public class MusicPlayer
 		_activeBackend.PositionChanged += OnBackendPositionChanged;
 	}
 
+	/// <summary>
+	/// Handles state changes from the active backend.
+	/// </summary>
+	/// <param name="s">The event sender.</param>
+	/// <param name="e">The playback state change arguments.</param>
 	private void OnBackendStateChanged(object? s, PlaybackStateChangedArgs e) => PlaybackStateChanged?.Invoke(this, e);
 
+	/// <summary>
+	/// Handles completion of song opening from the active backend.
+	/// </summary>
+	/// <param name="s">The event sender.</param>
+	/// <param name="e">The event arguments.</param>
 	private void OnBackendOpenCompleted(object? s, EventArgs e) => OpenCompleted?.Invoke(this, e);
 
+	/// <summary>
+	/// Handles position changes from the active backend.
+	/// </summary>
+	/// <param name="s">The event sender.</param>
+	/// <param name="ticks">The current position in ticks.</param>
 	private void OnBackendPositionChanged(object? s, long ticks) => PositionChanged?.Invoke(this, ticks);
 
 	// ─────────────────────────────────────────────────────────
 	//  SMTC setup
 	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Sets up the System Media Transport Controls for media playback.
+	/// </summary>
 	private void SMTCSetup()
 	{
 		SMTCPlayer = new MediaPlayer();
@@ -251,6 +300,7 @@ public class MusicPlayer
 	/// <param name="startingSong">The path of the song to start playback from, or null to start with the default song.</param>
 	/// <param name="play">Indicates whether to start playback automatically after loading the playlist. Default is true.</param>
 	/// <param name="dontReloadCurrent">If true, prevents reloading the current playing song if it is already loaded. Default is false.</param>
+	/// <param name="startup">Indicates whether this is a startup load operation. Default is false.</param>
 	public async void LoadPlaylist(string? startingSong, bool play = true, bool dontReloadCurrent = false, bool startup = false)
 	{
 		await LoadSong(startingSong, play, dontReloadCurrent: dontReloadCurrent, startup: startup);
@@ -372,6 +422,14 @@ public class MusicPlayer
 	// ─────────────────────────────────────────────────────────
 	//  Core song loading
 	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Loads a song into the music player and optionally starts playback.
+	/// </summary>
+	/// <param name="songPath">The path of the song to load.</param>
+	/// <param name="play">Indicates whether to start playback after loading. Default is true.</param>
+	/// <param name="fadeType">The type of fade to apply during transition. Default is null.</param>
+	/// <param name="dontReloadCurrent">If true, prevents reloading the current song if it's already loaded. Default is false.</param>
+	/// <param name="startup">Indicates whether this is a startup load operation. Default is false.</param>
 	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null, bool dontReloadCurrent = false, bool startup = false)
 	{
 		try
@@ -466,6 +524,9 @@ public class MusicPlayer
 	// ─────────────────────────────────────────────────────────
 	//  Play / Pause (with fade support)
 	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Pauses the currently playing audio.
+	/// </summary>
 	public async void Pause()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -494,6 +555,10 @@ public class MusicPlayer
 			SMTC.PlaybackStatus = Windows.Media.MediaPlaybackStatus.Paused;
 	}
 
+	/// <summary>
+	/// Plays the currently loaded audio.
+	/// </summary>
+	/// <param name="playBackPosition">The position to start playback from in seconds. Default is 0.</param>
 	public async void Play(double playBackPosition = 0)
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -551,6 +616,9 @@ public class MusicPlayer
 	// ─────────────────────────────────────────────────────────
 	//  Previous / Next (logic unchanged, use new surface)
 	// ─────────────────────────────────────────────────────────
+	/// <summary>
+	/// Plays the previous song in the playlist.
+	/// </summary>
 	public async void Previous()
 	{
 		if (GetMusicData.IsScanning) return;
@@ -586,6 +654,10 @@ public class MusicPlayer
 		}
 	}
 
+	/// <summary>
+	/// Plays the next song in the playlist.
+	/// </summary>
+	/// <param name="autoChange">Indicates whether this is an automatic change. Default is false.</param>
 	public async void Next(bool autoChange = false)
 	{
 		if (GetMusicData.IsScanning) return;
@@ -649,6 +721,11 @@ public class MusicPlayer
 		}
 	}
 
+	/// <summary>
+	/// Gets a list of upcoming songs in the playlist.
+	/// </summary>
+	/// <param name="count">The number of upcoming songs to retrieve. Default is 2.</param>
+	/// <returns>A task that represents the asynchronous operation. The task result contains a list of upcoming songs or null if an error occurs.</returns>
 	public async Task<List<Song>?> GetUpcomingSongs(int count = 2)
 	{
 		if (GetMusicData.IsScanning) return null;
@@ -849,6 +926,11 @@ public class MusicPlayer
 		}
 	}
 
+	/// <summary>
+	/// Saves audio tags to a file.
+	/// </summary>
+	/// <param name="path">The path of the audio file.</param>
+	/// <param name="track">The song data containing tag information.</param>
 	private static async Task AudioTagSaveToFile(string path, Song track)
 	{
 		var DB = DatabaseHelper.Instance;
@@ -905,6 +987,7 @@ public class MusicPlayer
 	/// settings and data. If the current song is identified, it reloads the appropriate playlist or track
 	/// for continued playback.
 	/// </summary>
+	/// <param name="song">The song to reset to, or null to reset to default state.</param>
 	public async void ResetOrReloadPlayer(Song? song = null)
 	{
 		var track = song ?? await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
@@ -963,7 +1046,12 @@ public class MusicPlayer
 		ResetOrReloadPlayer(track);
 	}
 
-	//FIXME: Do not use for now as it causes other issues
+	/// <summary>
+	/// Performs a crossfade transition between songs.
+	/// </summary>
+	/// <param name="songPath">The path of the song to transition to.</param>
+	/// <param name="fadeTime">The duration of the fade in milliseconds.</param>
+	/// <returns>A task representing the asynchronous operation.</returns>
 	private async Task CrossfadeTransition(string songPath, double fadeTime)
 	{
 		/*
