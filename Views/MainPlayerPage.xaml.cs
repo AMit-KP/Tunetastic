@@ -44,6 +44,8 @@ public sealed partial class MainPlayerPage : Page
 	private long _lastKnownTicks = 0;
 	private bool _centeringPaddingSet = false;
 	private string? _externalLrcPath;
+	private const double SyncControlsGap = 30;
+
 
 	/// <summary>
 	/// True if the currently displayed lyrics came from an external .lrc file.
@@ -251,6 +253,7 @@ public sealed partial class MainPlayerPage : Page
 		LyricsDisplay.Height = lyricsTargetHeight;
 		Canvas.SetLeft(LyricsDisplay, left);
 		Canvas.SetTop(LyricsDisplay, top);
+		PositionSyncControls(left, top, width);
 
 		var visual = ElementCompositionPreview.GetElementVisual(LyricsDisplay);
 		visual.Clip = compositor.CreateInsetClip(0, 0, 0, 0);
@@ -391,6 +394,7 @@ public sealed partial class MainPlayerPage : Page
 		LyricsDisplay.Height = lyricsTargetHeight;
 		Canvas.SetLeft(LyricsDisplay, left);
 		Canvas.SetTop(LyricsDisplay, top);
+		PositionSyncControls(left, top, width);
 
 		lyricsVisible = true;
 		LyricsDisplay.Visibility = Visibility.Visible;
@@ -418,6 +422,7 @@ public sealed partial class MainPlayerPage : Page
 		CloseLyricsButton.Visibility = Visibility.Collapsed;
 		LyricsMenuButton.Visibility = Visibility.Collapsed;
 		ShowLyricsButton.Visibility = Visibility.Visible;
+		SyncControls.Visibility = Visibility.Collapsed;
 	}
 
 	private Microsoft.UI.Composition.Compositor compositor => ElementCompositionPreview.GetElementVisual(this).Compositor;
@@ -889,5 +894,48 @@ public sealed partial class MainPlayerPage : Page
 		Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		ClearLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		OpenLyricsButton.Visibility = embeddedLyrics ? Visibility.Collapsed : Visibility.Visible;
+	}
+
+	private void SyncLyricsButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (LyricsDisplay.IsLoaded && LyricsDisplay.Visibility == Visibility.Visible)
+		{
+			SyncControls.Visibility = Visibility.Visible;
+			CalculateLyricsLayout(out double left, out double top, out double width, out _);
+			PositionSyncControls(left, top, width);
+		}
+	}
+
+	private void PositionSyncControls(double lyricsLeft, double lyricsTop, double lyricsWidth)
+	{
+		SyncCore.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+
+		double coreWidth = SyncCore.DesiredSize.Width;
+		double coreHeight = SyncCore.DesiredSize.Height;
+
+		double syncLeft = lyricsLeft + (lyricsWidth - coreWidth) / 2.0;
+		double syncTop = lyricsTop - coreHeight - SyncControlsGap;
+
+		SyncControls.Margin = new Thickness(syncLeft, syncTop, 0, 0);
+	}
+
+	private void CancelSyncButton_Click(object sender, RoutedEventArgs e)
+	{
+		
+	}
+
+	private void AcceptSyncButton_Click(object sender, RoutedEventArgs e)
+	{
+
+	}
+
+	private void DecreaseButton_Click(object sender, RoutedEventArgs e)
+	{
+
+	}
+
+	private void IncreaseButton_Click(object sender, RoutedEventArgs e)
+	{
+
 	}
 }

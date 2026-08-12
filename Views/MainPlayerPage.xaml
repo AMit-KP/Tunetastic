@@ -316,6 +316,70 @@
 			</Grid>
 		</Canvas>
 
+		<Grid x:Name="SyncControls"
+		      HorizontalAlignment="Left"
+		      VerticalAlignment="Top"
+		      ColumnSpacing="5"
+		      Visibility="Collapsed">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+			<Grid x:Name="SyncCore"
+			      Grid.Column="0"
+			      HorizontalAlignment="Left"
+			      VerticalAlignment="Top"
+			      ColumnSpacing="5">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<RepeatButton x:Name="DecreaseButton"
+				              Grid.Column="0"
+				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				              Click="DecreaseButton_Click"
+				              ToolTipService.ToolTip="Decrease delay">
+					<FontIcon Glyph="&#xF8AB;" />
+				</RepeatButton>
+				<Border Grid.Column="1"
+				        Padding="8,0,8,3"
+				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				        CornerRadius="8">
+					<TextBlock x:Name="SyncTime"
+					           HorizontalAlignment="Center"
+					           VerticalAlignment="Center"
+					           HorizontalTextAlignment="Center"
+					           Style="{ThemeResource BodyStrongTextBlockStyle}"
+					           Text="+00:00:00" />
+				</Border>
+				<RepeatButton x:Name="IncreaseButton"
+				              Grid.Column="2"
+				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				              Click="IncreaseButton_Click"
+				              ToolTipService.ToolTip="Increase delay">
+					<FontIcon Glyph="&#xF8AA;" />
+				</RepeatButton>
+			</Grid>
+			<Button x:Name="AcceptSyncButton"
+			        Grid.Column="1"
+			        VerticalAlignment="Top"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+			        Click="AcceptSyncButton_Click"
+			        ToolTipService.ToolTip="Accept and Save">
+				<FontIcon Glyph="&#xF78C;" />
+			</Button>
+			<Button x:Name="CancelSyncButton"
+			        Grid.Column="2"
+			        VerticalAlignment="Top"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+			        Click="CancelSyncButton_Click"
+			        ToolTipService.ToolTip="Cancel">
+				<FontIcon Glyph="&#xF78A;" />
+			</Button>
+		</Grid>
+
 		<Grid x:Name="MusicDetails"
 		      Width="Auto"
 		      Height="Auto"
@@ -436,6 +500,12 @@
 								              Icon="Edit"
 								              Label="Edit"
 								              ToolTipService.ToolTip="Edit the lyrics" />
+								<AppBarSeparator x:Name="Separator2" />
+								<AppBarButton x:Name="SyncLyricsButton"
+								              Click="SyncLyricsButton_Click"
+								              Icon="Sync"
+								              Label="Sync"
+								              ToolTipService.ToolTip="Syncronize the lyrics" />
 								<!--<AppBarSeparator x:Name="Separator2"/>
 								<AppBarButton x:Name="SearchLyricsButton"
 								              Click="SearchAppBarButton_Click"
