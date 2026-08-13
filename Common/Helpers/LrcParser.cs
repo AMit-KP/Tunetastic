@@ -25,7 +25,7 @@ public static class LrcParser
 	/// <summary>
 	/// Matches offset metadata lines in the format [offset:±number].
 	/// </summary>
-	private static readonly Regex OffsetRegex = new(@"^\[offset:(-?\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+	private static readonly Regex OffsetRegex = new(@"^\[offset:([+-]?\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	/// <summary>
 	/// Matches synced lyric lines with timestamps to determine if content contains synced lyrics.
@@ -45,17 +45,7 @@ public static class LrcParser
 			return lines;
 
 		// First pass: extract offset from metadata
-		int offsetMs = 0;
-		foreach (var rawLine in lrcContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
-		{
-			var line = rawLine.Trim();
-			var offsetMatch = OffsetRegex.Match(line);
-			if (offsetMatch.Success)
-			{
-				offsetMs = int.Parse(offsetMatch.Groups[1].Value);
-				break;
-			}
-		}
+		var offsetMs = GetOffset(lrcContent);
 
 		// Second pass: parse lyric lines
 		foreach (var rawLine in lrcContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
@@ -98,16 +88,58 @@ public static class LrcParser
 		lines.Sort((a, b) => a.Time.CompareTo(b.Time));
 
 		// Apply offset to all lines, clamping to 0 so no line goes negative
-		if (offsetMs != 0)
+		ApplyOffset(lines, offsetMs);
+
+		return lines;
+	}
+
+	/// <summary>
+	/// Shifts every lyricline's time by <paramref name="offsetMs"/> milliseconds, mutating <paramref name="LyricsLines"/> in place.
+	/// Shifted times are clamped to 0 so no line goes negative.
+	/// </summary>
+	/// <param name="LyricsLines">
+	/// The lines to shift. Since <see cref="List{T}"/> is a reference type, this method modifies the
+	/// caller's list directly (each element is replaced in place) — there is nothing to return.
+	/// </param>
+	/// <param name="offsetMs">
+	/// The offset, in milliseconds, to apply. Positive values delay lines (push them later);
+	/// negative values advance them (pull them earlier). A value of 0 is a no-op.
+	/// </param>
+	public static void ApplyOffset(List<LrcLine> LyricsLines, int offsetMs)
+	{
+		if (offsetMs == 0)
+			return;
+
+		for (int i = 0; i < LyricsLines.Count; i++)
 		{
-			for (int i = 0; i < lines.Count; i++)
+			var shifted = LyricsLines[i].Time.Add(TimeSpan.FromMilliseconds(offsetMs));
+			LyricsLines[i] = new LrcLine(shifted < TimeSpan.Zero ? TimeSpan.Zero : shifted, LyricsLines[i].Text);
+		}
+	}
+
+	/// <summary>
+	/// Scans the raw LRC content for an <c>[offset:±number]</c> metadata line and returns its value.
+	/// </summary>
+	/// <param name="lrcContent">The raw LRC lyrics string to scan.</param>
+	/// <returns>
+	/// The offset in milliseconds specified by the first <c>[offset:...]</c> line found, or 0 if the
+	/// content is empty or contains no offset metadata line.
+	/// </returns>
+	public static int GetOffset(string lrcContent)
+	{
+		int offsetMs = 0;
+		foreach (var rawLine in lrcContent.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			var line = rawLine.Trim();
+			var offsetMatch = OffsetRegex.Match(line);
+			if (offsetMatch.Success)
 			{
-				var shifted = lines[i].Time.Add(TimeSpan.FromMilliseconds(offsetMs));
-				lines[i] = new LrcLine(shifted < TimeSpan.Zero ? TimeSpan.Zero : shifted, lines[i].Text);
+				offsetMs = int.Parse(offsetMatch.Groups[1].Value);
+				break;
 			}
 		}
 
-		return lines;
+		return offsetMs;
 	}
 
 	/// <summary>

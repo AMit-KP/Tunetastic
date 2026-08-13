@@ -900,6 +900,8 @@ public sealed partial class MainPlayerPage : Page
 	{
 		if (LyricsDisplay.IsLoaded && LyricsDisplay.Visibility == Visibility.Visible)
 		{
+			SyncTime.Text = LrcParser.GetOffset(lyricsText!).ToString() + " ms";
+
 			SyncControls.Visibility = Visibility.Visible;
 			CalculateLyricsLayout(out double left, out double top, out double width, out _);
 			PositionSyncControls(left, top, width);
@@ -921,7 +923,7 @@ public sealed partial class MainPlayerPage : Page
 
 	private void CancelSyncButton_Click(object sender, RoutedEventArgs e)
 	{
-		
+
 	}
 
 	private void AcceptSyncButton_Click(object sender, RoutedEventArgs e)
@@ -931,11 +933,25 @@ public sealed partial class MainPlayerPage : Page
 
 	private void DecreaseButton_Click(object sender, RoutedEventArgs e)
 	{
-
+		ApplyOffsetLive(increase: false);
 	}
 
 	private void IncreaseButton_Click(object sender, RoutedEventArgs e)
 	{
+		ApplyOffsetLive(increase: true);
+	}
 
+	private void ApplyOffsetLive(bool increase)
+	{
+		var syncTime = int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3));
+
+		if (increase)
+			syncTime += 50;
+		else
+			syncTime -= 50;
+
+		SyncTime.Text = syncTime.ToString() + " ms";
+
+		LrcParser.ApplyOffset(_lines, increase ? 50 : -50);
 	}
 }

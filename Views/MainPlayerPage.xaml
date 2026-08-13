@@ -340,7 +340,7 @@
 				              Grid.Column="0"
 				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 				              Click="DecreaseButton_Click"
-				              ToolTipService.ToolTip="Decrease delay">
+				              ToolTipService.ToolTip="Hold to Decrease">
 					<FontIcon Glyph="&#xF8AB;" />
 				</RepeatButton>
 				<Border Grid.Column="1"
@@ -348,17 +348,17 @@
 				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 				        CornerRadius="8">
 					<TextBlock x:Name="SyncTime"
+					           Width="90"
 					           HorizontalAlignment="Center"
 					           VerticalAlignment="Center"
 					           HorizontalTextAlignment="Center"
-					           Style="{ThemeResource BodyStrongTextBlockStyle}"
-					           Text="+00:00:00" />
+					           Style="{ThemeResource BodyStrongTextBlockStyle}" />
 				</Border>
 				<RepeatButton x:Name="IncreaseButton"
 				              Grid.Column="2"
 				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 				              Click="IncreaseButton_Click"
-				              ToolTipService.ToolTip="Increase delay">
+				              ToolTipService.ToolTip="Hold to Increase">
 					<FontIcon Glyph="&#xF8AA;" />
 				</RepeatButton>
 			</Grid>
