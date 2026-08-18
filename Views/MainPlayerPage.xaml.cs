@@ -926,11 +926,6 @@ public sealed partial class MainPlayerPage : Page
 
 	}
 
-	private void AcceptSyncButton_Click(object sender, RoutedEventArgs e)
-	{
-
-	}
-
 	private void DecreaseButton_Click(object sender, RoutedEventArgs e)
 	{
 		ApplyOffsetLive(increase: false);
@@ -953,5 +948,33 @@ public sealed partial class MainPlayerPage : Page
 		SyncTime.Text = syncTime.ToString() + " ms";
 
 		LrcParser.ApplyOffset(_lines, increase ? 50 : -50);
+	}
+
+	private void SaveAsOffsetButton_Click(object sender, RoutedEventArgs e)
+	{
+		var newlyricsText = LrcParser.SetOffsetMetadata(lyricsText, int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3)));
+		SaveNewLyricsToDBAndFile(newlyricsText);
+		SyncControls.Visibility = Visibility.Collapsed;
+	}
+
+	private void SaveByTimestampsButton_Click(object sender, RoutedEventArgs e)
+	{
+		var newlyricsText = LrcParser.SaveOffsetByChangingTimestamp(lyricsText, int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3)));
+		SaveNewLyricsToDBAndFile(newlyricsText);
+		SyncControls.Visibility = Visibility.Collapsed;
+	}
+
+	private async void SaveNewLyricsToDBAndFile(string? newlyricsText)
+	{
+		lyricsText = newlyricsText ?? string.Empty;
+
+		var songData = await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong);
+		if (songData != null)
+		{
+			songData.Lyrics = newlyricsText;
+			await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
+			await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, pendingLyrics: 1);
+		}
+
 	}
 }

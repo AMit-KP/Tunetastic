@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Tunetastic.Common.Helpers;
 
@@ -160,5 +161,129 @@ public static class LrcParser
 		}
 
 		return false;
+	}
+
+	/// <summary>
+	/// Shifts every timestamp in the given LRC content by the specified offset,
+	/// returning the modified LRC content as a string. Metadata lines (e.g. [ar:], [ti:])
+	/// are left untouched. Timestamps are clamped to a minimum of 00:00.00 so they never go negative.
+	/// </summary>
+	/// <param name="lrcContent">The raw LRC file content to modify.</param>
+	/// <param name="offsetMs">
+	/// The offset, in milliseconds, to apply to each timestamp. Positive values shift
+	/// timestamps later; negative values shift them earlier.
+	/// </param>
+	/// <returns>
+	/// The LRC content with all line timestamps shifted by
+	/// <paramref name="offsetMs"/>. Returns the input unchanged if it is null, empty, or whitespace.
+	/// </returns>
+	public static string? SaveOffsetByChangingTimestamp(string? lrcContent, int offsetMs)
+	{
+		if (string.IsNullOrWhiteSpace(lrcContent))
+			return lrcContent;
+
+		var rawLines = lrcContent.Split('\n');
+		var sb = new StringBuilder();
+
+		for (int i = 0; i < rawLines.Length; i++)
+		{
+			var line = rawLines[i];
+			var trimmed = line.TrimEnd('\r').Trim();
+
+			if (!MetadataLineRegex.IsMatch(trimmed))
+			{
+				line = TimestampRegex.Replace(line, m => ShiftTimestamp(m, offsetMs));
+
+				// TODO: Apply offset to Karaoke tags
+				//line = KaraokeTagRegex.Replace(line, m => ShiftTimestamp(m, offsetMs));
+			}
+
+			sb.Append(line);
+			if (i < rawLines.Length - 1)
+				sb.Append('\n');
+		}
+
+		return sb.ToString();
+	}
+
+	/// <summary>
+	/// Parses a single timestamp regex match (e.g. "[01:23.45]" or "&lt;01:23.45&gt;"),
+	/// applies the given offset in milliseconds, and returns the timestamp re-formatted
+	/// as a string with the same delimiters and fractional-digit precision as the original match.
+	/// </summary>
+	/// <param name="match">
+	/// A regex match with capture groups: 1 = minutes, 2 = seconds, 3 = fractional seconds
+	/// (2 or 3 digits), and the full match including its opening/closing delimiter characters.
+	/// </param>
+	/// <param name="offsetMs">The offset, in milliseconds, to apply to the parsed timestamp.</param>
+	/// <returns>
+	/// The shifted timestamp as a string, wrapped in the same delimiter characters as the
+	/// original match, clamped to a minimum of 00:00.00.
+	/// </returns>
+	private static string ShiftTimestamp(Match match, int offsetMs)
+	{
+		int minutes = int.Parse(match.Groups[1].Value);
+		int seconds = int.Parse(match.Groups[2].Value);
+		string fracStr = match.Groups[3].Value;
+		int frac = int.Parse(fracStr);
+		int ms = fracStr.Length == 2 ? frac * 10 : frac;
+
+		var time = TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds) + TimeSpan.FromMilliseconds(ms);
+		time += TimeSpan.FromMilliseconds(offsetMs);
+		if (time < TimeSpan.Zero)
+			time = TimeSpan.Zero;
+
+		int totalMinutes = (int)time.TotalMinutes;
+		string fracOut = fracStr.Length == 2
+			? (time.Milliseconds / 10).ToString("D2")
+			: time.Milliseconds.ToString("D3");
+
+		char open = match.Value[0];
+		char close = match.Value[^1];
+
+		return $"{open}{totalMinutes:D2}:{time.Seconds:D2}.{fracOut}{close}";
+	}
+
+	/// <summary>
+	/// Adds or updates the <c>[offset:±number]</c> metadata line in the given LRC content.
+	/// If an offset line already exists, its value is overwritten; if none exists, a new one is
+	/// inserted after any other metadata lines (or at the top if there are none).
+	/// </summary>
+	/// <param name="lrcContent">The raw LRC file content to modify.</param>
+	/// <param name="offsetMs">The offset, in milliseconds, to write into the <c>[offset:]</c> line.</param>
+	/// <returns>
+	/// The LRC content with the <c>[offset:]</c> metadata line added or updated. If
+	/// <paramref name="lrcContent"/> is null, empty, or whitespace, returns a new string
+	/// containing only the <c>[offset:]</c> line.
+	/// </returns>
+	public static string? SetOffsetMetadata(string? lrcContent, int offsetMs)
+	{
+		if (string.IsNullOrWhiteSpace(lrcContent))
+			return $"[offset:{offsetMs}]";
+
+		var rawLines = lrcContent.Split('\n').ToList();
+
+		for (int i = 0; i < rawLines.Count; i++)
+		{
+			var trimmed = rawLines[i].TrimEnd('\r').Trim();
+			if (OffsetRegex.IsMatch(trimmed))
+			{
+				rawLines[i] = $"[offset:{offsetMs}]";
+				return string.Join('\n', rawLines);
+			}
+		}
+
+		int insertIndex = 0;
+		for (int i = 0; i < rawLines.Count; i++)
+		{
+			var trimmed = rawLines[i].TrimEnd('\r').Trim();
+			if (MetadataLineRegex.IsMatch(trimmed))
+				insertIndex = i + 1;
+			else if (!string.IsNullOrEmpty(trimmed))
+				break;
+		}
+
+		rawLines.Insert(insertIndex, $"[offset:{offsetMs}]");
+		return string.Join('\n', rawLines);
 	}
 }

@@ -366,9 +366,25 @@
 			        Grid.Column="1"
 			        VerticalAlignment="Top"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
-			        Click="AcceptSyncButton_Click"
 			        ToolTipService.ToolTip="Accept and Save">
 				<FontIcon Glyph="&#xF78C;" />
+				<Button.Flyout>
+					<Flyout>
+						<StackPanel Orientation="Vertical"
+						            Spacing="10">
+							<Button x:Name="SaveAsOffsetButton"
+							        HorizontalAlignment="Center"
+							        Click="SaveAsOffsetButton_Click"
+							        Content="Save as offset metadata"
+							        ToolTipService.ToolTip="Save as offset metadata in the lrc file. Like [offset:±number]." />
+							<Button x:Name="SaveByTimestampsButton"
+							        HorizontalAlignment="Center"
+							        Click="SaveByTimestampsButton_Click"
+							        Content="Save by modifying timestamps"
+							        ToolTipService.ToolTip="Save by changing timestamps in the lrc file." />
+						</StackPanel>
+					</Flyout>
+				</Button.Flyout>
 			</Button>
 			<Button x:Name="CancelSyncButton"
 			        Grid.Column="2"
