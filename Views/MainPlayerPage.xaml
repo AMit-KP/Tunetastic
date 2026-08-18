@@ -522,14 +522,14 @@
 								              Icon="Sync"
 								              Label="Sync"
 								              ToolTipService.ToolTip="Syncronize the lyrics" />
-								<!--<AppBarSeparator x:Name="Separator2"/>
+								<!--<AppBarSeparator x:Name="Separator3"/>
 								<AppBarButton x:Name="SearchLyricsButton"
 								              Click="SearchAppBarButton_Click"
 								              Icon="Find"
 								              IsEnabled="False"
 								              Label="Search"
 								              ToolTipService.ToolTip="Search for lyrics on internet" />-->
-								<AppBarSeparator x:Name="Separator3" />
+								<AppBarSeparator x:Name="Separator4" />
 								<AppBarButton x:Name="ClearLyricsButton"
 								              Click="ClearAppBarButton_Click"
 								              Icon="Delete"

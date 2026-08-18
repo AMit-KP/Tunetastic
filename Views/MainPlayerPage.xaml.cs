@@ -530,9 +530,15 @@ public sealed partial class MainPlayerPage : Page
 		if (!string.IsNullOrEmpty(lyricsText))
 		{
 			if (LrcParser.IsSyncedLyrics(lyricsText))
+			{
 				DisplaySyncedLyrics();
+				SyncLyricsButton.IsEnabled = true;
+			}
 			else
+			{
 				DisplayUnsyncedLyrics();
+				SyncLyricsButton.IsEnabled = false;
+			}
 		}
 	}
 
@@ -854,31 +860,8 @@ public sealed partial class MainPlayerPage : Page
 	}
 	private async void ClearAppBarButton_Click(object sender, RoutedEventArgs e)
 	{
-		var songPath = _musicPlayer.CurrentSong;
-		if (!string.IsNullOrEmpty(songPath))
-		{
-			var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
-
-			if (File.Exists(track?.Path))
-			{
-				track.Lyrics = null;
-				await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { track });
-				using var audioModel = TagLib.File.Create(songPath);
-				audioModel.Tag.Lyrics = null;
-				try
-				{
-					audioModel.Save();
-				}
-				catch (IOException)
-				{
-					await DatabaseHelper.Instance.AddPendingTagWrite(songPath, pendingLyrics: 1);
-					GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
-				}
-				await UpdateUI();
-			}
-			else
-				GlobalNotification.Error($"File not found: {songPath}");
-		}
+		await SaveNewLyricsToDBAndFile(null);
+		await UpdateUI();
 	}
 
 	private void OpenAppBarButton_Click(object sender, RoutedEventArgs e)
@@ -894,11 +877,14 @@ public sealed partial class MainPlayerPage : Page
 		CopyLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		Separator1.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		EditLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator2.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		SyncLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		//TODO
-		//Separator2.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		//Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		//SearchLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
-		Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator4.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		ClearLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+
 		OpenLyricsButton.Visibility = embeddedLyrics ? Visibility.Collapsed : Visibility.Visible;
 	}
 
@@ -951,23 +937,23 @@ public sealed partial class MainPlayerPage : Page
 		LrcParser.ApplyOffset(_lines, increase ? 50 : -50);
 	}
 
-	private void SaveAsOffsetButton_Click(object sender, RoutedEventArgs e)
+	private async void SaveAsOffsetButton_Click(object sender, RoutedEventArgs e)
 	{
 		var newlyricsText = LrcParser.SetOffsetMetadata(lyricsText, int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3)));
-		SaveNewLyricsToDBAndFile(newlyricsText);
+		await SaveNewLyricsToDBAndFile(newlyricsText);
 		SyncControls.Visibility = Visibility.Collapsed;
 	}
 
-	private void SaveByTimestampsButton_Click(object sender, RoutedEventArgs e)
+	private async void SaveByTimestampsButton_Click(object sender, RoutedEventArgs e)
 	{
 		var newlyricsText = LrcParser.SaveOffsetByChangingTimestamp(lyricsText, int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3)));
-		SaveNewLyricsToDBAndFile(newlyricsText);
+		await SaveNewLyricsToDBAndFile(newlyricsText);
 		SyncControls.Visibility = Visibility.Collapsed;
 	}
 
-	private async void SaveNewLyricsToDBAndFile(string? newlyricsText)
+	private async Task SaveNewLyricsToDBAndFile(string? newlyricsText)
 	{
-		lyricsText = newlyricsText ?? string.Empty;
+		lyricsText = newlyricsText;
 
 		var songData = await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong);
 		if (songData != null)
@@ -975,6 +961,7 @@ public sealed partial class MainPlayerPage : Page
 			songData.Lyrics = newlyricsText;
 			await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 			await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, pendingLyrics: 1);
+			GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 		}
 
 	}
