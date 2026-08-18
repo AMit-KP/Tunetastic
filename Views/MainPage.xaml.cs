@@ -1303,9 +1303,6 @@ public sealed partial class MainPage : Page
 
 		ArtistTeachingTipContent.Inlines.Clear();
 
-		//ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums.", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		//ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });

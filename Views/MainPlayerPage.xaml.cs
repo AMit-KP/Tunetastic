@@ -24,15 +24,21 @@ public sealed partial class MainPlayerPage : Page
 {
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 	private readonly DispatcherQueue _dispatcherQueue;
+
 	BitmapImage? BGbitmapImage = null;
+
 	private double pageHeight = 0;
 	private double pageWidth = 0;
+
 	private double coverArtAspectRatio = 1.0;
 	private double coverArtImagePixelWidth = 500;
 	private double coverArtImagePixelHeight = 500;
+
 	private bool _isTilted = false;
+
 	private double lyricsTargetWidth;
 	private double lyricsTargetHeight;
+
 	private bool lyricsVisible = false;
 	private string? lyricsText = null;
 
@@ -921,11 +927,6 @@ public sealed partial class MainPlayerPage : Page
 		SyncControls.Margin = new Thickness(syncLeft, syncTop, 0, 0);
 	}
 
-	private void CancelSyncButton_Click(object sender, RoutedEventArgs e)
-	{
-
-	}
-
 	private void DecreaseButton_Click(object sender, RoutedEventArgs e)
 	{
 		ApplyOffsetLive(increase: false);
@@ -976,5 +977,12 @@ public sealed partial class MainPlayerPage : Page
 			await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, pendingLyrics: 1);
 		}
 
+	}
+
+	private void CancelSyncButton_Click(object sender, RoutedEventArgs e)
+	{
+		var newOffset = LrcParser.GetOffset(lyricsText!) - int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3));
+		LrcParser.ApplyOffset(_lines, newOffset);
+		SyncControls.Visibility = Visibility.Collapsed;
 	}
 }
