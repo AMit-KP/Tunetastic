@@ -24,15 +24,21 @@ public sealed partial class MainPlayerPage : Page
 {
 	private readonly MusicPlayer _musicPlayer = MusicPlayer.Instance;
 	private readonly DispatcherQueue _dispatcherQueue;
+
 	BitmapImage? BGbitmapImage = null;
+
 	private double pageHeight = 0;
 	private double pageWidth = 0;
+
 	private double coverArtAspectRatio = 1.0;
 	private double coverArtImagePixelWidth = 500;
 	private double coverArtImagePixelHeight = 500;
+
 	private bool _isTilted = false;
+
 	private double lyricsTargetWidth;
 	private double lyricsTargetHeight;
+
 	private bool lyricsVisible = false;
 	private string? lyricsText = null;
 
@@ -44,6 +50,8 @@ public sealed partial class MainPlayerPage : Page
 	private long _lastKnownTicks = 0;
 	private bool _centeringPaddingSet = false;
 	private string? _externalLrcPath;
+	private const double SyncControlsGap = 30;
+
 
 	/// <summary>
 	/// True if the currently displayed lyrics came from an external .lrc file.
@@ -251,6 +259,7 @@ public sealed partial class MainPlayerPage : Page
 		LyricsDisplay.Height = lyricsTargetHeight;
 		Canvas.SetLeft(LyricsDisplay, left);
 		Canvas.SetTop(LyricsDisplay, top);
+		PositionSyncControls(left, top, width);
 
 		var visual = ElementCompositionPreview.GetElementVisual(LyricsDisplay);
 		visual.Clip = compositor.CreateInsetClip(0, 0, 0, 0);
@@ -391,6 +400,7 @@ public sealed partial class MainPlayerPage : Page
 		LyricsDisplay.Height = lyricsTargetHeight;
 		Canvas.SetLeft(LyricsDisplay, left);
 		Canvas.SetTop(LyricsDisplay, top);
+		PositionSyncControls(left, top, width);
 
 		lyricsVisible = true;
 		LyricsDisplay.Visibility = Visibility.Visible;
@@ -418,6 +428,7 @@ public sealed partial class MainPlayerPage : Page
 		CloseLyricsButton.Visibility = Visibility.Collapsed;
 		LyricsMenuButton.Visibility = Visibility.Collapsed;
 		ShowLyricsButton.Visibility = Visibility.Visible;
+		SyncControls.Visibility = Visibility.Collapsed;
 	}
 
 	private Microsoft.UI.Composition.Compositor compositor => ElementCompositionPreview.GetElementVisual(this).Compositor;
@@ -519,9 +530,15 @@ public sealed partial class MainPlayerPage : Page
 		if (!string.IsNullOrEmpty(lyricsText))
 		{
 			if (LrcParser.IsSyncedLyrics(lyricsText))
+			{
 				DisplaySyncedLyrics();
+				SyncLyricsButton.IsEnabled = true;
+			}
 			else
+			{
 				DisplayUnsyncedLyrics();
+				SyncLyricsButton.IsEnabled = false;
+			}
 		}
 	}
 
@@ -843,31 +860,8 @@ public sealed partial class MainPlayerPage : Page
 	}
 	private async void ClearAppBarButton_Click(object sender, RoutedEventArgs e)
 	{
-		var songPath = _musicPlayer.CurrentSong;
-		if (!string.IsNullOrEmpty(songPath))
-		{
-			var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
-
-			if (File.Exists(track?.Path))
-			{
-				track.Lyrics = null;
-				await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { track });
-				using var audioModel = TagLib.File.Create(songPath);
-				audioModel.Tag.Lyrics = null;
-				try
-				{
-					audioModel.Save();
-				}
-				catch (IOException)
-				{
-					await DatabaseHelper.Instance.AddPendingTagWrite(songPath, pendingLyrics: 1);
-					GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
-				}
-				await UpdateUI();
-			}
-			else
-				GlobalNotification.Error($"File not found: {songPath}");
-		}
+		await SaveNewLyricsToDBAndFile(null);
+		await UpdateUI();
 	}
 
 	private void OpenAppBarButton_Click(object sender, RoutedEventArgs e)
@@ -883,11 +877,99 @@ public sealed partial class MainPlayerPage : Page
 		CopyLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		Separator1.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		EditLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator2.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		SyncLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		//TODO
-		//Separator2.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		//Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		//SearchLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
-		Separator3.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+		Separator4.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
 		ClearLyricsButton.Visibility = embeddedLyrics ? Visibility.Visible : Visibility.Collapsed;
+
 		OpenLyricsButton.Visibility = embeddedLyrics ? Visibility.Collapsed : Visibility.Visible;
+	}
+
+	private void SyncLyricsButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (LyricsDisplay.IsLoaded && LyricsDisplay.Visibility == Visibility.Visible)
+		{
+			SyncTime.Text = LrcParser.GetOffset(lyricsText!).ToString() + " ms";
+
+			SyncControls.Visibility = Visibility.Visible;
+			CalculateLyricsLayout(out double left, out double top, out double width, out _);
+			PositionSyncControls(left, top, width);
+		}
+	}
+
+	private void PositionSyncControls(double lyricsLeft, double lyricsTop, double lyricsWidth)
+	{
+		SyncCore.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+
+		double coreWidth = SyncCore.DesiredSize.Width;
+		double coreHeight = SyncCore.DesiredSize.Height;
+
+		double syncLeft = lyricsLeft + (lyricsWidth - coreWidth) / 2.0;
+		double syncTop = lyricsTop - coreHeight - SyncControlsGap;
+
+		SyncControls.Margin = new Thickness(syncLeft, syncTop, 0, 0);
+	}
+
+	private void DecreaseButton_Click(object sender, RoutedEventArgs e)
+	{
+		ApplyOffsetLive(increase: false);
+	}
+
+	private void IncreaseButton_Click(object sender, RoutedEventArgs e)
+	{
+		ApplyOffsetLive(increase: true);
+	}
+
+	private void ApplyOffsetLive(bool increase)
+	{
+		var syncTime = int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3));
+
+		if (increase)
+			syncTime += 50;
+		else
+			syncTime -= 50;
+
+		SyncTime.Text = syncTime.ToString() + " ms";
+
+		LrcParser.ApplyOffset(_lines, increase ? 50 : -50);
+	}
+
+	private async void SaveAsOffsetButton_Click(object sender, RoutedEventArgs e)
+	{
+		var newlyricsText = LrcParser.SetOffsetMetadata(lyricsText, int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3)));
+		await SaveNewLyricsToDBAndFile(newlyricsText);
+		SyncControls.Visibility = Visibility.Collapsed;
+	}
+
+	private async void SaveByTimestampsButton_Click(object sender, RoutedEventArgs e)
+	{
+		var newlyricsText = LrcParser.SaveOffsetByChangingTimestamp(lyricsText, int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3)));
+		await SaveNewLyricsToDBAndFile(newlyricsText);
+		SyncControls.Visibility = Visibility.Collapsed;
+	}
+
+	private async Task SaveNewLyricsToDBAndFile(string? newlyricsText)
+	{
+		lyricsText = newlyricsText;
+
+		var songData = await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong);
+		if (songData != null)
+		{
+			songData.Lyrics = newlyricsText;
+			await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
+			await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, pendingLyrics: 1);
+			GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+		}
+
+	}
+
+	private void CancelSyncButton_Click(object sender, RoutedEventArgs e)
+	{
+		var newOffset = LrcParser.GetOffset(lyricsText!) - int.Parse(SyncTime.Text.Substring(0, SyncTime.Text.Length - 3));
+		LrcParser.ApplyOffset(_lines, newOffset);
+		SyncControls.Visibility = Visibility.Collapsed;
 	}
 }
