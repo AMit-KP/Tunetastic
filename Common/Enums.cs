@@ -197,7 +197,8 @@ public enum LocalSave
 	TaskBarOverlayStatus,
 	TaskBarOverlaySide,
 	TaskBarOverlayTheme,
-	TaskBarOverlayDesign
+	TaskBarOverlayDesign,
+	LRCOffsetSOfficialtandard
 }
 
 /// <summary>

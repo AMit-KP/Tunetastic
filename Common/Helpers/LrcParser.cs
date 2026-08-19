@@ -111,9 +111,11 @@ public static class LrcParser
 		if (offsetMs == 0)
 			return;
 
+		var effectiveOffset = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)]?.ToString() ?? "false") ? -offsetMs : offsetMs;
+
 		for (int i = 0; i < LyricsLines.Count; i++)
 		{
-			var shifted = LyricsLines[i].Time.Add(TimeSpan.FromMilliseconds(offsetMs));
+			var shifted = LyricsLines[i].Time.Add(TimeSpan.FromMilliseconds(effectiveOffset));
 			LyricsLines[i] = new LrcLine(shifted < TimeSpan.Zero ? TimeSpan.Zero : shifted, LyricsLines[i].Text);
 		}
 	}
@@ -185,6 +187,8 @@ public static class LrcParser
 		var rawLines = lrcContent.Split('\n');
 		var sb = new StringBuilder();
 
+		var effectiveOffset = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)]?.ToString() ?? "false") ? -offsetMs : offsetMs;
+
 		for (int i = 0; i < rawLines.Length; i++)
 		{
 			var line = rawLines[i];
@@ -192,10 +196,10 @@ public static class LrcParser
 
 			if (!MetadataLineRegex.IsMatch(trimmed))
 			{
-				line = TimestampRegex.Replace(line, m => ShiftTimestamp(m, offsetMs));
+				line = TimestampRegex.Replace(line, m => ShiftTimestamp(m, effectiveOffset));
 
 				// TODO: Apply offset to Karaoke tags
-				//line = KaraokeTagRegex.Replace(line, m => ShiftTimestamp(m, offsetMs));
+				//line = KaraokeTagRegex.Replace(line, m => ShiftTimestamp(m, effectiveOffset));
 			}
 
 			sb.Append(line);

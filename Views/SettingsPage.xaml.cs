@@ -89,6 +89,7 @@ public sealed partial class SettingsPage : Page
 		//TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
+		LRCOffsetStandard.SelectionChanged += LRCOffsetStandard_SelectionChanged;
 
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
@@ -779,6 +780,9 @@ public sealed partial class SettingsPage : Page
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
 
 		ForwardRewindButtonVisibility.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)]?.ToString() ?? "true");
+
+		var lrcOffsetStandard = bool.Parse(localSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)]?.ToString() ?? "false") ? "Official" : "Intuitive";
+		LRCOffsetStandard.SelectedItem = LRCOffsetStandard.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == lrcOffsetStandard);
 	}
 
 	/// <summary>
@@ -1227,4 +1231,13 @@ public sealed partial class SettingsPage : Page
 		OverlayLayout.AccentAncientScroll => "LightTBOL",
 		_ => "DefaultTBOL"
 	};
+
+	private void LRCOffsetStandard_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (LRCOffsetStandard.SelectedItem is ComboBoxItem selctedItem)
+		{
+			var isOfficial = selctedItem.Tag.ToString() == "Official";
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)] = isOfficial;
+		}
+	}
 }
