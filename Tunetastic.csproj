@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.53.33.3401</AssemblyVersion>
-    <FileVersion>1.53.33.3401</FileVersion>
+    <AssemblyVersion>1.54.2.3403</AssemblyVersion>
+    <FileVersion>1.54.2.3403</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -198,25 +198,25 @@
     <PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
     <PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
     <PackageReference Include="Downloader" Version="5.5.0" />
-    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="8.1.0" />
-    <PackageReference Include="FlyleafLib" Version="3.10.4" />
+    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.0" />
+    <PackageReference Include="FlyleafLib" Version="3.11.3" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1839" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
     <PackageReference Include="NAudio.Wasapi" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="nucs.JsonSettings" Version="2.0.2" />
     <PackageReference Include="nucs.JsonSettings.AutosaveGenerator" Version="2.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
-    <PackageReference Include="System.Management" Version="10.0.9" />
+    <PackageReference Include="System.Management" Version="10.0.11" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
-    <PackageReference Include="WinUIEx" Version="2.9.1" />
+    <PackageReference Include="WinUIEx" Version="2.9.3" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Assets\FFmpeg\avcodec-62.dll">
