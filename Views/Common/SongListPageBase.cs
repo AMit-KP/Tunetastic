@@ -10,6 +10,9 @@ namespace Tunetastic.Views.Common;
 /// </summary>
 public abstract partial class SongListPageBase : TunetasticPageBase
 {
+	/// <summary>The view model owning this page's song collection, selection and playback commands.</summary>
+	protected SongListViewModel ViewModel { get; } = new();
+
 	/// <summary>
 	/// The songs this page currently displays, in display order.
 	/// </summary>
@@ -23,7 +26,11 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	/// <summary>
 	/// Currently selected song in single-select mode.
 	/// </summary>
-	protected Song? selectedSong;
+	protected Song? selectedSong
+	{
+		get => ViewModel.SelectedSong;
+		set => ViewModel.SelectedSong = value;
+	}
 
 	/// <summary>
 	/// Returns whichever of the two view-style ListViews is active.
@@ -91,13 +98,21 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	protected async void PlayAll_OnClick(object sender, RoutedEventArgs e)
 	{
 		ShuffleAndPlayControl.IsEnabled = false;
-		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-		var songs = PageSongs;
-		List<string> songPaths = songs.Select(s => s.Path).ToList();
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = PlaylistKey;
-		MusicPlayer.Instance.LoadPlaylist(songPaths);
-		await ScrollToSong(songs[0]);
+		Song first;
+		if (ViewModel.Songs.Count > 0)
+		{
+			first = ViewModel.PlayAll(PlaylistKey);
+		}
+		else
+		{
+			// TODO: remove once every page feeds its collection into the view model.
+			MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
+			List<string> songPaths = PageSongs.Select(s => s.Path).ToList();
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = PlaylistKey;
+			MusicPlayer.Instance.LoadPlaylist(songPaths);
+			first = PageSongs[0];
+		}
+		await ScrollToSong(first);
 		ShuffleAndPlayControl.IsEnabled = true;
 	}
 
@@ -112,17 +127,24 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	protected async void ShuffleAndPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		ShuffleAndPlayControl.IsEnabled = false;
-		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-		var songs = PageSongs;
-		List<string> songPaths = songs.Select(s => s.Path).ToList();
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = PlaylistKey;
-		var startingSong = songPaths[new Random().Next(songPaths.Count)];
-		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-		var SelectedSong = songs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
-		await ScrollToSong(SelectedSong);       //somehow this doesn't work
+		Song? starting;
+		if (ViewModel.Songs.Count > 0)
+		{
+			starting = ViewModel.ShuffleAndPlay(PlaylistKey);
+		}
+		else
+		{
+			// TODO: remove once every page feeds its collection into the view model.
+			MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
+			List<string> songPaths = PageSongs.Select(s => s.Path).ToList();
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = PlaylistKey;
+			var startingSong = songPaths[new Random().Next(songPaths.Count)];
+			MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
+			starting = PageSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		}
+		await ScrollToSong(starting);       //somehow this doesn't work
 		await Task.Delay(500);
-		await ScrollToSong(SelectedSong);
+		await ScrollToSong(starting);
 		ShuffleAndPlayControl.IsEnabled = true;
 	}
 

@@ -13,15 +13,12 @@ namespace Tunetastic.Views.LibraryViews;
 public sealed partial class AlbumDetailPage : SongListPageBase
 {
 	/// <summary>
-	/// Gets or sets the collection of songs associated with a specific album grouping.
+	/// Gets the collection of songs associated with a specific album grouping, owned by the page's view model.
 	/// </summary>
-	public ObservableCollection<Song> AlbumGroupSongs
-	{
-		get; set;
-	} = new();
+	public ObservableCollection<Song> AlbumGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => AlbumGroupSongs;
+	protected override ObservableCollection<Song> PageSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => $"AlbumGroup>{ActualAlbumGroup.Text}";
