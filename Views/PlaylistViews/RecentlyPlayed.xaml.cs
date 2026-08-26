@@ -17,13 +17,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	/// The collection is dynamically updated based on user-defined
 	/// criteria such as maximum display limit.
 	/// </summary>
-	public ObservableCollection<Song> RecentlyPlayedSongs
-	{
-		get; set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => RecentlyPlayedSongs;
+		public ObservableCollection<Song> RecentlyPlayedSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "RecentlyPlayed";

@@ -21,13 +21,7 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs associated with a specific artist grouping.
 	/// </summary>
-	public ObservableCollection<Song> ArtistGroupSongs
-	{
-		get; set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => ArtistGroupSongs;
+		public ObservableCollection<Song> ArtistGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => $"ArtistGroup>{ActualArtistGroup.Text}";

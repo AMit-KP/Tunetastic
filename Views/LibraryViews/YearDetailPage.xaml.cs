@@ -21,13 +21,7 @@ public sealed partial class YearDetailPage : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs associated with a specific year grouping.
 	/// </summary>
-	public ObservableCollection<Song> YearGroupSongs
-	{
-		get; set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => YearGroupSongs;
+		public ObservableCollection<Song> YearGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => $"YearGroup>{ActualYearGroup.Text}";

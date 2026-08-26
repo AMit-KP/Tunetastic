@@ -20,14 +20,7 @@ public sealed partial class MostPlayed : SongListPageBase
 	/// The collection is automatically updated based on play count and
 	/// a user-defined maximum display limit.
 	/// </summary>
-	public ObservableCollection<Song> MostPlayedSongs
-	{
-		get;
-		set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => MostPlayedSongs;
+	public ObservableCollection<Song> MostPlayedSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "MostPlayed";

@@ -21,13 +21,7 @@ public sealed partial class GenreDetailPage : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs associated with a specific genre grouping.
 	/// </summary>
-	public ObservableCollection<Song> GenreGroupSongs
-	{
-		get; set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => GenreGroupSongs;
+		public ObservableCollection<Song> GenreGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => $"GenreGroup>{ActualGenreGroup.Text}";

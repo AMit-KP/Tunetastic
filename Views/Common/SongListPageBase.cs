@@ -14,11 +14,6 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	protected SongListViewModel ViewModel { get; } = new();
 
 	/// <summary>
-	/// The songs this page currently displays, in display order.
-	/// </summary>
-	protected abstract ObservableCollection<Song> PageSongs { get; }
-
-	/// <summary>
 	/// The string written to <see cref="LocalSave.CurrentPlayinglist"/> when this page starts playback.
 	/// </summary>
 	protected abstract string PlaylistKey { get; }
@@ -98,20 +93,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	protected async void PlayAll_OnClick(object sender, RoutedEventArgs e)
 	{
 		ShuffleAndPlayControl.IsEnabled = false;
-		Song first;
-		if (ViewModel.Songs.Count > 0)
-		{
-			first = ViewModel.PlayAll(PlaylistKey);
-		}
-		else
-		{
-			// TODO: remove once every page feeds its collection into the view model.
-			MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-			List<string> songPaths = PageSongs.Select(s => s.Path).ToList();
-			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = PlaylistKey;
-			MusicPlayer.Instance.LoadPlaylist(songPaths);
-			first = PageSongs[0];
-		}
+		var first = ViewModel.PlayAll(PlaylistKey);
 		await ScrollToSong(first);
 		ShuffleAndPlayControl.IsEnabled = true;
 	}
@@ -127,21 +109,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	protected async void ShuffleAndPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		ShuffleAndPlayControl.IsEnabled = false;
-		Song? starting;
-		if (ViewModel.Songs.Count > 0)
-		{
-			starting = ViewModel.ShuffleAndPlay(PlaylistKey);
-		}
-		else
-		{
-			// TODO: remove once every page feeds its collection into the view model.
-			MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-			List<string> songPaths = PageSongs.Select(s => s.Path).ToList();
-			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = PlaylistKey;
-			var startingSong = songPaths[new Random().Next(songPaths.Count)];
-			MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-			starting = PageSongs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
-		}
+		var starting = ViewModel.ShuffleAndPlay(PlaylistKey);
 		await ScrollToSong(starting);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(starting);

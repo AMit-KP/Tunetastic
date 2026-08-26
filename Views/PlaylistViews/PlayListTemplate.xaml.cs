@@ -21,13 +21,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs that are added to the respective playlist.
 	/// </summary>
-	public ObservableCollection<Song> PlayListSongs
-	{
-		get; set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => PlayListSongs;
+		public ObservableCollection<Song> PlayListSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "CustomPlaylist__" + PlaylistHeader.Text;

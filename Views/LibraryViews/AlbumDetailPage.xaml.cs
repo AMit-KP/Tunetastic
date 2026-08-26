@@ -18,9 +18,6 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	public ObservableCollection<Song> AlbumGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => ViewModel.Songs;
-
-	/// <inheritdoc/>
 	protected override string PlaylistKey => $"AlbumGroup>{ActualAlbumGroup.Text}";
 
 	/// <inheritdoc/>
@@ -413,7 +410,6 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		await AdjustAlphabetSize();
 	}
 
-
 	/// <summary>
 	/// Scrolls the view to a specific section of the song list based on the specified letter and sorting criteria.
 	/// </summary>
@@ -462,8 +458,6 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		}
 	}
 
-
-
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
 
@@ -480,7 +474,6 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	{
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
-
 
 	/// <summary>
 	/// Handles the logic for adding songs to a selected playlist from the current view.
@@ -722,7 +715,6 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		List<Song> songList = new();
 		foreach (var item in songs)
 			songList.Add((Song)item);
-
 
 		DeleteDialog.Visibility = Visibility.Visible;
 		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";

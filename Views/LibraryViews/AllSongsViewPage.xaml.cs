@@ -27,13 +27,7 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 	/// the <c>ListView</c> in the associated XAML to display the songs in the UI, allowing users to interact with
 	/// individual items.
 	/// </remarks>
-	public ObservableCollection<Song> AllSongs
-	{
-		get; set;
-	} = new();
-
-	/// <inheritdoc/>
-	protected override ObservableCollection<Song> PageSongs => AllSongs;
+		public ObservableCollection<Song> AllSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "AllSongsViewPage";
