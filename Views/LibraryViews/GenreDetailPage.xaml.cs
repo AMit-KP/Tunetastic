@@ -2,7 +2,6 @@
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Tunetastic.Views.Common;
 
@@ -21,7 +20,7 @@ public sealed partial class GenreDetailPage : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs associated with a specific genre grouping.
 	/// </summary>
-		public ObservableCollection<Song> GenreGroupSongs => ViewModel.Songs;
+	public ObservableCollection<Song> GenreGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => $"GenreGroup>{ActualGenreGroup.Text}";
@@ -46,9 +45,9 @@ public sealed partial class GenreDetailPage : SongListPageBase
 	protected override ListView GetCurrentViewStyle() => CurrentViewStyleText() switch
 	{
 
-			"List View" => GenreDetailListView,
-			"Compact View" => GenreDetailCompactView,
-			_ => GenreDetailCompactView
+		"List View" => GenreDetailListView,
+		"Compact View" => GenreDetailCompactView,
+		_ => GenreDetailCompactView
 	};
 
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.

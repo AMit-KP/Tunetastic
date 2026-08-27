@@ -1,8 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.PlaylistViews;
@@ -17,7 +15,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	/// The collection is dynamically updated based on user-defined
 	/// criteria such as maximum display limit.
 	/// </summary>
-		public ObservableCollection<Song> RecentlyPlayedSongs => ViewModel.Songs;
+	public ObservableCollection<Song> RecentlyPlayedSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "RecentlyPlayed";
@@ -42,9 +40,9 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	protected override ListView GetCurrentViewStyle() => CurrentViewStyleText() switch
 	{
 
-			"List View" => RecentlyPlayedSongsListView,
-			"Compact View" => RecentlyPlayedSongsCompactView,
-			_ => RecentlyPlayedSongsCompactView
+		"List View" => RecentlyPlayedSongsListView,
+		"Compact View" => RecentlyPlayedSongsCompactView,
+		_ => RecentlyPlayedSongsCompactView
 	};
 
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.

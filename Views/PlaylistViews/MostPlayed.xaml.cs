@@ -1,8 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.PlaylistViews;
@@ -45,9 +43,9 @@ public sealed partial class MostPlayed : SongListPageBase
 	protected override ListView GetCurrentViewStyle() => CurrentViewStyleText() switch
 	{
 
-			"List View" => MostPlayedSongsListView,
-			"Compact View" => MostPlayedSongsCompactView,
-			_ => MostPlayedSongsCompactView
+		"List View" => MostPlayedSongsListView,
+		"Compact View" => MostPlayedSongsCompactView,
+		_ => MostPlayedSongsCompactView
 	};
 
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.

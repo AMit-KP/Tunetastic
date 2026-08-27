@@ -2,7 +2,6 @@
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Tunetastic.Views.Common;
 
@@ -21,7 +20,7 @@ public sealed partial class YearDetailPage : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs associated with a specific year grouping.
 	/// </summary>
-		public ObservableCollection<Song> YearGroupSongs => ViewModel.Songs;
+	public ObservableCollection<Song> YearGroupSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => $"YearGroup>{ActualYearGroup.Text}";
@@ -46,9 +45,9 @@ public sealed partial class YearDetailPage : SongListPageBase
 	protected override ListView GetCurrentViewStyle() => CurrentViewStyleText() switch
 	{
 
-			"List View" => YearDetailListView,
-			"Compact View" => YearDetailCompactView,
-			_ => YearDetailCompactView
+		"List View" => YearDetailListView,
+		"Compact View" => YearDetailCompactView,
+		_ => YearDetailCompactView
 	};
 
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.

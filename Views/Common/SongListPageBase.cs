@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.WinUI;
+﻿using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.Common;

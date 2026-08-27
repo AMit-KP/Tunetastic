@@ -2,7 +2,6 @@
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -27,7 +26,7 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 	/// the <c>ListView</c> in the associated XAML to display the songs in the UI, allowing users to interact with
 	/// individual items.
 	/// </remarks>
-		public ObservableCollection<Song> AllSongs => ViewModel.Songs;
+	public ObservableCollection<Song> AllSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "AllSongsViewPage";
@@ -52,9 +51,9 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 	protected override ListView GetCurrentViewStyle() => CurrentViewStyleText() switch
 	{
 
-			"List View" => AllSongsListView,
-			"Compact View" => AllSongsCompactView,
-			_ => AllSongsCompactView
+		"List View" => AllSongsListView,
+		"Compact View" => AllSongsCompactView,
+		_ => AllSongsCompactView
 	};
 
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.

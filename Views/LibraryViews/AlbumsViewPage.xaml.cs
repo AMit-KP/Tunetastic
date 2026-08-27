@@ -2,11 +2,9 @@
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
-using Windows.Foundation;
-
 using Tunetastic.Views.Common;
+using Windows.Foundation;
 namespace Tunetastic.Views.LibraryViews;
 
 /// <summary>

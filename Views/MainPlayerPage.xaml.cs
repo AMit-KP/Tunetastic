@@ -220,12 +220,12 @@ public sealed partial class MainPlayerPage : Page
 			MusicPlayer.Instance.SMTC.DisplayUpdater.ClearAll();
 		BGbitmapImage = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
 		if (!backNavigation)
-			BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+			BackgroundImage.Source = BGbitmapImage;
 		coverArtAspectRatio = 1.0;
 		coverArtImagePixelWidth = 500;
 		coverArtImagePixelHeight = 500;
 		UpdateCoverArtSize();
-		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
+		CoverArtImage.Source = BGbitmapImage;
 		Title.Text = "Please select a song";
 		MusicInfoButton.Visibility = Visibility.Collapsed;
 		_externalLrcPath = null;

@@ -27,17 +27,17 @@ public abstract class OverlayBase
 
 	// Common button references — not every layout uses all of them.
 	// Null-check before subscribing if you are unsure.
-	
+
 	/// <summary>
 	/// Gets or sets the play/pause button reference.
 	/// </summary>
 	public Button? PlayPauseButton { get; protected set; }
-	
+
 	/// <summary>
 	/// Gets or sets the previous button reference.
 	/// </summary>
 	public Button? PreviousButton { get; protected set; }
-	
+
 	/// <summary>
 	/// Gets or sets the next button reference.
 	/// </summary>
@@ -85,27 +85,27 @@ public abstract class OverlayBase
 	/// Gets the dark background color.
 	/// </summary>
 	protected static Color DarkBg => Color.FromArgb(255, 32, 32, 40);
-	
+
 	/// <summary>
 	/// Gets the dark surface color.
 	/// </summary>
 	protected static Color DarkSurface => Color.FromArgb(180, 48, 48, 60);
-	
+
 	/// <summary>
 	/// Gets the dark border color.
 	/// </summary>
 	protected static Color DarkBorder => Color.FromArgb(40, 255, 255, 255);
-	
+
 	/// <summary>
 	/// Gets the dark text color.
 	/// </summary>
 	protected static Color DarkText => Color.FromArgb(255, 255, 255, 255);
-	
+
 	/// <summary>
 	/// Gets the dark sub-text color.
 	/// </summary>
 	protected static Color DarkSubText => Color.FromArgb(155, 255, 255, 255);
-	
+
 	/// <summary>
 	/// Gets the dark divider color.
 	/// </summary>
@@ -115,27 +115,27 @@ public abstract class OverlayBase
 	/// Gets the light background color.
 	/// </summary>
 	protected static Color LightBg => Color.FromArgb(255, 243, 243, 248);
-	
+
 	/// <summary>
 	/// Gets the light surface color.
 	/// </summary>
 	protected static Color LightSurface => Color.FromArgb(200, 255, 255, 255);
-	
+
 	/// <summary>
 	/// Gets the light border color.
 	/// </summary>
 	protected static Color LightBorder => Color.FromArgb(60, 0, 0, 0);
-	
+
 	/// <summary>
 	/// Gets the light text color.
 	/// </summary>
 	protected static Color LightText => Color.FromArgb(255, 15, 15, 20);
-	
+
 	/// <summary>
 	/// Gets the light sub-text color.
 	/// </summary>
 	protected static Color LightSubText => Color.FromArgb(155, 15, 15, 20);
-	
+
 	/// <summary>
 	/// Gets the light divider color.
 	/// </summary>
@@ -145,27 +145,27 @@ public abstract class OverlayBase
 	/// Gets the background color based on the current theme.
 	/// </summary>
 	protected Color Bg => Theme == OverlayTheme.Dark ? DarkBg : LightBg;
-	
+
 	/// <summary>
 	/// Gets the surface color based on the current theme.
 	/// </summary>
 	protected Color Surface => Theme == OverlayTheme.Dark ? DarkSurface : LightSurface;
-	
+
 	/// <summary>
 	/// Gets the border color based on the current theme.
 	/// </summary>
 	protected Color Border => Theme == OverlayTheme.Dark ? DarkBorder : LightBorder;
-	
+
 	/// <summary>
 	/// Gets the text color based on the current theme.
 	/// </summary>
 	protected Color Text => Theme == OverlayTheme.Dark ? DarkText : LightText;
-	
+
 	/// <summary>
 	/// Gets the sub-text color based on the current theme.
 	/// </summary>
 	protected Color SubText => Theme == OverlayTheme.Dark ? DarkSubText : LightSubText;
-	
+
 	/// <summary>
 	/// Gets the divider color based on the current theme.
 	/// </summary>
@@ -443,47 +443,47 @@ public abstract class OverlayBase
 	/// Gets the default accent purple color.
 	/// </summary>
 	protected static Color AccentPurple => Color.FromArgb(255, 127, 119, 221);
-	
+
 	/// <summary>
 	/// Gets the default accent green color.
 	/// </summary>
 	protected static Color AccentGreen => Color.FromArgb(255, 29, 158, 117);
-	
+
 	/// <summary>
 	/// Gets the neon green color.
 	/// </summary>
 	protected static Color NeonGreen => Color.FromArgb(255, 57, 255, 20);
-	
+
 	/// <summary>
 	/// Gets the default accent orange color.
 	/// </summary>
 	protected static Color AccentOrange => Color.FromArgb(255, 216, 90, 48);
-	
+
 	/// <summary>
 	/// Gets the default accent pink color.
 	/// </summary>
 	protected static Color AccentPink => Color.FromArgb(255, 212, 83, 126);
-	
+
 	/// <summary>
 	/// Gets the default accent blue color.
 	/// </summary>
 	protected static Color AccentBlue => Color.FromArgb(255, 55, 138, 221);
-	
+
 	/// <summary>
 	/// Gets the default accent gold color.
 	/// </summary>
 	protected static Color AccentGold => Color.FromArgb(255, 186, 117, 23);
-	
+
 	/// <summary>
 	/// Gets the default accent teal color.
 	/// </summary>
 	protected static Color AccentTeal => Color.FromArgb(255, 15, 110, 86);
-	
+
 	/// <summary>
 	/// Gets the default accent indigo color.
 	/// </summary>
 	protected static Color AccentIndigo => Color.FromArgb(255, 83, 74, 183);
-	
+
 	/// <summary>
 	/// Gets the default accent rose color.
 	/// </summary>

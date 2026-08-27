@@ -1,11 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using CommunityToolkit.WinUI;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.PlaylistViews;
@@ -21,7 +18,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// <summary>
 	/// Gets or sets the collection of songs that are added to the respective playlist.
 	/// </summary>
-		public ObservableCollection<Song> PlayListSongs => ViewModel.Songs;
+	public ObservableCollection<Song> PlayListSongs => ViewModel.Songs;
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "CustomPlaylist__" + PlaylistHeader.Text;
@@ -46,9 +43,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	protected override ListView GetCurrentViewStyle() => CurrentViewStyleText() switch
 	{
 
-			"List View" => PlayListSongsListView,
-			"Compact View" => PlayListSongsCompactView,
-			_ => PlayListSongsCompactView
+		"List View" => PlayListSongsListView,
+		"Compact View" => PlayListSongsCompactView,
+		_ => PlayListSongsCompactView
 	};
 
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.
