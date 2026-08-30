@@ -2,9 +2,9 @@
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 
+using Tunetastic.Views.Common;
 namespace Tunetastic.Views.LibraryViews;
 
 /// <summary>
@@ -22,7 +22,7 @@ namespace Tunetastic.Views.LibraryViews;
 /// This page is mapped to the navigation dictionary in the application through
 /// its fully qualified type name.
 /// </remarks>
-public sealed partial class GenresViewPage : Page
+public sealed partial class GenresViewPage : TileListPageBase
 {
 	/// <summary>
 	/// Gets or sets the collection of <c>GenreModel</c> objects, representing groups of songs organized by Genre.
@@ -38,75 +38,47 @@ public sealed partial class GenresViewPage : Page
 		get; set;
 	} = new();
 
-	private readonly DispatcherQueue _dispatcherQueue;
-
 	public GenresViewPage()
 	{
 		this.InitializeComponent();
-		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-		_ = CheckScanning();
+		_ = RunScanningAwareInit();
 	}
 
-	/// <summary>
-	/// Asynchronously checks the status of the ongoing music data scanning process and interacts with the user interface based on the status.
-	/// </summary>
-	/// <remarks>
-	/// This method verifies whether a music scanning operation is in progress through the data service. If scanning is active,
-	/// it modifies the application's UI by displaying loading indicators and hiding specific content elements until the process completes.
-	/// Once scanning finishes or no scanning is detected, it populates the song collection with metadata, applies sorting and view style updates,
-	/// and adjusts the visibility of various UI components.
-	/// </remarks>
-	/// <returns>
-	/// A task representing the asynchronous operation of scanning status monitoring, UI adjustments, and song collection management.
-	/// </returns>
-	private async Task CheckScanning()
+	/// <inheritdoc/>
+	protected override void OnInitializingContent()
 	{
-		GoToSettings.Visibility = Visibility.Visible;
 		AddGoToSettingsMessage();
 		GenreTileView.Visibility = Visibility.Collapsed;
-		PageButtons.Visibility = Visibility.Collapsed;
-
-		if (GetMusicData.IsScanning)
-		{
-			GoToSettings.Visibility = Visibility.Collapsed;
-			LoadingProgress.Opacity = 0;
-			LoadingProgress.Visibility = Visibility.Visible;
-
-			for (double i = 0; i <= 1; i += 0.05)
-			{
-				LoadingProgress.Opacity = i;
-				await Task.Delay(1);
-			}
-
-			while (GetMusicData.IsScanning)
-			{
-				ProgressFill.Width = GetMusicData.ScanProgress * 4;
-				ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
-				await Task.Delay(1);
-			}
-
-			for (double i = 1; i >= 0; i -= 0.05)
-			{
-				LoadingProgress.Opacity = i;
-				await Task.Delay(1);
-			}
-			LoadingProgress.Visibility = Visibility.Collapsed;
-			await _dispatcherQueue.EnqueueAsync(() =>
-			{
-				this.Content = new GenresViewPage();
-			});
-			return;
-		}
-
-		if (await DatabaseHelper.Instance.GetSongsCount() > 0)
-		{
-			GoToSettings.Visibility = Visibility.Collapsed;
-			SortDropDown.Visibility = Visibility.Visible;
-			PageButtons.Visibility = Visibility.Visible;
-			GenreTileView.Visibility = Visibility.Visible;
-			UpdateAsPerLastSorting();
-		}
 	}
+
+	/// <inheritdoc/>
+	protected override Page CreateFreshPage() => new GenresViewPage();
+
+	/// <inheritdoc/>
+	protected override Task OnLibraryReadyAsync()
+	{
+		SortDropDown.Visibility = Visibility.Visible;
+		PageButtons.Visibility = Visibility.Visible;
+		GenreTileView.Visibility = Visibility.Visible;
+		UpdateAsPerLastSorting();
+		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc/>
+	protected override List<string> EmptyLibraryMessages => GoToMessages;
+	/// <inheritdoc/>
+	protected override ListViewBase TileView => GenreTileView;
+
+	/// <inheritdoc/>
+	protected override Button MoreButtonControl => MoreButton;
+
+	/// <inheritdoc/>
+	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
+		$"Add {(multiSelect ? "selected groups" : "this group")} of songs/tracks to {playList} playlist";
+
+	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) => TileView_SelectionChanged(sender, e);
+
+	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
 
 	/// <summary>
 	/// Updates the sorting preferences for the song list displayed on the GenresViewPage.
@@ -313,66 +285,6 @@ public sealed partial class GenresViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the SelectionChanged event for the ListView to modify UI elements or update internal state based on user selection changes.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the ListView control where the selection was changed.</param>
-	/// <param name="e">Provides data about the SelectionChanged event, including the modified selection.</param>
-	/// <remarks>
-	/// This method dynamically updates the `MoreButton`'s state depending on the selection mode and selected items count.
-	/// If the ListView is in multi-select mode, the button is enabled or disabled based on whether any items are selected.
-	/// In single-select mode, updates the `selectedSong` property with the currently selected song.
-	/// </remarks>
-	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (GenreTileView.IsMultiSelectCheckBoxEnabled)
-		{
-			MoreButton.IsEnabled = GenreTileView.SelectedItems.Count > 0;
-		}
-	}
-
-	/// <summary>
-	/// Handles the 'Opened' event of the <see cref="MenuFlyout"/> control in the context menu.
-	/// </summary>
-	/// <remarks>
-	/// This method dynamically populates the "Add to Playlist" submenu with the available playlists retrieved from the database.
-	/// If no playlists exist, a single "No Playlists created" item is added to the submenu with a red text color.
-	/// The method ensures that all items in the submenu are cleared before adding new items.
-	/// </remarks>
-	/// <param name="sender">The source object where the event is triggered.</param>
-	/// <param name="e">An object containing event data related to the 'Opened' event.</param>
-	private async void MenuFlyout_Opened(object sender, object e)
-	{
-		var menu = sender as MenuFlyout;
-		var addToPlaylist = menu?.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault();
-
-		addToPlaylist?.Items.Clear();
-
-		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
-
-		if (playLists == null || playLists.Count == 0)
-		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = "No Playlists created",
-				Foreground = new SolidColorBrush(Colors.Red)
-			};
-			addToPlaylist?.Items.Add(menuItem);
-			return;
-		}
-
-		foreach (var playList in playLists)
-		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = playList
-			};
-			ToolTipService.SetToolTip(menuItem, $"Add {(MultiSelectButton.IsChecked == true ? "selected groups" : "this group")} of songs/tracks to {playList} playlist");
-			menuItem.Click += AddToPlaylist_Click;
-			addToPlaylist?.Items.Add(menuItem);
-		}
-	}
-
-	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the menu item representing the target playlist.</param>
@@ -385,7 +297,7 @@ public sealed partial class GenresViewPage : Page
 	/// Updates are performed through interactions with the database using asynchronous operations.
 	/// A notification is displayed upon successfully adding the songs to the playlist.
 	/// </remarks>
-	private async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
+	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -860,78 +772,6 @@ public sealed partial class GenresViewPage : Page
 	}
 
 	/// <summary>
-	/// Populates the alphabet navigation panel with letters and optionally a special character marker
-	/// for navigating sections of songs.
-	/// </summary>
-	/// <param name="availableLetters">
-	/// A collection of letters representing song sections to be included in navigation. Null indicates
-	/// all letters are marked as unavailable.
-	/// </param>
-	/// <param name="order">
-	/// A flag indicating whether the letters are ordered in ascending or descending order.
-	/// </param>
-	/// <param name="sortBy">
-	/// The sorting criterion to define navigation to specific column in the song collection.
-	/// </param>
-	/// <param name="hasSpecialCharacters">
-	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
-	/// </param>
-	/// <remarks>
-	/// This method clears all existing child elements in the alphabet navigation panel before creating
-	/// and adding dynamically generated navigation elements. Each letter element is configured based on
-	/// its validity from the provided collection. Additionally, it defines interaction behavior for
-	/// navigable elements to handle user input.
-	/// </remarks>
-	private async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, bool hasSpecialCharacters)
-	{
-		AlphabetNavigationPanel.Children.Clear();
-		if (availableLetters == null && !hasSpecialCharacters) return;
-
-		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
-		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
-		if (!order) fullAlphabet = fullAlphabet.Reverse();
-
-		double availableSpace = ContentGrid.ActualHeight - 10;
-		if (availableSpace <= 0) return;
-
-		double autoHeight = availableSpace / fullAlphabet.Count();
-
-		foreach (var letter in fullAlphabet)
-		{
-			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
-
-			var Button = new Button
-			{
-				Content = letter,
-				Foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray),
-				Opacity = hasSongs ? 1 : 0.5,
-				Background = new SolidColorBrush(Colors.Transparent),
-				BorderBrush = new SolidColorBrush(Colors.Transparent),
-				BorderThickness = new Thickness(0),
-				IsHitTestVisible = hasSongs,
-				Margin = new Thickness(0),
-				HorizontalContentAlignment = HorizontalAlignment.Right,
-				VerticalContentAlignment = VerticalAlignment.Stretch,
-				Padding = new Thickness(0),
-				HorizontalAlignment = HorizontalAlignment.Right,
-				VerticalAlignment = VerticalAlignment.Stretch,
-				Height = autoHeight
-			};
-
-			if (hasSongs)
-			{
-				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
-				ToolTipService.SetToolTip(Button, letter);
-				Button.Tapped += (s, e) => ScrollToSection(letter);
-			}
-
-			AlphabetNavigationPanel.Children.Add(Button);
-		}
-		_ = AdjustAlphabetSize();
-		availableLetters = null;
-	}
-
-	/// <summary>
 	/// Scrolls the view to a specific section of the song list based on the specified letter and sorting criteria.
 	/// </summary>
 	/// <param name="letter">The starting letter of the section to scroll to, or "#" to scroll to non-alphabetic entries.</param>
@@ -940,7 +780,7 @@ public sealed partial class GenresViewPage : Page
 	/// This method locates the first song in the collection that matches the specified starting letter and sorting property.
 	/// If a matching song is found, the view scrolls to bring the song into focus.
 	/// </remarks>
-	private async void ScrollToSection(string letter)
+	protected override async void ScrollToSection(string letter)
 	{
 		GenreModel? targetGenre = null;
 
@@ -967,95 +807,9 @@ public sealed partial class GenresViewPage : Page
 		}
 	}
 
-	/// <summary>
-	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
-	/// </summary>
-	/// <remarks>
-	/// This method calculates the height for each element in the alphabet navigation panel dynamically, ensuring
-	/// that the elements are evenly spaced and fit within the available vertical space.
-	/// </remarks>
-	/// <returns>
-	/// A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.
-	/// </returns>
-	private Task<Task> AdjustAlphabetSize()
-	{
-		double availableSpace = ContentGrid.ActualHeight - 20;
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
-		AlphabetNavigationPanel.Margin = new Thickness(0, 10, 30, 10);
-
-		if (availableSpace <= 0) return Task.FromResult(Task.CompletedTask);
-
-		double totalLetters = AlphabetNavigationPanel.Children.Count;
-
-		double autoHeight = availableSpace / totalLetters;
-
-		foreach (var button in AlphabetNavigationPanel.Children.OfType<Button>())
-		{
-			button.Height = autoHeight;
-		}
-		return Task.FromResult(Task.CompletedTask);
-	}
-
-	/// <summary>
-	/// Handles the event triggered when the page's size changes.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the page.</param>
-	/// <param name="e">The event data containing information about the new size of the page.</param>
-	/// <remarks>
-	/// This method adjusts the layout or size of elements on the page whenever the size of the page changes.
-	/// It enqueues a task on the dispatcher queue to perform required layout updates asynchronously.
-	/// </remarks>
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
-	{
-		var pageHeight = e.NewSize.Height;
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
-		{
-			await AdjustAlphabetSize();
-		});
-	}
-
-	/// <summary>
-	/// Handles the theme change event for the page.
-	/// </summary>
-	/// <param name="sender">The <see cref="FrameworkElement"/> that triggered the theme change event.</param>
-	/// <param name="args">The event data associated with the theme change event.</param>
-	/// <remarks>
-	/// This method updates the foreground color of visible text elements in the AlphabetNavigationPanel
-	/// based on the current theme of the page. If the theme is dark, white color is applied; otherwise, black color is applied.
-	/// </remarks>
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args)
-	{
-		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
-		AlphabetNavigationPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
-	}
-
-	/// <summary>
-	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
-	/// </summary>
-	/// <remarks>
-	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
-	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
-	/// are applied to enhance the appearance of the messages.
-	/// </remarks>
-	private void AddGoToSettingsMessage()
-	{
-		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
-		var lines = message.Split('\n');
-
-		GoToSettingsTextBlock.Inlines.Clear();
-		GoToSettingsTextBlock.Inlines.Add(new Run
-		{
-			Text = lines[0],
-			FontStyle = Windows.UI.Text.FontStyle.Italic
-		});
-
-		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
-
-		GoToSettingsTextBlock.Inlines.Add(new Run
-		{
-			Text = lines[1]
-		});
-	}
+	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
 
 	/// <summary>
 	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.

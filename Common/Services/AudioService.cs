@@ -19,7 +19,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// Occurs when the system volume changes.
 	/// </summary>
 	public event Action<double, bool>? SystemVolumeChanged;
-	
+
 	/// <summary>
 	/// Occurs when the application volume changes.
 	/// </summary>
@@ -97,13 +97,13 @@ public class AudioService : IDisposable, IMMNotificationClient
 		/// </summary>
 		/// <param name="displayName">The new display name.</param>
 		public void OnDisplayNameChanged(string displayName) { }
-		
+
 		/// <summary>
 		/// Called when the icon path of the audio session changes.
 		/// </summary>
 		/// <param name="iconPath">The new icon path.</param>
 		public void OnIconPathChanged(string iconPath) { }
-		
+
 		/// <summary>
 		/// Called when the channel volume of the audio session changes.
 		/// </summary>
@@ -111,7 +111,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 		/// <param name="newVolumes">Pointer to the new volume values.</param>
 		/// <param name="channelIndex">The index of the changed channel.</param>
 		public void OnChannelVolumeChanged(uint channelCount, IntPtr newVolumes, uint channelIndex) { }
-		
+
 		/// <summary>
 		/// Called when the grouping parameter of the audio session changes.
 		/// </summary>
@@ -441,13 +441,13 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// </summary>
 	/// <param name="deviceId">The ID of the added device.</param>
 	void IMMNotificationClient.OnDeviceAdded(string deviceId) { }
-	
+
 	/// <summary>
 	/// Called when an audio device is removed.
 	/// </summary>
 	/// <param name="deviceId">The ID of the removed device.</param>
 	void IMMNotificationClient.OnDeviceRemoved(string deviceId) { }
-	
+
 	/// <summary>
 	/// Called when a property value of an audio device changes.
 	/// </summary>

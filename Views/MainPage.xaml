@@ -745,7 +745,7 @@
 							                           TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
-							             Title="Inline auto-suggestion for existing albums."
+							             Title="Inline auto-suggestion for existing artists."
 							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 							             BackgroundSizing="InnerBorderEdge"
 							             HeroContentPlacement="Bottom"

@@ -16,7 +16,7 @@ public class PlaybackStateChangedArgs : EventArgs
 	/// Gets the current playback state.
 	/// </summary>
 	public PlaybackState State { get; }
-	
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="PlaybackStateChangedArgs"/> class with the specified playback state.
 	/// </summary>
@@ -91,7 +91,7 @@ public class MusicPlayer
 	// ── existing public events / properties ──────────────────
 	/// <summary>Fires when the currently playing song changes.</summary>
 	public event EventHandler<string>? CurrentSongChanged;
-	
+
 	/// <summary>Fires when the shuffle status changes.</summary>
 	public event EventHandler<ShuffleMode>? ShuffleStatusChanged;
 

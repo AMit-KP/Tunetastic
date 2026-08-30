@@ -1,10 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 
+using Tunetastic.Views.Common;
 namespace Tunetastic.Views.LibraryViews;
 
 /// <summary>
@@ -14,7 +13,7 @@ namespace Tunetastic.Views.LibraryViews;
 /// This class manages the UI interactions and data presentation for a library view showing media items
 /// organized by year. It leverages binding to display an ObservableCollection of <c>YearModel</c> objects.
 /// </remarks>
-public sealed partial class YearsViewPage : Page
+public sealed partial class YearsViewPage : TileListPageBase
 {
 	/// <summary>
 	/// Gets or sets the collection of <c>YearModel</c> objects, representing groups of songs organized by year.
@@ -30,76 +29,47 @@ public sealed partial class YearsViewPage : Page
 		get; set;
 	} = new();
 
-	private readonly DispatcherQueue _dispatcherQueue;
-
-
 	public YearsViewPage()
 	{
 		this.InitializeComponent();
-		_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-		_ = CheckScanning();
+		_ = RunScanningAwareInit();
 	}
 
-	/// <summary>
-	/// Asynchronously checks the status of the ongoing music data scanning process and interacts with the user interface based on the status.
-	/// </summary>
-	/// <remarks>
-	/// This method verifies whether a music scanning operation is in progress through the data service. If scanning is active,
-	/// it modifies the application's UI by displaying loading indicators and hiding specific content elements until the process completes.
-	/// Once scanning finishes or no scanning is detected, it populates the song collection with metadata, applies sorting and view style updates,
-	/// and adjusts the visibility of various UI components.
-	/// </remarks>
-	/// <returns>
-	/// A task representing the asynchronous operation of scanning status monitoring, UI adjustments, and song collection management.
-	/// </returns>
-	private async Task CheckScanning()
+	/// <inheritdoc/>
+	protected override void OnInitializingContent()
 	{
-		GoToSettings.Visibility = Visibility.Visible;
 		AddGoToSettingsMessage();
 		YearTileView.Visibility = Visibility.Collapsed;
-		PageButtons.Visibility = Visibility.Collapsed;
-
-		if (GetMusicData.IsScanning)
-		{
-			GoToSettings.Visibility = Visibility.Collapsed;
-			LoadingProgress.Opacity = 0;
-			LoadingProgress.Visibility = Visibility.Visible;
-
-			for (double i = 0; i <= 1; i += 0.05)
-			{
-				LoadingProgress.Opacity = i;
-				await Task.Delay(1);
-			}
-
-			while (GetMusicData.IsScanning)
-			{
-				ProgressFill.Width = GetMusicData.ScanProgress * 4;
-				ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
-				await Task.Delay(1);
-			}
-
-			for (double i = 1; i >= 0; i -= 0.05)
-			{
-				LoadingProgress.Opacity = i;
-				await Task.Delay(1);
-			}
-			LoadingProgress.Visibility = Visibility.Collapsed;
-			await _dispatcherQueue.EnqueueAsync(() =>
-			{
-				this.Content = new YearsViewPage();
-			});
-			return;
-		}
-
-		if (await DatabaseHelper.Instance.GetSongsCount() > 0)
-		{
-			GoToSettings.Visibility = Visibility.Collapsed;
-			SortDropDown.Visibility = Visibility.Visible;
-			PageButtons.Visibility = Visibility.Visible;
-			YearTileView.Visibility = Visibility.Visible;
-			UpdateAsPerLastSorting();
-		}
 	}
+
+	/// <inheritdoc/>
+	protected override Page CreateFreshPage() => new YearsViewPage();
+
+	/// <inheritdoc/>
+	protected override Task OnLibraryReadyAsync()
+	{
+		SortDropDown.Visibility = Visibility.Visible;
+		PageButtons.Visibility = Visibility.Visible;
+		YearTileView.Visibility = Visibility.Visible;
+		UpdateAsPerLastSorting();
+		return Task.CompletedTask;
+	}
+
+	/// <inheritdoc/>
+	protected override List<string> EmptyLibraryMessages => GoToMessages;
+	/// <inheritdoc/>
+	protected override ListViewBase TileView => YearTileView;
+
+	/// <inheritdoc/>
+	protected override Button MoreButtonControl => MoreButton;
+
+	/// <inheritdoc/>
+	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
+		$"Add {(multiSelect ? "selected groups" : "this group")} of songs/tracks to {playList} playlist";
+
+	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) => TileView_SelectionChanged(sender, e);
+
+	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
 
 	/// <summary>
 	/// Updates the sorting preferences for the song list displayed on the YearsViewPage.
@@ -169,7 +139,6 @@ public sealed partial class YearsViewPage : Page
 		await Task.Delay(500);
 		await ScrollToTile(yearModel);
 	}
-
 
 	/// <summary>
 	/// Handles the `Loaded` event for the YearsViewPage.
@@ -303,66 +272,6 @@ public sealed partial class YearsViewPage : Page
 	}
 
 	/// <summary>
-	/// Handles the SelectionChanged event for the ListView to modify UI elements or update internal state based on user selection changes.
-	/// </summary>
-	/// <param name="sender">The source of the event, typically the ListView control where the selection was changed.</param>
-	/// <param name="e">Provides data about the SelectionChanged event, including the modified selection.</param>
-	/// <remarks>
-	/// This method dynamically updates the `MoreButton`'s state depending on the selection mode and selected items count.
-	/// If the ListView is in multi-select mode, the button is enabled or disabled based on whether any items are selected.
-	/// In single-select mode, updates the `selectedSong` property with the currently selected song.
-	/// </remarks>
-	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (YearTileView.IsMultiSelectCheckBoxEnabled)
-		{
-			MoreButton.IsEnabled = YearTileView.SelectedItems.Count > 0;
-		}
-	}
-
-	/// <summary>
-	/// Handles the 'Opened' event of the <see cref="MenuFlyout"/> control in the context menu.
-	/// </summary>
-	/// <remarks>
-	/// This method dynamically populates the "Add to Playlist" submenu with the available playlists retrieved from the database.
-	/// If no playlists exist, a single "No Playlists created" item is added to the submenu with a red text color.
-	/// The method ensures that all items in the submenu are cleared before adding new items.
-	/// </remarks>
-	/// <param name="sender">The source object where the event is triggered.</param>
-	/// <param name="e">An object containing event data related to the 'Opened' event.</param>
-	private async void MenuFlyout_Opened(object sender, object e)
-	{
-		var menu = sender as MenuFlyout;
-		var addToPlaylist = menu?.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault();
-
-		addToPlaylist?.Items.Clear();
-
-		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
-
-		if (playLists == null || playLists.Count == 0)
-		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = "No Playlists created",
-				Foreground = new SolidColorBrush(Colors.Red)
-			};
-			addToPlaylist?.Items.Add(menuItem);
-			return;
-		}
-
-		foreach (var playList in playLists)
-		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = playList
-			};
-			ToolTipService.SetToolTip(menuItem, $"Add {(MultiSelectButton.IsChecked == true ? "selected groups" : "this group")} of songs/tracks to {playList} playlist");
-			menuItem.Click += AddToPlaylist_Click;
-			addToPlaylist?.Items.Add(menuItem);
-		}
-	}
-
-	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the menu item representing the target playlist.</param>
@@ -375,7 +284,7 @@ public sealed partial class YearsViewPage : Page
 	/// Updates are performed through interactions with the database using asynchronous operations.
 	/// A notification is displayed upon successfully adding the songs to the playlist.
 	/// </remarks>
-	private async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
+	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -819,34 +728,6 @@ public sealed partial class YearsViewPage : Page
 	private void YearTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		YearTileView_SizeChanged(null, null);
-	}
-
-	/// <summary>
-	/// Prepares and updates the content of a TextBlock with a random, formatted message encouraging users to go to the settings.
-	/// </summary>
-	/// <remarks>
-	/// This method selects a random message from a predefined collection of witty texts, splits it into formatted lines,
-	/// and populates the target TextBlock with these lines. Decorative elements, such as line breaks and font styles,
-	/// are applied to enhance the appearance of the messages.
-	/// </remarks>
-	private void AddGoToSettingsMessage()
-	{
-		string message = GoToMessages[Random.Shared.Next(GoToMessages.Count)];
-		var lines = message.Split('\n');
-
-		GoToSettingsTextBlock.Inlines.Clear();
-		GoToSettingsTextBlock.Inlines.Add(new Run
-		{
-			Text = lines[0],
-			FontStyle = Windows.UI.Text.FontStyle.Italic
-		});
-
-		GoToSettingsTextBlock.Inlines.Add(new LineBreak());
-
-		GoToSettingsTextBlock.Inlines.Add(new Run
-		{
-			Text = lines[1]
-		});
 	}
 
 	/// <summary>
