@@ -233,3 +233,17 @@ public class OverlayLayoutInfo
 	/// <summary>Short description shown as a subtitle or tooltip.</summary>
 	public string? Description { get; init; }
 }
+
+/// <summary>
+/// Table for storing metadata about auto-scanned files.
+/// </summary>
+[Table("FileScanMeta")]
+public class FileScanMeta
+{
+	[PrimaryKey]
+	public string Path { get; set; } = string.Empty;
+	public long LastModifiedUtc { get; set; }
+	public long CreationTimeUtc { get; set; }
+	public long FileSizeBytes { get; set; }
+	public long LastScannedUtc { get; set; }
+}

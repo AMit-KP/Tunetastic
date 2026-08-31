@@ -297,6 +297,14 @@ public class DatabaseHelper
 
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
 
+		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS FileScanMeta (
+									   Path TEXT PRIMARY KEY,
+									   LastModifiedUtc INTEGER NOT NULL,
+									   CreationTimeUtc INTEGER NOT NULL,
+									   FileSizeBytes INTEGER NOT NULL,
+									   LastScannedUtc INTEGER NOT NULL,
+									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE);");
+
 		await PopulateMusicFormatTable();
 
 		await EnsureDefaultArtistRules();
@@ -1924,6 +1932,51 @@ public class DatabaseHelper
 		var genres = await _database.QueryAsync<Song>("SELECT DISTINCT Genre FROM Songs WHERE Genre IS NOT NULL AND Genre != '' AND Genre != 'Unknown' AND Genre != 'Unknown Genre' ORDER BY Genre ASC");
 		return genres.Select(x => x.Genre).ToList();
 	}
+
+	public async Task UpdateFileScanMeta(List<FileScanMeta> metas)
+	{
+		if (metas == null || metas.Count == 0) return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var meta in metas)
+			{
+				conn.Execute(@"INSERT INTO FileScanMeta (Path, LastModifiedUtc, CreationTimeUtc, FileSizeBytes, LastScannedUtc)
+							   VALUES (?, ?, ?, ?, ?)
+							   ON CONFLICT(Path) DO UPDATE SET
+							   LastModifiedUtc = excluded.LastModifiedUtc,
+							   CreationTimeUtc = excluded.CreationTimeUtc,
+							   FileSizeBytes = excluded.FileSizeBytes,
+							   LastScannedUtc = excluded.LastScannedUtc;",
+							   meta.Path, meta.LastModifiedUtc, meta.CreationTimeUtc, meta.FileSizeBytes, meta.LastScannedUtc);
+			}
+		});
+	}
+
+	public async Task<FileScanMeta?> GetFileScanMeta(string path)
+	{
+		try
+		{
+			var result = await _database.QueryAsync<FileScanMeta>("SELECT Path, LastModifiedUtc, CreationTimeUtc, FileSizeBytes, LastScannedUtc FROM FileScanMeta WHERE Path = ?", path);
+			return result.Count > 0 ? result[0] : null;
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	public async Task DeleteFileScanMeta(string path)
+	{
+		await _database.ExecuteAsync("DELETE FROM FileScanMeta WHERE Path = ?", path);
+	}
+
+	public async Task WipeFileScanMeta()
+	{
+		await _database.ExecuteAsync("DELETE FROM FileScanMeta");
+	}
+
+	// NOTE: Below are some helper methods for advanced search functionality
 
 	/// <summary>
 	/// Parses the user-provided search input into groups of terms for advanced search functionality.
