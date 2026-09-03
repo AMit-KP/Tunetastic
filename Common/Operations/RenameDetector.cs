@@ -2,13 +2,16 @@
 
 public class RenameMatchResult
 {
-	public List<(string OldPath, string NewPath)> Renames { get; set; } = new();
-	public List<string> UnmatchedDisappeared { get; set; } = new();
-	public List<string> UnmatchedAppeared { get; set; } = new();
+	public List<(string OldPath, string NewPath)> Renames { get; set; } = [];
+	public List<string> UnmatchedDisappeared { get; set; } = [];
+	public List<string> UnmatchedAppeared { get; set; } = [];
+}
 
+public static class RenameDetector
+{
 	public static RenameMatchResult DetectRenamesAndMoves(
-	Dictionary<string, FileScanMeta> disappeared,
-	Dictionary<string, (long FileSizeBytes, long LastModifiedUtc, long CreationTimeUtc)> appeared)
+		Dictionary<string, FileScanMeta> disappeared,
+		Dictionary<string, (long FileSizeBytes, long LastModifiedUtc, long CreationTimeUtc)> appeared)
 	{
 		var result = new RenameMatchResult();
 
@@ -61,8 +64,8 @@ public class RenameMatchResult
 			}
 		}
 
-		result.UnmatchedDisappeared = remainingDisappeared.Keys.ToList();
-		result.UnmatchedAppeared = remainingAppeared.Keys.ToList();
+		result.UnmatchedDisappeared = [.. remainingDisappeared.Keys];
+		result.UnmatchedAppeared = [.. remainingAppeared.Keys];
 
 		return result;
 	}

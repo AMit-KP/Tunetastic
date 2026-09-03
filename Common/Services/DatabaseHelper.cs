@@ -1966,6 +1966,18 @@ public class DatabaseHelper
 		}
 	}
 
+	public async Task<List<FileScanMeta>> GetAllFileScanMeta()
+	{
+		try
+		{
+			return await _database.QueryAsync<FileScanMeta>("SELECT Path, LastModifiedUtc, CreationTimeUtc, FileSizeBytes, LastScannedUtc FROM FileScanMeta");
+		}
+		catch (Exception)
+		{
+			return new List<FileScanMeta>();
+		}
+	}
+
 	public async Task DeleteFileScanMeta(string path)
 	{
 		await _database.ExecuteAsync("DELETE FROM FileScanMeta WHERE Path = ?", path);
