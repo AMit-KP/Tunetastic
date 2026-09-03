@@ -198,7 +198,9 @@ public enum LocalSave
 	TaskBarOverlaySide,
 	TaskBarOverlayTheme,
 	TaskBarOverlayDesign,
-	LRCOffsetSOfficialtandard
+	LRCOffsetSOfficialtandard,
+	AutoScanEnabled,
+	AutoScanBulkThreshold
 }
 
 /// <summary>

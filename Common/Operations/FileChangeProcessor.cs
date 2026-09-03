@@ -20,7 +20,7 @@ public static class FileChangeProcessor
 
 			case FileChangeType.Deleted:
 				await DatabaseHelper.Instance.DeleteSongFromDB(path);
-				await DatabaseHelper.Instance.DeleteFileScanMeta(path);
+				await DatabaseHelper.Instance.DeleteFileScanMeta(new List<string> { path });
 				break;
 
 			case FileChangeType.Renamed:
@@ -65,7 +65,7 @@ public static class FileChangeProcessor
 		{
 			// re-encoded/edited below threshold — treat like the file went away
 			await DatabaseHelper.Instance.DeleteSongFromDB(path);
-			await DatabaseHelper.Instance.DeleteFileScanMeta(path);
+			await DatabaseHelper.Instance.DeleteFileScanMeta(new List<string> { path });
 			return;
 		}
 

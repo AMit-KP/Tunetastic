@@ -1,124 +1,73 @@
-﻿using System.Collections.Concurrent;
-
-namespace Tunetastic.Common.Services;
+﻿namespace Tunetastic.Common.Services;
 
 public static class AutoScanService
 {
-	public static async Task RunCatchUpDiff()
+	public static event Action? BulkChangeDetected
 	{
-		var libraries = new List<string>();
-		foreach (LibraryModel library in await DatabaseHelper.Instance.GetAllLibraries())
-			libraries.Add(library.Path);
-
-		if (libraries.Count == 0)
-			return; // ScanLibraries' own empty-libraries branch already keeps FileScanMeta in sync
-
-		var effectiveRoots = LibraryScanner.ComputeEffectiveRoots(libraries);
-		var extensions = await LibraryScanner.GetEnabledExtensions();
-
-		var options = new EnumerationOptions { RecurseSubdirectories = true };
-		var onDisk = new Dictionary<string, (long FileSizeBytes, long LastModifiedUtc, long CreationTimeUtc)>(StringComparer.OrdinalIgnoreCase);
-
-		foreach (var folder in effectiveRoots)
-		{
-			var files = Directory.EnumerateFiles(folder, "*.*", options)
-								 .Where(file => extensions.Contains(Path.GetExtension(file).ToLower()));
-
-			foreach (var file in files)
-			{
-				var fileInfo = new FileInfo(file);
-				onDisk[file] = (fileInfo.Length, fileInfo.LastWriteTimeUtc.Ticks, fileInfo.CreationTimeUtc.Ticks);
-			}
-		}
-
-		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
-		var tracked = trackedMeta.ToDictionary(m => m.Path, m => m, StringComparer.OrdinalIgnoreCase);
-
-		var disappearedPaths = tracked.Keys.Where(p => !onDisk.ContainsKey(p)).ToList();
-		var appearedPaths = onDisk.Keys.Where(p => !tracked.ContainsKey(p)).ToList();
-
-		var disappeared = disappearedPaths.ToDictionary(p => p, p => tracked[p], StringComparer.OrdinalIgnoreCase);
-		var appeared = appearedPaths.ToDictionary(p => p, p => onDisk[p], StringComparer.OrdinalIgnoreCase);
-
-		var matchResult = RenameDetector.DetectRenamesAndMoves(disappeared, appeared);
-
-		// Renames — cheap, single statements each
-		foreach (var (oldPath, newPath) in matchResult.Renames)
-		{
-			await FileChangeProcessor.ProcessFileChange(oldPath, FileChangeType.Renamed, newPath);
-		}
-
-		// Deletes — cheap, single statements each
-		foreach (var deletedPath in matchResult.UnmatchedDisappeared)
-		{
-			await DatabaseHelper.Instance.DeleteSongFromDB(deletedPath);
-			await DatabaseHelper.Instance.DeleteFileScanMeta(deletedPath);
-		}
-
-		// Modified — present in both sets, but size/mtime differ (and not part of a rename pair)
-		var modifiedPaths = onDisk.Keys
-			.Where(p => tracked.ContainsKey(p))
-			.Where(p => tracked[p].FileSizeBytes != onDisk[p].FileSizeBytes || tracked[p].LastModifiedUtc != onDisk[p].LastModifiedUtc)
-			.ToList();
-
-		// Created + Modified — batched into a single InsertMultipleSongs call
-		await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+		add => LibraryWatcherService.BulkChangeDetected += value;
+		remove => LibraryWatcherService.BulkChangeDetected -= value;
 	}
 
-	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)
+	public static async Task<bool> EnableAutoScan()
 	{
-		var allPaths = createdPaths.Concat(modifiedPaths).ToList();
-		if (allPaths.Count == 0)
+		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
+
+		if (trackedMeta.Count == 0)
+		{
+			GlobalNotification.Error("Do a Full Scan atleast once.");
+			return false;
+		}
+
+		await AutoScanReconciler.RunCatchUpDiff();
+
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)] = true;
+
+		await LibraryWatcherService.StartWatching();
+		return true;
+	}
+
+	public static async Task DisableAutoScan()
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)] = false;
+
+		await LibraryWatcherService.StopWatching(drainPending: true);
+	}
+
+	public static async Task OnLibraryFolderAdded()
+	{
+		// Assumes DatabaseHelper.Instance.AddOrUpdateLibrary(...) already ran for the new folder.
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
 			return;
 
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
-		var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
+		await AutoScanReconciler.RunCatchUpDiff();
+		await LibraryWatcherService.StartWatching();
+	}
 
-		var existingSongs = (await DatabaseHelper.Instance.LoadSongsFromDB())
-			.ToDictionary(s => s.Path, s => s, StringComparer.OrdinalIgnoreCase);
+	public static async Task OnLibraryFolderRemoved(string removedFolderPath)
+	{
+		// Assumes DatabaseHelper.Instance.RemoveLibrary(...) already ran for the removed folder.
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
+			return;
 
-		var songsToUpsert = new ConcurrentBag<Song>();
-		var metaToUpsert = new ConcurrentBag<FileScanMeta>();
-		var uniqueMetadata = new ConcurrentDictionary<(string Title, string Artist, string Album), byte>();
+		var removedPaths = await DatabaseHelper.Instance.DeleteSongsUnderFolder(removedFolderPath);
+		await DatabaseHelper.Instance.DeleteFileScanMeta(removedPaths);
 
-		await Parallel.ForEachAsync(allPaths, async (filePath, ct) =>
+		await LibraryWatcherService.StartWatching();
+	}
+
+	public static async Task ResumeIfEnabled()
+	{
+		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
+			return;
+
+		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
+		if (trackedMeta.Count == 0)
 		{
-			var (song, succeeded) = await LibraryScanner.ExtractSongMetadata(filePath, ignoreTrackDuration);
-			if (!succeeded) return;
-
-			if (song.Duration <= ignoreTrackDuration)
-			{
-				if (existingSongs.ContainsKey(filePath))
-				{
-					// was tracked but now falls below threshold — treat like it disappeared
-					await DatabaseHelper.Instance.DeleteSongFromDB(filePath);
-					await DatabaseHelper.Instance.DeleteFileScanMeta(filePath);
-				}
-				return;
-			}
-
-			if (ignoreDuplicates)
-			{
-				bool dupInDb = await DatabaseHelper.Instance.SongMetadataExists(song.Title, song.Artists, song.Album, excludePath: filePath);
-				bool dupInBatch = !uniqueMetadata.TryAdd((song.Title, song.Artists, song.Album), 0);
-				if (dupInDb || dupInBatch) return;
-			}
-
-			if (existingSongs.TryGetValue(filePath, out var existingSong))
-			{
-				song.PlayCount = existingSong.PlayCount;
-				song.DateLastPlayed = existingSong.DateLastPlayed;
-			}
-
-			songsToUpsert.Add(song);
-			metaToUpsert.Add(LibraryScanner.BuildFileScanMeta(filePath));
-		});
-
-		if (songsToUpsert.Count > 0)
-		{
-			await DatabaseHelper.Instance.InsertMultipleSongs([.. songsToUpsert]);
-			await DatabaseHelper.Instance.UpdateFileScanMeta([.. metaToUpsert]);
+			GlobalNotification.Warning("Auto scan was enabled but no scan data was found. Please run a full scan.");
+			return;
 		}
+
+		await AutoScanReconciler.RunCatchUpDiff();
+		await LibraryWatcherService.StartWatching();
 	}
 }

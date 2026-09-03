@@ -596,16 +596,7 @@ public class DatabaseHelper
 	/// </returns>
 	public async Task DeleteSongFromDB(string path)
 	{
-		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", path);
-		await PruneUnusedArtists();
-		try
-		{
-			await _database.ExecuteAsync("DELETE FROM SongFTS WHERE Path = ?", path);
-		}
-		catch (Exception)
-		{
-			//ignored
-		}
+		await DeleteSongsFromDB(new List<string> { path });
 	}
 
 	/// <summary>
@@ -1978,11 +1969,6 @@ public class DatabaseHelper
 		}
 	}
 
-	public async Task DeleteFileScanMeta(string path)
-	{
-		await _database.ExecuteAsync("DELETE FROM FileScanMeta WHERE Path = ?", path);
-	}
-
 	public async Task WipeFileScanMeta()
 	{
 		await _database.ExecuteAsync("DELETE FROM FileScanMeta");
@@ -2016,6 +2002,64 @@ public class DatabaseHelper
 		catch (Exception)
 		{
 			return false;
+		}
+	}
+
+	public async Task<List<string>> DeleteSongsUnderFolder(string folderPath)
+	{
+		var allSongs = await _database.QueryAsync<Song>("SELECT Path FROM Songs");
+		var matching = allSongs.Select(s => s.Path)
+			.Where(p => p.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase))
+			.ToList();
+
+		if (matching.Count == 0) return matching;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var path in matching)
+				conn.Execute("DELETE FROM Songs WHERE Path = ?", path);
+		});
+
+		await PruneUnusedArtists();
+		await RebuildFts();
+
+		return matching;
+	}
+
+	public async Task DeleteFileScanMeta(List<string> paths)
+	{
+		if (paths == null || paths.Count == 0) return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var path in paths)
+				conn.Execute("DELETE FROM FileScanMeta WHERE Path = ?", path);
+		});
+	}
+
+	public async Task DeleteSongsFromDB(List<string> paths)
+	{
+		if (paths == null || paths.Count == 0) return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var path in paths)
+				conn.Execute("DELETE FROM Songs WHERE Path = ?", path);
+		});
+
+		await PruneUnusedArtists();
+
+		try
+		{
+			await _database.RunInTransactionAsync(conn =>
+			{
+				foreach (var path in paths)
+					conn.Execute("DELETE FROM SongFTS WHERE Path = ?", path);
+			});
+		}
+		catch (Exception)
+		{
+			//ignored
 		}
 	}
 
