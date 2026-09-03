@@ -141,7 +141,7 @@ public partial class App : Application
 		await DatabaseHelper.Instance.InitializeDatabase();
 
 		if (scanAtStartup)
-			await new GetMusicData().UpdateMetaData();
+			await new LibraryScanner().UpdateMetaData();
 		else
 			await Task.Delay(500);
 

@@ -621,7 +621,7 @@ public class MusicPlayer
 	/// </summary>
 	public async void Previous()
 	{
-		if (GetMusicData.IsScanning) return;
+		if (LibraryScanner.IsScanning) return;
 		try
 		{
 			if (ActualPlaylist?.Count > 0)
@@ -660,7 +660,7 @@ public class MusicPlayer
 	/// <param name="autoChange">Indicates whether this is an automatic change. Default is false.</param>
 	public async void Next(bool autoChange = false)
 	{
-		if (GetMusicData.IsScanning) return;
+		if (LibraryScanner.IsScanning) return;
 		try
 		{
 			bool isPlaying = autoChange ? autoChange : IsPlaying;
@@ -728,7 +728,7 @@ public class MusicPlayer
 	/// <returns>A task that represents the asynchronous operation. The task result contains a list of upcoming songs or null if an error occurs.</returns>
 	public async Task<List<Song>?> GetUpcomingSongs(int count = 2)
 	{
-		if (GetMusicData.IsScanning) return null;
+		if (LibraryScanner.IsScanning) return null;
 
 		try
 		{

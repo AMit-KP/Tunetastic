@@ -6,7 +6,7 @@ namespace Tunetastic.Common.Operations;
 /// <summary>
 /// Provides services for managing and updating metadata related to music libraries in the application.
 /// </summary>
-public class GetMusicData
+public class LibraryScanner
 {
 	private static Task? _scanTask;
 	private static bool _isScanning = false;
@@ -108,14 +108,7 @@ public class GetMusicData
 		var ignoreTrackDuration = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 		var ignoreDuplicates = bool.Parse(localSettings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
 
-		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();
-
-		List<string> extensions = new();
-
-		foreach (var format in formatList)
-			if (format.Enabled) extensions.Add(format.Extension);
-
-		if (extensions.Count == 0) extensions.Add(".mp3");
+		var extensions = await GetEnabledExtensions();
 
 		var path = Path.Combine(Constants.ThumbnailsFolder);
 		if (Directory.Exists(path)) Directory.Delete(path, true);
@@ -124,21 +117,7 @@ public class GetMusicData
 
 		if (libraries?.Count > 0)
 		{
-			libraries = libraries.OrderBy(f => f.Length).ToList();
-
-			var uniqueFolders = new List<string>();
-			foreach (var folder in libraries)
-			{
-				if (!Directory.Exists(folder))
-				{
-					GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
-				}
-				else
-				{
-					if (!uniqueFolders.Any(parent => folder.StartsWith(parent, StringComparison.OrdinalIgnoreCase)))
-						uniqueFolders.Add(folder);
-				}
-			}
+			var uniqueFolders = ComputeEffectiveRoots(libraries);
 
 			var options = new EnumerationOptions { RecurseSubdirectories = true };
 
@@ -222,7 +201,6 @@ public class GetMusicData
 			var librariesCount = libraries.Count;
 			var songsCount = songsContainer.Count;
 			extensions = null!;
-			formatList = null!;
 			uniqueFolders = null!;
 			libraries = null!;
 
@@ -353,6 +331,38 @@ public class GetMusicData
 		};
 	}
 
+	internal static List<string> ComputeEffectiveRoots(List<string> libraries)
+	{
+		libraries = libraries.OrderBy(f => f.Length).ToList();
+
+		var uniqueFolders = new List<string>();
+		foreach (var folder in libraries)
+		{
+			if (!Directory.Exists(folder))
+			{
+				GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
+			}
+			else
+			{
+				if (!uniqueFolders.Any(parent => folder.StartsWith(parent, StringComparison.OrdinalIgnoreCase)))
+					uniqueFolders.Add(folder);
+			}
+		}
+		return uniqueFolders;
+	}
+
+	internal static async Task<List<string>> GetEnabledExtensions()
+	{
+		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();
+
+		List<string> extensions = new();
+		foreach (var format in formatList)
+			if (format.Enabled) extensions.Add(format.Extension);
+
+		if (extensions.Count == 0) extensions.Add(".mp3");
+		return extensions;
+	}
+
 	/// <summary>
 	/// Determines the appropriate player type ("Windows" or "Flyleaf") for a given audio file,
 	/// based on its file extension and codec description.
@@ -366,7 +376,7 @@ public class GetMusicData
 	/// <returns>
 	/// Returns "Windows" if the file is best handled by the Windows-native player, or "Flyleaf" if it requires the Flyleaf player.
 	/// </returns>
-	private static string DeterminePlayerType(string? codecDescription, string filePath)
+	internal static string DeterminePlayerType(string? codecDescription, string filePath)
 	{
 		var ext = System.IO.Path.GetExtension(filePath).ToLowerInvariant();
 

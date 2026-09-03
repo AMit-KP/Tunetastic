@@ -37,7 +37,7 @@ public static class FileChangeProcessor
 
 				await DatabaseHelper.Instance.RenameSongPath(path, newPath);
 
-				var updatedMeta = GetMusicData.BuildFileScanMeta(newPath);
+				var updatedMeta = LibraryScanner.BuildFileScanMeta(newPath);
 				await DatabaseHelper.Instance.UpdateFileScanMeta(new List<FileScanMeta> { updatedMeta });
 				break;
 		}
@@ -45,7 +45,7 @@ public static class FileChangeProcessor
 
 	private static async Task HandleCreated(string path, double ignoreTrackDuration, bool ignoreDuplicates)
 	{
-		var (song, succeeded) = await GetMusicData.ExtractSongMetadata(path, ignoreTrackDuration);
+		var (song, succeeded) = await LibraryScanner.ExtractSongMetadata(path, ignoreTrackDuration);
 		if (!succeeded) return;
 		if (song.Duration <= ignoreTrackDuration) return;
 
@@ -53,12 +53,12 @@ public static class FileChangeProcessor
 			return;
 
 		await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { song });
-		await DatabaseHelper.Instance.UpdateFileScanMeta(new List<FileScanMeta> { GetMusicData.BuildFileScanMeta(path) });
+		await DatabaseHelper.Instance.UpdateFileScanMeta(new List<FileScanMeta> { LibraryScanner.BuildFileScanMeta(path) });
 	}
 
 	private static async Task HandleModified(string path, double ignoreTrackDuration, bool ignoreDuplicates)
 	{
-		var (song, succeeded) = await GetMusicData.ExtractSongMetadata(path, ignoreTrackDuration);
+		var (song, succeeded) = await LibraryScanner.ExtractSongMetadata(path, ignoreTrackDuration);
 		if (!succeeded) return;
 
 		if (song.Duration <= ignoreTrackDuration)
@@ -78,6 +78,6 @@ public static class FileChangeProcessor
 		song.DateLastPlayed = existingSong?.DateLastPlayed;
 
 		await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { song });
-		await DatabaseHelper.Instance.UpdateFileScanMeta(new List<FileScanMeta> { GetMusicData.BuildFileScanMeta(path) });
+		await DatabaseHelper.Instance.UpdateFileScanMeta(new List<FileScanMeta> { LibraryScanner.BuildFileScanMeta(path) });
 	}
 }
