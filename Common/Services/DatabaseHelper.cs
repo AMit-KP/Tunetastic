@@ -1976,6 +1976,37 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("DELETE FROM FileScanMeta");
 	}
 
+	public async Task RenameSongPath(string oldPath, string newPath)
+	{
+		if (string.IsNullOrWhiteSpace(oldPath) || string.IsNullOrWhiteSpace(newPath) || oldPath == newPath)
+			return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			conn.Execute("UPDATE Songs SET Path = ? WHERE Path = ?", newPath, oldPath);
+			conn.Execute("UPDATE FileScanMeta SET Path = ? WHERE Path = ?", newPath, oldPath);
+			conn.Execute("UPDATE PlaylistSongs SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
+			conn.Execute("UPDATE SongArtists SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
+			conn.Execute("UPDATE QueuedPlayingList SET Path = ? WHERE Path = ?", newPath, oldPath);
+			conn.Execute("UPDATE PendingTagWrites SET Path = ? WHERE Path = ?", newPath, oldPath);
+		});
+	}
+
+	public async Task<bool> SongMetadataExists(string title, string artist, string album, string? excludePath = null)
+	{
+		try
+		{
+			if (excludePath != null)
+				return await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Songs WHERE Title = ? AND Artists = ? AND Album = ? AND Path != ?", title, artist, album, excludePath) > 0;
+
+			return await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Songs WHERE Title = ? AND Artists = ? AND Album = ?", title, artist, album) > 0;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
+
 	// NOTE: Below are some helper methods for advanced search functionality
 
 	/// <summary>

@@ -239,3 +239,11 @@ public enum OverlayLayout
 	TopAlbumAccentStripe,
 	AlbumTintProgress
 }
+
+public enum FileChangeType
+{
+	Created,
+	Modified,
+	Deleted,
+	Renamed
+}

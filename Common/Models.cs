@@ -247,3 +247,13 @@ public class FileScanMeta
 	public long FileSizeBytes { get; set; }
 	public long LastScannedUtc { get; set; }
 }
+
+public class SongFtsSourceRow
+{
+	public int Id { get; set; }
+	public string Title { get; set; } = string.Empty;
+	public string Album { get; set; } = string.Empty;
+	public string Genre { get; set; } = string.Empty;
+	public string Year { get; set; } = string.Empty;
+	public string Artists { get; set; } = string.Empty;
+}
