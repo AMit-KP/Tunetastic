@@ -138,6 +138,7 @@ public partial class App : Application
 		}
 
 		bool scanAtStartup = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
+		bool autoSync = bool.Parse(localSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false");
 		await DatabaseHelper.Instance.InitializeDatabase();
 
 		if (scanAtStartup)
@@ -145,6 +146,8 @@ public partial class App : Application
 		else
 			await Task.Delay(500);
 
+		if (autoSync)
+			await AutoScanService.ResumeIfEnabled();
 
 		rootFrame.Navigate(typeof(MainPage));
 

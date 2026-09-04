@@ -29,6 +29,7 @@ public sealed partial class MainWindow : WindowEx
 
 		Activated += MainWindow_Activated;
 
+		//WARNING
 		#region Don't remove this causes thread issue for some unknown reason
 		var _ = new System.Windows.Forms.ContextMenuStrip();
 		#endregion
@@ -157,6 +158,8 @@ public sealed partial class MainWindow : WindowEx
 		this.Closed -= MinimizeToTray;
 		RemoveTrayIcon();
 		await Task.Delay(100);
+
+		await LibraryWatcherService.StopWatching();
 
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		App.Current.AudioService.Dispose();
