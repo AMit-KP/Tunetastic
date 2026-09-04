@@ -14,7 +14,7 @@ public static class AutoScanService
 
 		if (trackedMeta.Count == 0)
 		{
-			GlobalNotification.Error("Do a Full Scan atleast once.");
+			GlobalNotification.Error("Do a Full Scan atleast once with a folder that contains music.");
 			return false;
 		}
 
@@ -52,6 +52,14 @@ public static class AutoScanService
 		var removedPaths = await DatabaseHelper.Instance.DeleteSongsUnderFolder(removedFolderPath);
 		await DatabaseHelper.Instance.DeleteFileScanMeta(removedPaths);
 
+		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
+		if (trackedMeta.Count == 0)
+		{
+			GlobalNotification.Warning("Auto scan was enabled but no music was found. Please run a full scan with a folder that contains music.");
+			await DisableAutoScan();
+			return;
+		}
+
 		await LibraryWatcherService.StartWatching();
 	}
 
@@ -63,7 +71,8 @@ public static class AutoScanService
 		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
 		if (trackedMeta.Count == 0)
 		{
-			GlobalNotification.Warning("Auto scan was enabled but no scan data was found. Please run a full scan.");
+			GlobalNotification.Warning("Auto scan was enabled but no music was found. Please run a full scan with a folder that contains music.");
+			await DisableAutoScan();
 			return;
 		}
 

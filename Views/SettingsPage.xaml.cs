@@ -90,6 +90,7 @@ public sealed partial class SettingsPage : Page
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
 		LRCOffsetStandard.SelectionChanged += LRCOffsetStandard_SelectionChanged;
+		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
 
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
@@ -167,7 +168,7 @@ public sealed partial class SettingsPage : Page
 		if (LibraryScanner.IsScanning)
 		{
 			CustomProgressBar.Visibility = Visibility.Visible;
-			Scan.IsEnabled = false;
+			FullScan.IsEnabled = false;
 
 			while (LibraryScanner.IsScanning)
 			{
@@ -183,8 +184,8 @@ public sealed partial class SettingsPage : Page
 				await Task.Delay(1);
 			}
 			CustomProgressBar.Visibility = Visibility.Collapsed;
-			Scan.IsEnabled = true;
-			Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
+			FullScan.IsEnabled = true;
+			FullScan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 			return;
 		}
 		var pendingTasks = await DatabaseHelper.Instance.GetAllPendingTagWrites();
@@ -221,7 +222,7 @@ public sealed partial class SettingsPage : Page
 			}
 		}
 
-		Scan.IsEnabled = false;
+		FullScan.IsEnabled = false;
 		ProgressFill.Width = 0;
 		CustomProgressBar.Opacity = 0;
 		ProgressFillText.Opacity = 0;
@@ -251,8 +252,8 @@ public sealed partial class SettingsPage : Page
 			await Task.Delay(1);
 		}
 		CustomProgressBar.Visibility = Visibility.Collapsed;
-		Scan.IsEnabled = true;
-		Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
+		FullScan.IsEnabled = true;
+		FullScan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 	}
 
 	/// <summary>
@@ -731,7 +732,9 @@ public sealed partial class SettingsPage : Page
 
 		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 
-		Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
+		FullScan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
+
+		AutoSyncSwitch.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false");
 
 		ArtistsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ArtistsEnabled)]?.ToString() ?? "true");
 
@@ -1238,6 +1241,19 @@ public sealed partial class SettingsPage : Page
 		{
 			var isOfficial = selctedItem.Tag.ToString() == "Official";
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)] = isOfficial;
+		}
+	}
+
+	private async void AutoSyncSwitch_Toggled(object sender, RoutedEventArgs e)
+	{
+		if(AutoSyncSwitch.IsOn)
+		{
+			if (!await AutoScanService.EnableAutoScan())
+				AutoSyncSwitch.IsOn = false;
+		}
+		else
+		{
+			await AutoScanService.DisableAutoScan();
 		}
 	}
 }
