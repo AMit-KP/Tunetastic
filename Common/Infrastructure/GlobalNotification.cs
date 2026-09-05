@@ -12,7 +12,7 @@ public static class GlobalNotification
 	/// The notification will be shown with a blue color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the notification.</param>
-	public static void Info(string message)
+	public async static void Info(string message)
 	{
 		Growl.InfoGlobal(new GrowlInfo
 		{
@@ -23,6 +23,9 @@ public static class GlobalNotification
 			Title = "Tunetastic",
 			Message = message
 		});
+
+		await Task.Delay(20);
+
 		MainWindow._instance.BringToFront();
 	}
 
@@ -31,7 +34,7 @@ public static class GlobalNotification
 	/// The notification will be shown with an error color and will automatically close.
 	/// </summary>
 	/// <param name="message">The error message content to display in the notification.</param>
-	public static void Error(string message)
+	public async static void Error(string message)
 	{
 		Growl.ErrorGlobal(new GrowlInfo
 		{
@@ -41,6 +44,10 @@ public static class GlobalNotification
 			Title = "Tunetastic",
 			Message = message
 		});
+
+		await Task.Delay(20);
+
+		MainWindow._instance.BringToFront();
 	}
 
 	/// <summary>
@@ -48,7 +55,7 @@ public static class GlobalNotification
 	/// The notification will be shown with a warning color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the warning notification.</param>
-	public static void Warning(string message)
+	public async static void Warning(string message)
 	{
 		Growl.WarningGlobal(new GrowlInfo
 		{
@@ -58,5 +65,9 @@ public static class GlobalNotification
 			Title = "Tunetastic",
 			Message = message
 		});
+
+		await Task.Delay(20);
+
+		MainWindow._instance.BringToFront();
 	}
 }
