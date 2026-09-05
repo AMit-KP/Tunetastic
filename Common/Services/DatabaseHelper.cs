@@ -2005,27 +2005,6 @@ public class DatabaseHelper
 		}
 	}
 
-	public async Task<List<string>> DeleteSongsUnderFolder(string folderPath)
-	{
-		var allSongs = await _database.QueryAsync<Song>("SELECT Path FROM Songs");
-		var matching = allSongs.Select(s => s.Path)
-			.Where(p => p.StartsWith(folderPath, StringComparison.OrdinalIgnoreCase))
-			.ToList();
-
-		if (matching.Count == 0) return matching;
-
-		await _database.RunInTransactionAsync(conn =>
-		{
-			foreach (var path in matching)
-				conn.Execute("DELETE FROM Songs WHERE Path = ?", path);
-		});
-
-		await PruneUnusedArtists();
-		await RebuildFts();
-
-		return matching;
-	}
-
 	public async Task DeleteFileScanMeta(List<string> paths)
 	{
 		if (paths == null || paths.Count == 0) return;

@@ -13,6 +13,8 @@ public static class AutoScanReconciler
 		if (libraries.Count == 0)
 			return;
 
+		GlobalNotification.Info("Scanning for changes please wait...");
+
 		var effectiveRoots = LibraryScanner.ComputeEffectiveRoots(libraries);
 		var extensions = await LibraryScanner.GetEnabledExtensions();
 
@@ -59,6 +61,7 @@ public static class AutoScanReconciler
 			.ToList();
 
 		await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+		GlobalNotification.Info("All libraries are in sync");
 	}
 
 	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)

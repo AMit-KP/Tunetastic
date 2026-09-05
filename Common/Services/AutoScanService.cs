@@ -23,6 +23,10 @@ public static class AutoScanService
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)] = true;
 
 		await LibraryWatcherService.StartWatching();
+
+		BulkChangeDetected -= AutoScanService_BulkChangeDetected;
+		BulkChangeDetected += AutoScanService_BulkChangeDetected;
+
 		return true;
 	}
 
@@ -31,41 +35,13 @@ public static class AutoScanService
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)] = false;
 
 		await LibraryWatcherService.StopWatching(drainPending: true);
-	}
 
-	public static async Task OnLibraryFolderAdded()
-	{
-		// Assumes DatabaseHelper.Instance.AddOrUpdateLibrary(...) already ran for the new folder.
-		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
-			return;
-
-		await AutoScanReconciler.RunCatchUpDiff();
-		await LibraryWatcherService.StartWatching();
-	}
-
-	public static async Task OnLibraryFolderRemoved(string removedFolderPath)
-	{
-		// Assumes DatabaseHelper.Instance.RemoveLibrary(...) already ran for the removed folder.
-		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
-			return;
-
-		var removedPaths = await DatabaseHelper.Instance.DeleteSongsUnderFolder(removedFolderPath);
-		await DatabaseHelper.Instance.DeleteFileScanMeta(removedPaths);
-
-		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
-		if (trackedMeta.Count == 0)
-		{
-			GlobalNotification.Warning("Auto scan was enabled but no music was found. Please run a full scan with a folder that contains music.");
-			await DisableAutoScan();
-			return;
-		}
-
-		await LibraryWatcherService.StartWatching();
+		AutoScanService.BulkChangeDetected -= AutoScanService_BulkChangeDetected;
 	}
 
 	public static async Task ResumeIfEnabled()
 	{
-		if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
+		if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false"))
 			return;
 
 		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
@@ -76,7 +52,38 @@ public static class AutoScanService
 			return;
 		}
 
+		BulkChangeDetected -= AutoScanService_BulkChangeDetected;
+		BulkChangeDetected += AutoScanService_BulkChangeDetected;
+
 		await AutoScanReconciler.RunCatchUpDiff();
 		await LibraryWatcherService.StartWatching();
+	}
+
+	private static async void AutoScanService_BulkChangeDetected()
+	{
+		App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
+		{
+			ContentDialog dialog = new ContentDialog()
+			{
+				Title = "Auto Sync",
+				CloseButtonText = "Later",
+				PrimaryButtonText = "Open Settings",
+				Content = new TextBlock
+				{
+					Text = "A large number of file changes were detected. Please, do a full scan to sync libraries, otherwise the libraries will sync on app restart.",
+					TextWrapping = TextWrapping.WrapWholeWords,
+					Margin = new Thickness(10)
+				},
+				DefaultButton = ContentDialogButton.Primary,
+				XamlRoot = App.MainWindow.Content.XamlRoot
+			};
+
+			MainWindow._instance.WindowResizePermission(false);
+			var result = await dialog.ShowAsync();
+			MainWindow._instance.WindowResizePermission(true);
+
+			if(result == ContentDialogResult.Primary)
+				App.Current.NavService.NavigateTo(typeof(SettingsPage));
+		});
 	}
 }
