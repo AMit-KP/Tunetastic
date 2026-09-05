@@ -610,6 +610,7 @@ public sealed partial class GenreDetailPage : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					GenreGroupSongs.Remove(songData);
@@ -745,6 +746,7 @@ public sealed partial class GenreDetailPage : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					GenreGroupSongs.Remove(songData);

@@ -417,6 +417,7 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 					{
 						if (File.Exists(songPath))
 						{
+							LibraryWatcherService.MarkSelfInitiated(songPath);
 							File.Delete(songPath);
 							await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
 						}
@@ -554,6 +555,7 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 			{
 				if (File.Exists(songPath))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songPath);
 					File.Delete(songPath);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songPath);
 				}

@@ -842,6 +842,7 @@ public sealed partial class MainPlayerPage : Page
 					audioModel.Tag.Lyrics = LyricsTextBox.Text;
 					try
 					{
+						LibraryWatcherService.MarkSelfInitiated(track.Path);
 						audioModel.Save();
 					}
 					catch (IOException)

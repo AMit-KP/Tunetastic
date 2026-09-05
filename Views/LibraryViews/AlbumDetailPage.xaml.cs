@@ -593,6 +593,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					AlbumGroupSongs.Remove(songData);
@@ -728,6 +729,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					AlbumGroupSongs.Remove(songData);
