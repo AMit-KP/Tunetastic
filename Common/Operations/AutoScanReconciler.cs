@@ -61,6 +61,9 @@ public static class AutoScanReconciler
 			.ToList();
 
 		await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+
+		await LibraryScanner.RefreshAutoScanResultMessage();
+
 		GlobalNotification.Info("All libraries are in sync");
 	}
 

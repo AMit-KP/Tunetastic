@@ -271,6 +271,7 @@ public sealed partial class SettingsPage : Page
 		CustomProgressBar.Visibility = Visibility.Collapsed;
 		FullScan.IsEnabled = true;
 		FullScan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
+		//TODO make it dynamic and move it out
 	}
 
 	/// <summary>

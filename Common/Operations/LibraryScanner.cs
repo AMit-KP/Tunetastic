@@ -204,7 +204,7 @@ public class LibraryScanner
 			uniqueFolders = null!;
 			libraries = null!;
 
-			localSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
+			await RefreshAutoScanResultMessage();
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
@@ -361,6 +361,14 @@ public class LibraryScanner
 
 		if (extensions.Count == 0) extensions.Add(".mp3");
 		return extensions;
+	}
+
+	internal static async Task RefreshAutoScanResultMessage()
+	{
+		var librariesCount = (await DatabaseHelper.Instance.GetAllLibraries()).Count;
+		var songsCount = await DatabaseHelper.Instance.GetSongsCount();
+
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
 	}
 
 	/// <summary>

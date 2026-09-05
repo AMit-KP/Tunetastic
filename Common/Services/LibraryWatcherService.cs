@@ -288,6 +288,8 @@ public static class LibraryWatcherService
 
 			foreach (var path in modifiedPaths)
 				await Tunetastic.Common.Operations.FileChangeProcessor.ProcessFileChange(path, FileChangeType.Modified);
+
+			await LibraryScanner.RefreshAutoScanResultMessage();
 		}
 		finally
 		{
