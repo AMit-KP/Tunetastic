@@ -82,7 +82,7 @@ public static class AutoScanService
 			var result = await dialog.ShowAsync();
 			MainWindow._instance.WindowResizePermission(true);
 
-			if(result == ContentDialogResult.Primary)
+			if (result == ContentDialogResult.Primary)
 				App.Current.NavService.NavigateTo(typeof(SettingsPage));
 		});
 	}

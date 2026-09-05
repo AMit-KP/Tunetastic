@@ -73,6 +73,7 @@ public sealed partial class SettingsPage : Page
 
 		LoadAboutSectionSettings();
 
+		//TODO move these into above folders
 		Theme.SelectionChanged += Theme_SelectionChanged;
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
 		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
@@ -90,7 +91,6 @@ public sealed partial class SettingsPage : Page
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
 		LRCOffsetStandard.SelectionChanged += LRCOffsetStandard_SelectionChanged;
-		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
 
 		#region Uncomment when crossfade is implemented properly
 		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
@@ -130,6 +130,10 @@ public sealed partial class SettingsPage : Page
 
 				Libraries?.Clear();
 				Libraries?.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
+
+				LibraryFolders.IsExpanded = true;
+				GlobalNotification.Info("Please do a Full Scan.");
+				//TODO add highlight for scan
 			}
 		}
 		catch (Exception)
@@ -153,6 +157,17 @@ public sealed partial class SettingsPage : Page
 		{
 			await DatabaseHelper.Instance.RemoveLibrary(library);
 			Libraries.Remove(library);
+
+			if (Libraries.Count == 0)
+			{
+				AutoSyncSwitch.IsOn = false;
+				GlobalNotification.Warning("All libraries are removed. Please add atleast one.");
+			}
+			else
+			{
+				GlobalNotification.Info("Please do a Full Scan.");
+				//TODO add highlight for scan
+			}
 		}
 	}
 
@@ -229,7 +244,9 @@ public sealed partial class SettingsPage : Page
 		ProgressFillText.Text = "0%";
 		CustomProgressBar.Visibility = Visibility.Visible;
 
+		await LibraryWatcherService.StopWatching(drainPending: false);
 		_ = new LibraryScanner().UpdateMetaData();
+		await AutoScanService.ResumeIfEnabled();
 
 		for (double i = 0; i <= 1; i += 0.1)
 		{
@@ -344,8 +361,12 @@ public sealed partial class SettingsPage : Page
 			var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
 
 			FileExt.Description = description;
-			//TODO: live update without scan
+
+			GlobalNotification.Info("Please do a Full Scan.");
+			//TODO add highlight for scan
 		}
+
+		//TODO add one confirmation for all
 	}
 
 	/// <summary>
@@ -749,6 +770,8 @@ public sealed partial class SettingsPage : Page
 		RecentlyPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true");
 
 		MostPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MostPlayedEnabled)]?.ToString() ?? "true");
+
+		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
 	}
 
 	/// <summary>
@@ -1246,7 +1269,7 @@ public sealed partial class SettingsPage : Page
 
 	private async void AutoSyncSwitch_Toggled(object sender, RoutedEventArgs e)
 	{
-		if(AutoSyncSwitch.IsOn)
+		if (AutoSyncSwitch.IsOn)
 		{
 			if (!await AutoScanService.EnableAutoScan())
 				AutoSyncSwitch.IsOn = false;

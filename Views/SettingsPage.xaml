@@ -32,7 +32,8 @@
 				           Text="Library &amp; PlayLists" />
 			</StackPanel>
 
-			<dev:SettingsExpander Description="Click to view libraries added"
+			<dev:SettingsExpander x:Name="LibraryFolders"
+			                      Description="Click to view libraries added"
 			                      Header="All Libraries"
 			                      ItemsSource="{x:Bind Libraries}">
 				<Button Click="AddNewFolder_ButtonClick"
