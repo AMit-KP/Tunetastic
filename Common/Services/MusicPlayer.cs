@@ -156,12 +156,15 @@ public class MusicPlayer
 	/// </summary>
 	private MusicPlayer()
 	{
-		var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
-		Engine.Start(new EngineConfig
+		if (!FlyleafLib.Engine.IsLoaded)
 		{
-			UIRefresh = false,
-			FFmpegPath = ffmpegPath,
-		});
+			var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
+			Engine.Start(new EngineConfig
+			{
+				UIRefresh = false,
+				FFmpegPath = ffmpegPath,
+			});
+		}
 
 		var config = new FlyleafLib.Config();
 		config.Video.Enabled = false;

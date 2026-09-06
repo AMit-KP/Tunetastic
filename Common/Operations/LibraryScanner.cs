@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using FlyleafLib;
 using FlyleafLib.MediaPlayer;
 
 namespace Tunetastic.Common.Operations;
@@ -269,6 +270,16 @@ public class LibraryScanner
 
 			if (song.Duration <= 0)
 			{
+				if(!FlyleafLib.Engine.IsLoaded)
+				{
+					var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
+					Engine.Start(new EngineConfig
+					{
+						UIRefresh = false,
+						FFmpegPath = ffmpegPath,
+					});
+				}
+
 				FlyleafLib.Config config = new FlyleafLib.Config();
 				config.Video.Enabled = false;
 				config.Audio.Enabled = true;
@@ -276,6 +287,7 @@ public class LibraryScanner
 				var tempPlayer = new Player(config);
 				tempPlayer.Open(filePath);
 				song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
+				tempPlayer.Stop();
 				tempPlayer.Dispose();
 				song.PlayerType = "Flyleaf";
 			}
