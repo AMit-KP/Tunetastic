@@ -24,9 +24,7 @@ public static class LibraryWatcherService
 
 	public static event Action? BulkChangeDetected;
 
-	private static int BulkChangeThreshold =>
-		// TODO: tune this value during testing
-		int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanBulkThreshold)]?.ToString() ?? "50");
+	private static int BulkChangeThreshold => int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanBulkThreshold)]?.ToString() ?? "50");
 
 	public static void MarkSelfInitiated(string path)
 	{

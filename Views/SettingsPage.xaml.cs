@@ -73,30 +73,6 @@ public sealed partial class SettingsPage : Page
 
 		LoadAboutSectionSettings();
 
-		//TODO move these into above folders
-		Theme.SelectionChanged += Theme_SelectionChanged;
-		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
-		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
-		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
-		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
-		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
-		ArtistsToggle.Toggled += ArtistsToggle_Toggled;
-		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
-		GenresToggle.Toggled += GenresToggle_Toggled;
-		YearsToggle.Toggled += YearsToggle_Toggled;
-		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
-		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
-		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
-		//TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
-		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
-		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
-		LRCOffsetStandard.SelectionChanged += LRCOffsetStandard_SelectionChanged;
-
-		#region Uncomment when crossfade is implemented properly
-		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
-		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
-		#endregion
-
 		if (LibraryScanner.IsScanning) ScanButton_Click(null, null);
 		Page_ActualThemeChanged(null, null);
 	}
@@ -725,6 +701,13 @@ public sealed partial class SettingsPage : Page
 
 		// TODO: set side options based on windows start position
 		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
+
+		Theme.SelectionChanged += Theme_SelectionChanged;
+		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
+		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
+		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
+		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
+		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 	}
 
 	/// <summary>
@@ -772,6 +755,14 @@ public sealed partial class SettingsPage : Page
 
 		MostPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MostPlayedEnabled)]?.ToString() ?? "true");
 
+		ArtistsToggle.Toggled += ArtistsToggle_Toggled;
+		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
+		GenresToggle.Toggled += GenresToggle_Toggled;
+		YearsToggle.Toggled += YearsToggle_Toggled;
+		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
+		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
+		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
+		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
 		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
 	}
 
@@ -788,13 +779,12 @@ public sealed partial class SettingsPage : Page
 		PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
 		PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
 
-		#region Uncomment when crossfade is implemented properly
-		/*AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
+		/* NOTE Uncomment when crossfade is implemented properly
+		AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
 		AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
 
 		ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
 		ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);*/
-		#endregion
 
 		PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
@@ -810,6 +800,13 @@ public sealed partial class SettingsPage : Page
 
 		var lrcOffsetStandard = bool.Parse(localSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)]?.ToString() ?? "false") ? "Official" : "Intuitive";
 		LRCOffsetStandard.SelectedItem = LRCOffsetStandard.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == lrcOffsetStandard);
+
+		LRCOffsetStandard.SelectionChanged += LRCOffsetStandard_SelectionChanged;
+		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
+
+		//NOTE Uncomment when crossfade is implemented properly
+		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
+		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
 	}
 
 	/// <summary>

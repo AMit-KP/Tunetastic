@@ -482,8 +482,8 @@ public class MusicPlayer
 				capturedPosition = 0.0;
 			}
 
-			#region When crossfade works then use this
-			/*double selectedFadeTime = fadeType switch
+			/* NOTE When crossfade works then use this
+				double selectedFadeTime = fadeType switch
 				{
 					FadeType.Manual      => double.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeValue)]?.ToString() ?? "1000"),
 					FadeType.AutoAdvance => double.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceValue)]?.ToString()    ?? "1000"),
@@ -505,7 +505,6 @@ public class MusicPlayer
 						? Task.Run(async () => { await _activeBackend.OpenAsync(capturedSong); Play(capturedPosition); })
 						: CrossfadeTransition(capturedSong, selectedFadeTime));
 				}*/
-			#endregion
 
 			await _activeBackend.OpenAsync(capturedSong);
 

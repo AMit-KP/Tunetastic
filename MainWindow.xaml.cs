@@ -29,10 +29,8 @@ public sealed partial class MainWindow : WindowEx
 
 		Activated += MainWindow_Activated;
 
-		//WARNING
-		#region Don't remove this causes thread issue for some unknown reason
+		//WARNING Don't remove this; causes thread issue for some unknown reason
 		var _ = new System.Windows.Forms.ContextMenuStrip();
-		#endregion
 
 		AddTrayIcon();
 		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
