@@ -14,7 +14,7 @@ public static class HighlightExtensions
 
 		var ring = new Border
 		{
-			BorderBrush = new SolidColorBrush(color ?? Colors.DodgerBlue),
+			BorderBrush = new SolidColorBrush(color ?? (Color)Application.Current.Resources["SystemAccentColor"]),
 			BorderThickness = new Thickness(3),
 			CornerRadius = new CornerRadius(8),
 			IsHitTestVisible = false,

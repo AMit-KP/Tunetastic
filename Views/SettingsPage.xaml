@@ -90,7 +90,8 @@
 							           Style="{ThemeResource BodyStrongTextBlockStyle}" />
 						</Grid>
 					</Grid>
-					<Button Click="ScanButton_Click"
+					<Button x:Name="FullScanButton"
+					        Click="ScanButton_Click"
 					        Content="Full Scan" />
 				</StackPanel>
 				<dev:SettingsExpander.Items>

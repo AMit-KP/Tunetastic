@@ -109,7 +109,9 @@ public sealed partial class SettingsPage : Page
 
 				LibraryFolders.IsExpanded = true;
 				GlobalNotification.Info("Please do a Full Scan.");
-				//TODO add highlight for scan
+
+				await Task.Delay(300);
+				FullScanButton.Highlight(pulses: 3,pulseDurationMs: 1000);
 			}
 		}
 		catch (Exception)
@@ -142,7 +144,8 @@ public sealed partial class SettingsPage : Page
 			else
 			{
 				GlobalNotification.Info("Please do a Full Scan.");
-				//TODO add highlight for scan
+				await Task.Delay(300);
+				FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);
 			}
 		}
 	}
@@ -340,7 +343,9 @@ public sealed partial class SettingsPage : Page
 			FileExt.Description = description;
 
 			GlobalNotification.Info("Please do a Full Scan.");
-			//TODO add highlight for scan
+			/* NOTE Uncomment after one confirmation added for extensions
+			await Task.Delay(300);
+			FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);*/
 		}
 
 		//TODO add one confirmation for all
