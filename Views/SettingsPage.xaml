@@ -32,7 +32,8 @@
 				           Text="Library &amp; PlayLists" />
 			</StackPanel>
 
-			<dev:SettingsExpander Description="Click to view libraries added"
+			<dev:SettingsExpander x:Name="LibraryFolders"
+			                      Description="Click to view libraries added"
 			                      Header="All Libraries"
 			                      ItemsSource="{x:Bind Libraries}">
 				<Button Click="AddNewFolder_ButtonClick"
@@ -65,7 +66,7 @@
 				</dev:SettingsExpander.ItemTemplate>
 			</dev:SettingsExpander>
 
-			<dev:SettingsExpander x:Name="Scan"
+			<dev:SettingsExpander x:Name="FullScan"
 			                      Header="Scan Libraries for Songs">
 
 				<StackPanel Orientation="Horizontal"
@@ -90,7 +91,7 @@
 						</Grid>
 					</Grid>
 					<Button Click="ScanButton_Click"
-					        Content="Scan" />
+					        Content="Full Scan" />
 				</StackPanel>
 				<dev:SettingsExpander.Items>
 					<dev:SettingsCard x:Name="IgnoreTrack"
@@ -108,13 +109,18 @@
 					</dev:SettingsCard>
 
 					<dev:SettingsCard Description="Scans the library for tracks when the app starts. If turned on, it will increase the startup time."
-					                  Header="Scan At Startup">
+					                  Header="Full Scan At Startup">
 						<ToggleSwitch Name="ScanAtStart"
 						              IsOn="False"
 						              Toggled="ScanAtStart_Toggled" />
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
+
+			<dev:SettingsCard Description="Automatically keep your library in sync with changes on disk."
+			                  Header="Auto Sync">
+				<ToggleSwitch Name="AutoSyncSwitch" />
+			</dev:SettingsCard>
 
 			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
 			                      Description="Select which Pre-defined Libraries and Playlists to show/hide on Navigation"

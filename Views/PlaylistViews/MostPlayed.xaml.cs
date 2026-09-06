@@ -473,6 +473,7 @@ public sealed partial class MostPlayed : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					MostPlayedSongs.Remove(songData);
@@ -603,6 +604,7 @@ public sealed partial class MostPlayed : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					MostPlayedSongs.Remove(songData);

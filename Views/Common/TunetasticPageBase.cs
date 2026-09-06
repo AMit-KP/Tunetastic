@@ -65,7 +65,7 @@ public abstract partial class TunetasticPageBase : Page
 		OnInitializingContent();
 		PageButtonsPanel.Visibility = Visibility.Collapsed;
 
-		if (GetMusicData.IsScanning)
+		if (LibraryScanner.IsScanning)
 		{
 			GoToSettingsPrompt.Visibility = Visibility.Collapsed;
 			LoadingProgressIndicator.Opacity = 0;
@@ -77,10 +77,10 @@ public abstract partial class TunetasticPageBase : Page
 				await Task.Delay(1);
 			}
 
-			while (GetMusicData.IsScanning)
+			while (LibraryScanner.IsScanning)
 			{
-				ProgressFillRectangle.Width = GetMusicData.ScanProgress * 4;
-				ProgressFillLabel.Text = $"{GetMusicData.ScanProgress.ToString()}%";
+				ProgressFillRectangle.Width = LibraryScanner.ScanProgress * 4;
+				ProgressFillLabel.Text = $"{LibraryScanner.ScanProgress.ToString()}%";
 				await Task.Delay(1);
 			}
 

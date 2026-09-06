@@ -602,6 +602,7 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					ArtistGroupSongs.Remove(songData);
@@ -737,6 +738,7 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					ArtistGroupSongs.Remove(songData);

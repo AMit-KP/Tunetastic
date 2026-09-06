@@ -918,6 +918,7 @@ public sealed partial class MainPage : Page
 						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 						try
 						{
+							LibraryWatcherService.MarkSelfInitiated(songData.Path);
 							audioModel.Save();
 						}
 						catch (IOException)

@@ -198,7 +198,9 @@ public enum LocalSave
 	TaskBarOverlaySide,
 	TaskBarOverlayTheme,
 	TaskBarOverlayDesign,
-	LRCOffsetSOfficialtandard
+	LRCOffsetSOfficialtandard,
+	AutoScanEnabled,
+	AutoScanBulkThreshold
 }
 
 /// <summary>
@@ -238,4 +240,12 @@ public enum OverlayLayout
 	ArtistBadge,
 	TopAlbumAccentStripe,
 	AlbumTintProgress
+}
+
+public enum FileChangeType
+{
+	Created,
+	Modified,
+	Deleted,
+	Renamed
 }

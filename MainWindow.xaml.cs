@@ -29,9 +29,8 @@ public sealed partial class MainWindow : WindowEx
 
 		Activated += MainWindow_Activated;
 
-		#region Don't remove this causes thread issue for some unknown reason
+		//WARNING Don't remove this; causes thread issue for some unknown reason
 		var _ = new System.Windows.Forms.ContextMenuStrip();
-		#endregion
 
 		AddTrayIcon();
 		SetMinimizeBehaviour(bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true"));
@@ -157,6 +156,8 @@ public sealed partial class MainWindow : WindowEx
 		this.Closed -= MinimizeToTray;
 		RemoveTrayIcon();
 		await Task.Delay(100);
+
+		await LibraryWatcherService.StopWatching();
 
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
 		App.Current.AudioService.Dispose();

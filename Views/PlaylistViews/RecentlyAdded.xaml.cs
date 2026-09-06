@@ -462,6 +462,7 @@ public sealed partial class RecentlyAdded : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					RecentlyAddedSongs.Remove(songData);
@@ -592,6 +593,7 @@ public sealed partial class RecentlyAdded : SongListPageBase
 			{
 				if (File.Exists(songData.Path))
 				{
+					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					RecentlyAddedSongs.Remove(songData);

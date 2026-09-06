@@ -156,12 +156,15 @@ public class MusicPlayer
 	/// </summary>
 	private MusicPlayer()
 	{
-		var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
-		Engine.Start(new EngineConfig
+		if (!FlyleafLib.Engine.IsLoaded)
 		{
-			UIRefresh = false,
-			FFmpegPath = ffmpegPath,
-		});
+			var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
+			Engine.Start(new EngineConfig
+			{
+				UIRefresh = false,
+				FFmpegPath = ffmpegPath,
+			});
+		}
 
 		var config = new FlyleafLib.Config();
 		config.Video.Enabled = false;
@@ -482,8 +485,8 @@ public class MusicPlayer
 				capturedPosition = 0.0;
 			}
 
-			#region When crossfade works then use this
-			/*double selectedFadeTime = fadeType switch
+			/* NOTE When crossfade works then use this
+				double selectedFadeTime = fadeType switch
 				{
 					FadeType.Manual      => double.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeValue)]?.ToString() ?? "1000"),
 					FadeType.AutoAdvance => double.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceValue)]?.ToString()    ?? "1000"),
@@ -505,7 +508,6 @@ public class MusicPlayer
 						? Task.Run(async () => { await _activeBackend.OpenAsync(capturedSong); Play(capturedPosition); })
 						: CrossfadeTransition(capturedSong, selectedFadeTime));
 				}*/
-			#endregion
 
 			await _activeBackend.OpenAsync(capturedSong);
 
@@ -621,7 +623,7 @@ public class MusicPlayer
 	/// </summary>
 	public async void Previous()
 	{
-		if (GetMusicData.IsScanning) return;
+		if (LibraryScanner.IsScanning) return;
 		try
 		{
 			if (ActualPlaylist?.Count > 0)
@@ -660,7 +662,7 @@ public class MusicPlayer
 	/// <param name="autoChange">Indicates whether this is an automatic change. Default is false.</param>
 	public async void Next(bool autoChange = false)
 	{
-		if (GetMusicData.IsScanning) return;
+		if (LibraryScanner.IsScanning) return;
 		try
 		{
 			bool isPlaying = autoChange ? autoChange : IsPlaying;
@@ -728,7 +730,7 @@ public class MusicPlayer
 	/// <returns>A task that represents the asynchronous operation. The task result contains a list of upcoming songs or null if an error occurs.</returns>
 	public async Task<List<Song>?> GetUpcomingSongs(int count = 2)
 	{
-		if (GetMusicData.IsScanning) return null;
+		if (LibraryScanner.IsScanning) return null;
 
 		try
 		{
