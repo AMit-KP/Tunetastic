@@ -64,7 +64,7 @@ public static class AutoScanReconciler
 
 		await LibraryScanner.RefreshAutoScanResultMessage();
 
-		GlobalNotification.Info("All libraries are in sync");
+		GlobalNotification.Success("All libraries are in sync");
 	}
 
 	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)

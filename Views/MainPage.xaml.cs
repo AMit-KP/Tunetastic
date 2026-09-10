@@ -361,7 +361,7 @@ public sealed partial class MainPage : Page
 			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
 			{
 				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
-				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+				GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
 			}
 		}
 		playLists = null;

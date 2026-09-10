@@ -64,8 +64,8 @@ public class LibraryScanner
 
 		switch (type)
 		{
-			case "Info":
-				GlobalNotification.Info(message);
+			case "Success":
+				GlobalNotification.Success(message);
 				break;
 			case "Warning":
 				GlobalNotification.Warning(message);
@@ -209,7 +209,7 @@ public class LibraryScanner
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
-			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
+			return ("Success", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
 		}
 		else
 		{
@@ -270,7 +270,7 @@ public class LibraryScanner
 
 			if (song.Duration <= 0)
 			{
-				if(!FlyleafLib.Engine.IsLoaded)
+				if (!FlyleafLib.Engine.IsLoaded)
 				{
 					var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
 					Engine.Start(new EngineConfig

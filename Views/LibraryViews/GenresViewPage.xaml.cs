@@ -421,7 +421,7 @@ public sealed partial class GenresViewPage : TileListPageBase
 				}
 				GenresGroup.Remove(genreModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
-				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Genre {genreModel?.Genre} deleted.");
+				GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Genre {genreModel?.Genre} deleted.");
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 			{
@@ -563,7 +563,7 @@ public sealed partial class GenresViewPage : TileListPageBase
 				GenreTileView.Items.Remove(genreModel);
 
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected genres deleted.");
+			GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected genres deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

@@ -113,7 +113,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					}
 				}
 			}
-			GlobalNotification.Info($"{playListName} PlayList deleted.");
+			GlobalNotification.Success($"{playListName} PlayList deleted.");
 			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == playListName)
 			{
@@ -469,11 +469,11 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					PlayListSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info("Song/Track deleted." +
-											$"\nTitle: {songData.Title}" +
-											$"\nArtist: {songData.Artists}" +
-											$"\nAlbum: {songData.Album}" +
-											$"\nFile: {songData.Path}");
+					GlobalNotification.Success("Song/Track deleted." +
+												$"\nTitle: {songData.Title}" +
+												$"\nArtist: {songData.Artists}" +
+												$"\nAlbum: {songData.Album}" +
+												$"\nFile: {songData.Path}");
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -604,7 +604,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -806,7 +806,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
 			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
 			AddNoResultsMessage();
-			GlobalNotification.Info("Playlist renamed to " + PlaylistHeader.Text + ".");
+			GlobalNotification.Success("Playlist renamed to " + PlaylistHeader.Text + ".");
 		}
 		playLists = null;
 	}

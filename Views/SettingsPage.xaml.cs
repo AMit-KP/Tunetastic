@@ -111,7 +111,7 @@ public sealed partial class SettingsPage : Page
 				GlobalNotification.Info("Please do a Full Scan.");
 
 				await Task.Delay(300);
-				FullScanButton.Highlight(pulses: 3,pulseDurationMs: 1000);
+				FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);
 			}
 		}
 		catch (Exception)
