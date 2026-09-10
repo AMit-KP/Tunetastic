@@ -30,9 +30,43 @@ public static class HighlightExtensions
 			IsHitTestVisible = false
 		};
 
-		var point = target.TransformToVisual(target.XamlRoot.Content).TransformPoint(new Point(0, 0));
-		popup.HorizontalOffset = point.X - 6;
-		popup.VerticalOffset = point.Y - 6;
+		// Keep the popup glued to the target every frame while it's open.
+		void UpdatePosition(object? sender, object? e)
+		{
+			if (target.XamlRoot == null || !target.IsLoaded)
+			{
+				popup.IsOpen = false;
+				return;
+			}
+
+			try
+			{
+				var point = target.TransformToVisual(target.XamlRoot.Content)
+								   .TransformPoint(new Point(0, 0));
+				popup.HorizontalOffset = point.X - 6;
+				popup.VerticalOffset = point.Y - 6;
+
+				// Also keep the ring's size in sync in case the target resizes.
+				ring.Width = target.ActualWidth + 12;
+				ring.Height = target.ActualHeight + 12;
+			}
+			catch
+			{
+				// Target likely detached from the tree mid-animation.
+				popup.IsOpen = false;
+			}
+		}
+
+		void StopTracking()
+		{
+			CompositionTarget.Rendering -= UpdatePosition;
+		}
+
+		popup.Closed += (_, _) => StopTracking();
+		target.Unloaded += (_, _) => popup.IsOpen = false;
+
+		CompositionTarget.Rendering += UpdatePosition;
+		UpdatePosition(null, null); // set initial position before opening
 		popup.IsOpen = true;
 
 		var anim = new DoubleAnimationUsingKeyFrames
@@ -55,7 +89,7 @@ public static class HighlightExtensions
 		Storyboard.SetTarget(anim, ring);
 		Storyboard.SetTargetProperty(anim, "Opacity");
 		storyboard.Children.Add(anim);
-		storyboard.Completed += (_, _) => popup.IsOpen = false;
+		storyboard.Completed += (_, _) => popup.IsOpen = false; // triggers StopTracking via Closed
 		storyboard.Begin();
 	}
 
@@ -64,7 +98,7 @@ public static class HighlightExtensions
 		target.StartBringIntoView();
 		target.DispatcherQueue.TryEnqueue(async () =>
 		{
-			await Task.Delay(150);
+			await Task.Delay(500);
 			target.Highlight(color, pulses, pulseDurationMs);
 		});
 	}
