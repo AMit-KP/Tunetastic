@@ -12,6 +12,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 	private readonly MMDeviceEnumerator _enumerator;
 	private MMDevice _currentDevice;
 	private readonly List<SessionEventHandler> _sessionHandlers = new();
+	private CancellationTokenSource? _sessionWaitCts;
 	private readonly object _sessionsLock = new();
 	private volatile bool _suppressAppVolumeEvent = false;
 
@@ -222,10 +223,20 @@ public class AudioService : IDisposable, IMMNotificationClient
 		var results = new List<AudioSessionControl>();
 		foreach (var device in _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
 		{
-			var sessions = device.AudioSessionManager.Sessions;
-			for (int i = 0; i < sessions.Count; i++)
-				if (sessions[i].GetProcessID == pid)
-					results.Add(sessions[i]);
+			// Reading AudioSessionManager registers a session notification with Windows that stays
+			// registered until the device is disposed. Without this, every polling pass added one
+			// more per output device. The AudioSessionControls collected here are separate COM
+			// objects and stay valid after the device is disposed.
+			using (device)
+			{
+				var sessions = device.AudioSessionManager.Sessions;
+				for (int i = 0; i < sessions.Count; i++)
+				{
+					var session = sessions[i];
+					if (session.GetProcessID == pid)
+						results.Add(session);
+				}
+			}
 		}
 		return results;
 	}
@@ -236,17 +247,42 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <returns>A task representing the asynchronous operation.</returns>
 	private async Task WaitAndSubscribeToAppVolumeAsync()
 	{
-		while (true)
+		// This is started from several places (startup, a session ending, a device change).
+		// Only one wait should run at a time, so a new one cancels the previous one.
+		CancellationToken token;
+		lock (_sessionsLock)
 		{
-			var found = FindAllAppSessions(Environment.ProcessId);
-			if (found.Count > 0)
-			{
-				foreach (var session in found)
-					AddSession(session);
-				return;
-			}
-			await Task.Delay(500);
+			_sessionWaitCts?.Cancel();
+			_sessionWaitCts = new CancellationTokenSource();
+			token = _sessionWaitCts.Token;
 		}
+
+		try
+		{
+			while (!token.IsCancellationRequested)
+			{
+				List<AudioSessionControl> found;
+				try
+				{
+					found = FindAllAppSessions(Environment.ProcessId);
+				}
+				catch (Exception)
+				{
+					// Devices can disappear mid-enumeration while outputs change. Try again next pass
+					// instead of ending the wait for good.
+					found = new();
+				}
+
+				if (found.Count > 0)
+				{
+					foreach (var session in found)
+						AddSession(session);
+					return;
+				}
+				await Task.Delay(500, token);
+			}
+		}
+		catch (OperationCanceledException) { }
 	}
 
 	/// <summary>
@@ -464,6 +500,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 	{
 		UnsubscribeFromDevice(_currentDevice);
 		ClearAllSessions();
+		_sessionWaitCts?.Cancel();
 		_enumerator.UnregisterEndpointNotificationCallback(this);
 		_currentDevice?.Dispose();
 		_enumerator?.Dispose();
