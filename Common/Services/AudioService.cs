@@ -14,6 +14,8 @@ public class AudioService : IDisposable, IMMNotificationClient
 	private readonly List<SessionEventHandler> _sessionHandlers = new();
 	private readonly object _sessionsLock = new();
 	private volatile bool _suppressAppVolumeEvent = false;
+	private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
+	private bool _disposed;
 
 	/// <summary>
 	/// Occurs when the system volume changes.
@@ -36,6 +38,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// </summary>
 	public AudioService()
 	{
+		_dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 		_enumerator = new MMDeviceEnumerator();
 		_currentDevice = GetFreshDevice();
 		SubscribeToDevice(_currentDevice);
@@ -268,11 +271,56 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="deviceId">The ID of the device to switch to.</param>
 	public void SwitchDevice(string deviceId)
 	{
-		UnsubscribeFromDevice(_currentDevice);
-		_currentDevice.Dispose();
+		RunOnUIThread(() => ReplaceDevice(() => _enumerator.GetDevice(deviceId)));
+	}
 
-		_currentDevice = _enumerator.GetDevice(deviceId);
+	/// <summary>
+	/// Replaces the current device with a new one. Must run on the UI thread.
+	/// </summary>
+	/// <param name="getDevice">Returns the device to switch to.</param>
+	/// <returns>True if the device was replaced, false if the new device could not be opened.</returns>
+	private bool ReplaceDevice(Func<MMDevice> getDevice)
+	{
+		MMDevice newDevice;
+		try
+		{
+			newDevice = getDevice();
+		}
+		catch (Exception)
+		{
+			// No usable output device (e.g. the last one was just unplugged). Keep the old one
+			// rather than leaving _currentDevice disposed.
+			return false;
+		}
+
+		var oldDevice = _currentDevice;
+		UnsubscribeFromDevice(oldDevice);
+		_currentDevice = newDevice;
 		SubscribeToDevice(_currentDevice);
+		oldDevice.Dispose();
+		return true;
+	}
+
+	/// <summary>
+	/// Runs an action on the UI thread.
+	/// </summary>
+	/// <param name="action">The action to run.</param>
+	private void RunOnUIThread(Action action)
+	{
+		// Windows raises the IMMNotificationClient callbacks on its own threads, while the UI thread
+		// reads _currentDevice for volume and mute. Replacing the device on the UI thread means a
+		// reader can never be holding a device that another thread has just disposed. It also keeps
+		// the callbacks short, which Windows requires of them.
+		if (_dispatcherQueue == null || _dispatcherQueue.HasThreadAccess)
+		{
+			action();
+			return;
+		}
+
+		_dispatcherQueue.TryEnqueue(() =>
+		{
+			if (!_disposed) action();
+		});
 	}
 
 	/// <summary>
@@ -409,12 +457,14 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="defaultDeviceId">The ID of the new default device.</param>
 	void IMMNotificationClient.OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
 	{
-		if (flow != DataFlow.Render) return;
-		UnsubscribeFromDevice(_currentDevice);
-		_currentDevice.Dispose();
-		_currentDevice = _enumerator.GetDevice(defaultDeviceId);
-		SubscribeToDevice(_currentDevice);
-		SubscribeToAppVolume();
+		// Windows sends this once per role. Follow only the Multimedia default, the one
+		// GetFreshDevice uses, or a separate Communications device (e.g. a headset) can win.
+		if (flow != DataFlow.Render || role != Role.Multimedia) return;
+		RunOnUIThread(() =>
+		{
+			if (ReplaceDevice(() => _enumerator.GetDevice(defaultDeviceId)))
+				SubscribeToAppVolume();
+		});
 	}
 
 	/// <summary>
@@ -424,16 +474,16 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="newState">The new device state.</param>
 	void IMMNotificationClient.OnDeviceStateChanged(string deviceId, DeviceState newState)
 	{
-		if (deviceId != _currentDevice.ID) return;
-		if (newState != DeviceState.Active)
+		if (newState == DeviceState.Active) return;
+		RunOnUIThread(() =>
 		{
-			UnsubscribeFromDevice(_currentDevice);
-			_currentDevice.Dispose();
-			_currentDevice = GetFreshDevice();
-			SubscribeToDevice(_currentDevice);
-			ClearAllSessions();
-			_ = WaitAndSubscribeToAppVolumeAsync();
-		}
+			if (deviceId != _currentDevice.ID) return;
+			if (ReplaceDevice(GetFreshDevice))
+			{
+				ClearAllSessions();
+				_ = WaitAndSubscribeToAppVolumeAsync();
+			}
+		});
 	}
 
 	/// <summary>
@@ -462,6 +512,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// </summary>
 	public void Dispose()
 	{
+		_disposed = true;
 		UnsubscribeFromDevice(_currentDevice);
 		ClearAllSessions();
 		_enumerator.UnregisterEndpointNotificationCallback(this);
