@@ -11,6 +11,7 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	private System.Threading.Timer? _positionTimer;
 	private bool _disposed;
 	private volatile bool _isLoading = false;
+	private TaskCompletionSource<bool>? _pendingOpen;
 	/// <summary>
 	/// Gets or sets the pending start position for media playback.
 	/// </summary>
@@ -84,12 +85,30 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	/// Asynchronously opens the specified media file for playback.
 	/// </summary>
 	/// <param name="path">The path to the media file.</param>
-	/// <returns>A task representing the asynchronous operation.</returns>
-	public Task OpenAsync(string path)
+	/// <returns>False if the file could not be opened (missing, unreachable or unreadable).</returns>
+	public async Task<bool> OpenAsync(string path)
 	{
+		// Setting Source never throws for a missing file; the result only arrives later. Wait for
+		// this source's own OpenOperationCompleted rather than the player's MediaFailed, which can
+		// still be on its way for a previous source.
+		var opened = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+		// A source that gets replaced before it finishes opening may never report back. Release
+		// whoever is waiting on it; being replaced is not a failure.
+		Interlocked.Exchange(ref _pendingOpen, opened)?.TrySetResult(true);
+
 		_isLoading = true;
-		_player.Source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(path));
-		return Task.CompletedTask;
+		var source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(path));
+		source.OpenOperationCompleted += (s, e) => opened.TrySetResult(e.Error == null);
+		_player.Source = source;
+
+		bool success = await opened.Task;
+		Interlocked.CompareExchange(ref _pendingOpen, null, opened);
+
+		// MediaOpened, which normally clears this, never fires for a failed source. Left set, it
+		// would hide every later state change from the UI.
+		if (!success) _isLoading = false;
+		return success;
 	}
 
 	/// <summary>
@@ -116,6 +135,8 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	public void Stop()
 	{
 		_player.Source = null;
+		// The removed source will never report back, so release a load still waiting on it.
+		Interlocked.Exchange(ref _pendingOpen, null)?.TrySetResult(true);
 		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 	}
 
