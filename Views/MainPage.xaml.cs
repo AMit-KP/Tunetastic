@@ -916,7 +916,6 @@ public sealed partial class MainPage : Page
 							PendingLyrics = 1;
 						}
 
-						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 						try
 						{
 							LibraryWatcherService.MarkSelfInitiated(songData.Path);
@@ -936,6 +935,9 @@ public sealed partial class MainPage : Page
 
 							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 						}
+
+						songData.DateAdded = new FileInfo(songData.Path).LastWriteTime;
+						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 					}
 					// Refresh the visible library/playlist page's song list so the edited metadata is reflected immediately
 					if (NavFrame.Content is TunetasticPageBase visibleView)
