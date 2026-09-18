@@ -66,6 +66,7 @@ public static class AutoScanService
 			ContentDialog dialog = new ContentDialog()
 			{
 				Title = "Auto Sync",
+				RequestedTheme = App.Current.ThemeService.ActualTheme,
 				CloseButtonText = "Later",
 				PrimaryButtonText = "Open Settings",
 				Content = new TextBlock

@@ -190,8 +190,8 @@ public sealed partial class SettingsPage : Page
 				Title = "Scan Libraries",
 				PrimaryButtonText = "Continue",
 				SecondaryButtonText = "Cancel",
+				RequestedTheme = App.Current.ThemeService.ActualTheme,
 				DefaultButton = ContentDialogButton.Primary,
-				Background = (Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
 
 				Content = new Grid
 				{

@@ -832,6 +832,7 @@ public sealed partial class MainPage : Page
 						},
 
 						DefaultButton = ContentDialogButton.Primary,
+						RequestedTheme = App.Current.ThemeService.ActualTheme,
 						XamlRoot = App.MainWindow.Content.XamlRoot
 					};
 
