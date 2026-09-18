@@ -200,6 +200,9 @@ public static class LibraryWatcherService
 		{
 			await DatabaseHelper.Instance.DeleteSongFromDB(oldPath);
 			await DatabaseHelper.Instance.DeleteFileScanMeta(new List<string> { oldPath });
+
+			// Deleted from the database — refresh whichever library/playlist page is visible
+			MainPage._instance?.RefreshVisibleLibraryPage();
 			return;
 		}
 
@@ -288,6 +291,9 @@ public static class LibraryWatcherService
 				await Tunetastic.Common.Operations.FileChangeProcessor.ProcessFileChange(path, FileChangeType.Modified);
 
 			await LibraryScanner.RefreshAutoScanResultMessage();
+
+			// The processed batch changed the database — refresh whichever library/playlist page is visible
+			MainPage._instance?.RefreshVisibleLibraryPage();
 		}
 		finally
 		{

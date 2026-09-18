@@ -948,6 +948,34 @@ public sealed partial class MainPage : Page
 		}
 	}
 
+	private int _libraryRefreshInProgress = 0;
+
+	/// <summary>
+	/// Refreshes the currently visible library/playlist page after auto-scan has
+	/// processed file changes and written them to the database. Safe to call from
+	/// background threads — marshals to the UI thread, coalesces bursts of changes
+	/// into a single refresh and prevents concurrent refreshes from overlapping.
+	/// </summary>
+	public void RefreshVisibleLibraryPage()
+	{
+		if (LibraryScanner.IsScanning) return; // scan-aware page init handles that case
+		if (Interlocked.CompareExchange(ref _libraryRefreshInProgress, 1, 0) != 0) return;
+
+		App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
+		{
+			try
+			{
+				await Task.Delay(300); // merge adjacent rename/flush raises into one refresh
+				if (NavFrame.Content is TunetasticPageBase visibleView)
+					await visibleView.RefreshListAsync();
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _libraryRefreshInProgress, 0);
+			}
+		});
+	}
+
 	private async void ClearButton_Click(object sender, RoutedEventArgs e)
 	{
 		await DatabaseHelper.Instance.ResetPlayCount(SongPath.Text);
