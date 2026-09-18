@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using TagLib;
+using Tunetastic.Views.Common;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using Windows.Foundation;
@@ -936,7 +937,9 @@ public sealed partial class MainPage : Page
 							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 						}
 					}
-					//TODO: await UpdateUI();
+					// Refresh the visible library/playlist page's song list so the edited metadata is reflected immediately
+					if (NavFrame.Content is TunetasticPageBase visibleView)
+						await visibleView.RefreshListAsync();
 				}
 
 				_songData = null;

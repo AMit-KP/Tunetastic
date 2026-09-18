@@ -104,6 +104,14 @@ public abstract partial class TunetasticPageBase : Page
 		}
 	}
 
+	/// <summary>
+	/// Re-runs this page's data load: re-queries the database, re-applies the saved sort/order/limit,
+	/// repopulates the song list/tiles and rebuilds the A-Z navigation — without recreating the page
+	/// or touching its chrome. Used after in-place data changes such as edited song metadata.
+	/// </summary>
+	/// <returns>A task representing the asynchronous refresh.</returns>
+	public Task RefreshListAsync() => OnLibraryReadyAsync();
+
 	/// <summary>Collapses this page's content views and performs other pre-initialization setup.</summary>
 	protected abstract void OnInitializingContent();
 
