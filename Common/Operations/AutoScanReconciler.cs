@@ -4,7 +4,7 @@ namespace Tunetastic.Common.Operations;
 
 public static class AutoScanReconciler
 {
-	public static async Task RunCatchUpDiff()
+	public static async Task RunCatchUpDiff(bool showNotification)
 	{
 		var libraries = new List<string>();
 		foreach (LibraryModel library in await DatabaseHelper.Instance.GetAllLibraries())
@@ -13,7 +13,8 @@ public static class AutoScanReconciler
 		if (libraries.Count == 0)
 			return;
 
-		GlobalNotification.Info("Scanning for changes please wait...");
+		if (showNotification)
+			GlobalNotification.Info("Scanning for changes please wait...");
 
 		var effectiveRoots = LibraryScanner.ComputeEffectiveRoots(libraries);
 		var extensions = await LibraryScanner.GetEnabledExtensions();
@@ -64,7 +65,8 @@ public static class AutoScanReconciler
 
 		await LibraryScanner.RefreshAutoScanResultMessage();
 
-		GlobalNotification.Success("All libraries are in sync");
+		if (showNotification)
+			GlobalNotification.Success("All libraries are in sync");
 	}
 
 	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)

@@ -18,7 +18,7 @@ public static class AutoScanService
 			return false;
 		}
 
-		await AutoScanReconciler.RunCatchUpDiff();
+		await AutoScanReconciler.RunCatchUpDiff(showNotification: true);
 
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)] = true;
 
@@ -55,7 +55,7 @@ public static class AutoScanService
 		BulkChangeDetected -= AutoScanService_BulkChangeDetected;
 		BulkChangeDetected += AutoScanService_BulkChangeDetected;
 
-		await AutoScanReconciler.RunCatchUpDiff();
+		await AutoScanReconciler.RunCatchUpDiff(showNotification: false);
 		await LibraryWatcherService.StartWatching();
 	}
 
