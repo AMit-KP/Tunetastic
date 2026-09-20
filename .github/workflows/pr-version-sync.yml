@@ -1,10 +1,10 @@
 # Keeps the four version fields consistent on pull requests:
 #
 #   1. After a successful Build on a PR: if the PR bumped
-#      <AssemblyVersion>/<FileVersion> (1.x.x.x) relative to the base
-#      branch, <Version> in Tunetastic.csproj is set to 1.x.x and
-#      <Identity Version> in Package.appxmanifest to 1.x.x.0, and the
-#      result is committed to the PR branch.
+#      <AssemblyVersion>/<FileVersion> (1.x.x.x) relative to the point where
+#      the PR branched off the base branch, <Version> in Tunetastic.csproj is
+#      set to 1.x.x and <Identity Version> in Package.appxmanifest to
+#      1.x.x.0, and the result is committed to the PR branch.
 #   2. If the PR did NOT bump them, the workflow comments on the PR asking
 #      a maintainer to reply with "/set-version 1.x.x.x". Such a reply
 #      sets AssemblyVersion/FileVersion to the full version, syncs the
@@ -22,7 +22,8 @@
 #     PATs cannot reach other users' forks). Store it as the
 #     VERSION_BUMP_PAT secret. That token also makes these commits
 #     re-trigger Build like a normal push; the default GITHUB_TOKEN does
-#     not re-trigger workflows.
+#     not re-trigger workflows (so required checks can stay pending on the
+#     new head commit until Build is re-run manually).
 #
 # This workflow checks out untrusted PR code but deliberately never
 # executes any of it (no build, no scripts from the checkout) - only the
@@ -40,14 +41,17 @@ permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: pr-version-sync-${{ github.event.workflow_run.head_sha || github.event.issue.number }}
-  cancel-in-progress: true
+# Concurrency is set per job (not at workflow level) so that unrelated
+# comments, which start a run whose jobs are all skipped, can never cancel
+# an in-flight /set-version job.
 
 jobs:
   sync-from-pr:
     name: Sync versions from the PR
     runs-on: ubuntu-latest
+    concurrency:
+      group: pr-version-sync-build-${{ github.event.workflow_run.head_sha }}
+      cancel-in-progress: false
     if: >-
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
@@ -89,7 +93,6 @@ jobs:
         if: steps.pr.outputs.found == 'true'
         shell: pwsh
         env:
-          GH_TOKEN: ${{ github.token }}
           BASE_REF: ${{ steps.pr.outputs.base_ref }}
         run: |
           $ErrorActionPreference = 'Stop'
@@ -100,7 +103,25 @@ jobs:
             return $null
           }
 
-          $proj = Get-Content Tunetastic.csproj -Raw
+          # Read/write files without changing their BOM (Get-Content/Set-Content
+          # would drop it) so the commit only contains the intended edits.
+          function Read-File([string]$Path) {
+            $full = (Resolve-Path $Path).Path
+            $bytes = [System.IO.File]::ReadAllBytes($full)
+            [pscustomobject]@{
+              Path = $full
+              Bom  = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
+              Text = [System.IO.File]::ReadAllText($full)
+            }
+          }
+          function Write-File($File, [string]$Text) {
+            [System.IO.File]::WriteAllText($File.Path, $Text, (New-Object System.Text.UTF8Encoding($File.Bom)))
+          }
+
+          $projFile = Read-File 'Tunetastic.csproj'
+          $proj = $projFile.Text
+          $nl = if ($proj.Contains("`r`n")) { "`r`n" } else { "`n" }
+
           $headVersion = Read-ProjectVersion $proj
           if (-not $headVersion) {
             throw 'No <AssemblyVersion> or <FileVersion> found in Tunetastic.csproj.'
@@ -109,10 +130,16 @@ jobs:
             throw "AssemblyVersion '$headVersion' is not in the 1.x.x.x format."
           }
 
-          # Compare with the base branch to see whether this PR bumped the
-          # version at all.
-          $baseRaw = gh api "repos/$env:GITHUB_REPOSITORY/contents/Tunetastic.csproj?ref=$env:BASE_REF" -H 'Accept: application/vnd.github.raw'
-          if ($LASTEXITCODE -ne 0) { throw 'Failed to fetch Tunetastic.csproj from the base branch.' }
+          # Compare with the point where the PR branched off (the merge base),
+          # not the current tip of the base branch. Otherwise a base branch that
+          # moved ahead with its own bump makes an untouched PR look bumped, and
+          # a PR that bumps to the same number as the base looks untouched.
+          $mergeBase = "$(git merge-base HEAD "origin/$env:BASE_REF")".Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $mergeBase) {
+            throw "Could not find a merge base with origin/$env:BASE_REF."
+          }
+          $baseRaw = git show "${mergeBase}:Tunetastic.csproj"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to read Tunetastic.csproj at merge base $mergeBase." }
           $baseVersion = Read-ProjectVersion ($baseRaw -join "`n")
 
           if ($headVersion -eq $baseVersion) {
@@ -128,16 +155,18 @@ jobs:
             $proj = [regex]::Replace($proj, '<Version>[^<]*</Version>', "<Version>$short</Version>")
           } else {
             $proj = ([regex]'</FileVersion>').Replace(
-              $proj, "</FileVersion>`n    <Version>$short</Version>", 1)
+              $proj, "</FileVersion>$nl    <Version>$short</Version>", 1)
           }
-          Set-Content Tunetastic.csproj -Value $proj -NoNewline
+          Write-File $projFile $proj
 
-          $manifest = Get-Content Package.appxmanifest -Raw
+          # ${1}/${2} need braces: "$1" followed by a digit would be read as
+          # group 11 and corrupt the manifest.
+          $manifestFile = Read-File 'Package.appxmanifest'
           $manifest = [regex]::Replace(
-            $manifest,
+            $manifestFile.Text,
             '(<Identity\b[^>]*?\sVersion=")[^"]*(")',
-            "`$1$short.0`$2")
-          Set-Content Package.appxmanifest -Value $manifest -NoNewline
+            "`${1}${short}.0`${2}")
+          Write-File $manifestFile $manifest
 
           echo "short=$short" >> $env:GITHUB_OUTPUT
 
@@ -149,11 +178,15 @@ jobs:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
         run: |
           # Only ask once per PR, so repeated builds don't spam the thread.
-          if gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --jq '.[].body' | grep -qF 'of the form /set-version'; then
+          # Read all pages of comments into a variable first, then search it.
+          marker='<!-- pr-version-sync:ask -->'
+          existing="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --jq '.[].body')"
+          if grep -qF -e "$marker" -e 'of the form /set-version' <<< "$existing"; then
             echo "Already asked for a version on this PR - skipping."
             exit 0
           fi
-          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "The AssemblyVersion / FileVersion lines were not updated in this PR, so there is no version to sync from. @$OWNER - reply with a comment of the form /set-version 1.x.x.x (for example /set-version 1.57.0.0) and I will set AssemblyVersion and FileVersion to that full version and update the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match."
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "The AssemblyVersion / FileVersion lines were not updated in this PR, so there is no version to sync from. @$OWNER - reply with a comment of the form /set-version 1.x.x.x (for example /set-version 1.57.0.0) and I will set AssemblyVersion and FileVersion to that full version and update the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match.
+          $marker"
 
       - name: Commit and push the version update
         if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true'
@@ -161,6 +194,7 @@ jobs:
           HEAD_REPO: ${{ steps.pr.outputs.repo }}
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           VERSION: ${{ steps.sync.outputs.short }}
+          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -172,24 +206,42 @@ jobs:
           git commit -m "Bump version to $VERSION"
           # Push to the PR's head repository (the fork for fork PRs).
           git push "https://github.com/$HEAD_REPO.git" "HEAD:$PR_BRANCH"
+          if [ "$HAS_PAT" != "true" ]; then
+            echo "::warning::VERSION_BUMP_PAT is not set, so this commit did not re-trigger Build. Required checks on the new head commit will stay pending until Build is re-run."
+          fi
 
   set-from-command:
     name: Apply /set-version command
     runs-on: ubuntu-latest
+    concurrency:
+      group: pr-version-sync-cmd-${{ github.event.issue.number }}
+      cancel-in-progress: false
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request != null &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
       startsWith(github.event.comment.body, '/set-version')
     steps:
+      # Instant feedback that the command was picked up.
+      - name: Acknowledge the command
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" -f content=eyes > /dev/null || true
+
       - name: Parse the requested version
         id: cmd
         env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
           BODY: ${{ github.event.comment.body }}
         run: |
           version="$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' <<< "$BODY" | head -n1 || true)"
           if [ -z "$version" ]; then
-            echo "No 1.x.x.x version found in the /set-version comment - ignoring."
+            echo "No 1.x.x.x version found in the /set-version comment."
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
+              -f body="I couldn't find a full version in that comment. Use four parts, for example: /set-version 1.57.0.0" > /dev/null
             echo "ok=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -228,6 +280,22 @@ jobs:
           FULL_VERSION: ${{ steps.cmd.outputs.version }}
         run: |
           $ErrorActionPreference = 'Stop'
+
+          # Read/write files without changing their BOM (Get-Content/Set-Content
+          # would drop it) so the commit only contains the intended edits.
+          function Read-File([string]$Path) {
+            $full = (Resolve-Path $Path).Path
+            $bytes = [System.IO.File]::ReadAllBytes($full)
+            [pscustomobject]@{
+              Path = $full
+              Bom  = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
+              Text = [System.IO.File]::ReadAllText($full)
+            }
+          }
+          function Write-File($File, [string]$Text) {
+            [System.IO.File]::WriteAllText($File.Path, $Text, (New-Object System.Text.UTF8Encoding($File.Bom)))
+          }
+
           $full = $env:FULL_VERSION
           if ($full -notmatch '^\d+\.\d+\.\d+\.\d+$') {
             throw "Version '$full' is not in the 1.x.x.x format."
@@ -235,7 +303,10 @@ jobs:
           $p = $full.Split('.')
           $short = "$($p[0]).$($p[1]).$($p[2])"
 
-          $proj = Get-Content Tunetastic.csproj -Raw
+          $projFile = Read-File 'Tunetastic.csproj'
+          $proj = $projFile.Text
+          $nl = if ($proj.Contains("`r`n")) { "`r`n" } else { "`n" }
+
           if ($proj -notmatch '<AssemblyVersion>' -and $proj -notmatch '<FileVersion>') {
             throw 'No <AssemblyVersion> or <FileVersion> found in Tunetastic.csproj.'
           }
@@ -245,16 +316,18 @@ jobs:
             $proj = [regex]::Replace($proj, '<Version>[^<]*</Version>', "<Version>$short</Version>")
           } else {
             $proj = ([regex]'</FileVersion>').Replace(
-              $proj, "</FileVersion>`n    <Version>$short</Version>", 1)
+              $proj, "</FileVersion>$nl    <Version>$short</Version>", 1)
           }
-          Set-Content Tunetastic.csproj -Value $proj -NoNewline
+          Write-File $projFile $proj
 
-          $manifest = Get-Content Package.appxmanifest -Raw
+          # ${1}/${2} need braces: "$1" followed by a digit would be read as
+          # group 11 and corrupt the manifest.
+          $manifestFile = Read-File 'Package.appxmanifest'
           $manifest = [regex]::Replace(
-            $manifest,
+            $manifestFile.Text,
             '(<Identity\b[^>]*?\sVersion=")[^"]*(")',
-            "`$1$short.0`$2")
-          Set-Content Package.appxmanifest -Value $manifest -NoNewline
+            "`${1}${short}.0`${2}")
+          Write-File $manifestFile $manifest
 
           echo "short=$short" >> $env:GITHUB_OUTPUT
 
@@ -266,15 +339,40 @@ jobs:
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           PR_NUMBER: ${{ github.event.issue.number }}
           VERSION: ${{ steps.cmd.outputs.version }}
+          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "Versions already set - nothing to commit."
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="All four version fields already match $VERSION - nothing to change." > /dev/null
             exit 0
           fi
           git commit -m "Set version to $VERSION"
           # Push to the PR's head repository (the fork for fork PRs).
           git push "https://github.com/$HEAD_REPO.git" "HEAD:$PR_BRANCH"
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="Set version to $VERSION (AssemblyVersion and FileVersion), and synced the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match."
+          body="Set version to $VERSION (AssemblyVersion and FileVersion), and synced the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match."
+          if [ "$HAS_PAT" != "true" ]; then
+            body="$body Note: this commit did not re-trigger Build (VERSION_BUMP_PAT is not set), so re-run Build if the PR needs passing checks."
+          fi
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body" > /dev/null
+
+      - name: Report a closed pull request
+        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state != 'open'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="This pull request is not open, so I did not change any version fields." > /dev/null
+
+      # If anything above failed (most commonly the push), say so on the PR
+      # instead of leaving the maintainer with silence.
+      - name: Report failure
+        if: failure() && steps.cmd.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="I couldn't apply /set-version. Common causes: the PR is from a fork and VERSION_BUMP_PAT is missing, 'Allow edits from maintainers' is off, or the branch changed while this ran. Details: $RUN_URL" > /dev/null
