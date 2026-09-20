@@ -121,7 +121,6 @@ public enum LocalSave
 	IgnoreDuplicateEnabled,
 	ScanAtStartup,
 	IgnoreTracksBelowDuration,
-	ScanResult,
 	PlayPauseStopFadeStatus,
 	PlayPauseStopFadeValue,
 	AutoAdvanceStatus,
@@ -200,7 +199,11 @@ public enum LocalSave
 	TaskBarOverlayDesign,
 	LRCOffsetSOfficialtandard,
 	AutoScanEnabled,
-	AutoScanBulkThreshold
+	AutoScanBulkThreshold,
+	ScanResult_LibraryCount,
+	ScanResult_SongsCount,
+	ScanResult_Time,
+	ScanResult_Message
 }
 
 /// <summary>

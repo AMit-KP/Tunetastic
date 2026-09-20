@@ -179,7 +179,6 @@ public sealed partial class SettingsPage : Page
 			}
 			CustomProgressBar.Visibility = Visibility.Collapsed;
 			FullScan.IsEnabled = true;
-			FullScan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
 			return;
 		}
 		var pendingTasks = await DatabaseHelper.Instance.GetAllPendingTagWrites();
@@ -217,15 +216,17 @@ public sealed partial class SettingsPage : Page
 		}
 
 		FullScan.IsEnabled = false;
+		await Task.Delay(2);
 		ProgressFill.Width = 0;
 		CustomProgressBar.Opacity = 0;
 		ProgressFillText.Opacity = 0;
 		ProgressFillText.Text = "0%";
 		CustomProgressBar.Visibility = Visibility.Visible;
+		await Task.Delay(2);
 
 		await LibraryWatcherService.StopWatching(drainPending: false);
+		await Task.Delay(5);
 		_ = new LibraryScanner().UpdateMetaData();
-		await AutoScanService.ResumeIfEnabled();
 
 		for (double i = 0; i <= 1; i += 0.1)
 		{
@@ -249,8 +250,7 @@ public sealed partial class SettingsPage : Page
 		}
 		CustomProgressBar.Visibility = Visibility.Collapsed;
 		FullScan.IsEnabled = true;
-		FullScan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
-		//TODO make it dynamic and move it out
+		await AutoScanService.ResumeIfEnabled();
 	}
 
 	/// <summary>
@@ -741,8 +741,6 @@ public sealed partial class SettingsPage : Page
 		IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
 
 		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
-
-		FullScan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
 
 		AutoSyncSwitch.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false");
 

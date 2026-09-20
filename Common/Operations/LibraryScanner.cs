@@ -193,8 +193,8 @@ public class LibraryScanner
 			}
 			catch (Exception)
 			{
-				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
 				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
+				await RefreshAutoScanResultMessage("No tracks could be added");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 				return ("Error", "No tracks could be added", failedFiles.ToList());
 			}
@@ -215,7 +215,7 @@ public class LibraryScanner
 		{
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			await DatabaseHelper.Instance.WipeFileScanMeta();
-			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
+			await RefreshAutoScanResultMessage("No libraries found");
 			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 			return ("Warning", "No libraries found. Please add atleast one library.", new List<string>());
 		}
@@ -375,12 +375,26 @@ public class LibraryScanner
 		return extensions;
 	}
 
-	internal static async Task RefreshAutoScanResultMessage()
+	/// <summary>
+	/// Refreshes the persisted scan result values (library count, songs count and last scan time) and
+	/// stores the situational scan result message. A scan that finished without problems clears the
+	/// message, while the failure paths pass one in ("No libraries found", "No tracks could be added").
+	/// </summary>
+	/// <param name="message">The message describing the scan outcome, or null when the scan succeeded.</param>
+	internal static async Task RefreshAutoScanResultMessage(string? message = null)
 	{
 		var librariesCount = (await DatabaseHelper.Instance.GetAllLibraries()).Count;
 		var songsCount = await DatabaseHelper.Instance.GetSongsCount();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
+		localSettings.Values[nameof(LocalSave.ScanResult_LibraryCount)] = librariesCount;
+		localSettings.Values[nameof(LocalSave.ScanResult_SongsCount)] = songsCount;
+		localSettings.Values[nameof(LocalSave.ScanResult_Time)] = new DateFormatConverter().Convert(DateTime.Now, null, "dddd, dd MMMM yyyy 'at' hh:mm:ss tt", null).ToString();
+
+		if (string.IsNullOrEmpty(message))
+			localSettings.Values.Remove(nameof(LocalSave.ScanResult_Message));
+		else
+			localSettings.Values[nameof(LocalSave.ScanResult_Message)] = message;
 	}
 
 	/// <summary>

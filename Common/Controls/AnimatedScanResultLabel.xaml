@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl x:Class="Tunetastic.Common.Controls.AnimatedScanResultLabel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+
+	<Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+	        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+	        BorderThickness="1"
+	        CornerRadius="4"
+	        Padding="14,8">
+		<StackPanel VerticalAlignment="Center"
+		            Orientation="Horizontal">
+
+			<StackPanel x:Name="LibrariesStat"
+			            Orientation="Horizontal">
+				<StackPanel x:Name="LibrariesValue"
+				            Orientation="Horizontal" />
+				<TextBlock Margin="8,0,0,0"
+				           VerticalAlignment="Center"
+				           FontSize="14"
+				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+				           Text="Libraries" />
+			</StackPanel>
+
+			<TextBlock x:Name="CountsDot"
+			           Margin="16,0"
+			           VerticalAlignment="Center"
+			           FontSize="14"
+			           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+			           Text="&#x2022;" />
+
+			<StackPanel x:Name="SongsStat"
+			            Orientation="Horizontal">
+				<StackPanel x:Name="SongsValue"
+				            Orientation="Horizontal" />
+				<TextBlock Margin="8,0,0,0"
+				           VerticalAlignment="Center"
+				           FontSize="14"
+				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+				           Text="Songs" />
+			</StackPanel>
+
+			<StackPanel x:Name="MessageValue"
+			            Orientation="Horizontal"
+			            Visibility="Collapsed" />
+
+			<TextBlock Margin="16,0"
+			           VerticalAlignment="Center"
+			           FontSize="14"
+			           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+			           Text="&#x2022;" />
+
+			<StackPanel Orientation="Horizontal">
+				<TextBlock Margin="0,0,8,0"
+				           VerticalAlignment="Center"
+				           FontSize="14"
+				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+				           Text="Last scanned" />
+				<StackPanel x:Name="TimeValue"
+				            Orientation="Horizontal" />
+			</StackPanel>
+
+		</StackPanel>
+	</Border>
+</UserControl>

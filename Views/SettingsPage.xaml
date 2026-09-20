@@ -3,6 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:common="using:Tunetastic.Common"
+      xmlns:controls="using:Tunetastic.Common.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:dev="using:DevWinUI"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -31,6 +32,8 @@
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Library &amp; PlayLists" />
 			</StackPanel>
+
+			<controls:AnimatedScanResultLabel />
 
 			<dev:SettingsExpander x:Name="LibraryFolders"
 			                      Description="Click to view libraries added"
@@ -67,6 +70,7 @@
 			</dev:SettingsExpander>
 
 			<dev:SettingsExpander x:Name="FullScan"
+			                      Description="Clears all songs metadata and inserts completely new metadata. Preserves only Play Count, Last Played Time and Playlist additions for existing tracks/songs."
 			                      Header="Scan Libraries for Songs">
 
 				<StackPanel Orientation="Horizontal"
