@@ -202,6 +202,7 @@ public enum LocalSave
 	AutoScanBulkThreshold,
 	ScanResult_LibraryCount,
 	ScanResult_SongsCount,
+	ScanResult_FolderCount,
 	ScanResult_Time,
 	ScanResult_Message
 }

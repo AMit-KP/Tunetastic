@@ -39,6 +39,7 @@ public sealed partial class AnimatedScanResultLabel : UserControl
 
 	private long _libraries;
 	private long _songs;
+	private long _folders;
 	private string? _time;
 	private string? _message;
 	private bool _showingMessage;
@@ -99,14 +100,14 @@ public sealed partial class AnimatedScanResultLabel : UserControl
 	// ── Value updates ─────────────────────────────────────────────
 
 	/// <summary>
-	/// Handles changes on the LocalSettings property set. Marshalled to the UI thread, then the three
+	/// Handles changes on the LocalSettings property set. Marshalled to the UI thread, then the four
 	/// values are re-read and only the ones that actually changed get animated.
 	/// </summary>
 	private void OnValuesChanged(IObservableMap<string, object> sender, IMapChangedEventArgs<string> args)
 		=> DispatcherQueue.TryEnqueue(() => UpdateStatValues(false));
 
 	/// <summary>
-	/// Reads the three scan result values and the situational message, then animates whatever changed.
+	/// Reads the four scan result values and the situational message, then animates whatever changed.
 	/// </summary>
 	/// <param name="initial">When true the counts start from zero and the time rolls in completely.</param>
 	private void UpdateStatValues(bool initial)
@@ -117,16 +118,17 @@ public sealed partial class AnimatedScanResultLabel : UserControl
 		ApplyStatValues(initial,
 			ReadLong(values, nameof(LocalSave.ScanResult_LibraryCount)),
 			ReadLong(values, nameof(LocalSave.ScanResult_SongsCount)),
+			ReadLong(values, nameof(LocalSave.ScanResult_FolderCount)),
 			ReadString(values, nameof(LocalSave.ScanResult_Time)) ?? "Never",
 			ReadString(values, nameof(LocalSave.ScanResult_Message)));
 	}
 
 	/// <summary>
 	/// Applies a set of scan result values to the label. When a scan result message is present (the last
-	/// scan failed, e.g. "No libraries found"), it replaces the library/songs counts while the last scan
-	/// time stays visible; a cleared message brings the counts back.
+	/// scan failed, e.g. "No libraries found"), it replaces the library/songs/folders counts while the
+	/// last scanned stat hides; a cleared message brings the counts back.
 	/// </summary>
-	private void ApplyStatValues(bool initial, long libraries, long songs, string time, string? message)
+	private void ApplyStatValues(bool initial, long libraries, long songs, long folders, string time, string? message)
 	{
 		var hasMessage = !string.IsNullOrEmpty(message);
 		if (hasMessage != _showingMessage)
@@ -135,6 +137,9 @@ public sealed partial class AnimatedScanResultLabel : UserControl
 			LibrariesStat.Visibility = hasMessage ? Visibility.Collapsed : Visibility.Visible;
 			CountsDot.Visibility = hasMessage ? Visibility.Collapsed : Visibility.Visible;
 			SongsStat.Visibility = hasMessage ? Visibility.Collapsed : Visibility.Visible;
+			FoldersStat.Visibility = hasMessage ? Visibility.Collapsed : Visibility.Visible;
+			TimeDot.Visibility = hasMessage ? Visibility.Collapsed : Visibility.Visible;
+			TimeStat.Visibility = hasMessage ? Visibility.Collapsed : Visibility.Visible;
 			MessageValue.Visibility = hasMessage ? Visibility.Visible : Visibility.Collapsed;
 		}
 
@@ -142,12 +147,14 @@ public sealed partial class AnimatedScanResultLabel : UserControl
 		{
 			AnimateCount(LibrariesValue, 0, libraries);
 			AnimateCount(SongsValue, 0, songs);
+			AnimateCount(FoldersValue, 0, folders);
 			AnimateScramble(TimeValue, time, string.Empty);
 		}
 		else
 		{
 			if (libraries != _libraries) AnimateCount(LibrariesValue, _libraries, libraries);
 			if (songs != _songs) AnimateCount(SongsValue, _songs, songs);
+			if (folders != _folders) AnimateCount(FoldersValue, _folders, folders);
 			if (time != _time) AnimateScramble(TimeValue, time, _time ?? string.Empty);
 		}
 
@@ -161,6 +168,7 @@ public sealed partial class AnimatedScanResultLabel : UserControl
 
 		_libraries = libraries;
 		_songs = songs;
+		_folders = folders;
 		_time = time;
 		_message = message;
 	}

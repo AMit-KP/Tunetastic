@@ -97,6 +97,7 @@ public class LibraryScanner
 		ScanProgress = 0;
 		TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 		var audioFiles = new HashSet<string>();
+		var foldersWithMusic = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		var libraries = new List<string>();
 
@@ -130,6 +131,7 @@ public class LibraryScanner
 				foreach (var file in files)
 				{
 					audioFiles.Add(file);
+					foldersWithMusic.Add(Path.GetDirectoryName(file)!);
 				}
 			}
 
@@ -194,28 +196,30 @@ public class LibraryScanner
 			catch (Exception)
 			{
 				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
-				await RefreshAutoScanResultMessage("No tracks could be added");
+				await RefreshAutoScanResultMessage(message: "No tracks could be added");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 				return ("Error", "No tracks could be added", failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
 			var songsCount = songsContainer.Count;
+			var foldersCount = foldersWithMusic.Count;
 			extensions = null!;
 			uniqueFolders = null!;
 			libraries = null!;
+			foldersWithMusic = null!;
 
-			await RefreshAutoScanResultMessage();
+			await RefreshAutoScanResultMessage(foldersCount);
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
-			return ("Success", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
+			return ("Success", "Library scan completed.\nLibraries: " + librariesCount + "\nFolders: " + foldersCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
 		}
 		else
 		{
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			await DatabaseHelper.Instance.WipeFileScanMeta();
-			await RefreshAutoScanResultMessage("No libraries found");
+			await RefreshAutoScanResultMessage(0, "No libraries found");
 			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 			return ("Warning", "No libraries found. Please add atleast one library.", new List<string>());
 		}
@@ -376,12 +380,37 @@ public class LibraryScanner
 	}
 
 	/// <summary>
-	/// Refreshes the persisted scan result values (library count, songs count and last scan time) and
-	/// stores the situational scan result message. A scan that finished without problems clears the
-	/// message, while the failure paths pass one in ("No libraries found", "No tracks could be added").
+	/// Counts the distinct folders that directly contain at least one of the given tracks with an enabled
+	/// extension. Used by incremental auto-scan passes, which never walk the library tree and therefore
+	/// cannot recount folders from the file system like a full scan does.
 	/// </summary>
+	internal static int CountFoldersFromPaths(IEnumerable<string> trackedPaths)
+	{
+		var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (var path in trackedPaths)
+		{
+			var directory = Path.GetDirectoryName(path);
+			if (!string.IsNullOrEmpty(directory))
+				folders.Add(directory);
+		}
+		return folders.Count;
+	}
+
+	/// <summary>
+	/// Refreshes the persisted scan result values (library count, folder count, songs count and last scan
+	/// time) and stores the situational scan result message. A scan that finished without problems clears
+	/// the message, while the failure paths pass one in ("No libraries found", "No tracks could be added").
+	/// </summary>
+	/// <remarks>
+	/// <paramref name="folderCount"/> is only supplied by full scans, which are the only passes that walk
+	/// the library tree; the incremental auto-scan callers omit it so the last counted value is kept.
+	/// </remarks>
+	/// <param name="folderCount">
+	/// The number of sub folders that directly contain at least one track with an enabled extension,
+	/// or null to keep the previously stored value.
+	/// </param>
 	/// <param name="message">The message describing the scan outcome, or null when the scan succeeded.</param>
-	internal static async Task RefreshAutoScanResultMessage(string? message = null)
+	internal static async Task RefreshAutoScanResultMessage(int? folderCount = null, string? message = null)
 	{
 		var librariesCount = (await DatabaseHelper.Instance.GetAllLibraries()).Count;
 		var songsCount = await DatabaseHelper.Instance.GetSongsCount();
@@ -389,6 +418,10 @@ public class LibraryScanner
 
 		localSettings.Values[nameof(LocalSave.ScanResult_LibraryCount)] = librariesCount;
 		localSettings.Values[nameof(LocalSave.ScanResult_SongsCount)] = songsCount;
+
+		if (folderCount.HasValue)
+			localSettings.Values[nameof(LocalSave.ScanResult_FolderCount)] = folderCount.Value;
+
 		localSettings.Values[nameof(LocalSave.ScanResult_Time)] = new DateFormatConverter().Convert(DateTime.Now, null, "dddd, dd MMMM yyyy 'at' hh:mm:ss tt", null).ToString();
 
 		if (string.IsNullOrEmpty(message))

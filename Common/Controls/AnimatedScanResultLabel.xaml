@@ -1,18 +1,19 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <UserControl x:Class="Tunetastic.Common.Controls.AnimatedScanResultLabel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:toolkit="using:CommunityToolkit.WinUI.Controls"
              mc:Ignorable="d">
 
-	<Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+	<Border Padding="14,8"
+	        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
 	        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
 	        BorderThickness="1"
-	        CornerRadius="4"
-	        Padding="14,8">
-		<StackPanel VerticalAlignment="Center"
-		            Orientation="Horizontal">
+	        CornerRadius="4">
+		<toolkit:WrapPanel Orientation="Horizontal"
+		                   VerticalAlignment="Center">
 
 			<StackPanel x:Name="LibrariesStat"
 			            Orientation="Horizontal">
@@ -27,6 +28,23 @@
 
 			<TextBlock x:Name="CountsDot"
 			           Margin="16,0"
+			           VerticalAlignment="Center"
+			           FontSize="14"
+			           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+			           Text="&#x2022;" />
+
+			<StackPanel x:Name="FoldersStat"
+			            Orientation="Horizontal">
+				<StackPanel x:Name="FoldersValue"
+				            Orientation="Horizontal" />
+				<TextBlock Margin="8,0,0,0"
+				           VerticalAlignment="Center"
+				           FontSize="14"
+				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+				           Text="Folders" />
+			</StackPanel>
+
+			<TextBlock Margin="16,0"
 			           VerticalAlignment="Center"
 			           FontSize="14"
 			           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
@@ -47,13 +65,15 @@
 			            Orientation="Horizontal"
 			            Visibility="Collapsed" />
 
-			<TextBlock Margin="16,0"
+			<TextBlock x:Name="TimeDot"
+			           Margin="16,0"
 			           VerticalAlignment="Center"
 			           FontSize="14"
 			           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
 			           Text="&#x2022;" />
 
-			<StackPanel Orientation="Horizontal">
+			<StackPanel x:Name="TimeStat"
+			            Orientation="Horizontal">
 				<TextBlock Margin="0,0,8,0"
 				           VerticalAlignment="Center"
 				           FontSize="14"
@@ -63,6 +83,6 @@
 				            Orientation="Horizontal" />
 			</StackPanel>
 
-		</StackPanel>
+		</toolkit:WrapPanel>
 	</Border>
 </UserControl>

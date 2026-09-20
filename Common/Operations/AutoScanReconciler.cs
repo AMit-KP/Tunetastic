@@ -63,7 +63,9 @@ public static class AutoScanReconciler
 
 		await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
 
-		await LibraryScanner.RefreshAutoScanResultMessage();
+		// onDisk holds every extension-matching file currently on disk — the same set a full scan counts —
+		// so the folder stat can be recounted exactly, including folders emptied by deletions.
+		await LibraryScanner.RefreshAutoScanResultMessage(LibraryScanner.CountFoldersFromPaths(onDisk.Keys));
 
 		if (showNotification)
 			GlobalNotification.Success("All libraries are in sync");
