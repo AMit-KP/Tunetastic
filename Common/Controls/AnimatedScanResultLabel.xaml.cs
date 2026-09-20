@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Media;

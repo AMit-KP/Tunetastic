@@ -204,7 +204,8 @@ public enum LocalSave
 	ScanResult_SongsCount,
 	ScanResult_FolderCount,
 	ScanResult_Time,
-	ScanResult_Message
+	ScanResult_Message,
+	PostUpdateScanDoneVersion
 }
 
 /// <summary>

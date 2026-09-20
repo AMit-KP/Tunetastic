@@ -141,10 +141,16 @@ public partial class App : Application
 		bool autoSync = bool.Parse(localSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false");
 		await DatabaseHelper.Instance.InitializeDatabase();
 
-		if (scanAtStartup)
-			await new LibraryScanner().UpdateMetaData();
-		else
-			await Task.Delay(500);
+		// One-time full scan after updating to a targeted version (see PostUpdateScanService).
+		bool postUpdateScanRan = await PostUpdateScanService.RunIfEligible();
+
+		if (!postUpdateScanRan)
+		{
+			if (scanAtStartup)
+				await new LibraryScanner().UpdateMetaData();
+			else
+				await Task.Delay(500);
+		}
 
 		if (autoSync)
 			await AutoScanService.ResumeIfEnabled();

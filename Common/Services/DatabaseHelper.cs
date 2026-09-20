@@ -628,13 +628,26 @@ public class DatabaseHelper
 	/// </returns>
 	public async Task<int> GetSongsCount()
 	{
+		return await TryGetSongsCount() ?? 0;
+	}
+
+	/// <summary>
+	/// Retrieves the total count of songs stored in the `Songs` table of the database, letting callers
+	/// distinguish an empty database from a query that failed.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation of fetching the song count.
+	/// The task result contains the count of songs as an integer, or <see langword="null"/> when the query fails.
+	/// </returns>
+	public async Task<int?> TryGetSongsCount()
+	{
 		try
 		{
 			return await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Songs");
 		}
 		catch (Exception)
 		{
-			return 0;
+			return null;
 		}
 	}
 

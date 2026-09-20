@@ -290,9 +290,9 @@ public static class LibraryWatcherService
 			foreach (var path in modifiedPaths)
 				await Tunetastic.Common.Operations.FileChangeProcessor.ProcessFileChange(path, FileChangeType.Modified);
 
-		// The flush only sees the changed batch, so recount folders from the tracked inventory after the
-		// batch was applied — same consistency model as the songs count between full scans.
-		await LibraryScanner.RefreshAutoScanResultMessage(LibraryScanner.CountFoldersFromPaths((await DatabaseHelper.Instance.GetAllFileScanMeta()).Select(m => m.Path)));
+			// The flush only sees the changed batch, so recount folders from the tracked inventory after the
+			// batch was applied — same consistency model as the songs count between full scans.
+			await LibraryScanner.RefreshAutoScanResultMessage(LibraryScanner.CountFoldersFromPaths((await DatabaseHelper.Instance.GetAllFileScanMeta()).Select(m => m.Path)));
 
 			// The processed batch changed the database — refresh whichever library/playlist page is visible
 			MainPage._instance?.RefreshVisibleLibraryPage();
