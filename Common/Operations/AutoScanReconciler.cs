@@ -2,8 +2,27 @@
 
 namespace Tunetastic.Common.Operations;
 
+/// <summary>
+/// Reconciles the scanned library snapshot with the files currently on disk, applying the changes that
+/// happened while the application was not watching the library folders.
+/// </summary>
 public static class AutoScanReconciler
 {
+	/// <summary>
+	/// Runs one catch-up pass: every matching file on disk is snapshotted and diffed against the tracked scan
+	/// metadata, renames and moves are recovered through <see cref="RenameDetector.DetectRenamesAndMoves"/>, and
+	/// the appeared, modified and unmatched disappeared paths are applied (see
+	/// <see cref="BatchProcessCreatedAndModified"/>).
+	/// </summary>
+	/// <remarks>
+	/// A failing file never aborts the pass: the step is reported through <see cref="GlobalNotification"/> and
+	/// counted. Nothing happens when no library is configured.
+	/// </remarks>
+	/// <param name="showNotification">
+	/// When <see langword="true"/>, a progress notification and a closing summary are shown; when
+	/// <see langword="false"/>, the pass stays silent unless a change fails.
+	/// </param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
 	public static async Task RunCatchUpDiff(bool showNotification)
 	{
 		var libraries = new List<string>();
@@ -104,6 +123,18 @@ public static class AutoScanReconciler
 		}
 	}
 
+	/// <summary>
+	/// Adds the appeared files and refreshes the modified ones in one batched pass that reads the tags of every
+	/// path in parallel.
+	/// </summary>
+	/// <remarks>
+	/// A tracked path keeps its <see cref="Song.PlayCount"/> and <see cref="Song.DateLastPlayed"/>, so a modified
+	/// file is a refresh rather than a new song; files at or below the ignore threshold and duplicates against the
+	/// database or the batch are skipped.
+	/// </remarks>
+	/// <param name="createdPaths">Paths that appeared since the previous scan.</param>
+	/// <param name="modifiedPaths">Tracked paths whose size or last write time changed.</param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
 	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)
 	{
 		var allPaths = createdPaths.Concat(modifiedPaths).ToList();

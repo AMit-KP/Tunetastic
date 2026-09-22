@@ -225,6 +225,23 @@ public class LibraryScanner
 		}
 	}
 
+	/// <summary>
+	/// Extracts song metadata from an audio file using TagLib, falling back to the Flyleaf player when the
+	/// duration cannot be read from tags and building a partial song from file-system data when reading fails.
+	/// </summary>
+	/// <remarks>
+	/// When TagLib reports a duration of zero or less, a temporary Flyleaf <c>Player</c> probes the real
+	/// duration and the player type is forced to "Flyleaf". When TagLib throws, a fallback song is built from
+	/// the file name with "Unknown" placeholders.
+	/// </remarks>
+	/// <param name="filePath">The full path to the audio file to read.</param>
+	/// <param name="ignoreTrackDuration">
+	/// Tracks of this duration or shorter (in seconds) are filtered out by the caller.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains the extracted
+	/// <see cref="Song"/> and a flag telling whether the metadata was read successfully.
+	/// </returns>
 	internal static async Task<(Song song, bool succeeded)> ExtractSongMetadata(string filePath, double ignoreTrackDuration)
 	{
 		try
@@ -334,6 +351,20 @@ public class LibraryScanner
 		}
 	}
 
+	/// <summary>
+	/// Captures the file system state of the file at <paramref name="filePath"/> as a
+	/// <see cref="FileScanMeta"/> row, so later incremental passes can detect created, modified, renamed and
+	/// deleted files without re-reading their tags.
+	/// </summary>
+	/// <remarks>
+	/// Compared against the current disk state by <see cref="RenameDetector.DetectRenamesAndMoves"/>. All
+	/// timestamps are UTC ticks, which keeps the comparison valid across time zones and daylight-saving changes.
+	/// </remarks>
+	/// <param name="filePath">The full path of the file to snapshot.</param>
+	/// <returns>
+	/// A <see cref="FileScanMeta"/> holding the path, last write time, creation time, size in bytes and the
+	/// current UTC time.
+	/// </returns>
 	internal static FileScanMeta BuildFileScanMeta(string filePath)
 	{
 		var fileInfo = new FileInfo(filePath);
@@ -347,6 +378,16 @@ public class LibraryScanner
 		};
 	}
 
+	/// <summary>
+	/// Reduces the configured library paths to the smallest set of root folders that still covers all of them,
+	/// dropping every library that is itself a library or lives inside one already accepted.
+	/// </summary>
+	/// <remarks>
+	/// Paths are sorted by length first, so a parent folder is always evaluated before its children. Library
+	/// folders that no longer exist are reported through <see cref="GlobalNotification"/> and left out.
+	/// </remarks>
+	/// <param name="libraries">The library root paths as persisted in the database.</param>
+	/// <returns>The distinct effective roots to enumerate, ordered by path length ascending.</returns>
 	internal static List<string> ComputeEffectiveRoots(List<string> libraries)
 	{
 		libraries = libraries.OrderBy(f => f.Length).ToList();
@@ -383,6 +424,18 @@ public class LibraryScanner
 			|| path.StartsWith(trimmedParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
 	}
 
+	/// <summary>
+	/// Reads the audio formats configured in Settings and returns the file extensions that are currently
+	/// enabled for scanning.
+	/// </summary>
+	/// <remarks>
+	/// Extensions are stored in lower case with a leading dot, matching the comparison the callers use while
+	/// enumerating files. <c>".mp3"</c> is returned when no format is enabled, so a scan never silently finds
+	/// nothing.
+	/// </remarks>
+	/// <returns>
+	/// A task whose result is the list of enabled file extensions, or a list containing only <c>".mp3"</c>.
+	/// </returns>
 	internal static async Task<List<string>> GetEnabledExtensions()
 	{
 		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();

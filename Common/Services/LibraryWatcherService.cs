@@ -2,8 +2,17 @@
 
 namespace Tunetastic.Common.Services;
 
+/// <summary>
+/// Watches the tracked library folders and applies file system changes to the database as they happen.
+/// Changes are debounced into batches, matched against the scan metadata so a rename or a move keeps the
+/// existing row (play counts, dates and playlist membership), and handed back to the caller for a full
+/// scan when a burst is too large to be processed incrementally.
+/// </summary>
 public static class LibraryWatcherService
 {
+	/// <summary>
+	/// A change observed for one path that has not been flushed yet, together with the time of its last event.
+	/// </summary>
 	private class PendingChange
 	{
 		public WatcherChangeTypes ChangeType;
@@ -34,15 +43,36 @@ public static class LibraryWatcherService
 	private static readonly TimeSpan StitchWindow = TimeSpan.FromMinutes(2);
 	private const int DebounceTickMs = 300;
 
+	/// <summary>
+	/// Raised when too many changes are pending at once, or when the watcher loses events, so the caller can
+	/// offer a full scan instead of an incremental update.
+	/// </summary>
 	public static event Action? BulkChangeDetected;
 
+	/// <summary>
+	/// Number of pending changes above which the watcher stops processing them one by one and asks for a full scan instead.
+	/// </summary>
 	private static int BulkChangeThreshold => int.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanBulkThreshold)]?.ToString() ?? "50");
 
+	/// <summary>
+	/// Marks a path as written by the app itself, so the watcher event it produces only refreshes the scan
+	/// metadata instead of being treated as an external change.
+	/// </summary>
+	/// <param name="path">The full path of the file the app is about to write to.</param>
 	public static void MarkSelfInitiated(string path)
 	{
 		_selfInitiatedPaths[path] = DateTime.UtcNow;
 	}
 
+	/// <summary>
+	/// Checks whether a path carries a self-initiated mark and clears it in the same step, so a single mark is
+	/// consumed at most once.
+	/// </summary>
+	/// <param name="path">The full path of the file to check.</param>
+	/// <returns>
+	/// <see langword="true"/> when the path carried a mark that is still within <see cref="StitchWindow"/>;
+	/// otherwise, <see langword="false"/>.
+	/// </returns>
 	private static bool ConsumeSelfInitiated(string path)
 	{
 		if (!_selfInitiatedPaths.TryRemove(path, out var markedUtc))
@@ -53,6 +83,11 @@ public static class LibraryWatcherService
 		return DateTime.UtcNow - markedUtc <= StitchWindow;
 	}
 
+	/// <summary>
+	/// Starts watching every effective library root. Any watch that is already running is stopped first, and the
+	/// tracked extensions are reloaded so the watchers always reflect the current library configuration.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation of creating the watchers and the debounce timer.</returns>
 	public static async Task StartWatching()
 	{
 		await StopWatching(drainPending: false);
@@ -86,6 +121,19 @@ public static class LibraryWatcherService
 		_debounceTimer = new System.Threading.Timer(_ => { _ = FlushPendingChanges(); }, null, DebounceTickMs, DebounceTickMs);
 	}
 
+	/// <summary>
+	/// Stops and disposes every watcher together with the debounce timer, optionally applying the changes that
+	/// are still pending.
+	/// </summary>
+	/// <param name="drainPending">
+	/// <see langword="true"/> to apply the pending changes before the queue is cleared;
+	/// <see langword="false"/> to discard them, for example when the watcher is restarted right away.
+	/// </param>
+	/// <returns>A task that represents the asynchronous operation of stopping the watch.</returns>
+	/// <remarks>
+	/// The pending queue is cleared in either case. A drain that exceeds <see cref="BulkChangeThreshold"/>
+	/// raises <see cref="BulkChangeDetected"/> instead of applying the changes itself.
+	/// </remarks>
 	public static async Task StopWatching(bool drainPending = true)
 	{
 		_debounceTimer?.Dispose();
@@ -109,6 +157,14 @@ public static class LibraryWatcherService
 		_pending.Clear();
 	}
 
+	/// <summary>
+	/// Applies the pending changes immediately instead of waiting for the debounce quiet window to expire.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous flush of the pending changes.</returns>
+	/// <remarks>
+	/// When more changes are waiting than <see cref="BulkChangeThreshold"/>, processing them one by one would be
+	/// slower than a fresh scan, so <see cref="BulkChangeDetected"/> is raised and the queue is left untouched.
+	/// </remarks>
 	public static async Task DrainPendingImmediately()
 	{
 		if (_pending.Count >= BulkChangeThreshold)
@@ -120,6 +176,12 @@ public static class LibraryWatcherService
 		await FlushPendingChanges(forceAll: true);
 	}
 
+	/// <summary>
+	/// Records a change for a path so the next flush can process it as part of a batch. Writes that the app
+	/// initiated itself are handled right away and never enter the batch.
+	/// </summary>
+	/// <param name="path">The full path of the file that changed.</param>
+	/// <param name="changeType">The kind of change reported by the watcher.</param>
 	private static void EnqueueChange(string path, WatcherChangeTypes changeType)
 	{
 		if (ConsumeSelfInitiated(path))
@@ -143,6 +205,14 @@ public static class LibraryWatcherService
 			});
 	}
 
+	/// <summary>
+	/// Refreshes the scan metadata of a file the app wrote to itself, bypassing the rename and delete matching
+	/// because the app already knows what it changed. Deletions are ignored, as the app removes those rows in
+	/// its own delete flow.
+	/// </summary>
+	/// <param name="path">The full path of the file the app wrote to.</param>
+	/// <param name="changeType">The kind of change reported by the watcher.</param>
+	/// <returns>A task that represents the asynchronous metadata refresh.</returns>
 	private static async Task HandleSelfInitiatedRefresh(string path, WatcherChangeTypes changeType)
 	{
 		if (changeType == WatcherChangeTypes.Deleted)
@@ -159,6 +229,14 @@ public static class LibraryWatcherService
 		}
 	}
 
+	/// <summary>
+	/// Determines whether a path ends in one of the audio extensions that are currently enabled.
+	/// </summary>
+	/// <param name="path">The full path of the file to test.</param>
+	/// <returns>
+	/// <see langword="true"/> when the file extension is tracked; otherwise, <see langword="false"/>, which also
+	/// covers paths whose extension cannot be read.
+	/// </returns>
 	private static bool IsTrackedExtension(string path)
 	{
 		try
@@ -171,29 +249,57 @@ public static class LibraryWatcherService
 		}
 	}
 
+	/// <summary>
+	/// Queues a newly created tracked file for the next batch.
+	/// </summary>
+	/// <param name="sender">The <see cref="FileSystemWatcher"/> that raised the event.</param>
+	/// <param name="e">The event data holding the full path of the created file.</param>
 	private static void OnCreated(object sender, FileSystemEventArgs e)
 	{
 		if (!IsTrackedExtension(e.FullPath)) return;
 		EnqueueChange(e.FullPath, WatcherChangeTypes.Created);
 	}
 
+	/// <summary>
+	/// Queues a modified tracked file for the next batch.
+	/// </summary>
+	/// <param name="sender">The <see cref="FileSystemWatcher"/> that raised the event.</param>
+	/// <param name="e">The event data holding the full path of the modified file.</param>
 	private static void OnChanged(object sender, FileSystemEventArgs e)
 	{
 		if (!IsTrackedExtension(e.FullPath)) return;
 		EnqueueChange(e.FullPath, WatcherChangeTypes.Changed);
 	}
 
+	/// <summary>
+	/// Queues a deleted tracked file so its own row can be removed once the deletion grace window has passed.
+	/// </summary>
+	/// <param name="sender">The <see cref="FileSystemWatcher"/> that raised the event.</param>
+	/// <param name="e">The event data holding the full path of the deleted file.</param>
 	private static void OnDeleted(object sender, FileSystemEventArgs e)
 	{
 		if (!IsTrackedExtension(e.FullPath)) return;
 		EnqueueChange(e.FullPath, WatcherChangeTypes.Deleted);
 	}
 
+	/// <summary>
+	/// Handles a rename reported directly by the watcher. The database work is started off the event thread so
+	/// the watcher keeps receiving events while the update runs.
+	/// </summary>
+	/// <param name="sender">The <see cref="FileSystemWatcher"/> that raised the event.</param>
+	/// <param name="e">The event data holding the old and the new full path.</param>
 	private static void OnRenamed(object sender, RenamedEventArgs e)
 	{
 		_ = HandleRenamedEvent(e.OldFullPath, e.FullPath);
 	}
 
+	/// <summary>
+	/// Applies a rename or a move: the existing row is kept when both paths are tracked, removed when the file
+	/// left the library, and created when the file entered it.
+	/// </summary>
+	/// <param name="oldPath">The full path the file had before the rename.</param>
+	/// <param name="newPath">The full path the file has after the rename.</param>
+	/// <returns>A task that represents the asynchronous update of the database.</returns>
 	private static async Task HandleRenamedEvent(string oldPath, string newPath)
 	{
 		// A mark only ever means the app wrote to the file itself (tag save), and those writes never change
@@ -247,6 +353,12 @@ public static class LibraryWatcherService
 		}
 	}
 
+	/// <summary>
+	/// Reacts to a watcher error, typically a buffer overflow, by asking for a full scan because the events that
+	/// were lost while the buffer was full can no longer be recovered.
+	/// </summary>
+	/// <param name="sender">The <see cref="FileSystemWatcher"/> that raised the error.</param>
+	/// <param name="e">The event data describing the error.</param>
 	private static void OnError(object sender, ErrorEventArgs e)
 	{
 		// Buffer overflow or similar — treat exactly like a bulk-change burst.
@@ -332,6 +444,21 @@ public static class LibraryWatcherService
 		return false;
 	}
 
+	/// <summary>
+	/// Applies the changes that are ready as one batch: deletions whose grace window has passed are finalised
+	/// first, then the remaining paths are split into deleted, created and modified sets, matched as renames and
+	/// moves against the scan metadata, processed one by one and finally reported through
+	/// <see cref="RefreshAfterBatch"/>.
+	/// </summary>
+	/// <param name="forceAll">
+	/// <see langword="true"/> to process every pending change regardless of its quiet window;
+	/// <see langword="false"/> to process only the paths that have been quiet for long enough.
+	/// </param>
+	/// <returns>A task that represents the asynchronous flush.</returns>
+	/// <remarks>
+	/// Reentrancy is guarded by <c>_flushInProgress</c>, so a debounce tick that fires while a flush is running
+	/// returns immediately. Failures inside a pass are reported and never stop the debounce loop.
+	/// </remarks>
 	private static async Task FlushPendingChanges(bool forceAll = false)
 	{
 		if (Interlocked.CompareExchange(ref _flushInProgress, 1, 0) != 0)
