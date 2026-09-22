@@ -64,8 +64,8 @@ public class LibraryScanner
 
 		switch (type)
 		{
-			case "Info":
-				GlobalNotification.Info(message);
+			case "Success":
+				GlobalNotification.Success(message);
 				break;
 			case "Warning":
 				GlobalNotification.Warning(message);
@@ -97,6 +97,7 @@ public class LibraryScanner
 		ScanProgress = 0;
 		TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 		var audioFiles = new HashSet<string>();
+		var foldersWithMusic = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 		var libraries = new List<string>();
 
@@ -130,6 +131,7 @@ public class LibraryScanner
 				foreach (var file in files)
 				{
 					audioFiles.Add(file);
+					foldersWithMusic.Add(Path.GetDirectoryName(file)!);
 				}
 			}
 
@@ -193,34 +195,53 @@ public class LibraryScanner
 			}
 			catch (Exception)
 			{
-				localSettings.Values[nameof(LocalSave.ScanResult)] = "No tracks could be added";
 				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
+				await RefreshAutoScanResultMessage(message: "No tracks could be added");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 				return ("Error", "No tracks could be added", failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
 			var songsCount = songsContainer.Count;
+			var foldersCount = foldersWithMusic.Count;
 			extensions = null!;
 			uniqueFolders = null!;
 			libraries = null!;
+			foldersWithMusic = null!;
 
-			await RefreshAutoScanResultMessage();
+			await RefreshAutoScanResultMessage(foldersCount);
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
-			return ("Info", "Library scan completed.\nLibraries: " + librariesCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
+			return ("Success", "Library scan completed.\nLibraries: " + librariesCount + "\nFolders: " + foldersCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
 		}
 		else
 		{
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			await DatabaseHelper.Instance.WipeFileScanMeta();
-			localSettings.Values[nameof(LocalSave.ScanResult)] = "No libraries found";
+			await RefreshAutoScanResultMessage(0, "No libraries found");
 			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 			return ("Warning", "No libraries found. Please add atleast one library.", new List<string>());
 		}
 	}
 
+	/// <summary>
+	/// Extracts song metadata from an audio file using TagLib, falling back to the Flyleaf player when the
+	/// duration cannot be read from tags and building a partial song from file-system data when reading fails.
+	/// </summary>
+	/// <remarks>
+	/// When TagLib reports a duration of zero or less, a temporary Flyleaf <c>Player</c> probes the real
+	/// duration and the player type is forced to "Flyleaf". When TagLib throws, a fallback song is built from
+	/// the file name with "Unknown" placeholders.
+	/// </remarks>
+	/// <param name="filePath">The full path to the audio file to read.</param>
+	/// <param name="ignoreTrackDuration">
+	/// Tracks of this duration or shorter (in seconds) are filtered out by the caller.
+	/// </param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains the extracted
+	/// <see cref="Song"/> and a flag telling whether the metadata was read successfully.
+	/// </returns>
 	internal static async Task<(Song song, bool succeeded)> ExtractSongMetadata(string filePath, double ignoreTrackDuration)
 	{
 		try
@@ -270,7 +291,7 @@ public class LibraryScanner
 
 			if (song.Duration <= 0)
 			{
-				if(!FlyleafLib.Engine.IsLoaded)
+				if (!FlyleafLib.Engine.IsLoaded)
 				{
 					var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
 					Engine.Start(new EngineConfig
@@ -330,6 +351,20 @@ public class LibraryScanner
 		}
 	}
 
+	/// <summary>
+	/// Captures the file system state of the file at <paramref name="filePath"/> as a
+	/// <see cref="FileScanMeta"/> row, so later incremental passes can detect created, modified, renamed and
+	/// deleted files without re-reading their tags.
+	/// </summary>
+	/// <remarks>
+	/// Compared against the current disk state by <see cref="RenameDetector.DetectRenamesAndMoves"/>. All
+	/// timestamps are UTC ticks, which keeps the comparison valid across time zones and daylight-saving changes.
+	/// </remarks>
+	/// <param name="filePath">The full path of the file to snapshot.</param>
+	/// <returns>
+	/// A <see cref="FileScanMeta"/> holding the path, last write time, creation time, size in bytes and the
+	/// current UTC time.
+	/// </returns>
 	internal static FileScanMeta BuildFileScanMeta(string filePath)
 	{
 		var fileInfo = new FileInfo(filePath);
@@ -343,6 +378,16 @@ public class LibraryScanner
 		};
 	}
 
+	/// <summary>
+	/// Reduces the configured library paths to the smallest set of root folders that still covers all of them,
+	/// dropping every library that is itself a library or lives inside one already accepted.
+	/// </summary>
+	/// <remarks>
+	/// Paths are sorted by length first, so a parent folder is always evaluated before its children. Library
+	/// folders that no longer exist are reported through <see cref="GlobalNotification"/> and left out.
+	/// </remarks>
+	/// <param name="libraries">The library root paths as persisted in the database.</param>
+	/// <returns>The distinct effective roots to enumerate, ordered by path length ascending.</returns>
 	internal static List<string> ComputeEffectiveRoots(List<string> libraries)
 	{
 		libraries = libraries.OrderBy(f => f.Length).ToList();
@@ -356,13 +401,41 @@ public class LibraryScanner
 			}
 			else
 			{
-				if (!uniqueFolders.Any(parent => folder.StartsWith(parent, StringComparison.OrdinalIgnoreCase)))
+				if (!uniqueFolders.Any(parent => IsSameOrNestedPath(folder, parent)))
 					uniqueFolders.Add(folder);
 			}
 		}
 		return uniqueFolders;
 	}
 
+	/// <summary>
+	/// Determines whether <paramref name="path"/> is the same folder as <paramref name="parent"/> or lives
+	/// beneath it.
+	/// </summary>
+	/// <remarks>
+	/// The comparison is separator aware, so sibling folders that only share a name prefix
+	/// (e.g. "D:\Music" and "D:\Music2") are not mistaken for nested ones and silently dropped.
+	/// </remarks>
+	private static bool IsSameOrNestedPath(string path, string parent)
+	{
+		var trimmedParent = parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+		return string.Equals(path, trimmedParent, StringComparison.OrdinalIgnoreCase)
+			|| path.StartsWith(trimmedParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+	}
+
+	/// <summary>
+	/// Reads the audio formats configured in Settings and returns the file extensions that are currently
+	/// enabled for scanning.
+	/// </summary>
+	/// <remarks>
+	/// Extensions are stored in lower case with a leading dot, matching the comparison the callers use while
+	/// enumerating files. <c>".mp3"</c> is returned when no format is enabled, so a scan never silently finds
+	/// nothing.
+	/// </remarks>
+	/// <returns>
+	/// A task whose result is the list of enabled file extensions, or a list containing only <c>".mp3"</c>.
+	/// </returns>
 	internal static async Task<List<string>> GetEnabledExtensions()
 	{
 		var formatList = await DatabaseHelper.Instance.GetAllMusicFormats();
@@ -375,12 +448,55 @@ public class LibraryScanner
 		return extensions;
 	}
 
-	internal static async Task RefreshAutoScanResultMessage()
+	/// <summary>
+	/// Counts the distinct folders that directly contain at least one of the given tracks with an enabled
+	/// extension. Used by incremental auto-scan passes, which never walk the library tree and therefore
+	/// cannot recount folders from the file system like a full scan does.
+	/// </summary>
+	internal static int CountFoldersFromPaths(IEnumerable<string> trackedPaths)
+	{
+		var folders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (var path in trackedPaths)
+		{
+			var directory = Path.GetDirectoryName(path);
+			if (!string.IsNullOrEmpty(directory))
+				folders.Add(directory);
+		}
+		return folders.Count;
+	}
+
+	/// <summary>
+	/// Refreshes the persisted scan result values (library count, folder count, songs count and last scan
+	/// time) and stores the situational scan result message. A scan that finished without problems clears
+	/// the message, while the failure paths pass one in ("No libraries found", "No tracks could be added").
+	/// </summary>
+	/// <remarks>
+	/// <paramref name="folderCount"/> is only supplied by full scans, which are the only passes that walk
+	/// the library tree; the incremental auto-scan callers omit it so the last counted value is kept.
+	/// </remarks>
+	/// <param name="folderCount">
+	/// The number of sub folders that directly contain at least one track with an enabled extension,
+	/// or null to keep the previously stored value.
+	/// </param>
+	/// <param name="message">The message describing the scan outcome, or null when the scan succeeded.</param>
+	internal static async Task RefreshAutoScanResultMessage(int? folderCount = null, string? message = null)
 	{
 		var librariesCount = (await DatabaseHelper.Instance.GetAllLibraries()).Count;
 		var songsCount = await DatabaseHelper.Instance.GetSongsCount();
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)] = $"Last Scanned Libraries: {librariesCount} Songs/Tracks: {songsCount} on {new DateFormatConverter().Convert(DateTime.Now, null, "F", null).ToString()}";
+		localSettings.Values[nameof(LocalSave.ScanResult_LibraryCount)] = librariesCount;
+		localSettings.Values[nameof(LocalSave.ScanResult_SongsCount)] = songsCount;
+
+		if (folderCount.HasValue)
+			localSettings.Values[nameof(LocalSave.ScanResult_FolderCount)] = folderCount.Value;
+
+		localSettings.Values[nameof(LocalSave.ScanResult_Time)] = new DateFormatConverter().Convert(DateTime.Now, null, "dddd, dd MMMM yyyy 'at' hh:mm:ss tt", null).ToString();
+
+		if (string.IsNullOrEmpty(message))
+			localSettings.Values.Remove(nameof(LocalSave.ScanResult_Message));
+		else
+			localSettings.Values[nameof(LocalSave.ScanResult_Message)] = message;
 	}
 
 	/// <summary>

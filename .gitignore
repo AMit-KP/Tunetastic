@@ -366,3 +366,5 @@ FodyWeavers.xsd
 /Architecture/manifest.json
 /Architecture/cache/
 /Architecture/.graphify_*
+
+.vshistory/
