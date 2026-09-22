@@ -1994,12 +1994,67 @@ public class DatabaseHelper
 
 		await _database.RunInTransactionAsync(conn =>
 		{
+			// The child rows (FileScanMeta, SongArtists, PlaylistSongs, QueuedPlayingList, PendingTagWrites)
+			// reference Songs(Path) with ON DELETE CASCADE but no ON UPDATE, and foreign keys are enforced
+			// immediately. Updating the parent key first would orphan them and fail the whole transaction,
+			// so enforcement is deferred until COMMIT, where the state is consistent again.
+			conn.Execute("PRAGMA defer_foreign_keys = ON");
+
 			conn.Execute("UPDATE Songs SET Path = ? WHERE Path = ?", newPath, oldPath);
 			conn.Execute("UPDATE FileScanMeta SET Path = ? WHERE Path = ?", newPath, oldPath);
-			conn.Execute("UPDATE PlaylistSongs SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
-			conn.Execute("UPDATE SongArtists SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
-			conn.Execute("UPDATE QueuedPlayingList SET Path = ? WHERE Path = ?", newPath, oldPath);
-			conn.Execute("UPDATE PendingTagWrites SET Path = ? WHERE Path = ?", newPath, oldPath);
+
+			MoveSongLinks(conn, oldPath, newPath);
+		});
+	}
+
+	/// <summary>
+	/// Moves every child reference of a song to its new path. Expects foreign key enforcement to be
+	/// deferred for the current transaction (see <see cref="RenameSongPath"/>).
+	/// </summary>
+	/// <remarks>
+	/// The <c>UPDATE OR IGNORE</c> plus <c>DELETE</c> of the leftovers covers rows that already exist for
+	/// the new path (PlaylistSongs and SongArtists have composite primary keys), where the new path's row
+	/// wins. Removing the leftovers is also what keeps the transaction free of orphaned child rows.
+	/// </remarks>
+	private static void MoveSongLinks(SQLiteConnection conn, string oldPath, string newPath)
+	{
+		conn.Execute("UPDATE OR IGNORE PlaylistSongs SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM PlaylistSongs WHERE SongPath = ?", oldPath);
+		conn.Execute("UPDATE OR IGNORE SongArtists SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM SongArtists WHERE SongPath = ?", oldPath);
+		conn.Execute("UPDATE OR IGNORE QueuedPlayingList SET Path = ? WHERE Path = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM QueuedPlayingList WHERE Path = ?", oldPath);
+		conn.Execute("UPDATE OR IGNORE PendingTagWrites SET Path = ? WHERE Path = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM PendingTagWrites WHERE Path = ?", oldPath);
+	}
+
+	/// <summary>
+	/// Copies the playback bookkeeping (play count, last played and date added) of a song onto an already
+	/// tracked path and moves the playlist/artist/queue references with it, then removes the old entry.
+	/// </summary>
+	/// <remarks>
+	/// Used when a move between folders or libraries was observed as a delete plus a create instead of a
+	/// single rename, so the new entry keeps its play count, dates and playlist membership.
+	/// </remarks>
+	public async Task TransferSongData(string oldPath, string newPath)
+	{
+		if (string.IsNullOrWhiteSpace(oldPath) || string.IsNullOrWhiteSpace(newPath) || oldPath == newPath)
+			return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			conn.Execute("PRAGMA defer_foreign_keys = ON");
+
+			conn.Execute(@"UPDATE Songs SET
+							   PlayCount = COALESCE((SELECT PlayCount FROM Songs WHERE Path = ?), PlayCount),
+							   DateLastPlayed = COALESCE((SELECT DateLastPlayed FROM Songs WHERE Path = ?), DateLastPlayed),
+							   DateAdded = COALESCE((SELECT DateAdded FROM Songs WHERE Path = ?), DateAdded)
+						   WHERE Path = ?", oldPath, oldPath, oldPath, newPath);
+
+			MoveSongLinks(conn, oldPath, newPath);
+
+			conn.Execute("DELETE FROM Songs WHERE Path = ?", oldPath);
+			conn.Execute("DELETE FROM FileScanMeta WHERE Path = ?", oldPath);
 		});
 	}
 

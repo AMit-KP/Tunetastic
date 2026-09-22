@@ -360,11 +360,27 @@ public class LibraryScanner
 			}
 			else
 			{
-				if (!uniqueFolders.Any(parent => folder.StartsWith(parent, StringComparison.OrdinalIgnoreCase)))
+				if (!uniqueFolders.Any(parent => IsSameOrNestedPath(folder, parent)))
 					uniqueFolders.Add(folder);
 			}
 		}
 		return uniqueFolders;
+	}
+
+	/// <summary>
+	/// Determines whether <paramref name="path"/> is the same folder as <paramref name="parent"/> or lives
+	/// beneath it.
+	/// </summary>
+	/// <remarks>
+	/// The comparison is separator aware, so sibling folders that only share a name prefix
+	/// (e.g. "D:\Music" and "D:\Music2") are not mistaken for nested ones and silently dropped.
+	/// </remarks>
+	private static bool IsSameOrNestedPath(string path, string parent)
+	{
+		var trimmedParent = parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+		return string.Equals(path, trimmedParent, StringComparison.OrdinalIgnoreCase)
+			|| path.StartsWith(trimmedParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
 	}
 
 	internal static async Task<List<string>> GetEnabledExtensions()

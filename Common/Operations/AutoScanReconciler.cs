@@ -45,15 +45,35 @@ public static class AutoScanReconciler
 
 		var matchResult = RenameDetector.DetectRenamesAndMoves(disappeared, appeared);
 
+		int failedChanges = 0;
+
 		foreach (var (oldPath, newPath) in matchResult.Renames)
 		{
-			await FileChangeProcessor.ProcessFileChange(oldPath, FileChangeType.Renamed, newPath);
+			try
+			{
+				await FileChangeProcessor.ProcessFileChange(oldPath, FileChangeType.Renamed, newPath);
+			}
+			catch (Exception ex)
+			{
+				// A single failing file must not abort the pass: that would also skip the deletions,
+				// the new files, the folder recount and the notification below.
+				failedChanges++;
+				GlobalNotification.Error($"Couldn't update the library entry for:\n{oldPath}\n{ex.Message}");
+			}
 		}
 
 		if (matchResult.UnmatchedDisappeared.Count > 0)
 		{
-			await DatabaseHelper.Instance.DeleteSongsFromDB(matchResult.UnmatchedDisappeared);
-			await DatabaseHelper.Instance.DeleteFileScanMeta(matchResult.UnmatchedDisappeared);
+			try
+			{
+				await DatabaseHelper.Instance.DeleteSongsFromDB(matchResult.UnmatchedDisappeared);
+				await DatabaseHelper.Instance.DeleteFileScanMeta(matchResult.UnmatchedDisappeared);
+			}
+			catch (Exception ex)
+			{
+				failedChanges++;
+				GlobalNotification.Error($"Couldn't remove the missing tracks from the library.\n{ex.Message}");
+			}
 		}
 
 		var modifiedPaths = onDisk.Keys
@@ -61,14 +81,27 @@ public static class AutoScanReconciler
 			.Where(p => tracked[p].FileSizeBytes != onDisk[p].FileSizeBytes || tracked[p].LastModifiedUtc != onDisk[p].LastModifiedUtc)
 			.ToList();
 
-		await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+		try
+		{
+			await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+		}
+		catch (Exception ex)
+		{
+			failedChanges++;
+			GlobalNotification.Error($"Couldn't add the new or changed tracks to the library.\n{ex.Message}");
+		}
 
 		// onDisk holds every extension-matching file currently on disk — the same set a full scan counts —
 		// so the folder stat can be recounted exactly, including folders emptied by deletions.
 		await LibraryScanner.RefreshAutoScanResultMessage(LibraryScanner.CountFoldersFromPaths(onDisk.Keys));
 
 		if (showNotification)
-			GlobalNotification.Success("All libraries are in sync");
+		{
+			if (failedChanges > 0)
+				GlobalNotification.Warning($"{failedChanges} change(s) could not be applied. See the messages above.");
+			else
+				GlobalNotification.Success("All libraries are in sync");
+		}
 	}
 
 	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)
