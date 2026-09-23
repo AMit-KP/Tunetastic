@@ -10,9 +10,15 @@
 #      sets AssemblyVersion/FileVersion to the full version, syncs the
 #      other two fields, and commits to the PR branch.
 #
+# Commits are created via the Git Data API (blob/tree/commit/ref), not local
+# git commit + push, so GitHub signs them and they show up as "Verified".
+#
 # Commits are pushed to the PR's branch - on the author's fork for fork
 # PRs - which GitHub only accepts when the PR allows edits by maintainers
-# (on by default).
+# (on by default). Since VERSION_BUMP_PAT belongs to a different account
+# than the PR author, GitHub can require manual approval before Build
+# re-runs on the new commit; this workflow auto-approves that re-run using
+# the same PAT, since a maintainer already approved the original build.
 #
 # Credentials:
 #   - PRs from branches in this repo: the default GITHUB_TOKEN can push.
@@ -189,26 +195,67 @@ jobs:
           $marker"
 
       - name: Commit and push the version update
+        id: commit
         if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true'
         env:
+          GH_TOKEN: ${{ github.token }}
+          PUSH_TOKEN: ${{ secrets.VERSION_BUMP_PAT || github.token }}
           HEAD_REPO: ${{ steps.pr.outputs.repo }}
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           VERSION: ${{ steps.sync.outputs.short }}
           HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
+          set -euo pipefail
+
+          changed="$(git diff --name-only)"
+          if [ -z "$changed" ]; then
             echo "Versions already in sync - nothing to commit."
             exit 0
           fi
-          git commit -m "Bump version to $VERSION"
-          # Push to the PR's head repository (the fork for fork PRs).
-          git push "https://github.com/$HEAD_REPO.git" "HEAD:$PR_BRANCH"
+
+          parent_sha="$(git rev-parse HEAD)"
+          base_tree="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits/$parent_sha" --jq .tree.sha)"
+
+          tree_json="$(jq -n --arg base "$base_tree" '{base_tree: $base, tree: []}')"
+          while IFS= read -r path; do
+            b64="$(base64 -w0 "$path")"
+            blob_sha="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/blobs" -f content="$b64" -f encoding=base64 --jq .sha)"
+            tree_json="$(jq --arg path "$path" --arg sha "$blob_sha" \
+              '.tree += [{path: $path, mode: "100644", type: "blob", sha: $sha}]' <<< "$tree_json")"
+          done <<< "$changed"
+
+          tree_sha="$(echo "$tree_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/trees" --input - --jq .sha)"
+
+          commit_json="$(jq -n --arg msg "Bump version to $VERSION" --arg tree "$tree_sha" --arg parent "$parent_sha" \
+            '{message: $msg, tree: $tree, parents: [$parent]}')"
+          new_commit="$(echo "$commit_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits" --input - --jq .sha)"
+
+          GH_TOKEN="$PUSH_TOKEN" gh api -X PATCH "repos/$HEAD_REPO/git/refs/heads/$PR_BRANCH" -f sha="$new_commit" -F force=false > /dev/null
+
+          echo "sha=$new_commit" >> "$GITHUB_OUTPUT"
+
           if [ "$HAS_PAT" != "true" ]; then
             echo "::warning::VERSION_BUMP_PAT is not set, so this commit did not re-trigger Build. Required checks on the new head commit will stay pending until Build is re-run."
           fi
+
+      - name: Auto-approve the re-triggered Build run
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true' && secrets.VERSION_BUMP_PAT != ''
+        env:
+          GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
+          HEAD_SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          if [ -z "$HEAD_SHA" ]; then
+            echo "No new commit was made - nothing to approve."
+            exit 0
+          fi
+          for i in $(seq 1 10); do
+            run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$HEAD_SHA&status=action_required" --jq '.workflow_runs[] | select(.name=="Build") | .id' | head -n1)"
+            if [ -n "$run_id" ]; then
+              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/approve" && echo "Approved run $run_id" && exit 0
+            fi
+            sleep 5
+          done
+          echo "No pending Build run found needing approval - nothing to approve."
 
   set-from-command:
     name: Apply /set-version command
@@ -332,31 +379,71 @@ jobs:
           echo "short=$short" >> $env:GITHUB_OUTPUT
 
       - name: Commit, push, and confirm
+        id: commit
         if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open'
         env:
           GH_TOKEN: ${{ github.token }}
+          PUSH_TOKEN: ${{ secrets.VERSION_BUMP_PAT || github.token }}
           HEAD_REPO: ${{ steps.pr.outputs.repo }}
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           PR_NUMBER: ${{ github.event.issue.number }}
           VERSION: ${{ steps.cmd.outputs.version }}
           HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --cached --quiet; then
+          set -euo pipefail
+
+          changed="$(git diff --name-only)"
+          if [ -z "$changed" ]; then
             echo "Versions already set - nothing to commit."
             gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="All four version fields already match $VERSION - nothing to change." > /dev/null
             exit 0
           fi
-          git commit -m "Set version to $VERSION"
-          # Push to the PR's head repository (the fork for fork PRs).
-          git push "https://github.com/$HEAD_REPO.git" "HEAD:$PR_BRANCH"
+
+          parent_sha="$(git rev-parse HEAD)"
+          base_tree="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits/$parent_sha" --jq .tree.sha)"
+
+          tree_json="$(jq -n --arg base "$base_tree" '{base_tree: $base, tree: []}')"
+          while IFS= read -r path; do
+            b64="$(base64 -w0 "$path")"
+            blob_sha="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/blobs" -f content="$b64" -f encoding=base64 --jq .sha)"
+            tree_json="$(jq --arg path "$path" --arg sha "$blob_sha" \
+              '.tree += [{path: $path, mode: "100644", type: "blob", sha: $sha}]' <<< "$tree_json")"
+          done <<< "$changed"
+
+          tree_sha="$(echo "$tree_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/trees" --input - --jq .sha)"
+
+          commit_json="$(jq -n --arg msg "Set version to $VERSION" --arg tree "$tree_sha" --arg parent "$parent_sha" \
+            '{message: $msg, tree: $tree, parents: [$parent]}')"
+          new_commit="$(echo "$commit_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits" --input - --jq .sha)"
+
+          GH_TOKEN="$PUSH_TOKEN" gh api -X PATCH "repos/$HEAD_REPO/git/refs/heads/$PR_BRANCH" -f sha="$new_commit" -F force=false > /dev/null
+
+          echo "sha=$new_commit" >> "$GITHUB_OUTPUT"
+
           body="Set version to $VERSION (AssemblyVersion and FileVersion), and synced the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match."
           if [ "$HAS_PAT" != "true" ]; then
             body="$body Note: this commit did not re-trigger Build (VERSION_BUMP_PAT is not set), so re-run Build if the PR needs passing checks."
           fi
           gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body" > /dev/null
+
+      - name: Auto-approve the re-triggered Build run
+        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && secrets.VERSION_BUMP_PAT != ''
+        env:
+          GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
+          HEAD_SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          if [ -z "$HEAD_SHA" ]; then
+            echo "No new commit was made - nothing to approve."
+            exit 0
+          fi
+          for i in $(seq 1 10); do
+            run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$HEAD_SHA&status=action_required" --jq '.workflow_runs[] | select(.name=="Build") | .id' | head -n1)"
+            if [ -n "$run_id" ]; then
+              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/approve" && echo "Approved run $run_id" && exit 0
+            fi
+            sleep 5
+          done
+          echo "No pending Build run found needing approval - nothing to approve."
 
       - name: Report a closed pull request
         if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state != 'open'
