@@ -72,11 +72,21 @@ public class MusicFormatModel
 /// </summary>
 public class MusicFormatCategoryModel : INotifyPropertyChanged
 {
+	/// <summary>Gets or sets the category name shown as the group header on the settings page.</summary>
 	public string? Category { get; set; }
+
+	/// <summary>Gets or sets the short description displayed beneath the category header.</summary>
 	public string? CategoryDescription { get; set; }
+
+	/// <summary>Gets or sets the individual music formats belonging to this category.</summary>
 	public ObservableCollection<MusicFormatModel>? Items { get; set; }
 
 	private bool _categoryEnabled;
+
+	/// <summary>
+	/// Gets or sets the category's master toggle state shown in the header. It is initialized from whether
+	/// every format in <see cref="Items"/> is enabled and updated when the user flips the header switch.
+	/// </summary>
 	public bool CategoryEnabled
 	{
 		get => _categoryEnabled;
@@ -118,8 +128,13 @@ public class MusicFormatCategoryModel : INotifyPropertyChanged
 		OnPropertyChanged(nameof(HasEnabledFormats));
 	}
 
+	/// <summary>Raised when a bound display property of this category changes value.</summary>
 	public event PropertyChangedEventHandler? PropertyChanged;
 
+	/// <summary>
+	/// Raises <see cref="PropertyChanged"/> for the calling member, or for the explicitly
+	/// named property when <paramref name="propertyName"/> is provided.
+	/// </summary>
 	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
@@ -236,10 +251,16 @@ public class ArtistSplitRule
 /// </summary>
 public sealed class SearchItem
 {
+	/// <summary>Gets or sets which category this search result belongs to.</summary>
 	public SearchItemType Type { get; set; }
 
+	/// <summary>Gets or sets the matched song when <see cref="Type"/> is <see cref="SearchItemType.Title"/>.</summary>
 	public Song? Title { get; set; }
+
+	/// <summary>Gets or sets the matched artist name when <see cref="Type"/> is <see cref="SearchItemType.Artist"/>.</summary>
 	public string? Artist { get; set; }
+
+	/// <summary>Gets or sets the matched album when <see cref="Type"/> is <see cref="SearchItemType.Album"/>.</summary>
 	public AlbumModel? Album { get; set; }
 }
 
@@ -314,6 +335,10 @@ public class FileScanMeta
 	public long LastScannedUtc { get; set; }
 }
 
+/// <summary>
+/// Lightweight projection of the Songs columns that are mirrored by the SongFTS full-text index
+/// (Id, Title, Album, Genre, Year and Artists), shaped for reading rows that feed FTS content.
+/// </summary>
 public class SongFtsSourceRow
 {
 	public int Id { get; set; }
@@ -324,6 +349,10 @@ public class SongFtsSourceRow
 	public string Artists { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Maps a row returned by SQLite's <c>PRAGMA table_info(...)</c>, describing a single column of a table.
+/// Used to check whether a column already exists on an existing table before adding it via ALTER TABLE.
+/// </summary>
 public class PragmaTableInfo
 {
 	public int Cid { get; set; }

@@ -45,6 +45,10 @@ public class DatabaseHelper
 	/// <item><description><c>Extension</c> (TEXT, PRIMARY KEY, COLLATE NOCASE) — File extension, e.g. mp3, flac.</description></item>
 	/// <item><description><c>Description</c> (TEXT, NOT NULL) — Human-readable format name.</description></item>
 	/// <item><description><c>Enabled</c> (INTEGER, NOT NULL) — 0/1 flag for whether this format is scanned.</description></item>
+	/// <item><description><c>Category</c> (TEXT, NOT NULL, DEFAULT '') — UI grouping category, e.g. Lossy, Lossless, Container, Game / Console.</description></item>
+	/// <item><description><c>CategoryDescription</c> (TEXT, NOT NULL, DEFAULT '') — Human-readable description of the category.</description></item>
+	/// <item><description><c>Codecs</c> (TEXT, NOT NULL, DEFAULT '') — Codecs/encodings carried by the format, e.g. G.711 (u-law).</description></item>
+	/// <item><description><c>SortOrder</c> (INTEGER, NOT NULL, DEFAULT 0) — Display order used when listing formats (seeded with the format's index).</description></item>
 	/// </list>
 	/// </description>
 	/// </item>
@@ -119,7 +123,7 @@ public class DatabaseHelper
 	/// </description>
 	/// </item>
 	/// <item>
-	/// <description><c>ArtistSplitRules</c>
+	/// <description><c>ArtistSplitRules</c> (UNIQUE on Type + Pattern + IsRegex)
 	/// <list type="bullet">
 	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
 	/// <item><description><c>Type</c> (TEXT, NOT NULL, CHECK IN 'Splitter'/'Exception') — Rule type.</description></item>
@@ -403,6 +407,18 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("DELETE FROM Library WHERE Path = ?", model.Path);
 	}
 
+	/// <summary>
+	/// Seeds the <c>MusicFormats</c> table with the app's built-in catalogue of supported audio file formats.
+	/// Each seed entry (extension, description, category, category description, codecs and default enabled state)
+	/// is upserted keyed on <c>Extension</c>, with <c>SortOrder</c> set to the entry's position in the seed list so
+	/// formats are listed in their intended display order.
+	/// On conflict only the descriptive columns (<c>Description</c>, <c>Category</c>, <c>CategoryDescription</c>,
+	/// <c>Codecs</c> and <c>SortOrder</c>) are refreshed, so the user's <c>Enabled</c> choice is preserved, and rows
+	/// not present in the seed list are left untouched — the method never deletes rows.
+	/// Categories group the formats for the settings UI (e.g. Lossy, Lossless, Container, Legacy and Game / Console).
+	/// Invoked by <see cref="InitializeDatabase"/> after the schema has been created.
+	/// </summary>
+	/// <returns>A <see cref="Task"/> that completes once every seed format has been inserted or updated.</returns>
 	private async Task PopulateMusicFormatTable()
 	{
 		const string upsertSql = @"INSERT INTO MusicFormats (Extension, Description, Category, CategoryDescription, Codecs, SortOrder, Enabled)
