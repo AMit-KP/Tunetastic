@@ -113,7 +113,50 @@ public enum SearchScope
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Infrastructure/Helper enums
+//  Overlay enums
+// ─────────────────────────────────────────────────────────────
+
+/// <summary>
+/// The visual theme applied to the overlay grid.
+/// </summary>
+public enum OverlayTheme
+{
+	Dark,
+	Light
+}
+
+/// <summary>
+/// All available overlay layout styles.
+/// Each value has a display name used in user-facing dropdowns.
+/// </summary>
+public enum OverlayLayout
+{
+	CompactPill,
+	HoverReveal,
+	WaveformEdge,
+	MarqueeTicker,
+	LeftPill,
+	RightDock,
+	FullArtBar,
+	WaveformOnly,
+	AccentAncientScroll,
+	IconStrip,
+	StackedInfo,
+	CenteredPill,
+	TopAccentStripe,
+	BottomAccentStripe,
+	AlbumTint,
+	TextOnly,
+	TextOnlyReversed,
+	ArcRing,
+	QueuePreview,
+	ArtistBadge,
+	TopAlbumAccentStripe,
+	AlbumTintProgress
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Infrastructure enums
 // ─────────────────────────────────────────────────────────────
 
 /// <summary>
@@ -126,6 +169,23 @@ public enum DiskKind
 	SataSSD,
 	NvmeSSD,
 }
+
+/// <summary>
+/// Identifies the kind of single file-system change detected in the music libraries —
+/// a file was created, modified, deleted or renamed. Forwarded by the library watcher and the
+/// auto-scan reconciler to the file-change handler for incremental database updates outside a full scan.
+/// </summary>
+public enum FileChangeType
+{
+	Created,
+	Modified,
+	Deleted,
+	Renamed
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Helper enums
+// ─────────────────────────────────────────────────────────────
 
 /// <summary>
 /// Represents the folder locations where thumbnail images are stored.
@@ -232,54 +292,3 @@ public enum LocalSave
 	PostUpdateScanDoneVersion
 }
 
-/// <summary>
-/// The visual theme applied to the overlay grid.
-/// </summary>
-public enum OverlayTheme
-{
-	Dark,
-	Light
-}
-
-/// <summary>
-/// All available overlay layout styles.
-/// Each value has a display name used in user-facing dropdowns.
-/// </summary>
-public enum OverlayLayout
-{
-	CompactPill,
-	HoverReveal,
-	WaveformEdge,
-	MarqueeTicker,
-	LeftPill,
-	RightDock,
-	FullArtBar,
-	WaveformOnly,
-	AccentAncientScroll,
-	IconStrip,
-	StackedInfo,
-	CenteredPill,
-	TopAccentStripe,
-	BottomAccentStripe,
-	AlbumTint,
-	TextOnly,
-	TextOnlyReversed,
-	ArcRing,
-	QueuePreview,
-	ArtistBadge,
-	TopAlbumAccentStripe,
-	AlbumTintProgress
-}
-
-/// <summary>
-/// Identifies the kind of single file-system change detected in the music libraries —
-/// a file was created, modified, deleted or renamed. Forwarded by the library watcher and the
-/// auto-scan reconciler to the file-change handler for incremental database updates outside a full scan.
-/// </summary>
-public enum FileChangeType
-{
-	Created,
-	Modified,
-	Deleted,
-	Renamed
-}
