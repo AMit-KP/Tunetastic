@@ -1,4 +1,4 @@
-# Keeps the four version fields consistent on pull requests:
+﻿# Keeps the four version fields consistent on pull requests:
 #
 #   1. After a successful Build on a PR: if the PR bumped
 #      <AssemblyVersion>/<FileVersion> (1.x.x.x) relative to the point where
@@ -9,6 +9,10 @@
 #      a maintainer to reply with "/set-version 1.x.x.x". Such a reply
 #      sets AssemblyVersion/FileVersion to the full version, syncs the
 #      other two fields, and commits to the PR branch.
+#   3. If the head version (job 1) or the requested /set-version (job 2) is
+#      LOWER than the version on the PR's base branch, nothing is written -
+#      a comment asks a maintainer to fix it instead. "Base branch" here
+#      always means the PR's actual base (e.g. development), never master.
 #
 # Commits are created via the Git Data API (blob/tree/commit/ref), not local
 # git commit + push, so GitHub signs them and they show up as "Verified".
@@ -109,6 +113,18 @@ jobs:
             return $null
           }
 
+          # Compares two 1.x.x.x strings positionally. Returns -1 if $a < $b,
+          # 1 if $a > $b, 0 if equal.
+          function Compare-Version([string]$a, [string]$b) {
+            $ap = $a.Split('.') | ForEach-Object { [int]$_ }
+            $bp = $b.Split('.') | ForEach-Object { [int]$_ }
+            for ($i = 0; $i -lt 4; $i++) {
+              if ($ap[$i] -lt $bp[$i]) { return -1 }
+              if ($ap[$i] -gt $bp[$i]) { return 1 }
+            }
+            return 0
+          }
+
           # Read/write files without changing their BOM (Get-Content/Set-Content
           # would drop it) so the commit only contains the intended edits.
           function Read-File([string]$Path) {
@@ -136,10 +152,12 @@ jobs:
             throw "AssemblyVersion '$headVersion' is not in the 1.x.x.x format."
           }
 
-          # Compare with the point where the PR branched off (the merge base),
-          # not the current tip of the base branch. Otherwise a base branch that
-          # moved ahead with its own bump makes an untouched PR look bumped, and
-          # a PR that bumps to the same number as the base looks untouched.
+          # Compare with the point where the PR branched off (the merge base
+          # of HEAD and the PR's actual base branch, e.g. development - never
+          # master), not the current tip of the base branch. Otherwise a base
+          # branch that moved ahead with its own bump makes an untouched PR
+          # look bumped, and a PR that bumps to the same number as the base
+          # looks untouched.
           $mergeBase = "$(git merge-base HEAD "origin/$env:BASE_REF")".Trim()
           if ($LASTEXITCODE -ne 0 -or -not $mergeBase) {
             throw "Could not find a merge base with origin/$env:BASE_REF."
@@ -148,11 +166,21 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Failed to read Tunetastic.csproj at merge base $mergeBase." }
           $baseVersion = Read-ProjectVersion ($baseRaw -join "`n")
 
-          if ($headVersion -eq $baseVersion) {
+          if (-not $baseVersion -or $headVersion -eq $baseVersion) {
             echo "bumped=false" >> $env:GITHUB_OUTPUT
+            echo "older=false" >> $env:GITHUB_OUTPUT
             exit 0
           }
+
+          if ((Compare-Version $headVersion $baseVersion) -lt 0) {
+            echo "bumped=false" >> $env:GITHUB_OUTPUT
+            echo "older=true" >> $env:GITHUB_OUTPUT
+            echo "base_version=$baseVersion" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
           echo "bumped=true" >> $env:GITHUB_OUTPUT
+          echo "older=false" >> $env:GITHUB_OUTPUT
 
           $p = $headVersion.Split('.')
           $short = "$($p[0]).$($p[1]).$($p[2])"
@@ -176,8 +204,27 @@ jobs:
 
           echo "short=$short" >> $env:GITHUB_OUTPUT
 
+      - name: Warn about a version older than the base branch
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.older == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+          BASE_VERSION: ${{ steps.sync.outputs.base_version }}
+        run: |
+          marker='<!-- pr-version-sync:older -->'
+          existing="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --jq '.[].body')"
+          if grep -qF -e "$marker" <<< "$existing"; then
+            echo "Already warned about an older version on this PR - skipping."
+            exit 0
+          fi
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "⏪ **Hold up — this version is going backwards.**
+          This PR has a lower AssemblyVersion/FileVersion than \`$BASE_REF\`, which is already at \`$BASE_VERSION\`. I don't do time travel, so I've left the version fields untouched. @$OWNER — bump it above \`$BASE_VERSION\`, or reply \`/set-version 1.x.x.x\` and I'll take care of the rest. 🚀
+          $marker"
+
       - name: Ask a maintainer for the version
-        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'false'
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'false' && steps.sync.outputs.older != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           OWNER: ${{ github.repository_owner }}
@@ -244,222 +291,3 @@ jobs:
           GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
           HEAD_SHA: ${{ steps.commit.outputs.sha }}
         run: |
-          if [ -z "$HEAD_SHA" ]; then
-            echo "No new commit was made - nothing to approve."
-            exit 0
-          fi
-          for i in $(seq 1 10); do
-            run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$HEAD_SHA&status=action_required" --jq '.workflow_runs[] | select(.name=="Build") | .id' | head -n1)"
-            if [ -n "$run_id" ]; then
-              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/approve" && echo "Approved run $run_id" && exit 0
-            fi
-            sleep 5
-          done
-          echo "No pending Build run found needing approval - nothing to approve."
-
-  set-from-command:
-    name: Apply /set-version command
-    runs-on: ubuntu-latest
-    concurrency:
-      group: pr-version-sync-cmd-${{ github.event.issue.number }}
-      cancel-in-progress: false
-    if: >-
-      github.event_name == 'issue_comment' &&
-      github.event.issue.pull_request != null &&
-      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
-      startsWith(github.event.comment.body, '/set-version')
-    steps:
-      # Instant feedback that the command was picked up.
-      - name: Acknowledge the command
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMMENT_ID: ${{ github.event.comment.id }}
-        run: |
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" -f content=eyes > /dev/null || true
-
-      - name: Parse the requested version
-        id: cmd
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          BODY: ${{ github.event.comment.body }}
-        run: |
-          version="$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' <<< "$BODY" | head -n1 || true)"
-          if [ -z "$version" ]; then
-            echo "No 1.x.x.x version found in the /set-version comment."
-            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              -f body="I couldn't find a full version in that comment. Use four parts, for example: /set-version 1.57.0.0" > /dev/null
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          {
-            echo "ok=true"
-            echo "version=$version"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Get pull request details
-        if: steps.cmd.outputs.ok == 'true'
-        id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          pr="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
-          {
-            echo "branch=$(jq -r '.head.ref' <<< "$pr")"
-            echo "repo=$(jq -r '.head.repo.full_name' <<< "$pr")"
-            echo "state=$(jq -r '.state' <<< "$pr")"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Check out the PR head commit
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open'
-        uses: actions/checkout@v5
-        with:
-          ref: refs/pull/${{ github.event.issue.number }}/head
-          fetch-depth: 0
-          token: ${{ secrets.VERSION_BUMP_PAT || github.token }}
-
-      - name: Set all four version fields
-        id: sync
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open'
-        shell: pwsh
-        env:
-          FULL_VERSION: ${{ steps.cmd.outputs.version }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-
-          # Read/write files without changing their BOM (Get-Content/Set-Content
-          # would drop it) so the commit only contains the intended edits.
-          function Read-File([string]$Path) {
-            $full = (Resolve-Path $Path).Path
-            $bytes = [System.IO.File]::ReadAllBytes($full)
-            [pscustomobject]@{
-              Path = $full
-              Bom  = ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF)
-              Text = [System.IO.File]::ReadAllText($full)
-            }
-          }
-          function Write-File($File, [string]$Text) {
-            [System.IO.File]::WriteAllText($File.Path, $Text, (New-Object System.Text.UTF8Encoding($File.Bom)))
-          }
-
-          $full = $env:FULL_VERSION
-          if ($full -notmatch '^\d+\.\d+\.\d+\.\d+$') {
-            throw "Version '$full' is not in the 1.x.x.x format."
-          }
-          $p = $full.Split('.')
-          $short = "$($p[0]).$($p[1]).$($p[2])"
-
-          $projFile = Read-File 'Tunetastic.csproj'
-          $proj = $projFile.Text
-          $nl = if ($proj.Contains("`r`n")) { "`r`n" } else { "`n" }
-
-          if ($proj -notmatch '<AssemblyVersion>' -and $proj -notmatch '<FileVersion>') {
-            throw 'No <AssemblyVersion> or <FileVersion> found in Tunetastic.csproj.'
-          }
-          $proj = [regex]::Replace($proj, '<AssemblyVersion>[^<]*</AssemblyVersion>', "<AssemblyVersion>$full</AssemblyVersion>")
-          $proj = [regex]::Replace($proj, '<FileVersion>[^<]*</FileVersion>', "<FileVersion>$full</FileVersion>")
-          if ($proj -match '<Version>') {
-            $proj = [regex]::Replace($proj, '<Version>[^<]*</Version>', "<Version>$short</Version>")
-          } else {
-            $proj = ([regex]'</FileVersion>').Replace(
-              $proj, "</FileVersion>$nl    <Version>$short</Version>", 1)
-          }
-          Write-File $projFile $proj
-
-          # ${1}/${2} need braces: "$1" followed by a digit would be read as
-          # group 11 and corrupt the manifest.
-          $manifestFile = Read-File 'Package.appxmanifest'
-          $manifest = [regex]::Replace(
-            $manifestFile.Text,
-            '(<Identity\b[^>]*?\sVersion=")[^"]*(")',
-            "`${1}${short}.0`${2}")
-          Write-File $manifestFile $manifest
-
-          echo "short=$short" >> $env:GITHUB_OUTPUT
-
-      - name: Commit, push, and confirm
-        id: commit
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PUSH_TOKEN: ${{ secrets.VERSION_BUMP_PAT || github.token }}
-          HEAD_REPO: ${{ steps.pr.outputs.repo }}
-          PR_BRANCH: ${{ steps.pr.outputs.branch }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          VERSION: ${{ steps.cmd.outputs.version }}
-          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
-        run: |
-          set -euo pipefail
-
-          changed="$(git diff --name-only)"
-          if [ -z "$changed" ]; then
-            echo "Versions already set - nothing to commit."
-            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="All four version fields already match $VERSION - nothing to change." > /dev/null
-            exit 0
-          fi
-
-          parent_sha="$(git rev-parse HEAD)"
-          base_tree="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits/$parent_sha" --jq .tree.sha)"
-
-          tree_json="$(jq -n --arg base "$base_tree" '{base_tree: $base, tree: []}')"
-          while IFS= read -r path; do
-            b64="$(base64 -w0 "$path")"
-            blob_sha="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/blobs" -f content="$b64" -f encoding=base64 --jq .sha)"
-            tree_json="$(jq --arg path "$path" --arg sha "$blob_sha" \
-              '.tree += [{path: $path, mode: "100644", type: "blob", sha: $sha}]' <<< "$tree_json")"
-          done <<< "$changed"
-
-          tree_sha="$(echo "$tree_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/trees" --input - --jq .sha)"
-
-          commit_json="$(jq -n --arg msg "Set version to $VERSION" --arg tree "$tree_sha" --arg parent "$parent_sha" \
-            '{message: $msg, tree: $tree, parents: [$parent]}')"
-          new_commit="$(echo "$commit_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits" --input - --jq .sha)"
-
-          GH_TOKEN="$PUSH_TOKEN" gh api -X PATCH "repos/$HEAD_REPO/git/refs/heads/$PR_BRANCH" -f sha="$new_commit" -F force=false > /dev/null
-
-          echo "sha=$new_commit" >> "$GITHUB_OUTPUT"
-
-          body="Set version to $VERSION (AssemblyVersion and FileVersion), and synced the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match."
-          if [ "$HAS_PAT" != "true" ]; then
-            body="$body Note: this commit did not re-trigger Build (VERSION_BUMP_PAT is not set), so re-run Build if the PR needs passing checks."
-          fi
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body" > /dev/null
-
-      - name: Auto-approve the re-triggered Build run
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && secrets.VERSION_BUMP_PAT != ''
-        env:
-          GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
-          HEAD_SHA: ${{ steps.commit.outputs.sha }}
-        run: |
-          if [ -z "$HEAD_SHA" ]; then
-            echo "No new commit was made - nothing to approve."
-            exit 0
-          fi
-          for i in $(seq 1 10); do
-            run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$HEAD_SHA&status=action_required" --jq '.workflow_runs[] | select(.name=="Build") | .id' | head -n1)"
-            if [ -n "$run_id" ]; then
-              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/approve" && echo "Approved run $run_id" && exit 0
-            fi
-            sleep 5
-          done
-          echo "No pending Build run found needing approval - nothing to approve."
-
-      - name: Report a closed pull request
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state != 'open'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="This pull request is not open, so I did not change any version fields." > /dev/null
-
-      # If anything above failed (most commonly the push), say so on the PR
-      # instead of leaving the maintainer with silence.
-      - name: Report failure
-        if: failure() && steps.cmd.outputs.ok == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="I couldn't apply /set-version. Common causes: the PR is from a fork and VERSION_BUMP_PAT is missing, 'Allow edits from maintainers' is off, or the branch changed while this ran. Details: $RUN_URL" > /dev/null
