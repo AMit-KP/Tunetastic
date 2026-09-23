@@ -45,6 +45,10 @@ public class DatabaseHelper
 	/// <item><description><c>Extension</c> (TEXT, PRIMARY KEY, COLLATE NOCASE) — File extension, e.g. mp3, flac.</description></item>
 	/// <item><description><c>Description</c> (TEXT, NOT NULL) — Human-readable format name.</description></item>
 	/// <item><description><c>Enabled</c> (INTEGER, NOT NULL) — 0/1 flag for whether this format is scanned.</description></item>
+	/// <item><description><c>Category</c> (TEXT, NOT NULL, DEFAULT '') — UI grouping category, e.g. Lossy, Lossless, Container, Game / Console.</description></item>
+	/// <item><description><c>CategoryDescription</c> (TEXT, NOT NULL, DEFAULT '') — Human-readable description of the category.</description></item>
+	/// <item><description><c>Codecs</c> (TEXT, NOT NULL, DEFAULT '') — Codecs/encodings carried by the format, e.g. G.711 (u-law).</description></item>
+	/// <item><description><c>SortOrder</c> (INTEGER, NOT NULL, DEFAULT 0) — Display order used when listing formats (seeded with the format's index).</description></item>
 	/// </list>
 	/// </description>
 	/// </item>
@@ -119,7 +123,7 @@ public class DatabaseHelper
 	/// </description>
 	/// </item>
 	/// <item>
-	/// <description><c>ArtistSplitRules</c>
+	/// <description><c>ArtistSplitRules</c> (UNIQUE on Type + Pattern + IsRegex)
 	/// <list type="bullet">
 	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
 	/// <item><description><c>Type</c> (TEXT, NOT NULL, CHECK IN 'Splitter'/'Exception') — Rule type.</description></item>
@@ -197,6 +201,12 @@ public class DatabaseHelper
 									   Extension TEXT PRIMARY KEY COLLATE NOCASE,
 									   Description TEXT NOT NULL,
 									   Enabled INTEGER NOT NULL)");
+
+		foreach (var col in new[] { "Category", "CategoryDescription", "Codecs" })
+		{
+			await AddColumnIfMissing("MusicFormats", col, "TEXT NOT NULL DEFAULT ''");
+		}
+		await AddColumnIfMissing("MusicFormats", "SortOrder", "INTEGER NOT NULL DEFAULT 0");
 
 		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS Songs (
 									   Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -281,11 +291,7 @@ public class DatabaseHelper
 
 		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics" })
 		{
-			try
-			{
-				await _database.ExecuteAsync($"ALTER TABLE PendingTagWrites ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0");
-			}
-			catch { }
+			await AddColumnIfMissing("PendingTagWrites", col, "INTEGER NOT NULL DEFAULT 0");
 		}
 
 		await _database.ExecuteAsync(@"CREATE VIRTUAL TABLE IF NOT EXISTS SongFTS
@@ -325,6 +331,15 @@ public class DatabaseHelper
 		await ReloadArtistSplitRules();
 
 		await EnsureArtistLinksPopulated();
+
+		async Task AddColumnIfMissing(string table, string column, string typeDef)
+		{
+			var columns = await _database.QueryAsync<PragmaTableInfo>($"PRAGMA table_info({table})");
+			if (!columns.Any(c => string.Equals(c.Name, column, StringComparison.OrdinalIgnoreCase)))
+			{
+				await _database.ExecuteAsync($"ALTER TABLE {table} ADD COLUMN {column} {typeDef}");
+			}
+		}
 	}
 
 	/// <summary>
@@ -393,39 +408,148 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// Populates the 'MusicFormat' table with predefined data containing various audio format information.
-	/// This includes details such as format names, file extensions, and descriptions relevant for music files.
-	/// Ensures consistency by avoiding duplicate entries and standardizing the data required for application functionality.
+	/// Seeds the <c>MusicFormats</c> table with the app's built-in catalogue of supported audio file formats.
+	/// Each seed entry (extension, description, category, category description, codecs and default enabled state)
+	/// is upserted keyed on <c>Extension</c>, with <c>SortOrder</c> set to the entry's position in the seed list so
+	/// formats are listed in their intended display order.
+	/// On conflict only the descriptive columns (<c>Description</c>, <c>Category</c>, <c>CategoryDescription</c>,
+	/// <c>Codecs</c> and <c>SortOrder</c>) are refreshed, so the user's <c>Enabled</c> choice is preserved, and rows
+	/// not present in the seed list are left untouched — the method never deletes rows.
+	/// Categories group the formats for the settings UI (e.g. Lossy, Lossless, Container, Legacy and Game / Console).
+	/// Invoked by <see cref="InitializeDatabase"/> after the schema has been created.
 	/// </summary>
-	/// <returns>
-	/// A task that represents the asynchronous operation of populating the 'MusicFormat' table.
-	/// </returns>
+	/// <returns>A <see cref="Task"/> that completes once every seed format has been inserted or updated.</returns>
 	private async Task PopulateMusicFormatTable()
 	{
-		var mfCount = await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM MusicFormats");
-		if (mfCount == 0)
+		const string upsertSql = @"INSERT INTO MusicFormats (Extension, Description, Category, CategoryDescription, Codecs, SortOrder, Enabled)
+								   VALUES (@Extension, @Description, @Category, @CategoryDescription, @Codecs, @SortOrder, @DefaultEnabled)
+								   ON CONFLICT(Extension) DO UPDATE SET
+								   Description = excluded.Description,
+								   Category = excluded.Category,
+								   CategoryDescription = excluded.CategoryDescription,
+								   Codecs = excluded.Codecs,
+								   SortOrder = excluded.SortOrder";
+
+		var seedFormats = new (string Extension, string Description, string Category, string CategoryDescription, string Codecs, bool DefaultEnabled)[]
 		{
-			await _database.RunInTransactionAsync(conn =>
-			{
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".mp3", "MPEG-1 Audio Layer 3 – The compression that saves valuable space while maintaining near-flawless quality of the original source of sound.", 1);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".m4a", "MPEG-4 Audio - An audio file format developed by Apple, designed to store high-quality sound efficiently.", 1);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".flac", "Free Lossless Audio Codec – This lossless audio format compresses audio data without losing any quality, making it perfect for preserving the original sound.", 1);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".alac", "Apple Lossless Audio Codec – Developed by Apple, this lossless audio format is designed for use on Apple devices, ensuring high-quality audio playback.", 0);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".wav", "Waveform Audio File Format – An uncompressed audio format that stores audio data in its raw waveform, offering pristine sound quality.", 0);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".wma", "Windows Media Audio – Windows audio format known for its lossless compression, retaining high audio quality throughout all types of restructuring processes.", 0);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".aac", "Advanced Audio Coding - An audio format that delivers decently high-quality sound and is enhanced using advanced coding.", 0);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".ogg", "Ogg Vorbis – An open-source digital multimedia container format designed to provide for efficient streaming and manipulation of digital multimedia.", 0);
-				conn.Execute(@"INSERT INTO MusicFormats (Extension, Description, Enabled) VALUES (?, ?, ?)",
-					".aiff", "Audio Interchange File Format – An uncompressed CD-quality audio format developed by Apple, commonly used in professional audio environments.", 0);
-			});
+			// Lossy - the most common everyday compressed audio formats
+			(".mp3", "Perceptual lossy audio compression format using psychoacoustic masking to reduce file sizes significantly while maintaining acceptable sound quality.", "Lossy", "The most common everyday compressed audio formats", "MP3 (MPEG-1/2 Layer III)", true),
+			(".aac", "Raw Advanced Audio Coding elementary stream utilizing MDCT-based lossy compression for improved coding efficiency compared to MP3 at similar bitrates.", "Lossy", "The most common everyday compressed audio formats", "AAC, HE-AAC/AAC+, xHE-AAC, AAC-ELD", true),
+			(".m4b", "MPEG-4 audio container variation with support for bookmarking points and chapter index markers, commonly used for audiobooks.", "Lossy", "The most common everyday compressed audio formats", "AAC", false),
+			(".m4r", "MPEG-4 audio container variation formatted for customizable mobile device ringtone loops.", "Lossy", "The most common everyday compressed audio formats", "AAC", false),
+			(".opus", "IETF-standardized low-delay lossy codec utilizing SILK for speech coding and CELT for music delivery across dynamic bitrates.", "Lossy", "The most common everyday compressed audio formats", "Opus", false),
+			(".ac3", "Perceptual audio coding format delivering up to 5.1 discrete surround sound channels using psychoacoustic bitrate allocation, widely used for cinema and home theater.", "Lossy", "The most common everyday compressed audio formats", "AC-3 / Dolby Digital", false),
+			(".eac3", "Enhanced AC-3 bitstream format increasing channel counts, efficiency, and supported bitrates over traditional Dolby Digital streams.", "Lossy", "The most common everyday compressed audio formats", "E-AC-3 / Dolby Digital Plus", false),
+			(".ec3", "Alternative extension for Enhanced AC-3 surround sound bitstreams.", "Lossy", "The most common everyday compressed audio formats", "E-AC-3 / Dolby Digital Plus", false),
+			(".a52", "Raw ATSC A/52 bitstream file containing unencapsulated Dolby Digital surround audio.", "Lossy", "The most common everyday compressed audio formats", "AC-3 / Dolby Digital", false),
+			(".amr", "Adaptive Multi-Rate audio bitstream designed for speech coding using Algebraic Code-Excited Linear Prediction algorithms, historically the standard voice codec for GSM phones.", "Lossy", "The most common everyday compressed audio formats", "AMR-NB, AMR-WB / G.722.2", false),
+			(".awb", "Wideband Adaptive Multi-Rate speech stream operating at higher sample rates to improve voice clarity.", "Lossy", "The most common everyday compressed audio formats", "AMR-WB / G.722.2, AMR-WB+", false),
+			(".evrc", "Enhanced Variable Rate Codec format dynamically adjusting speech bitrate according to background noise levels.", "Lossy", "The most common everyday compressed audio formats", "EVRC / EVRC-B / EVRC-WB", false),
+			(".qcp", "Qualcomm Code Excited Linear Prediction format wrapping variable-rate speech data into RIFF chunks.", "Lossy", "The most common everyday compressed audio formats", "EVRC / EVRC-B / EVRC-WB, QCELP", false),
+			(".gsm", "Full Rate speech coding audio file format based on Regular Pulse Excitation - Long Term Prediction algorithms, one of the original GSM cellular voice codecs.", "Lossy", "The most common everyday compressed audio formats", "GSM 06.10", false),
+			(".spx", "Patent-free speech compression codec based on CELP algorithm variations, optimized for low latency and voice processing features.", "Lossy", "The most common everyday compressed audio formats", "Speex", false),
+			(".ilbc", "Internet Low Bitrate Codec designed for speech over IP networks, offering robust packet-loss concealment per frame.", "Lossy", "The most common everyday compressed audio formats", "iLBC", false),
+			(".ulaw", "Raw audio file encoded with North American and Japanese standard ITU-T G.711 logarithmic companding for speech compression.", "Lossy", "The most common everyday compressed audio formats", "G.711 (u-law)", false),
+			(".alaw", "Raw audio file encoded with European standard ITU-T G.711 logarithmic companding for voice data.", "Lossy", "The most common everyday compressed audio formats", "G.711 (A-law)", false),
+			(".g722", "Standardized wideband speech codec utilizing Sub-band Adaptive Differential Pulse Code Modulation operating at a 16 kHz sample rate.", "Lossy", "The most common everyday compressed audio formats", "G.722", false),
+			(".g726", "ADPCM speech coding format compressing PCM audio into low-bitrate streams for telecommunications.", "Lossy", "The most common everyday compressed audio formats", "G.726", false),
+			(".g729", "Narrowband speech codec utilizing Conjugate-Structure Algebraic-Code-Excited Linear-Prediction to encode voice at very low bitrates.", "Lossy", "The most common everyday compressed audio formats", "G.729", false),
+			(".g723", "Dual-rate speech codec utilizing multipulse Maximum Likelihood Quantization and CELP algorithms for telecom applications.", "Lossy", "The most common everyday compressed audio formats", "G.723.1", false),
+			(".silk", "Variable bitrate audio compression format utilizing linear predictive coding for speech transmission, developed for Skype.", "Lossy", "The most common everyday compressed audio formats", "Silk (Skype)", false),
+			(".siren", "Wideband audio codec developed for teleconferencing systems using Transform-domain Weighted Interleave Vector Quantization.", "Lossy", "The most common everyday compressed audio formats", "Siren", false),
+			(".at3", "Adaptive Transform Acoustic Coding bitstream using sub-band coding and psychoacoustic masking, developed by Sony for Walkman and MiniDisc devices.", "Lossy", "The most common everyday compressed audio formats", "ATRAC / ATRAC3", false),
+			(".oma", "OpenMG Audio container format wrapping ATRAC-compressed streams with embedded DRM protection frameworks.", "Lossy", "The most common everyday compressed audio formats", "ATRAC / ATRAC3", false),
+			(".aa3", "ATRAC3 audio file variant used within Sony software and hardware playback systems.", "Lossy", "The most common everyday compressed audio formats", "ATRAC / ATRAC3", false),
+			(".mp2", "Earlier MPEG perceptual audio layer offering less compression efficiency than MP3, historically used in broadcast and digital radio.", "Lossy", "The most common everyday compressed audio formats", "MP2 (MPEG-1/2 Layer II)", false),
+			(".mp1", "Original MPEG audio layer with the simplest psychoacoustic model of the three, largely superseded by Layer II and III.", "Lossy", "The most common everyday compressed audio formats", "MP1 (MPEG-1/2 Layer I)", false),
+			(".vqf", "Transform-domain audio format co-developed by NTT and Yamaha, utilizing Vector Quantization to compress audio at low bitrates.", "Lossy", "The most common everyday compressed audio formats", "VQF (TwinVQ)", false),
+			(".swf", "Shockwave Flash vector graphic container packaging sound assets encoded in Nellymoser or similar low-bitrate codecs.", "Lossy", "The most common everyday compressed audio formats", "Nellymoser ASAO", false),
+
+			// Lossy / Container - lossy-encoded audio wrapped inside a general multimedia container
+			(".mp4", "MPEG-4 Part 14 multimedia container storing synchronized audio bitstreams alongside metadata, menus, or video tracks.", "Lossy / Container", "Lossy-encoded audio wrapped inside a general multimedia container", "AAC, MP4 audio", false),
+			(".ogg", "Open-source multimedia container managed by Xiph.Org designed to multiplex lossy codecs like Vorbis or Opus into streamable packets.", "Lossy / Container", "Lossy-encoded audio wrapped inside a general multimedia container", "Vorbis, Opus, CELT, OGG", false),
+			(".oga", "Official Xiph.Org file extension designated specifically for audio-only content stored inside an OGG container.", "Lossy / Container", "Lossy-encoded audio wrapped inside a general multimedia container", "Vorbis, OGG", false),
+			(".flv", "Flash Video container encoding audio frames using legacy bitstream protocols like Nellymoser or AAC.", "Lossy / Container", "Lossy-encoded audio wrapped inside a general multimedia container", "Nellymoser ASAO, Flash Video audio", false),
+			(".rmvb", "RealMedia Variable Bitrate container varying compression dynamically according to image/sound complexity.", "Lossy / Container", "Lossy-encoded audio wrapped inside a general multimedia container", "RealAudio, RealMedia", false),
+
+			// Lossless - formats that preserve full audio fidelity, popular for archiving and audiophile use
+			(".flac", "Free Lossless Audio Codec format using linear prediction algorithms to compress digital audio without removing any original acoustic data.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "FLAC", true),
+			(".alac", "ALAC stands for Apple Lossless Audio Codec. A codec is a piece of computer code or a program that compresses (shrinks) and decompresses data.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "ALAC", true),
+			(".caf", "Core Audio Format container designed by Apple to break 4GB file boundaries using 64-bit offsets for high-capacity audio storage.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "ALAC, Core Audio Format", false),
+			(".ape", "Highly efficient lossless audio compression format popular for archiving, trading complex encode/decode CPU cost for strong file-size reduction with no quality loss.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "Monkey's Audio", false),
+			(".wv", "Flexible audio compression format featuring a hybrid mode that generates a lossy file alongside a correction file to restore the lossless original.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "WavPack", false),
+			(".pcm", "Raw headerless digital audio file consisting of sequential binary pulse-code modulation signal samples.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "PCM", false),
+			(".raw", "Unformatted binary sample file lacking standard header information, requiring manual specification of sampling rate, bit depth, and channels.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "PCM", false),
+			(".bwf", "Extension of the standard WAV format incorporating broadcast-specific metadata chunks like timestamping and origin identifiers.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "BWF (Broadcast Wave Format)", false),
+			(".rf64", "64-bit extension of the RIFF/WAV format replacing the 4GB file size limit with a 64-bit address space for long multi-channel recordings.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "RF64", false),
+			(".tta", "Simple real-time lossless audio compressor operating on 8, 16, and 24-bit PCM data using adaptive predictive filtering.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "TTA (True Audio)", false),
+			(".shn", "Early lossless compression format utilizing waveform differential predictive coding for archiving digital audio files.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "Shorten", false),
+			(".mlp", "Proprietary lossless coding system applying matrixing and Huffman coding to compress multi-channel audio data.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "MLP (Meridian Lossless Packing)", false),
+			(".dtshd", "High-definition audio extension containing a core DTS bitstream alongside lossless extension data for full bit-for-bit master reproduction.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "DTS-HD Master Audio", false),
+			(".thd", "Lossless audio bitstream format built on Meridian Lossless Packing technology to deliver high-bandwidth, multi-channel surround sound.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "Dolby TrueHD", false),
+			(".truehd", "Alternative long extension for Meridian Lossless Packing-based Dolby TrueHD multi-channel audio tracks.", "Lossless", "Formats that preserve full audio fidelity, popular for archiving and audiophile use", "Dolby TrueHD", false),
+
+			// Lossless / Container - uncompressed audio wrapped in a structured container
+			(".aiff", "Audio Interchange File Format developed by Apple, storing uncompressed PCM sample data in big-endian byte order inside IFF chunk structures.", "Lossless / Container", "Uncompressed audio wrapped in a structured container", "PCM, AIFF", false),
+			(".aifc", "Compressed variant of the Audio Interchange File Format capable of wrapping both compressed and uncompressed audio chunks.", "Lossless / Container", "Uncompressed audio wrapped in a structured container", "AIFF-C (lossless), AIFF", false),
+
+			// Lossless / Lossy / Container - container or format able to hold either lossless or lossy encoded audio
+			(".m4a", "MPEG-4 audio container designed to wrap lossy Advanced Audio Coding streams or lossless Apple Lossless streams into a lightweight file structure.", "Lossless / Lossy / Container", "Container or format able to hold either lossless or lossy encoded audio", "ALAC, AAC, HE-AAC/AAC+, xHE-AAC, AAC-ELD, MP4 audio", true),
+			(".wav", "Uncompressed or raw audio format based on the Resource Interchange File Format structure, storing pulse-code modulation data across studios and digital audio workstations.", "Lossless / Lossy / Container", "Container or format able to hold either lossless or lossy encoded audio", "PCM, BWF, RF64, G.711, G.726, RIFF/WAV", false),
+			(".wma", "Windows Media Audio stream compressed using Microsoft's proprietary compression algorithms ranging from low-bitrate voice to full lossless configurations.", "Lossless / Lossy / Container", "Container or format able to hold either lossless or lossy encoded audio", "WMA Lossless, WMA, WMA Pro, WMA Voice, ASF", false),
+			(".ra", "RealAudio file format housing proprietary lossy or lossless audio streams designed for streaming over low-bandwidth dial-up connections.", "Lossless / Lossy / Container", "Container or format able to hold either lossless or lossy encoded audio", "RealAudio Lossless, RealAudio, Cook, RealMedia", false),
+			(".rm", "RealMedia multimedia container packaging RealAudio bitstreams alongside control tracks.", "Lossless / Lossy / Container", "Container or format able to hold either lossless or lossy encoded audio", "RealAudio Lossless, RealAudio, RealMedia", false),
+
+			// Lossless / Lossy - single format spanning both fully lossless and compressed variants
+			(".dts", "Digital Theater Systems bitstream delivering multi-channel surround sound via perceptual audio coding, used primarily in cinema and home theater systems.", "Lossless / Lossy", "Single format spanning both fully lossless and compressed variants", "DTS-HD Master Audio, DTS, DTS Express, DTS:X", false),
+
+			// Lossless / Lossy / Legacy - legacy format spanning both compression types plus old telephony encodings
+			(".au", "Header-based audio file format introduced by Sun Microsystems, capable of storing uncompressed PCM or companded G.711 speech samples.", "Lossless / Lossy / Legacy", "Legacy format spanning both compression types plus old telephony encodings","PCM, G.711, AU (Sun/NeXT)", false),
+
+			// Container - general multimedia containers primarily used for video/audio distribution
+			(".mov", "Apple QuickTime multimedia container storing structured tracks of compressed or uncompressed audio with timecode references.", "Container", "General multimedia containers primarily used for video/audio distribution", "QuickTime", false),
+			(".webm", "Royalty-free HTML5-focused media container based on Matroska, optimized for web playback of audio encoded in Opus or Vorbis.", "Container", "General multimedia containers primarily used for video/audio distribution", "WebM audio", false),
+			(".asf", "Advanced Systems Format container structured around GUID-identified objects to multiplex compressed audio streams and metadata.", "Container", "General multimedia containers primarily used for video/audio distribution", "ASF / Windows Media", false),
+			(".mka", "Extensible open-standard audio-only container based on EBML (Extensible Binary Meta Language) housing arbitrary audio codecs.", "Container", "General multimedia containers primarily used for video/audio distribution", "Matroska Audio", false),
+			(".mxf", "Material Exchange Format container storing audio essence with associated descriptive structural metadata for professional production workflows.", "Container", "General multimedia containers primarily used for video/audio distribution", "MXF", false),
+			(".ts", "MPEG-2 Transport Stream container multiplexing packetized audio streams with error-correction capabilities for noisy communication channels.", "Container", "General multimedia containers primarily used for video/audio distribution", "MPEG transport stream", false),
+			(".mts", "High-definition AVCHD video and audio file format utilizing modified MPEG transport stream packetizing.", "Container", "General multimedia containers primarily used for video/audio distribution", "MPEG transport stream", false),
+			(".m2ts", "Blu-ray Disc audio/video container format based on the MPEG-2 transport stream, modified with a 4-byte timestamp prefix per packet.", "Container", "General multimedia containers primarily used for video/audio distribution", "LPCM in MPEG", false),
+			(".ogx", "Xiph.Org container extension used for multiplexed application-level streams and complex media sessions.", "Container", "General multimedia containers primarily used for video/audio distribution", "OGG", false),
+			(".f4a", "MPEG-4 audio file variant structured for Flash Player media distribution.", "Container", "General multimedia containers primarily used for video/audio distribution", "Flash Video audio", false),
+			(".3gp", "Simplified multimedia container format defined by the 3rd Generation Partnership Project for low-bandwidth mobile transmission.", "Container", "General multimedia containers primarily used for video/audio distribution", "3GPP audio", false),
+			(".3g2", "3GPP2 media container optimized for CDMA-based cellular network delivery.", "Container", "General multimedia containers primarily used for video/audio distribution", "3GPP audio", false),
+			(".qt", "Alternative extension for Apple QuickTime movie and audio container files.", "Container", "General multimedia containers primarily used for video/audio distribution", "QuickTime", false),
+			(".aif", "Three-character extension variation for uncompressed Audio Interchange File Format audio files.", "Container", "General multimedia containers primarily used for video/audio distribution", "AIFF", false),
+
+			// Legacy / Tracker - old-school module/tracker music formats
+			(".mod", "Module file format combining digital instrument sound samples with musical score pattern tracks.", "Legacy / Tracker", "Old-school module/tracker music formats", "MOD", false),
+			(".xm", "FastTracker 2 module format supporting 16-bit sound samples, multi-sample instruments, volume envelope controls, and effects tracks.", "Legacy / Tracker", "Old-school module/tracker music formats", "XM (Extended Module)", false),
+			(".it", "Impulse Tracker module file utilizing sample compression, resonant filters, and instrument envelope controls.", "Legacy / Tracker", "Old-school module/tracker music formats", "IT (Impulse Tracker)", false),
+			(".s3m", "Scream Tracker 3 module format supporting up to 16 digital audio channels and custom tracker effects.", "Legacy / Tracker", "Old-school module/tracker music formats", "S3M", false),
+
+			// Legacy / Sound Card - vintage computer and sound-card-native audio formats
+			(".voc", "Headered audio format developed for early PC sound cards, capable of housing PCM, ADPCM, and silence markers.", "Legacy / Sound Card", "Vintage computer and sound-card-native audio formats", "VOC (Creative Voice)", false),
+			(".snd", "Alternative extension for Sun/NeXT audio files or sound resources on legacy computing architectures.", "Legacy / Sound Card", "Vintage computer and sound-card-native audio formats", "AU (Sun/NeXT)", false),
+			(".iff", "Interchange File Format chunk-based structure housing 8-bit sample data and audio metadata.", "Legacy / Sound Card", "Vintage computer and sound-card-native audio formats", "8SVX / IFF (Amiga)", false),
+			(".8svx", "8-Bit Sampled Voice sub-format within the IFF standard designed for digital playback on Amiga systems.", "Legacy / Sound Card", "Vintage computer and sound-card-native audio formats", "8SVX / IFF (Amiga)", false),
+			(".sd2", "Monophonic or stereophonic audio file format storing waveform data alongside audio resource forks.", "Legacy / Sound Card", "Vintage computer and sound-card-native audio formats", "SD2 (Sound Designer II)", false),
+
+			// Game / Console - platform-specific formats designed for video game consoles
+			(".adx", "Audio file format utilizing ADPCM encoding with looping points for interactive media and video game sound drivers.", "Game / Console", "Platform-specific formats designed for video game consoles", "ADX (CRI Middleware)", false),
+			(".xa", "eXtended Architecture audio stream containing multi-channel ADPCM data designed for hardware decoding, used on the original PlayStation.", "Game / Console", "Platform-specific formats designed for video game consoles", "XA (PlayStation)", false),
+			(".xma", "Hardware-accelerated lossy audio format based on WMA Pro, optimized for video game console playback.", "Game / Console", "Platform-specific formats designed for video game consoles", "XMA / XMA2", false),
+			(".xwma", "Compressed WMA-based audio structure optimized for memory-constrained game hardware buffers.", "Game / Console", "Platform-specific formats designed for video game consoles", "XWMA (Xbox)", false),
+			(".dsp", "Game hardware audio format containing ADPCM sound samples with custom looping flags and coefficients, used on Nintendo GameCube and Wii.", "Game / Console", "Platform-specific formats designed for video game consoles", "DSP (Nintendo GCN/Wii)", false),
+			(".adp", "Alternative file extension for game system ADPCM audio streams.", "Game / Console", "Platform-specific formats designed for video game consoles", "DSP (Nintendo GCN/Wii)", false),
+		};
+
+		for (int i = 0; i < seedFormats.Length; i++)
+		{
+			var format = seedFormats[i];
+			await _database.ExecuteAsync(upsertSql,
+				format.Extension, format.Description, format.Category, format.CategoryDescription,
+				format.Codecs, i, format.DefaultEnabled ? 1 : 0);
 		}
 	}
 
@@ -462,7 +586,7 @@ public class DatabaseHelper
 	/// <see cref="MusicFormatModel"/> entries.</returns>
 	public async Task<List<MusicFormatModel>> GetAllMusicFormats()
 	{
-		return await _database.QueryAsync<MusicFormatModel>("SELECT Extension, Description, Enabled FROM MusicFormats ORDER BY rowid ASC");
+		return await _database.QueryAsync<MusicFormatModel>("SELECT * FROM MusicFormats ORDER BY SortOrder");
 	}
 
 	/// <summary>

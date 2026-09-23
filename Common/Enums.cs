@@ -9,16 +9,35 @@
 /// This enum controls how playback behaves when the end of the playlist is reached.
 /// It includes options for disabling repeat, repeating a single track, or repeating the entire playlist.
 /// </summary>
-public enum RepeatMode { None, One, All }
+public enum RepeatMode
+{
+	None,
+	One,
+	All
+}
 
 /// <summary>
 /// Specifies the shuffle modes available for the music player.
 /// This enum defines whether the playlist should be played in sequential order or in a randomized order.
 /// The shuffle mode impacts the playback sequence when enabled.
 /// </summary>
-public enum ShuffleMode { Off, On }
+public enum ShuffleMode
+{
+	Off,
+	On
+}
 
-public enum FadeType { None, Manual, AutoAdvance }
+/// <summary>
+/// Identifies the trigger for a volume fade applied during a track transition in the music player.
+/// It distinguishes between no fade, a user-initiated (manual) track change, and an automatic advance
+/// when the current track ends, so the matching fade-duration setting can be selected for the transition.
+/// </summary>
+public enum FadeType
+{
+	None,
+	Manual,
+	AutoAdvance
+}
 
 // ─────────────────────────────────────────────────────────────
 //  Backend enums
@@ -80,6 +99,11 @@ public enum ArtistRuleType
 	Exception
 }
 
+/// <summary>
+/// Specifies which song fields a search query is restricted to.
+/// Used by the search API to scope full-text matching to titles, artists or albums,
+/// or to search all indexed fields (including genre and year) when no restriction is desired.
+/// </summary>
 public enum SearchScope
 {
 	All,
@@ -89,7 +113,50 @@ public enum SearchScope
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Infrastructure/Helper enums
+//  Overlay enums
+// ─────────────────────────────────────────────────────────────
+
+/// <summary>
+/// The visual theme applied to the overlay grid.
+/// </summary>
+public enum OverlayTheme
+{
+	Dark,
+	Light
+}
+
+/// <summary>
+/// All available overlay layout styles.
+/// Each value has a display name used in user-facing dropdowns.
+/// </summary>
+public enum OverlayLayout
+{
+	CompactPill,
+	HoverReveal,
+	WaveformEdge,
+	MarqueeTicker,
+	LeftPill,
+	RightDock,
+	FullArtBar,
+	WaveformOnly,
+	AccentAncientScroll,
+	IconStrip,
+	StackedInfo,
+	CenteredPill,
+	TopAccentStripe,
+	BottomAccentStripe,
+	AlbumTint,
+	TextOnly,
+	TextOnlyReversed,
+	ArcRing,
+	QueuePreview,
+	ArtistBadge,
+	TopAlbumAccentStripe,
+	AlbumTintProgress
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Infrastructure enums
 // ─────────────────────────────────────────────────────────────
 
 /// <summary>
@@ -102,6 +169,23 @@ public enum DiskKind
 	SataSSD,
 	NvmeSSD,
 }
+
+/// <summary>
+/// Identifies the kind of single file-system change detected in the music libraries —
+/// a file was created, modified, deleted or renamed. Forwarded by the library watcher and the
+/// auto-scan reconciler to the file-change handler for incremental database updates outside a full scan.
+/// </summary>
+public enum FileChangeType
+{
+	Created,
+	Modified,
+	Deleted,
+	Renamed
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Helper enums
+// ─────────────────────────────────────────────────────────────
 
 /// <summary>
 /// Represents the folder locations where thumbnail images are stored.
@@ -208,49 +292,3 @@ public enum LocalSave
 	PostUpdateScanDoneVersion
 }
 
-/// <summary>
-/// The visual theme applied to the overlay grid.
-/// </summary>
-public enum OverlayTheme
-{
-	Dark,
-	Light
-}
-
-/// <summary>
-/// All available overlay layout styles.
-/// Each value has a display name used in user-facing dropdowns.
-/// </summary>
-public enum OverlayLayout
-{
-	CompactPill,
-	HoverReveal,
-	WaveformEdge,
-	MarqueeTicker,
-	LeftPill,
-	RightDock,
-	FullArtBar,
-	WaveformOnly,
-	AccentAncientScroll,
-	IconStrip,
-	StackedInfo,
-	CenteredPill,
-	TopAccentStripe,
-	BottomAccentStripe,
-	AlbumTint,
-	TextOnly,
-	TextOnlyReversed,
-	ArcRing,
-	QueuePreview,
-	ArtistBadge,
-	TopAlbumAccentStripe,
-	AlbumTintProgress
-}
-
-public enum FileChangeType
-{
-	Created,
-	Modified,
-	Deleted,
-	Renamed
-}
