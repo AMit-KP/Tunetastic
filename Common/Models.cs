@@ -1,4 +1,7 @@
-﻿using SQLite;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using SQLite;
 
 namespace Tunetastic.Common;
 
@@ -55,7 +58,70 @@ public class MusicFormatModel
 	[PrimaryKey]
 	public string Extension { get; set; } = string.Empty;
 	public string Description { get; set; } = string.Empty;
+	public string Category { get; set; } = string.Empty;
+	public string CategoryDescription { get; set; } = string.Empty;
+	public string Codecs { get; set; } = string.Empty;
+	public int SortOrder { get; set; }
 	public bool Enabled { get; set; }
+}
+
+/// <summary>
+/// Represents a grouped category of supported music file formats shown on the settings page.
+/// Implements change notifications so the category header badge (showing the enabled/total
+/// extension count) refreshes dynamically as individual formats are toggled.
+/// </summary>
+public class MusicFormatCategoryModel : INotifyPropertyChanged
+{
+	public string? Category { get; set; }
+	public string? CategoryDescription { get; set; }
+	public ObservableCollection<MusicFormatModel>? Items { get; set; }
+
+	private bool _categoryEnabled;
+	public bool CategoryEnabled
+	{
+		get => _categoryEnabled;
+		set
+		{
+			if (_categoryEnabled != value)
+			{
+				_categoryEnabled = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the number of extensions currently enabled within this category.
+	/// </summary>
+	public int EnabledCount => Items?.Count(i => i.Enabled) ?? 0;
+
+	/// <summary>
+	/// Gets the accent pill badge text shown next to the category name on the settings page,
+	/// displaying the ratio of enabled extensions to total extensions, e.g. "1/11".
+	/// </summary>
+	public string EnabledBadge => $"{EnabledCount}/{Items?.Count ?? 0}";
+
+	/// <summary>
+	/// Gets a value indicating whether the category has at least one enabled extension,
+	/// controlling the visibility of the enabled/total count pill badge.
+	/// </summary>
+	public bool HasEnabledFormats => EnabledCount > 0;
+
+	/// <summary>
+	/// Raises change notifications for the count-dependent display properties,
+	/// refreshing the category header badge after the enabled states of its items change.
+	/// </summary>
+	public void RefreshCount()
+	{
+		OnPropertyChanged(nameof(EnabledCount));
+		OnPropertyChanged(nameof(EnabledBadge));
+		OnPropertyChanged(nameof(HasEnabledFormats));
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
 /// <summary>
@@ -256,4 +322,11 @@ public class SongFtsSourceRow
 	public string Genre { get; set; } = string.Empty;
 	public string Year { get; set; } = string.Empty;
 	public string Artists { get; set; } = string.Empty;
+}
+
+public class PragmaTableInfo
+{
+	public int Cid { get; set; }
+	public string? Name { get; set; }
+	public string? Type { get; set; }
 }

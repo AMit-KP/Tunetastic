@@ -20,41 +20,22 @@ namespace Tunetastic.Views;
 /// </remarks>
 public sealed partial class SettingsPage : Page
 {
-	/// <summary>
-	/// Represents a collection of music library directories stored as an ObservableCollection.
-	/// </summary>
-	/// <remarks>
-	/// The Libraries property is used to manage and store the list of music libraries within
-	/// the application. It allows binding to the UI for updates and manipulation of library data.
-	/// This property supports adding, removing, and saving directories representing user-selected
-	/// music folders. Folders are uniquely stored based on their Path property to avoid duplicates.
-	/// Data for Libraries is initially loaded from a binary file serialized as a LibraryList object.
-	/// Changes to the Libraries collection are also persisted back to the binary file.
-	/// </remarks>
 	public ObservableCollection<LibraryModel> Libraries
 	{
 		get; set;
 	} = new();
 
-	/// <summary>
-	/// Represents a collection of file format configurations stored as an ObservableCollection.
-	/// </summary>
-	/// <remarks>
-	/// The AllFormats property manages the list of supported file formats used for scanning tracks
-	/// in the application. Each format is represented as a `Format` object, which includes
-	/// properties such as file extension, enabled status, and description.
-	/// This property is used to bind the list of formats to the UI for display and interaction.
-	/// Updates to the formats, such as enabling or disabling specific formats, are reflected
-	/// through this collection. The enabled formats are used to generate a dynamic description
-	/// of allowed file extensions for file scanning tasks.
-	/// Initially, the AllFormats collection is populated from a binary file storing a serialized
-	/// `FormatList` object. Changes made to the collection are persisted back to the binary file
-	/// to ensure consistency across application sessions.
-	/// </remarks>
 	public ObservableCollection<MusicFormatModel> AllFormats
 	{
 		get; set;
 	} = new();
+
+	public ObservableCollection<MusicFormatCategoryModel> CategorizedFormats
+	{
+		get; set;
+	} = new();
+
+	public MusicFormatCategoryModel? SelectedCategory { get; set; }
 
 	public SettingViewModel ViewModel { get; }
 
@@ -312,6 +293,70 @@ public sealed partial class SettingsPage : Page
 		AllFormats.Clear();
 		AllFormats.AddRange(formatList);
 
+		RebuildCategorizedFormats();
+
+		ExtensionDescription();
+	}
+
+	private void RebuildCategorizedFormats()
+	{
+		var grouped = AllFormats
+			.GroupBy(f => f.Category)
+			.Select(g => new MusicFormatCategoryModel
+			{
+				Category = g.Key,
+				CategoryDescription = g.First().CategoryDescription,
+				Items = new ObservableCollection<MusicFormatModel>(g)
+			}).ToList();
+
+		CategorizedFormats.Clear();
+		CategorizedFormats.AddRange(grouped);
+
+		foreach (var cat in grouped)
+		{
+			if (cat.Items != null)
+				cat.CategoryEnabled = cat.Items.All(i => i.Enabled);
+		}
+	}
+
+	private async void Ext_ToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
+	{
+		var toggle = sender as ToggleSwitch;
+
+		if (toggle == null) return;
+
+		if (toggle.DataContext is MusicFormatModel format)
+			format.Enabled = toggle.IsOn;
+
+		RefreshCategoryHeaderCounts();
+
+		await VerifyToggleStatusAgainstDB();
+
+		ExtensionDescription();
+	}
+
+	/// <summary>
+	/// Refreshes every category header so the accent pill badge (enabled/total extension count)
+	/// stays up to date after individual extension toggles change.
+	/// </summary>
+	private void RefreshCategoryHeaderCounts()
+	{
+		foreach (var category in CategorizedFormats)
+			category.RefreshCount();
+	}
+
+	private async Task VerifyToggleStatusAgainstDB()
+	{
+		var formatListFromDB = await DatabaseHelper.Instance.GetAllMusicFormats();
+
+		var inSync = formatListFromDB.Zip(AllFormats, (db, ui) => db.Extension == ui.Extension && db.Enabled == ui.Enabled)
+									 .All(match => match);
+
+		ExtensionConfirmButton.Visibility = inSync ? Visibility.Collapsed : Visibility.Visible;
+	}
+
+	private void ExtensionDescription()
+	{
 		var enabledExtensions = AllFormats.Where(f => f.Enabled).Select(f => f.Extension.TrimStart('.')).ToList();
 
 		var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
@@ -319,36 +364,83 @@ public sealed partial class SettingsPage : Page
 		FileExt.Description = description;
 	}
 
-	/// <summary>
-	/// Handles the toggled event for the file extension toggle switches on the settings page.
-	/// This method updates the state of the relevant file format, ensures that at least one
-	/// format is enabled, updates the global description, and persists the changes to the binary data file.
-	/// </summary>
-	/// <param name="sender">The source of the event, representing the toggle switch being toggled.</param>
-	/// <param name="e">Event data that provides information about the toggled event.</param>
-	private async void Ext_ToggleSwitch_OnToggled(object sender, RoutedEventArgs e)
+	private async void ExtensionConfirmButton_Click(object sender, RoutedEventArgs e)
 	{
-		var toggle = sender as ToggleSwitch;
-		if (toggle != null)
+		if (AllFormats.All(f => !f.Enabled))
 		{
-			await DatabaseHelper.Instance.SetMusicFormatEnabled(extension: toggle.Name, enabled: toggle.IsOn);
-
-			if (AllFormats.All(e => e.Enabled == false))
-				GlobalNotification.Warning("At least one format must be enabled");
-
-			var enabledExtensions = AllFormats.Where(f => f.Enabled).Select(f => f.Extension.TrimStart('.')).ToList();
-
-			var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
-
-			FileExt.Description = description;
-
-			GlobalNotification.Info("Please do a Full Scan.");
-			/* NOTE Uncomment after one confirmation added for extensions
-			await Task.Delay(300);
-			FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);*/
+			GlobalNotification.Warning("At least one format must be enabled");
+			return;
 		}
 
-		//TODO add one confirmation for all
+		foreach (var format in AllFormats)
+			await DatabaseHelper.Instance.SetMusicFormatEnabled(extension: format.Extension, enabled: format.Enabled);
+
+		ExtensionConfirmButton.Visibility = Visibility.Collapsed;
+
+		GlobalNotification.Info("Please do a Full Scan.");
+		await Task.Delay(300);
+		FullScanButton.HighlightAndBringIntoView(pulses: 3, pulseDurationMs: 1000);
+	}
+
+	private async void ConfigureCategoryButton_Click(object sender, RoutedEventArgs e)
+	{
+		var button = (Button)sender;
+		var category = (MusicFormatCategoryModel)button.Tag;
+
+		var ExtensionsDialog = new ContentDialog()
+		{
+			XamlRoot = App.MainWindow.Content.XamlRoot,
+			RequestedTheme = App.Current.ThemeService.ActualTheme,
+			PrimaryButtonText = "Close",
+			DefaultButton = ContentDialogButton.Primary,
+			MinWidth = 600,
+			Height = 600,
+		};
+
+		ExtensionsDialog.Title = category.Category;
+
+		var itemsControl = new ItemsControl { ItemsSource = category.Items };
+		itemsControl.ItemTemplate = (DataTemplate)Resources["ExtensionCardTemplate"];
+
+		ExtensionsDialog.Content = new ScrollViewer
+		{
+			Content = itemsControl
+		};
+
+		MainWindow._instance?.WindowResizePermission(false);
+		await ExtensionsDialog.ShowAsync();
+		MainWindow._instance?.WindowResizePermission(true);
+
+		bool allEnabled = category.Items!.All(i => i.Enabled);
+		category.CategoryEnabled = allEnabled;
+		category.RefreshCount();
+
+		var parentPanel = (StackPanel)button.Parent;
+		var categoryToggle = parentPanel.Children.OfType<ToggleSwitch>().FirstOrDefault();
+		if (categoryToggle != null)
+		{
+			categoryToggle.Toggled -= ExtCatToggleSwitch_Toggled;
+			categoryToggle.IsOn = allEnabled;
+			categoryToggle.Toggled += ExtCatToggleSwitch_Toggled;
+		}
+	}
+
+	private async void ExtCatToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+	{
+		var toggle = (ToggleSwitch)sender;
+		var category = (MusicFormatCategoryModel)toggle.Tag;
+
+		if (category == null) return;
+
+		foreach (var item in category.Items!)
+			item.Enabled = toggle.IsOn;
+
+		category.CategoryEnabled = toggle.IsOn;
+		category.RefreshCount();
+
+		await VerifyToggleStatusAgainstDB();
+
+		ExtensionDescription();
 	}
 
 	/// <summary>

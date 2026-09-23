@@ -13,6 +13,23 @@
 
 	<Page.Resources>
 		<overlay:OverlayLayoutCatalog x:Key="LayoutProvider" />
+		<DataTemplate x:Key="ExtensionCardTemplate"
+		              x:DataType="common:MusicFormatModel">
+			<dev:SettingsCard Description="{x:Bind Description}">
+				<dev:SettingsCard.Header>
+					<TextBlock>
+						<Run Text="{x:Bind Extension}" />
+						<LineBreak />
+						<Run FontStyle="Italic"
+						     FontWeight="Thin"
+						     Text="{x:Bind Codecs}" />
+					</TextBlock>
+				</dev:SettingsCard.Header>
+				<ToggleSwitch Name="{x:Bind Extension}"
+				              IsOn="{x:Bind Enabled, Mode=TwoWay}"
+				              Toggled="Ext_ToggleSwitch_OnToggled" />
+			</dev:SettingsCard>
+		</DataTemplate>
 	</Page.Resources>
 
 	<ScrollView Margin="{ThemeResource ContentPageMargin}"
@@ -56,14 +73,49 @@
 
 			<dev:SettingsExpander x:Name="FileExt"
 			                      Header="File Extensions"
-			                      ItemsSource="{x:Bind AllFormats, Mode=TwoWay}">
+			                      ItemsSource="{x:Bind CategorizedFormats}">
+				<StackPanel>
+					<Button x:Name="ExtensionConfirmButton"
+					        Click="ExtensionConfirmButton_Click"
+					        Content="Confirm Selections"
+					        Style="{ThemeResource AccentButtonStyle}"
+					        Visibility="Collapsed" />
+				</StackPanel>
 				<dev:SettingsExpander.ItemTemplate>
-					<DataTemplate x:DataType="common:MusicFormatModel">
-						<dev:SettingsCard Description="{x:Bind Description}"
-						                  Header="{x:Bind Extension}">
-							<ToggleSwitch Name="{x:Bind Extension}"
-							              IsOn="{x:Bind Enabled, Mode=TwoWay}"
-							              Toggled="Ext_ToggleSwitch_OnToggled" />
+					<DataTemplate x:DataType="common:MusicFormatCategoryModel">
+						<dev:SettingsCard x:Name="ExtensionCats"
+						                  Description="{x:Bind CategoryDescription}">
+							<dev:SettingsCard.Header>
+								<StackPanel Orientation="Horizontal"
+								            Spacing="8">
+									<TextBlock Text="{x:Bind Category}" />
+									<Border Padding="6,0"
+									        VerticalAlignment="Center"
+									        Background="{ThemeResource AccentFillColorDefaultBrush}"
+									        CornerRadius="8"
+									        Visibility="{x:Bind HasEnabledFormats, Mode=OneWay, Converter={StaticResource BoolToVisibility}}">
+										<TextBlock Margin="0,0,0,1"
+										           HorizontalAlignment="Center"
+										           VerticalAlignment="Center"
+										           FontWeight="SemiBold"
+										           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+										           Style="{ThemeResource CaptionTextBlockStyle}"
+										           Text="{x:Bind EnabledBadge, Mode=OneWay}"
+										           TextAlignment="Center" />
+									</Border>
+								</StackPanel>
+							</dev:SettingsCard.Header>
+							<StackPanel Orientation="Horizontal"
+							            Spacing="10">
+								<ToggleSwitch IsOn="{x:Bind CategoryEnabled}"
+								              OffContent="Turn on all"
+								              OnContent="Turn off all"
+								              Tag="{x:Bind}"
+								              Toggled="ExtCatToggleSwitch_Toggled" />
+								<Button Click="ConfigureCategoryButton_Click"
+								        Content="Configure"
+								        Tag="{x:Bind}" />
+							</StackPanel>
 						</dev:SettingsCard>
 					</DataTemplate>
 				</dev:SettingsExpander.ItemTemplate>
