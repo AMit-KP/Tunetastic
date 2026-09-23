@@ -73,29 +73,7 @@ public sealed partial class SettingsPage : Page
 
 		LoadAboutSectionSettings();
 
-		Theme.SelectionChanged += Theme_SelectionChanged;
-		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
-		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
-		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
-		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
-		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
-		ArtistsToggle.Toggled += ArtistsToggle_Toggled;
-		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
-		GenresToggle.Toggled += GenresToggle_Toggled;
-		YearsToggle.Toggled += YearsToggle_Toggled;
-		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
-		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
-		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
-		//TaskBarOverlayDesign.SelectionChanged += TaskBarOverlayDesign_SelectionChanged;
-		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
-		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
-
-		#region Uncomment when crossfade is implemented properly
-		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
-		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
-		#endregion
-
-		if (GetMusicData.IsScanning) ScanButton_Click(null, null);
+		if (LibraryScanner.IsScanning) ScanButton_Click(null, null);
 		Page_ActualThemeChanged(null, null);
 	}
 
@@ -128,6 +106,12 @@ public sealed partial class SettingsPage : Page
 
 				Libraries?.Clear();
 				Libraries?.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
+
+				LibraryFolders.IsExpanded = true;
+				GlobalNotification.Info("Please do a Full Scan.");
+
+				await Task.Delay(300);
+				FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);
 			}
 		}
 		catch (Exception)
@@ -151,6 +135,18 @@ public sealed partial class SettingsPage : Page
 		{
 			await DatabaseHelper.Instance.RemoveLibrary(library);
 			Libraries.Remove(library);
+
+			if (Libraries.Count == 0)
+			{
+				AutoSyncSwitch.IsOn = false;
+				GlobalNotification.Warning("All libraries are removed. Please add atleast one.");
+			}
+			else
+			{
+				GlobalNotification.Info("Please do a Full Scan.");
+				await Task.Delay(300);
+				FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);
+			}
 		}
 	}
 
@@ -163,15 +159,15 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">Event data associated with the button click event.</param>
 	private async void ScanButton_Click(object? sender, RoutedEventArgs? e)
 	{
-		if (GetMusicData.IsScanning)
+		if (LibraryScanner.IsScanning)
 		{
 			CustomProgressBar.Visibility = Visibility.Visible;
-			Scan.IsEnabled = false;
+			FullScan.IsEnabled = false;
 
-			while (GetMusicData.IsScanning)
+			while (LibraryScanner.IsScanning)
 			{
-				ProgressFill.Width = GetMusicData.ScanProgress * 2;
-				ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
+				ProgressFill.Width = LibraryScanner.ScanProgress * 2;
+				ProgressFillText.Text = $"{LibraryScanner.ScanProgress.ToString()}%";
 				await Task.Delay(1);
 			}
 
@@ -182,8 +178,7 @@ public sealed partial class SettingsPage : Page
 				await Task.Delay(1);
 			}
 			CustomProgressBar.Visibility = Visibility.Collapsed;
-			Scan.IsEnabled = true;
-			Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
+			FullScan.IsEnabled = true;
 			return;
 		}
 		var pendingTasks = await DatabaseHelper.Instance.GetAllPendingTagWrites();
@@ -194,8 +189,8 @@ public sealed partial class SettingsPage : Page
 				Title = "Scan Libraries",
 				PrimaryButtonText = "Continue",
 				SecondaryButtonText = "Cancel",
+				RequestedTheme = App.Current.ThemeService.ActualTheme,
 				DefaultButton = ContentDialogButton.Primary,
-				Background = (Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
 
 				Content = new Grid
 				{
@@ -220,14 +215,18 @@ public sealed partial class SettingsPage : Page
 			}
 		}
 
-		Scan.IsEnabled = false;
+		FullScan.IsEnabled = false;
+		await Task.Delay(2);
 		ProgressFill.Width = 0;
 		CustomProgressBar.Opacity = 0;
 		ProgressFillText.Opacity = 0;
 		ProgressFillText.Text = "0%";
 		CustomProgressBar.Visibility = Visibility.Visible;
+		await Task.Delay(2);
 
-		_ = new GetMusicData().UpdateMetaData();
+		await LibraryWatcherService.StopWatching(drainPending: false);
+		await Task.Delay(5);
+		_ = new LibraryScanner().UpdateMetaData();
 
 		for (double i = 0; i <= 1; i += 0.1)
 		{
@@ -236,10 +235,10 @@ public sealed partial class SettingsPage : Page
 			await Task.Delay(1);
 		}
 
-		while (GetMusicData.IsScanning)
+		while (LibraryScanner.IsScanning)
 		{
-			ProgressFill.Width = GetMusicData.ScanProgress * 2;
-			ProgressFillText.Text = $"{GetMusicData.ScanProgress.ToString()}%";
+			ProgressFill.Width = LibraryScanner.ScanProgress * 2;
+			ProgressFillText.Text = $"{LibraryScanner.ScanProgress.ToString()}%";
 			await Task.Delay(1);
 		}
 
@@ -250,8 +249,8 @@ public sealed partial class SettingsPage : Page
 			await Task.Delay(1);
 		}
 		CustomProgressBar.Visibility = Visibility.Collapsed;
-		Scan.IsEnabled = true;
-		Scan.Description = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ScanResult)];
+		FullScan.IsEnabled = true;
+		await AutoScanService.ResumeIfEnabled();
 	}
 
 	/// <summary>
@@ -342,8 +341,14 @@ public sealed partial class SettingsPage : Page
 			var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
 
 			FileExt.Description = description;
-			//TODO: live update without scan
+
+			GlobalNotification.Info("Please do a Full Scan.");
+			/* NOTE Uncomment after one confirmation added for extensions
+			await Task.Delay(300);
+			FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);*/
 		}
+
+		//TODO add one confirmation for all
 	}
 
 	/// <summary>
@@ -701,6 +706,13 @@ public sealed partial class SettingsPage : Page
 
 		// TODO: set side options based on windows start position
 		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
+
+		Theme.SelectionChanged += Theme_SelectionChanged;
+		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
+		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
+		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
+		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
+		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 	}
 
 	/// <summary>
@@ -730,7 +742,7 @@ public sealed partial class SettingsPage : Page
 
 		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 
-		Scan.Description = localSettings.Values[nameof(LocalSave.ScanResult)];
+		AutoSyncSwitch.IsOn = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false");
 
 		ArtistsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ArtistsEnabled)]?.ToString() ?? "true");
 
@@ -745,6 +757,16 @@ public sealed partial class SettingsPage : Page
 		RecentlyPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true");
 
 		MostPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MostPlayedEnabled)]?.ToString() ?? "true");
+
+		ArtistsToggle.Toggled += ArtistsToggle_Toggled;
+		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
+		GenresToggle.Toggled += GenresToggle_Toggled;
+		YearsToggle.Toggled += YearsToggle_Toggled;
+		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
+		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
+		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
+		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
+		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
 	}
 
 	/// <summary>
@@ -760,13 +782,12 @@ public sealed partial class SettingsPage : Page
 		PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
 		PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
 
-		#region Uncomment when crossfade is implemented properly
-		/*AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
+		/* NOTE Uncomment when crossfade is implemented properly
+		AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
 		AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
 
 		ManualTrackChangeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
 		ManualTrackChangeSwitch_OnToggled(ManualTrackChangeSwitch, null);*/
-		#endregion
 
 		PreviousReset.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
@@ -779,6 +800,16 @@ public sealed partial class SettingsPage : Page
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
 
 		ForwardRewindButtonVisibility.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ForwardRewindButtonVisibility)]?.ToString() ?? "true");
+
+		var lrcOffsetStandard = bool.Parse(localSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)]?.ToString() ?? "false") ? "Official" : "Intuitive";
+		LRCOffsetStandard.SelectedItem = LRCOffsetStandard.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == lrcOffsetStandard);
+
+		LRCOffsetStandard.SelectionChanged += LRCOffsetStandard_SelectionChanged;
+		PlayPauseStopFadeSlider.ValueChanged += PlayPauseStopFadeSlider_OnValueChanged;
+
+		//NOTE Uncomment when crossfade is implemented properly
+		//AutoAdvanceSlider.ValueChanged += AutoAdvanceSlider_OnValueChanged;
+		//ManualTrackChangeSlider.ValueChanged += ManualTrackChangeSlider_OnValueChanged;
 	}
 
 	/// <summary>
@@ -1227,4 +1258,26 @@ public sealed partial class SettingsPage : Page
 		OverlayLayout.AccentAncientScroll => "LightTBOL",
 		_ => "DefaultTBOL"
 	};
+
+	private void LRCOffsetStandard_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (LRCOffsetStandard.SelectedItem is ComboBoxItem selctedItem)
+		{
+			var isOfficial = selctedItem.Tag.ToString() == "Official";
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.LRCOffsetSOfficialtandard)] = isOfficial;
+		}
+	}
+
+	private async void AutoSyncSwitch_Toggled(object sender, RoutedEventArgs e)
+	{
+		if (AutoSyncSwitch.IsOn)
+		{
+			if (!await AutoScanService.EnableAutoScan())
+				AutoSyncSwitch.IsOn = false;
+		}
+		else
+		{
+			await AutoScanService.DisableAutoScan();
+		}
+	}
 }

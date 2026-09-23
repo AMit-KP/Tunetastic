@@ -121,7 +121,6 @@ public enum LocalSave
 	IgnoreDuplicateEnabled,
 	ScanAtStartup,
 	IgnoreTracksBelowDuration,
-	ScanResult,
 	PlayPauseStopFadeStatus,
 	PlayPauseStopFadeValue,
 	AutoAdvanceStatus,
@@ -197,7 +196,16 @@ public enum LocalSave
 	TaskBarOverlayStatus,
 	TaskBarOverlaySide,
 	TaskBarOverlayTheme,
-	TaskBarOverlayDesign
+	TaskBarOverlayDesign,
+	LRCOffsetSOfficialtandard,
+	AutoScanEnabled,
+	AutoScanBulkThreshold,
+	ScanResult_LibraryCount,
+	ScanResult_SongsCount,
+	ScanResult_FolderCount,
+	ScanResult_Time,
+	ScanResult_Message,
+	PostUpdateScanDoneVersion
 }
 
 /// <summary>
@@ -237,4 +245,12 @@ public enum OverlayLayout
 	ArtistBadge,
 	TopAlbumAccentStripe,
 	AlbumTintProgress
+}
+
+public enum FileChangeType
+{
+	Created,
+	Modified,
+	Deleted,
+	Renamed
 }

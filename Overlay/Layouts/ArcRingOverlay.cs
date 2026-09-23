@@ -22,12 +22,20 @@ public class ArcRingOverlay : OverlayBase
 	private const double StrokeW = 2.5d;
 	private TextBlock? _toolTipText;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="ArcRingOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public ArcRingOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the visual structure of the arc ring overlay.
+	/// </summary>
+	/// <returns>A Grid representing the overlay structure.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -165,15 +173,21 @@ public class ArcRingOverlay : OverlayBase
 		return root;
 	}
 
-	/// <summary>Redraws the arc for the given progress value (0.0–1.0).</summary>
+	/// <inheritdoc/>
 	public override void UpdateProgress(double value)
 	{
 		value = Math.Clamp(value, 0.001, 0.999); // avoid degenerate full-circle case
 		DrawArc(value);
 	}
 
+	/// <summary>
+	/// Draws an arc segment representing the progress on the ring.
+	/// </summary>
+	/// <param name="progress">The progress value between 0 and 1.</param>
 	private void DrawArc(double progress)
 	{
+		if (_arcPath == null) return;
+
 		double cx = RingSize / 2;
 		double cy = RingSize / 2;
 		double angle = progress * 360d;
@@ -203,6 +217,13 @@ public class ArcRingOverlay : OverlayBase
 		_arcPath?.Data = geo;
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
+	/// <param name="art">The bitmap image for the album art (optional).</param>
 	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -217,6 +238,12 @@ public class ArcRingOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

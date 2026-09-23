@@ -16,12 +16,20 @@ public class MarqueeTickerOverlay : OverlayBase
 	private TextBlock? _toolTipText;
 	private double _progressWidth = 40;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="MarqueeTickerOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public MarqueeTickerOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the UI layout for the hover reveal overlay.
+	/// </summary>
+	/// <returns>A Grid representing the root of the overlay layout.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -138,7 +146,6 @@ public class MarqueeTickerOverlay : OverlayBase
 	}
 
 	/// <inheritdoc/>
-	/// <param name="value">0.0 – 1.0 playback position.</param>
 	public override void UpdateProgress(double value)
 	{
 		value = Math.Clamp(value, 0, 1);
@@ -154,6 +161,12 @@ public class MarqueeTickerOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

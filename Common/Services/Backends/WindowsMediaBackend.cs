@@ -2,21 +2,37 @@
 
 namespace Tunetastic.Common.Services.Backends;
 
-// ─────────────────────────────────────────────────────────────
-//  Windows MediaPlayer backend
-// ─────────────────────────────────────────────────────────────
+/// <summary>
+/// A media backend implementation using Windows MediaPlayer for audio playback.
+/// </summary>
 internal sealed class WindowsMediaBackend : IMediaBackend
 {
 	private readonly MediaPlayer _player;
 	private System.Threading.Timer? _positionTimer;
 	private bool _disposed;
 	private volatile bool _isLoading = false;
+	/// <summary>
+	/// Gets or sets the pending start position for media playback.
+	/// </summary>
 	public double PendingStartPosition = 0.0;
 
+	/// <summary>
+	/// Occurs when the playback state of the media changes.
+	/// </summary>
 	public event EventHandler<PlaybackStateChangedArgs>? StateChanged;
+	/// <summary>
+	/// Occurs when the media opening process is completed.
+	/// </summary>
 	public event EventHandler? OpenCompleted;
+	/// <summary>
+	/// Occurs when the position of the media changes.
+	/// </summary>
 	public event EventHandler<long>? PositionChanged;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="WindowsMediaBackend"/> class.
+	/// </summary>
+	/// <param name="player">The MediaPlayer instance to use for playback.</param>
 	public WindowsMediaBackend(MediaPlayer player)
 	{
 		_player = player;
@@ -31,27 +47,44 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		}, null, Timeout.Infinite, Timeout.Infinite);
 	}
 
+	/// <summary>
+	/// Gets a value indicating whether the media is currently playing.
+	/// </summary>
 	public bool IsPlaying =>
 		_player.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
 
+	/// <summary>
+	/// Gets or sets the current position in ticks.
+	/// </summary>
 	public long CurTimeTicks
 	{
 		get => _player.PlaybackSession.Position.Ticks;
 		set => _player.PlaybackSession.Position = TimeSpan.FromTicks(value);
 	}
 
+	/// <summary>
+	/// Gets or sets the volume level (0-100).
+	/// </summary>
 	public int Volume
 	{
 		get => (int)(_player.Volume * 100);
 		set => _player.Volume = Math.Clamp(value, 0, 100) / 100.0;
 	}
 
+	/// <summary>
+	/// Gets or sets a value indicating whether the media is muted.
+	/// </summary>
 	public bool IsMuted
 	{
 		get => _player.IsMuted;
 		set => _player.IsMuted = value;
 	}
 
+	/// <summary>
+	/// Asynchronously opens the specified media file for playback.
+	/// </summary>
+	/// <param name="path">The path to the media file.</param>
+	/// <returns>A task representing the asynchronous operation.</returns>
 	public Task OpenAsync(string path)
 	{
 		_isLoading = true;
@@ -59,24 +92,38 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		return Task.CompletedTask;
 	}
 
+	/// <summary>
+	/// Starts playing the media.
+	/// </summary>
 	public void Play()
 	{
 		_player.Play();
 		_positionTimer?.Change(0, 1000);
 	}
 
+	/// <summary>
+	/// Pauses the media playback.
+	/// </summary>
 	public void Pause()
 	{
 		_player.Pause();
 		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 	}
 
+	/// <summary>
+	/// Stops the media playback and clears the source.
+	/// </summary>
 	public void Stop()
 	{
 		_player.Source = null;
 		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 	}
 
+	/// <summary>
+	/// Handles the media opened event.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="args">The event arguments.</param>
 	private void OnMediaOpened(MediaPlayer sender, object args)
 	{
 		_isLoading = false;
@@ -88,12 +135,22 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		OpenCompleted?.Invoke(this, EventArgs.Empty);
 	}
 
+	/// <summary>
+	/// Handles the media ended event.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="args">The event arguments.</param>
 	private void OnMediaEnded(MediaPlayer sender, object args)
 	{
 		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 		StateChanged?.Invoke(this, new PlaybackStateChangedArgs(PlaybackState.Ended));
 	}
 
+	/// <summary>
+	/// Handles the playback state changed event.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="args">The event arguments.</param>
 	private void OnPlaybackStateChanged(MediaPlaybackSession sender, object args)
 	{
 		if (_isLoading) return;
@@ -107,6 +164,9 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		StateChanged?.Invoke(this, new PlaybackStateChangedArgs(state));
 	}
 
+	/// <summary>
+	/// Disposes the resources used by this backend.
+	/// </summary>
 	public void Dispose()
 	{
 		if (_disposed) return;

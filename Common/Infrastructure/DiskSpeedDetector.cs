@@ -56,6 +56,8 @@ public static class DiskSpeedDetector
 	/// <see cref="TotalDetectionTimeout"/> regardless of WMI provider health.
 	/// Returns <see cref="DiskKind.Unknown"/> on timeout or any error.
 	/// </summary>
+	/// <param name="filePath">The file path to check.</param>
+	/// <returns>The disk kind for the drive hosting the file.</returns>
 	public static DiskKind GetDiskKind(string filePath)
 	{
 		try
@@ -74,12 +76,16 @@ public static class DiskSpeedDetector
 	/// Returns the recommended <see cref="ParallelOptions.MaxDegreeOfParallelism"/>
 	/// for scanning files on the drive hosting <paramref name="filePath"/>.
 	/// </summary>
+	/// <param name="filePath">The file path to check.</param>
+	/// <returns>The recommended degree of parallelism.</returns>
 	public static int GetRecommendedDop(string filePath)
 		=> DopForKind(GetDiskKind(filePath));
 
 	/// <summary>
 	/// Maps a <see cref="DiskKind"/> to its recommended DOP value.
 	/// </summary>
+	/// <param name="kind">The disk kind to map.</param>
+	/// <returns>The recommended degree of parallelism for the disk kind.</returns>
 	public static int DopForKind(DiskKind kind) => kind switch
 	{
 		DiskKind.HDD => 1,   // sequential only — random seeks are ruinous
@@ -90,6 +96,11 @@ public static class DiskSpeedDetector
 
 	// ── Core detection (always runs inside Task.Run) ─────────────────────────
 
+	/// <summary>
+	/// Internal method that performs the disk detection logic.
+	/// </summary>
+	/// <param name="filePath">The file path to check.</param>
+	/// <returns>The detected disk kind.</returns>
 	private static DiskKind DetectInternal(string filePath)
 	{
 		string? driveLetter = Path.GetPathRoot(filePath)
@@ -113,6 +124,8 @@ public static class DiskSpeedDetector
 	/// The two association-table queries are each run with their own
 	/// inner timeout so neither one can hang the whole call.
 	/// </summary>
+	/// <param name="driveLetter">The drive letter to resolve.</param>
+	/// <returns>The physical disk index, or -1 if not found.</returns>
 	private static int ResolveDiskIndex(string driveLetter)
 	{
 		string logicalDisk = driveLetter.Length > 2
@@ -188,6 +201,8 @@ public static class DiskSpeedDetector
 	///   • MediaType comes back as 0 (Unspecified) — older Windows 10 builds
 	///   • the query times out
 	/// </summary>
+	/// <param name="diskIndex">The disk index to query.</param>
+	/// <returns>The detected disk kind.</returns>
 	private static DiskKind QueryMsftPhysicalDisk(int diskIndex)
 	{
 		DiskKind result = RunWithTimeout(
@@ -229,6 +244,8 @@ public static class DiskSpeedDetector
 	/// Covers older Windows versions and machines where the Storage namespace is absent.
 	/// Also timeout-guarded to be safe.
 	/// </summary>
+	/// <param name="diskIndex">The disk index to query.</param>
+	/// <returns>The detected disk kind using fallback method.</returns>
 	private static DiskKind FallbackWin32DiskDrive(int diskIndex)
 	{
 		return RunWithTimeout(
@@ -271,6 +288,11 @@ public static class DiskSpeedDetector
 	/// This is the single choke-point that prevents every WMI call in this class
 	/// from hanging indefinitely on machines with broken WMI providers.
 	/// </summary>
+	/// <typeparam name="T">The return type of the work function.</typeparam>
+	/// <param name="work">The work to execute.</param>
+	/// <param name="fallback">The fallback value if work times out or throws.</param>
+	/// <param name="timeout">The maximum time to wait for completion.</param>
+	/// <returns>The result of the work or the fallback value.</returns>
 	private static T RunWithTimeout<T>(Func<T> work, T fallback, TimeSpan timeout)
 	{
 		try
@@ -292,6 +314,8 @@ public static class DiskSpeedDetector
 	/// e.g. Win32_DiskPartition.DeviceID="Disk #0, Partition #1"
 	///   →  "Disk #0, Partition #1"
 	/// </summary>
+	/// <param name="wmiPath">The WMI object path to parse.</param>
+	/// <returns>The extracted partition ID.</returns>
 	private static string ExtractPartitionId(string wmiPath)
 	{
 		int start = wmiPath.IndexOf('"');
@@ -305,6 +329,8 @@ public static class DiskSpeedDetector
 	/// Parses the physical disk index from strings like:
 	///   "PHYSICALDRIVE2"  |  "\\\\.\\PHYSICALDRIVE2"  |  WMI object paths
 	/// </summary>
+	/// <param name="raw">The raw string to parse.</param>
+	/// <returns>The parsed disk index, or -1 if not found.</returns>
 	private static int ParseDiskIndex(string raw)
 	{
 		const string token = "PHYSICALDRIVE";

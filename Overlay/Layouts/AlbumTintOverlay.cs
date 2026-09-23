@@ -30,12 +30,20 @@ public class AlbumTintOverlay : OverlayBase
 	private BaseColorAnalyzer? _baseColorAnalyzer;
 	private ColorWeightAnalyzer? _colorWeightAnalyzer;
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="AlbumTintOverlay"/> class.
+	/// </summary>
+	/// <param name="theme">The theme to use for the overlay.</param>
 	public AlbumTintOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the visual structure of the album tint overlay.
+	/// </summary>
+	/// <returns>A Grid representing the overlay structure.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -149,6 +157,11 @@ public class AlbumTintOverlay : OverlayBase
 		return root;
 	}
 
+	/// <summary>
+	/// Applies a gradient background to the pill container with specified colors.
+	/// </summary>
+	/// <param name="color1">The first color for the gradient.</param>
+	/// <param name="color2">The second color for the gradient.</param>
 	private void ApplyPillGradient(Color color1, Color color2)
 	{
 		var gradientBrush = new LinearGradientBrush
@@ -165,6 +178,11 @@ public class AlbumTintOverlay : OverlayBase
 		_pill?.Background = gradientBrush;
 	}
 
+	/// <summary>
+	/// Handles the image opened event for cover art, analyzing colors and updating the overlay appearance.
+	/// </summary>
+	/// <param name="sender">The event sender.</param>
+	/// <param name="e">The event arguments.</param>
 	private async void CoverArtImage_Opened(object sender, RoutedEventArgs e)
 	{
 		if (_colorAnalyzer != null)
@@ -217,6 +235,13 @@ public class AlbumTintOverlay : OverlayBase
 		}
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
+	/// <param name="art">The path to the album art image.</param>
 	public async void UpdateTrack(string title, string artist, string album, string art)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -238,6 +263,12 @@ public class AlbumTintOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">The track title.</param>
+	/// <param name="artist">The artist name.</param>
+	/// <param name="album">The album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

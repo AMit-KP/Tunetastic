@@ -28,113 +28,158 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
-	/// <pre>
-	/// Initializes the database by creating all required SQLite tables if they do not already exist.
-	/// The following tables are created, each with their purpose and column details:
-	/// <br/>
-	/// <br/>
-	/// <b>Library</b>: Stores user-added music library locations.<br/>
-	///   Columns:<br/>
-	///     - Name (TEXT, NOT NULL): The display name of the library.<br/>
-	///     - Path (TEXT, NOT NULL, COLLATE NOCASE, UNIQUE): The file system path to the library. Uniqueness ensures no duplicate libraries.<br/>
-	/// <br/>
-	/// <b>MusicFormats</b>: Stores supported music file formats.<br/>
-	///   Columns:<br/>
-	///     - Extension (TEXT, PRIMARY KEY, COLLATE NOCASE): File extension, unique and case-insensitive.<br/>
-	///     - Description (TEXT, NOT NULL): Description of the format.<br/>
-	///     - Enabled (INTEGER, NOT NULL): Indicates if the format is enabled (1) or not (0).<br/>
-	/// <br/>
-	/// <b>Songs</b>: Stores metadata for each song.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique song ID.<br/>
-	///     - Path (TEXT, UNIQUE): Unique file path for the song.<br/>
-	///     - Title (TEXT): Song title.<br/>
-	///     - Artists (TEXT): Raw artist string.<br/>
-	///     - Album (TEXT): Album name.<br/>
-	///     - Genre (TEXT): Genre name.<br/>
-	///     - Year (TEXT): Year of release.<br/>
-	///     - PlayCount (INTEGER): Number of times played.<br/>
-	///     - Cover (TEXT): Path or URI to cover image.<br/>
-	///     - Duration (REAL): Song duration in seconds.<br/>
-	///     - DateAdded (DATETIME): When the song was added.<br/>
-	///     - DateLastPlayed (DATETIME, DEFAULT NULL): Last played timestamp.<br/>
-	///     - Extension (TEXT): File extension.<br/>
-	///     - AudioBitrate (TEXT, DEFAULT NULL): Audio bitrate information.<br/>
-	///     - AudioChannels (TEXT, DEFAULT NULL): Audio channels information.<br/>
-	///     - AudioSampleRate (TEXT, DEFAULT NULL): Audio sample rate information.<br/>
-	///     - AudioDescription (TEXT, DEFAULT NULL): Audio description information.<br/>
-	///     - FileSize (TEXT): File size information.<br/>
-	///     - Lyrics (TEXT, DEFAULT NULL): Song Lyrics.<br/>
-	///     - PlayerType (TEXT, DEFAULT NULL): Player type information.<br/>
-	/// <br/>
-	/// <b>Playlists</b>: Stores user playlists.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique playlist ID.<br/>
-	///     - Name (TEXT): Playlist name.<br/>
-	/// <br/>
-	/// <b>PlaylistSongs</b>: Maps songs to playlists and their order.<br/>
-	///   Columns:<br/>
-	///     - PlaylistId (INTEGER): Foreign key to Playlists.Id.<br/>
-	///     - SongPath (TEXT): Foreign key to Songs.Path.<br/>
-	///     - Position (INTEGER, DEFAULT 0): Order of the song in the playlist.<br/>
-	///   Primary key is (PlaylistId, SongPath). Foreign keys ensure referential integrity and cascade deletes.<br/>
-	/// <br/>
-	/// <b>QueuedPlayingList</b>: Stores the current play queue.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique queue entry ID.<br/>
-	///     - Path (TEXT, NOT NULL): Foreign key to Songs.Path.<br/>
-	///     - Position (INTEGER): Order in the queue.<br/>
-	///   Foreign key ensures only valid songs are queued and cascades on delete.<br/>
-	/// <br/>
-	/// <b>Artists</b>: Stores unique artist metadata.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique artist ID.<br/>
-	///     - Name (TEXT, NOT NULL, COLLATE NOCASE, UNIQUE): Artist name, unique and case-insensitive.<br/>
-	///     - ArtistImage (TEXT): Path or URI to artist image.<br/>
-	///     - ArtistDescription (TEXT): Artist description.<br/>
-	/// <br/>
-	/// <b>SongArtists</b>: Maps songs to artists.<br/>
-	///   Columns:<br/>
-	///     - SongPath (TEXT, NOT NULL): Foreign key to Songs.Path.<br/>
-	///     - ArtistId (INTEGER, NOT NULL): Foreign key to Artists.Id.<br/>
-	///   Primary key is (SongPath, ArtistId). Foreign keys ensure referential integrity and cascade deletes.<br/>
-	///   Indexes on ArtistId and SongPath for efficient lookups.<br/>
-	/// <br/>
-	/// <b>ArtistSplitRules</b>: Stores rules for splitting or preserving artist names.<br/>
-	///   Columns:<br/>
-	///     - Id (INTEGER, PRIMARY KEY AUTOINCREMENT): Unique rule ID.<br/>
-	///     - Type (TEXT, NOT NULL, CHECK IN ('Splitter','Exception')): Rule type.<br/>
-	///     - Pattern (TEXT, NOT NULL): Pattern to match.<br/>
-	///     - IsRegex (INTEGER, NOT NULL, DEFAULT 0): Whether the pattern is a regex.<br/>
-	///     - Active (INTEGER, NOT NULL, DEFAULT 1): Whether the rule is active.<br/>
-	///     - IsBuiltIn (INTEGER, NOT NULL, DEFAULT 0): Whether the rule is built-in.<br/>
-	///   Unique constraint on (Type, Pattern, IsRegex). Index on (Active, Type) for fast filtering.<br/>
-	/// <br/>
-	/// <b>PendingTagWrites</b>: Stores deferred tag write entries for files that were in use during editing.<br/>
-	///   Columns:<br/>
-	///     - Path (TEXT, PRIMARY KEY): Foreign key to Songs.Path. Unique file path of the song.<br/>
-	///   Foreign key ensures referential integrity and cascade deletes when a song is removed.<br/>
-	/// <br/>
-	/// <b>SongFTS</b>: Virtual FTS5 table for full-text search across song metadata.<br/>
-	///   Columns:<br/>
-	///     - Title (TEXT): Song title for searching.<br/>
-	///     - Album (TEXT): Album name for searching.<br/>
-	///     - Genre (TEXT): Genre for searching.<br/>
-	///     - Year (TEXT): Release year for searching.<br/>
-	///     - Artists (TEXT): Artists for searching.<br/>
-	///     - Path (TEXT, UNINDEXED): Song path reference.<br/>
-	///   Uses unicode61 tokenizer for better search capabilities.<br/>
-	/// <br/>
-	/// <b>ArtistFTS</b>: Virtual FTS5 table for full-text search across artist names.<br/>
-	///   Columns:<br/>
-	///     - Name (TEXT): Artist name for searching.<br/>
-	///   Uses unicode61 tokenizer for better search capabilities.<br/>
-	/// The database is located in the application's local storage folder.
-	/// </pre>
+	/// Opens (or creates) the app's local SQLite database and ensures the full schema exists.
+	/// Creates the following tables:
+	/// <list type="bullet">
+	/// <item>
+	/// <description><c>Library</c>
+	/// <list type="bullet">
+	/// <item><description><c>Name</c> (TEXT, NOT NULL) — Display name for the library entry.</description></item>
+	/// <item><description><c>Path</c> (TEXT, NOT NULL, UNIQUE, COLLATE NOCASE) — Filesystem path to the library root.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>MusicFormats</c>
+	/// <list type="bullet">
+	/// <item><description><c>Extension</c> (TEXT, PRIMARY KEY, COLLATE NOCASE) — File extension, e.g. mp3, flac.</description></item>
+	/// <item><description><c>Description</c> (TEXT, NOT NULL) — Human-readable format name.</description></item>
+	/// <item><description><c>Enabled</c> (INTEGER, NOT NULL) — 0/1 flag for whether this format is scanned.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>Songs</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Path</c> (TEXT, UNIQUE) — Filesystem path to the audio file.</description></item>
+	/// <item><description><c>Title</c> (TEXT) — Track title.</description></item>
+	/// <item><description><c>Artists</c> (TEXT) — Raw/unsplit artist string as read from tags.</description></item>
+	/// <item><description><c>Album</c> (TEXT) — Album name.</description></item>
+	/// <item><description><c>Genre</c> (TEXT) — Genre tag.</description></item>
+	/// <item><description><c>Year</c> (TEXT) — Release year.</description></item>
+	/// <item><description><c>PlayCount</c> (INTEGER) — Number of times played.</description></item>
+	/// <item><description><c>Cover</c> (TEXT) — Path or reference to cached cover art.</description></item>
+	/// <item><description><c>Duration</c> (REAL) — Track length.</description></item>
+	/// <item><description><c>DateAdded</c> (DATETIME) — Last modified/created time for the file.</description></item>
+	/// <item><description><c>DateLastPlayed</c> (DATETIME, DEFAULT NULL) — Last played timestamp.</description></item>
+	/// <item><description><c>Extension</c> (TEXT) — File extension.</description></item>
+	/// <item><description><c>AudioBitrate</c> (TEXT, DEFAULT NULL) — Bitrate metadata.</description></item>
+	/// <item><description><c>AudioChannels</c> (TEXT, DEFAULT NULL) — Channel count/layout metadata.</description></item>
+	/// <item><description><c>AudioSampleRate</c> (TEXT, DEFAULT NULL) — Sample rate metadata.</description></item>
+	/// <item><description><c>AudioCodecDescription</c> (TEXT, DEFAULT NULL) — Human-readable codec description.</description></item>
+	/// <item><description><c>FileSize</c> (TEXT) — File size.</description></item>
+	/// <item><description><c>Lyrics</c> (TEXT, DEFAULT NULL) — Cached lyrics text.</description></item>
+	/// <item><description><c>PlayerType</c> (TEXT, NOT NULL, DEFAULT 'Flyleaf') — Playback engine for this file.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>Playlists</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Name</c> (TEXT) — Playlist name.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>PlaylistSongs</c>
+	/// <list type="bullet">
+	/// <item><description><c>PlaylistId</c> (INTEGER, PK composite, FK → Playlists.Id ON DELETE CASCADE) — Owning playlist.</description></item>
+	/// <item><description><c>SongPath</c> (TEXT, PK composite, FK → Songs.Path ON DELETE CASCADE) — Referenced song.</description></item>
+	/// <item><description><c>Position</c> (INTEGER, DEFAULT 0) — Sort order within the playlist.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>QueuedPlayingList</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Path</c> (TEXT, NOT NULL, FK → Songs.Path ON DELETE CASCADE) — Queued song.</description></item>
+	/// <item><description><c>Position</c> (INTEGER) — Order within the queue.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>Artists</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Name</c> (TEXT, NOT NULL, UNIQUE, COLLATE NOCASE) — Artist name.</description></item>
+	/// <item><description><c>ArtistImage</c> (TEXT) — Path or reference to cached artist image.</description></item>
+	/// <item><description><c>ArtistDescription</c> (TEXT) — Bio/description text.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>SongArtists</c>
+	/// <list type="bullet">
+	/// <item><description><c>SongPath</c> (TEXT, PK composite, NOT NULL, FK → Songs.Path ON DELETE CASCADE) — Song side of the link.</description></item>
+	/// <item><description><c>ArtistId</c> (INTEGER, PK composite, NOT NULL, FK → Artists.Id ON DELETE CASCADE) — Artist side of the link.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>ArtistSplitRules</c>
+	/// <list type="bullet">
+	/// <item><description><c>Id</c> (INTEGER, PRIMARY KEY AUTOINCREMENT) — Surrogate key.</description></item>
+	/// <item><description><c>Type</c> (TEXT, NOT NULL, CHECK IN 'Splitter'/'Exception') — Rule type.</description></item>
+	/// <item><description><c>Pattern</c> (TEXT, NOT NULL) — Literal string or regex pattern to match.</description></item>
+	/// <item><description><c>IsRegex</c> (INTEGER, NOT NULL, DEFAULT 0) — 0/1 whether Pattern is a regex.</description></item>
+	/// <item><description><c>Active</c> (INTEGER, NOT NULL, DEFAULT 1) — 0/1 whether the rule is enabled.</description></item>
+	/// <item><description><c>IsBuiltIn</c> (INTEGER, NOT NULL, DEFAULT 0) — 0/1 whether this is an app-shipped default rule.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>PendingTagWrites</c>
+	/// <list type="bullet">
+	/// <item><description><c>Path</c> (TEXT, PRIMARY KEY, FK → Songs.Path ON DELETE CASCADE) — Song with pending changes.</description></item>
+	/// <item><description><c>Cover</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for cover art.</description></item>
+	/// <item><description><c>Title</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for title.</description></item>
+	/// <item><description><c>Artist</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for artist.</description></item>
+	/// <item><description><c>Album</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for album.</description></item>
+	/// <item><description><c>Genre</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for genre.</description></item>
+	/// <item><description><c>Year</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for year.</description></item>
+	/// <item><description><c>Lyrics</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for lyrics.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>SongFTS</c> (FTS5 virtual table, content='Songs', content_rowid='Id')
+	/// <list type="bullet">
+	/// <item><description><c>Title</c> — Indexed, mirrors Songs.Title.</description></item>
+	/// <item><description><c>Album</c> — Indexed, mirrors Songs.Album.</description></item>
+	/// <item><description><c>Genre</c> — Indexed, mirrors Songs.Genre.</description></item>
+	/// <item><description><c>Year</c> — Indexed, mirrors Songs.Year.</description></item>
+	/// <item><description><c>Artists</c> — Indexed, mirrors Songs.Artists.</description></item>
+	/// <item><description><c>Path</c> — UNINDEXED, carried through for row identification.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>ArtistFTS</c> (FTS5 virtual table, content='Artists', content_rowid='Id')
+	/// <list type="bullet">
+	/// <item><description><c>Name</c> — Indexed, mirrors Artists.Name.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <description><c>FileScanMeta</c>
+	/// <list type="bullet">
+	/// <item><description><c>Path</c> (TEXT, PRIMARY KEY, FK → Songs.Path ON DELETE CASCADE) — Snapshot of a scanned file.</description></item>
+	/// <item><description><c>LastModifiedUtc</c> (INTEGER, NOT NULL) — Last write time in UTC ticks.</description></item>
+	/// <item><description><c>CreationTimeUtc</c> (INTEGER, NOT NULL) — Creation time in UTC ticks.</description></item>
+	/// <item><description><c>FileSizeBytes</c> (INTEGER, NOT NULL) — Size of the file in bytes.</description></item>
+	/// <item><description><c>LastScannedUtc</c> (INTEGER, NOT NULL) — UTC ticks of the scan that wrote the row.</description></item>
+	/// </list>
+	/// </description>
+	/// </item>
+	/// </list>
+	/// The method also creates the supporting indexes (<c>idx_Songs_*</c>, <c>idx_PlaylistSongs_*</c>,
+	/// <c>idx_QueuedPlayingList_*</c>, <c>idx_SongArtists_*</c> and <c>idx_ArtistSplitRules_*</c>) and rebuilds both
+	/// FTS tables.
 	/// </summary>
-	/// <returns>
-	/// A task that represents the asynchronous operation of initializing the database.
-	/// </returns>
+	/// <returns>A <see cref="Task"/> that completes once schema creation, migration, and seeding have finished.</returns>
 	public async Task InitializeDatabase()
 	{
 		var dbPath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tunetastic.db3");
@@ -265,6 +310,14 @@ public class DatabaseHelper
 									   tokenize='unicode61')");
 
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
+
+		await _database.ExecuteAsync(@"CREATE TABLE IF NOT EXISTS FileScanMeta (
+									   Path TEXT PRIMARY KEY,
+									   LastModifiedUtc INTEGER NOT NULL,
+									   CreationTimeUtc INTEGER NOT NULL,
+									   FileSizeBytes INTEGER NOT NULL,
+									   LastScannedUtc INTEGER NOT NULL,
+									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE);");
 
 		await PopulateMusicFormatTable();
 
@@ -402,6 +455,11 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("UPDATE MusicFormats SET Enabled = ? WHERE Extension = ? COLLATE NOCASE", enabled ? 1 : 0, ext);
 	}
 
+	/// <summary>
+	/// Retrieves every music format entry together with its enabled state, in the order it is stored.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation. The task result contains the list of
+	/// <see cref="MusicFormatModel"/> entries.</returns>
 	public async Task<List<MusicFormatModel>> GetAllMusicFormats()
 	{
 		return await _database.QueryAsync<MusicFormatModel>("SELECT Extension, Description, Enabled FROM MusicFormats ORDER BY rowid ASC");
@@ -557,16 +615,7 @@ public class DatabaseHelper
 	/// </returns>
 	public async Task DeleteSongFromDB(string path)
 	{
-		await _database.ExecuteAsync("DELETE FROM Songs WHERE Path = ?", path);
-		await PruneUnusedArtists();
-		try
-		{
-			await _database.ExecuteAsync("DELETE FROM SongFTS WHERE Path = ?", path);
-		}
-		catch (Exception)
-		{
-			//ignored
-		}
+		await DeleteSongsFromDB(new List<string> { path });
 	}
 
 	/// <summary>
@@ -574,6 +623,9 @@ public class DatabaseHelper
 	/// </summary>
 	/// <param name="orderBy">The property to sort the songs by, such as Title, Artists, or Album. Defaults to Title.</param>
 	/// <param name="ascending">A boolean indicating whether the songs should be sorted in ascending order. Defaults to true.</param>
+	/// <param name="limit">The maximum number of songs to return. Defaults to 0, which returns every matching song.</param>
+	/// <param name="whereCondition">An optional SQL condition added as a WHERE clause. Defaults to null, which
+	/// returns every song.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains a list of songs ordered by the specified property, order and limit.
 	/// If an exception occurs, an empty list is returned.</returns>
 	public async Task<List<Song>> LoadSongsFromDB(SongProperty orderBy = SongProperty.Title, bool ascending = true, int limit = 0, string? whereCondition = null)
@@ -598,16 +650,37 @@ public class DatabaseHelper
 	/// </returns>
 	public async Task<int> GetSongsCount()
 	{
+		return await TryGetSongsCount() ?? 0;
+	}
+
+	/// <summary>
+	/// Retrieves the total count of songs stored in the `Songs` table of the database, letting callers
+	/// distinguish an empty database from a query that failed.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation of fetching the song count.
+	/// The task result contains the count of songs as an integer, or <see langword="null"/> when the query fails.
+	/// </returns>
+	public async Task<int?> TryGetSongsCount()
+	{
 		try
 		{
 			return await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Songs");
 		}
 		catch (Exception)
 		{
-			return 0;
+			return null;
 		}
 	}
 
+	/// <summary>
+	/// Checks whether the estimated total play time of the library is above one hour, counting 60% of the
+	/// duration of every song that was played more than once.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result is <see langword="true"/> when the
+	/// estimate exceeds 3600 seconds, and <see langword="false"/> otherwise or when the query fails.
+	/// </returns>
 	public async Task<bool> CheckIfTotalPlayTimeIsAbove1Hour()
 	{
 		try
@@ -693,6 +766,9 @@ public class DatabaseHelper
 		return paths.Where(p => existingSet.Contains(p)).ToList();
 	}
 
+	/// <summary>
+	/// Raised after the play count of a song was changed, so the library views can refresh.
+	/// </summary>
 	public static event Action? OnPlayCountUpdated;
 
 	/// <summary>
@@ -722,6 +798,9 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = 0 WHERE Path = ?", songPath);
 	}
 
+	/// <summary>
+	/// Raised after the last played date of a song was changed, so the library views can refresh.
+	/// </summary>
 	public static event Action? OnDateLastPlayedUpdated;
 
 	/// <summary>
@@ -754,6 +833,14 @@ public class DatabaseHelper
 	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
 	/// </summary>
 	/// <param name="path">The file path of the song whose tag write is pending.</param>
+	/// <param name="pendingCover">1 when the cover still has to be written into the file; otherwise 0.</param>
+	/// <param name="pendingTitle">1 when the title still has to be written into the file; otherwise 0.</param>
+	/// <param name="pendingArtist">1 when the artists still have to be written into the file; otherwise 0.</param>
+	/// <param name="pendingAlbum">1 when the album still has to be written into the file; otherwise 0.</param>
+	/// <param name="pendingGenre">1 when the genre still has to be written into the file; otherwise 0.</param>
+	/// <param name="pendingYear">1 when the year still has to be written into the file; otherwise 0.</param>
+	/// <param name="pendingLyrics">1 when the lyrics still have to be written into the file; otherwise 0.</param>
+	/// <returns>A task that represents the asynchronous operation of storing the pending write.</returns>
 	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0)
 	{
 		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1253,6 +1340,14 @@ public class DatabaseHelper
 		return result.ToList();
 	}
 
+	/// <summary>
+	/// Retrieves the songs grouped by their album, with the song count, the total duration and a cover per album.
+	/// Albums named 'Unknown Album' are grouped as 'Unknown'.
+	/// </summary>
+	/// <param name="ascending">A boolean indicating whether the albums should be ordered alphabetically in
+	/// ascending order. Defaults to true.</param>
+	/// <returns>A task that represents the asynchronous operation. The task result contains the list of
+	/// <see cref="AlbumModel"/> objects.</returns>
 	public async Task<List<AlbumModel>> GetSongsGroupedByAlbum(bool ascending = true)
 	{
 		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, Cover
@@ -1876,23 +1971,269 @@ public class DatabaseHelper
 		await _database.ExecuteAsync("INSERT INTO ArtistFTS(ArtistFTS) VALUES('rebuild')");
 	}
 
+	/// <summary>
+	/// Retrieves the name of every artist stored in the `Artists` table, ordered by name.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation. The task result contains the artist names.</returns>
 	public async Task<List<string>> GetAllArtists()
 	{
 		var artists = await _database.QueryAsync<Artist>("SELECT Name FROM Artists ORDER BY Name ASC");
 		return artists.Select(x => x.Name).ToList();
 	}
 
+	/// <summary>
+	/// Retrieves the distinct album names stored in the `Songs` table, ordered by name.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation. The task result contains the album names.</returns>
 	public async Task<List<string>> GetAllAlbums()
 	{
 		var albums = await _database.QueryAsync<Song>("SELECT DISTINCT Album FROM Songs WHERE Album IS NOT NULL AND Album != '' ORDER BY Album ASC");
 		return albums.Select(x => x.Album).ToList();
 	}
 
+	/// <summary>
+	/// Retrieves the distinct genre names stored in the `Songs` table, leaving out the unknown ones, ordered by name.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation. The task result contains the genre names.</returns>
 	public async Task<List<string>> GetAllGenres()
 	{
 		var genres = await _database.QueryAsync<Song>("SELECT DISTINCT Genre FROM Songs WHERE Genre IS NOT NULL AND Genre != '' AND Genre != 'Unknown' AND Genre != 'Unknown Genre' ORDER BY Genre ASC");
 		return genres.Select(x => x.Genre).ToList();
 	}
+
+	/// <summary>
+	/// Inserts or updates the scan metadata snapshot of the given files in the `FileScanMeta` table, in one transaction.
+	/// </summary>
+	/// <param name="metas">The metadata rows to write. The call does nothing when the list is null or empty.</param>
+	/// <returns>A task that represents the asynchronous operation of writing the metadata.</returns>
+	public async Task UpdateFileScanMeta(List<FileScanMeta> metas)
+	{
+		if (metas == null || metas.Count == 0) return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var meta in metas)
+			{
+				conn.Execute(@"INSERT INTO FileScanMeta (Path, LastModifiedUtc, CreationTimeUtc, FileSizeBytes, LastScannedUtc)
+							   VALUES (?, ?, ?, ?, ?)
+							   ON CONFLICT(Path) DO UPDATE SET
+							   LastModifiedUtc = excluded.LastModifiedUtc,
+							   CreationTimeUtc = excluded.CreationTimeUtc,
+							   FileSizeBytes = excluded.FileSizeBytes,
+							   LastScannedUtc = excluded.LastScannedUtc;",
+							   meta.Path, meta.LastModifiedUtc, meta.CreationTimeUtc, meta.FileSizeBytes, meta.LastScannedUtc);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Retrieves the scan metadata snapshot stored for a single file path.
+	/// </summary>
+	/// <param name="path">The full path of the file to look up.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains the matching
+	/// <see cref="FileScanMeta"/>, or null when the path is not tracked or the query fails.
+	/// </returns>
+	public async Task<FileScanMeta?> GetFileScanMeta(string path)
+	{
+		try
+		{
+			var result = await _database.QueryAsync<FileScanMeta>("SELECT Path, LastModifiedUtc, CreationTimeUtc, FileSizeBytes, LastScannedUtc FROM FileScanMeta WHERE Path = ?", path);
+			return result.Count > 0 ? result[0] : null;
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Retrieves the scan metadata snapshot of every tracked file.
+	/// </summary>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains the
+	/// <see cref="FileScanMeta"/> rows, or an empty list when the query fails.
+	/// </returns>
+	public async Task<List<FileScanMeta>> GetAllFileScanMeta()
+	{
+		try
+		{
+			return await _database.QueryAsync<FileScanMeta>("SELECT Path, LastModifiedUtc, CreationTimeUtc, FileSizeBytes, LastScannedUtc FROM FileScanMeta");
+		}
+		catch (Exception)
+		{
+			return new List<FileScanMeta>();
+		}
+	}
+
+	/// <summary>
+	/// Removes every scan metadata row, so the next pass treats the library as never scanned.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous operation of clearing the table.</returns>
+	public async Task WipeFileScanMeta()
+	{
+		await _database.ExecuteAsync("DELETE FROM FileScanMeta");
+	}
+
+	/// <summary>
+	/// Repoints a song row and its scan metadata to a new path, and moves the playlist, artist, queue and pending
+	/// tag write references with them, so the entry keeps its play history and memberships.
+	/// </summary>
+	/// <param name="oldPath">The path the song is currently stored under.</param>
+	/// <param name="newPath">The path the file now lives at.</param>
+	/// <returns>A task that represents the asynchronous operation of the rename.</returns>
+	/// <remarks>
+	/// Foreign key enforcement is deferred until the transaction commits, because the child rows keep pointing at
+	/// the old path until <see cref="MoveSongLinks"/> has run.
+	/// </remarks>
+	public async Task RenameSongPath(string oldPath, string newPath)
+	{
+		if (string.IsNullOrWhiteSpace(oldPath) || string.IsNullOrWhiteSpace(newPath) || oldPath == newPath)
+			return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			// The child rows (FileScanMeta, SongArtists, PlaylistSongs, QueuedPlayingList, PendingTagWrites)
+			// reference Songs(Path) with ON DELETE CASCADE but no ON UPDATE, and foreign keys are enforced
+			// immediately. Updating the parent key first would orphan them and fail the whole transaction,
+			// so enforcement is deferred until COMMIT, where the state is consistent again.
+			conn.Execute("PRAGMA defer_foreign_keys = ON");
+
+			conn.Execute("UPDATE Songs SET Path = ? WHERE Path = ?", newPath, oldPath);
+			conn.Execute("UPDATE FileScanMeta SET Path = ? WHERE Path = ?", newPath, oldPath);
+
+			MoveSongLinks(conn, oldPath, newPath);
+		});
+	}
+
+	/// <summary>
+	/// Moves every child reference of a song to its new path. Expects foreign key enforcement to be
+	/// deferred for the current transaction (see <see cref="RenameSongPath"/>).
+	/// </summary>
+	/// <remarks>
+	/// The <c>UPDATE OR IGNORE</c> plus <c>DELETE</c> of the leftovers covers rows that already exist for
+	/// the new path (PlaylistSongs and SongArtists have composite primary keys), where the new path's row
+	/// wins. Removing the leftovers is also what keeps the transaction free of orphaned child rows.
+	/// </remarks>
+	private static void MoveSongLinks(SQLiteConnection conn, string oldPath, string newPath)
+	{
+		conn.Execute("UPDATE OR IGNORE PlaylistSongs SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM PlaylistSongs WHERE SongPath = ?", oldPath);
+		conn.Execute("UPDATE OR IGNORE SongArtists SET SongPath = ? WHERE SongPath = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM SongArtists WHERE SongPath = ?", oldPath);
+		conn.Execute("UPDATE OR IGNORE QueuedPlayingList SET Path = ? WHERE Path = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM QueuedPlayingList WHERE Path = ?", oldPath);
+		conn.Execute("UPDATE OR IGNORE PendingTagWrites SET Path = ? WHERE Path = ?", newPath, oldPath);
+		conn.Execute("DELETE FROM PendingTagWrites WHERE Path = ?", oldPath);
+	}
+
+	/// <summary>
+	/// Copies the playback bookkeeping (play count, last played and date added) of a song onto an already
+	/// tracked path and moves the playlist/artist/queue references with it, then removes the old entry.
+	/// </summary>
+	/// <remarks>
+	/// Used when a move between folders or libraries was observed as a delete plus a create instead of a
+	/// single rename, so the new entry keeps its play count, dates and playlist membership.
+	/// </remarks>
+	public async Task TransferSongData(string oldPath, string newPath)
+	{
+		if (string.IsNullOrWhiteSpace(oldPath) || string.IsNullOrWhiteSpace(newPath) || oldPath == newPath)
+			return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			conn.Execute("PRAGMA defer_foreign_keys = ON");
+
+			conn.Execute(@"UPDATE Songs SET
+							   PlayCount = COALESCE((SELECT PlayCount FROM Songs WHERE Path = ?), PlayCount),
+							   DateLastPlayed = COALESCE((SELECT DateLastPlayed FROM Songs WHERE Path = ?), DateLastPlayed),
+							   DateAdded = COALESCE((SELECT DateAdded FROM Songs WHERE Path = ?), DateAdded)
+						   WHERE Path = ?", oldPath, oldPath, oldPath, newPath);
+
+			MoveSongLinks(conn, oldPath, newPath);
+
+			conn.Execute("DELETE FROM Songs WHERE Path = ?", oldPath);
+			conn.Execute("DELETE FROM FileScanMeta WHERE Path = ?", oldPath);
+		});
+	}
+
+	/// <summary>
+	/// Checks whether a song with the same title, artists and album is already stored in the database, which the
+	/// duplicate filter uses before a track is added.
+	/// </summary>
+	/// <param name="title">The title to match.</param>
+	/// <param name="artist">The artist to match.</param>
+	/// <param name="album">The album to match.</param>
+	/// <param name="excludePath">A path that is left out of the comparison, so a tracked file can check for
+	/// duplicates of itself. Optional.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result is <see langword="true"/> when a
+	/// matching row exists, and <see langword="false"/> otherwise or when the query fails.
+	/// </returns>
+	public async Task<bool> SongMetadataExists(string title, string artist, string album, string? excludePath = null)
+	{
+		try
+		{
+			if (excludePath != null)
+				return await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Songs WHERE Title = ? AND Artists = ? AND Album = ? AND Path != ?", title, artist, album, excludePath) > 0;
+
+			return await _database.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Songs WHERE Title = ? AND Artists = ? AND Album = ?", title, artist, album) > 0;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
+	}
+
+	/// <summary>
+	/// Removes the scan metadata rows of the given paths, in one transaction.
+	/// </summary>
+	/// <param name="paths">The paths to forget. The call does nothing when the list is null or empty.</param>
+	/// <returns>A task that represents the asynchronous operation of deleting the rows.</returns>
+	public async Task DeleteFileScanMeta(List<string> paths)
+	{
+		if (paths == null || paths.Count == 0) return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var path in paths)
+				conn.Execute("DELETE FROM FileScanMeta WHERE Path = ?", path);
+		});
+	}
+
+	/// <summary>
+	/// Removes the given songs together with their rows in the search index, and prunes the artists that are left
+	/// without songs.
+	/// </summary>
+	/// <param name="paths">The paths of the songs to delete. The call does nothing when the list is null or empty.</param>
+	/// <returns>A task that represents the asynchronous operation of deleting the songs.</returns>
+	public async Task DeleteSongsFromDB(List<string> paths)
+	{
+		if (paths == null || paths.Count == 0) return;
+
+		await _database.RunInTransactionAsync(conn =>
+		{
+			foreach (var path in paths)
+				conn.Execute("DELETE FROM Songs WHERE Path = ?", path);
+		});
+
+		await PruneUnusedArtists();
+
+		try
+		{
+			await _database.RunInTransactionAsync(conn =>
+			{
+				foreach (var path in paths)
+					conn.Execute("DELETE FROM SongFTS WHERE Path = ?", path);
+			});
+		}
+		catch (Exception)
+		{
+			//ignored
+		}
+	}
+
+	// NOTE: Below are some helper methods for advanced search functionality
 
 	/// <summary>
 	/// Parses the user-provided search input into groups of terms for advanced search functionality.
@@ -1958,6 +2299,9 @@ public class DatabaseHelper
 	/// </summary>
 	/// <param name="andTerms">A list of terms to be combined with an AND logic. These terms are matched within a column or across columns based on the scope.</param>
 	/// <param name="scope">The search scope determining which database columns are matched. Possible values include Title, Artist, Album, or All.</param>
+	/// <param name="isAndQuery">Whether this group holds more than one term, so every term has to match in at
+	/// least one column. Defaults to false, which combines the terms into a single prefix expression limited by
+	/// <paramref name="scope"/>.</param>
 	/// <returns>A string representing the match query formatted according to the specified scope and terms. For example, a scope of Title will return a match string targeting only the title column, while a scope of All matches across multiple columns.</returns>
 	private static string BuildSongFtsMatchForGroup(List<string> andTerms, SearchScope scope, bool isAndQuery = false)
 	{
@@ -2112,6 +2456,9 @@ public class DatabaseHelper
 	/// </summary>
 	private sealed class ArtistNameRow
 	{
+		/// <summary>
+		/// The artist name read from the `Artists` table.
+		/// </summary>
 		public string? Name { get; set; }
 	}
 
@@ -2122,6 +2469,9 @@ public class DatabaseHelper
 	/// </summary>
 	private sealed class AlbumNameRow
 	{
+		/// <summary>
+		/// The album name read from the `Songs` table.
+		/// </summary>
 		public string? Album { get; set; }
 	}
 

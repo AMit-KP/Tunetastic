@@ -59,6 +59,10 @@ from embedded metadata.
 - When both an embedded source and an `.lrc` file are available, the embedded lyrics
 takes priority for synced playback. If no lyrics are found.
 
+- Synced Lyrics can be synchronized. Offsets have 2 modes which can be changed from settings. *Currently only embedded lyrics are supported for lyrics synchronization.*
+   - *Official Standard* - Follows the formal LRC specification. Positive values subtract time to display lyrics sooner (advancing them), while negative values delay lyrics. Recommended for compatibility with spec-compliant files.
+   - *Intuitive/Logical* (Default) - Applies straightforward timestamp addition. Positive values add time to delay lyrics, while negative values shift lyrics earlier. Ideal if you expect + to push lyrics forward into the timeline.
+
 > <img width="2282" height="1717" alt="Screenshot 2026-04-10 144915" src="https://github.com/user-attachments/assets/d14623ff-26a9-4711-a8a6-10114e88f623" />
 
 

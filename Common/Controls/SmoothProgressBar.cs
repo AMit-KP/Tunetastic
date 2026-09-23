@@ -5,6 +5,9 @@ using Microsoft.UI.Xaml.Shapes;
 
 namespace Tunetastic.Common.Controls;
 
+/// <summary>
+/// A smooth progress bar control that provides visual feedback for media playback position.
+/// </summary>
 public sealed class SmoothProgressBar : UserControl
 {
 	private readonly Rectangle _trackBg = new();
@@ -25,46 +28,69 @@ public sealed class SmoothProgressBar : UserControl
 
 	// ── Dependency Properties ─────────────────────────────────────
 
+	/// <summary>
+	/// Identifies the <see cref="Position"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty PositionProperty =
 		DependencyProperty.Register(nameof(Position), typeof(double),
 			typeof(SmoothProgressBar), new PropertyMetadata(0d));
 
-	/// <summary>Live position in seconds at 60 fps. Bind a TextBlock here.</summary>
+	/// <summary>
+	/// Gets the current position in seconds at 60 fps. This property is bound to a TextBlock for display.
+	/// </summary>
 	public double Position
 	{
 		get => (double)GetValue(PositionProperty);
 		private set => SetValue(PositionProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="ProgressColor"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty ProgressColorProperty =
 		DependencyProperty.Register(nameof(ProgressColor), typeof(Brush),
 			typeof(SmoothProgressBar), new PropertyMetadata(null, OnColorChanged));
 
-	/// <summary>Custom fill/thumb color. Only used when UseAccentColor="False".</summary>
+	/// <summary>
+	/// Gets or sets the custom fill/thumb color. Only used when UseAccentColor="False".
+	/// </summary>
 	public Brush ProgressColor
 	{
 		get => (Brush)GetValue(ProgressColorProperty);
 		set => SetValue(ProgressColorProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="UseAccentColor"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty UseAccentColorProperty =
 		DependencyProperty.Register(nameof(UseAccentColor), typeof(bool),
 			typeof(SmoothProgressBar), new PropertyMetadata(true, OnColorChanged));
 
-	/// <summary>True (default) = system accent. False = use ProgressColor.</summary>
+	/// <summary>
+	/// Gets or sets a value indicating whether to use the system accent color (true) or ProgressColor (false).
+	/// </summary>
 	public bool UseAccentColor
 	{
 		get => (bool)GetValue(UseAccentColorProperty);
 		set => SetValue(UseAccentColorProperty, value);
 	}
 
+	/// <summary>
+	/// Gets the duration of the current track in seconds.
+	/// </summary>
 	public double Duration { get; private set; } = 1;
 
-	/// <summary>Fired when the user scrubs — value is seconds.</summary>
+	/// <summary>
+	/// Occurs when the user scrubs the progress bar — value is seconds.
+	/// </summary>
 	public event EventHandler<double>? Seeked;
 
 	// ── Constructor ───────────────────────────────────────────────
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SmoothProgressBar"/> class.
+	/// </summary>
 	public SmoothProgressBar()
 	{
 		// MinHeight = ThumbSize so the entire thumb area is tappable,
@@ -108,9 +134,17 @@ public sealed class SmoothProgressBar : UserControl
 
 	// ── Color ─────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Called when the color property changes.
+	/// </summary>
+	/// <param name="d">The dependency object.</param>
+	/// <param name="e">The event arguments.</param>
 	private static void OnColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		=> ((SmoothProgressBar)d).ApplyColor();
 
+	/// <summary>
+	/// Applies the appropriate color to the progress bar elements.
+	/// </summary>
 	private void ApplyColor()
 	{
 		var brush = (!UseAccentColor && ProgressColor != null)
@@ -121,6 +155,10 @@ public sealed class SmoothProgressBar : UserControl
 		_trackBg.Fill = GetTrackBackground();
 	}
 
+	/// <summary>
+	/// Gets the background color for the track based on the current theme.
+	/// </summary>
+	/// <returns>A solid color brush representing the track background.</returns>
 	private static SolidColorBrush GetTrackBackground()
 	{
 		var uiSettings = new Windows.UI.ViewManagement.UISettings();
@@ -137,9 +175,12 @@ public sealed class SmoothProgressBar : UserControl
 	// ── ViewModel API ─────────────────────────────────────────────
 
 	/// <summary>
-	/// Call every time MusicPlayer.PositionChanged fires.
-	/// Only hard-snaps on large drift — never interrupts sub-second motion.
+	/// Synchronizes the position with the current playback state.
 	/// </summary>
+	/// <param name="seconds">The current position in seconds.</param>
+	/// <remarks>
+	/// Only hard-snaps on large drift — never interrupts sub-second motion.
+	/// </remarks>
 	public void SyncPosition(double seconds)
 	{
 		if (_isDragging) return;
@@ -155,7 +196,9 @@ public sealed class SmoothProgressBar : UserControl
 		}
 	}
 
-	/// <summary>Call when playback starts or resumes.</summary>
+	/// <summary>
+	/// Notifies the progress bar that playback has started or resumed.
+	/// </summary>
 	public void NotifyPlaying()
 	{
 		_isPlaying = true;
@@ -163,7 +206,9 @@ public sealed class SmoothProgressBar : UserControl
 		if (!_timer.IsEnabled) _timer.Start();
 	}
 
-	/// <summary>Call when playback pauses or stops.</summary>
+	/// <summary>
+	/// Notifies the progress bar that playback has paused or stopped.
+	/// </summary>
 	public void NotifyPaused()
 	{
 		_isPlaying = false;
@@ -174,10 +219,13 @@ public sealed class SmoothProgressBar : UserControl
 	}
 
 	/// <summary>
-	/// Call when a new track loads (including auto next/prev).
+	/// Notifies the progress bar that a new track has loaded.
+	/// </summary>
+	/// <param name="durationSeconds">The duration of the new track in seconds.</param>
+	/// <remarks>
 	/// Does NOT stop timer/watch when already playing because
 	/// NotifyPlaying fires before this on auto-change.
-	/// </summary>
+	/// </remarks>
 	public void NotifyTrackChanged(double durationSeconds)
 	{
 		Duration = Math.Max(durationSeconds, 1);
@@ -197,8 +245,11 @@ public sealed class SmoothProgressBar : UserControl
 
 	/// <summary>
 	/// Sets the initial position on app startup without triggering a seek.
-	/// Call this after NotifyTrackChanged when restoring last playback position.
 	/// </summary>
+	/// <param name="seconds">The position to set in seconds.</param>
+	/// <remarks>
+	/// Call this after NotifyTrackChanged when restoring last playback position.
+	/// </remarks>
 	public void SetInitialPosition(double seconds)
 	{
 		_anchorSeconds = Math.Clamp(seconds, 0, Duration);
@@ -209,6 +260,11 @@ public sealed class SmoothProgressBar : UserControl
 
 	// ── Tick ──────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Handles the timer tick event for smooth animation.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The event arguments.</param>
 	private void OnTick(object? sender, object e)
 	{
 		if (_isDragging || !_isPlaying) return;
@@ -217,9 +273,16 @@ public sealed class SmoothProgressBar : UserControl
 		UpdateUI(live);
 	}
 
+	/// <summary>
+	/// Redraws the progress bar at the current position.
+	/// </summary>
 	private void RedrawAtCurrentPosition()
 		=> UpdateUI(_anchorSeconds + (_isPlaying ? _watch.Elapsed.TotalSeconds : 0));
 
+	/// <summary>
+	/// Updates the UI to reflect the specified position.
+	/// </summary>
+	/// <param name="seconds">The position in seconds to update to.</param>
 	private void UpdateUI(double seconds)
 	{
 		var w = ActualWidth;
@@ -232,6 +295,11 @@ public sealed class SmoothProgressBar : UserControl
 
 	// ── Scrub ─────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Handles pointer pressed events for scrubbing.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
 	{
 		_isDragging = true;
@@ -240,6 +308,11 @@ public sealed class SmoothProgressBar : UserControl
 		e.Handled = true;
 	}
 
+	/// <summary>
+	/// Handles pointer moved events for scrubbing.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
 	{
 		if (!_isDragging) return;
@@ -247,12 +320,26 @@ public sealed class SmoothProgressBar : UserControl
 		e.Handled = true;
 	}
 
+	/// <summary>
+	/// Handles pointer released events for scrubbing.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
 	{ FinishDrag(e); e.Handled = true; }
 
+	/// <summary>
+	/// Handles pointer capture lost events for scrubbing.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void OnPointerCaptureLost(object sender, PointerRoutedEventArgs e)
 		=> FinishDrag(e);
 
+	/// <summary>
+	/// Seeks to the position indicated by the pointer.
+	/// </summary>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void SeekToPointer(PointerRoutedEventArgs e)
 	{
 		var seconds = Math.Clamp(e.GetCurrentPoint(this).Position.X / ActualWidth, 0, 1) * Duration;
@@ -262,6 +349,10 @@ public sealed class SmoothProgressBar : UserControl
 		UpdateUI(seconds);
 	}
 
+	/// <summary>
+	/// Finishes the drag operation and fires the seeked event.
+	/// </summary>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void FinishDrag(PointerRoutedEventArgs e)
 	{
 		if (!_isDragging) return;

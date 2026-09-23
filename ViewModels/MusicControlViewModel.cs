@@ -55,6 +55,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_progressBarValue = seconds;
 		isUpdatingProgressBar = false;
 		_musicPlayer.CurTimeTicks = TimeSpan.FromSeconds(seconds).Ticks;
+		TaskbarHelper.SetProgressValue(App.Hwnd, seconds / DurationOfSong * 100, 100);
 		_overlayGrid?.UpdateProgress(seconds / DurationOfSong);
 	}
 

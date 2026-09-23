@@ -4,6 +4,9 @@ using TextBox = Microsoft.UI.Xaml.Controls.TextBox;
 
 namespace Tunetastic.Common.Controls;
 
+/// <summary>
+/// A text box control that provides inline suggestions as the user types.
+/// </summary>
 [TemplatePart(Name = PartTextBox, Type = typeof(TextBox))]
 public sealed class InlineSuggestBox : Control
 {
@@ -24,24 +27,33 @@ public sealed class InlineSuggestBox : Control
 
 	// ── Dependency Properties ────────────────────────────────────────────
 
+	/// <summary>
+	/// Identifies the <see cref="SuggestionSource"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty SuggestionSourceProperty =
 		DependencyProperty.Register(nameof(SuggestionSource), typeof(IList<string>),
 			typeof(InlineSuggestBox), new PropertyMetadata(null,
 				(d, _) => ((InlineSuggestBox)d).RefreshSuggestion()));
 
+	/// <summary>
+	/// Gets or sets the source of suggestions to display.
+	/// </summary>
 	public IList<string>? SuggestionSource
 	{
 		get => (IList<string>?)GetValue(SuggestionSourceProperty);
 		set => SetValue(SuggestionSourceProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="SuggestionSuffix"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty SuggestionSuffixProperty =
 		DependencyProperty.Register(nameof(SuggestionSuffix), typeof(string),
 			typeof(InlineSuggestBox), new PropertyMetadata(string.Empty,
 				(d, _) => ((InlineSuggestBox)d).UpdateSuggestionSelection()));
 
 	/// <summary>
-	/// Visual-only hint appended after the suggestion remainder in the selection.
+	/// Gets or sets the visual-only hint appended after the suggestion remainder in the selection.
 	/// Never written to the Text DP and never included in accepted text.
 	/// </summary>
 	public string SuggestionSuffix
@@ -50,17 +62,26 @@ public sealed class InlineSuggestBox : Control
 		set => SetValue(SuggestionSuffixProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="CaseSensitiveSuggestion"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty CaseSensitiveSuggestionProperty =
 		DependencyProperty.Register(nameof(CaseSensitiveSuggestion), typeof(bool),
 			typeof(InlineSuggestBox), new PropertyMetadata(false,
 				(d, _) => ((InlineSuggestBox)d).RefreshSuggestion()));
 
+	/// <summary>
+	/// Gets or sets a value indicating whether suggestion matching is case sensitive.
+	/// </summary>
 	public bool CaseSensitiveSuggestion
 	{
 		get => (bool)GetValue(CaseSensitiveSuggestionProperty);
 		set => SetValue(CaseSensitiveSuggestionProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="Text"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty TextProperty =
 	DependencyProperty.Register(nameof(Text), typeof(string),
 		typeof(InlineSuggestBox), new PropertyMetadata(string.Empty, (d, e) =>
@@ -70,76 +91,121 @@ public sealed class InlineSuggestBox : Control
 				box._textBox.Text = (string)e.NewValue;
 		}));
 
+	/// <summary>
+	/// Gets or sets the text content of the control.
+	/// </summary>
 	public string Text
 	{
 		get => (string)GetValue(TextProperty);
 		set => SetValue(TextProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="PlaceholderText"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty PlaceholderTextProperty =
 		DependencyProperty.Register(nameof(PlaceholderText), typeof(string),
 			typeof(InlineSuggestBox), new PropertyMetadata(string.Empty));
 
+	/// <summary>
+	/// Gets or sets the text to display when the control is empty.
+	/// </summary>
 	public string PlaceholderText
 	{
 		get => (string)GetValue(PlaceholderTextProperty);
 		set => SetValue(PlaceholderTextProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="TextWrapping"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty TextWrappingProperty =
 		DependencyProperty.Register(nameof(TextWrapping), typeof(TextWrapping),
 			typeof(InlineSuggestBox), new PropertyMetadata(TextWrapping.NoWrap));
 
+	/// <summary>
+	/// Gets or sets how the text should wrap when it reaches the edge of the control.
+	/// </summary>
 	public TextWrapping TextWrapping
 	{
 		get => (TextWrapping)GetValue(TextWrappingProperty);
 		set => SetValue(TextWrappingProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="AcceptsReturn"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty AcceptsReturnProperty =
 		DependencyProperty.Register(nameof(AcceptsReturn), typeof(bool),
 			typeof(InlineSuggestBox), new PropertyMetadata(false));
 
+	/// <summary>
+	/// Gets or sets a value indicating whether the control accepts return characters.
+	/// </summary>
 	public bool AcceptsReturn
 	{
 		get => (bool)GetValue(AcceptsReturnProperty);
 		set => SetValue(AcceptsReturnProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="IsReadOnly"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty IsReadOnlyProperty =
 		DependencyProperty.Register(nameof(IsReadOnly), typeof(bool),
 			typeof(InlineSuggestBox), new PropertyMetadata(false));
 
+	/// <summary>
+	/// Gets or sets a value indicating whether the control is read-only.
+	/// </summary>
 	public bool IsReadOnly
 	{
 		get => (bool)GetValue(IsReadOnlyProperty);
 		set => SetValue(IsReadOnlyProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="MaxLength"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty MaxLengthProperty =
 		DependencyProperty.Register(nameof(MaxLength), typeof(int),
 			typeof(InlineSuggestBox), new PropertyMetadata(0));
 
+	/// <summary>
+	/// Gets or sets the maximum number of characters that can be entered into the control.
+	/// </summary>
 	public int MaxLength
 	{
 		get => (int)GetValue(MaxLengthProperty);
 		set => SetValue(MaxLengthProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="MultiSuggestEnabled"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty MultiSuggestEnabledProperty =
 		DependencyProperty.Register(nameof(MultiSuggestEnabled), typeof(bool),
 			typeof(InlineSuggestBox), new PropertyMetadata(false));
 
+	/// <summary>
+	/// Gets or sets a value indicating whether multi-suggestion mode is enabled.
+	/// </summary>
 	public bool MultiSuggestEnabled
 	{
 		get => (bool)GetValue(MultiSuggestEnabledProperty);
 		set => SetValue(MultiSuggestEnabledProperty, value);
 	}
 
+	/// <summary>
+	/// Identifies the <see cref="SplitRules"/> dependency property.
+	/// </summary>
 	public static readonly DependencyProperty SplitRulesProperty =
 		DependencyProperty.Register(nameof(SplitRules), typeof(IList<ArtistSplitRule>),
 			typeof(InlineSuggestBox), new PropertyMetadata(null));
 
+	/// <summary>
+	/// Gets or sets the rules used to split text into tokens for suggestions.
+	/// </summary>
 	public IList<ArtistSplitRule>? SplitRules
 	{
 		get => (IList<ArtistSplitRule>?)GetValue(SplitRulesProperty);
@@ -148,11 +214,21 @@ public sealed class InlineSuggestBox : Control
 
 	// ── Events ───────────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Occurs when the text content of the control changes.
+	/// </summary>
 	public event TextChangedEventHandler? TextChanged;
+
+	/// <summary>
+	/// Occurs when a suggestion is accepted by the user.
+	/// </summary>
 	public event EventHandler<string>? SuggestionAccepted;
 
 	// ── Constructor ──────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Initializes a new instance of the <see cref="InlineSuggestBox"/> class.
+	/// </summary>
 	public InlineSuggestBox()
 	{
 		DefaultStyleKey = typeof(InlineSuggestBox);
@@ -160,6 +236,10 @@ public sealed class InlineSuggestBox : Control
 
 	// ── Template ─────────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Called when the control template is applied to initialize the control.
+	/// </summary>
+	/// <param name="e">Event data that describes how this event was generated.</param>
 	protected override void OnApplyTemplate()
 	{
 		base.OnApplyTemplate();
@@ -193,6 +273,11 @@ public sealed class InlineSuggestBox : Control
 
 	// ── Event handlers ───────────────────────────────────────────────────
 
+	/// <summary>
+	/// Handles text changed events in the text box to update the control state.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The text changed event arguments.</param>
 	private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		string boxText = _textBox!.Text;
@@ -214,6 +299,11 @@ public sealed class InlineSuggestBox : Control
 		TextChanged?.Invoke(this, e);
 	}
 
+	/// <summary>
+	/// Handles preview key down events to manage suggestion navigation and acceptance.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The key routed event arguments.</param>
 	private void TextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
 	{
 		bool hasSuggestion = !string.IsNullOrEmpty(_currentFullMatch);
@@ -277,6 +367,11 @@ public sealed class InlineSuggestBox : Control
 		}
 	}
 
+	/// <summary>
+	/// Handles pointer pressed events to dismiss suggestions when clicking outside.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The pointer routed event arguments.</param>
 	private void TextBox_PointerPressed(object sender, PointerRoutedEventArgs e)
 	{
 		if (string.IsNullOrEmpty(_currentFullMatch)) return;
@@ -284,6 +379,11 @@ public sealed class InlineSuggestBox : Control
 		e.Handled = true;
 	}
 
+	/// <summary>
+	/// Handles selection changed events to manage suggestion dismissal.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The routed event arguments.</param>
 	private void TextBox_SelectionChanged(object sender, RoutedEventArgs e)
 	{
 		if (string.IsNullOrEmpty(_currentFullMatch)) return;
@@ -291,6 +391,11 @@ public sealed class InlineSuggestBox : Control
 			DismissSuggestion();
 	}
 
+	/// <summary>
+	/// Handles lost focus events to dismiss suggestions.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="e">The routed event arguments.</param>
 	private void TextBox_LostFocus(object sender, RoutedEventArgs e)
 	{
 		DismissSuggestion();
@@ -298,6 +403,9 @@ public sealed class InlineSuggestBox : Control
 
 	// ── Suggestion logic ─────────────────────────────────────────────────
 
+	/// <summary>
+	/// Refreshes the suggestion display based on current text input.
+	/// </summary>
 	private void RefreshSuggestion()
 	{
 		if (_textBox is null || _textBox.FocusState == FocusState.Unfocused) return;
@@ -329,6 +437,10 @@ public sealed class InlineSuggestBox : Control
 		ShowMatch(_matchIndex);
 	}
 
+	/// <summary>
+	/// Shows a match at the specified index in the suggestion list.
+	/// </summary>
+	/// <param name="index">The index of the match to show.</param>
 	private void ShowMatch(int index)
 	{
 		if (index < 0 || index >= _matches.Count) return;
@@ -337,10 +449,7 @@ public sealed class InlineSuggestBox : Control
 	}
 
 	/// <summary>
-	/// Writes prefix+fullMatch+suffix into the TextBox and selects the untyped
-	/// tail so it appears highlighted. Records the exact string written into
-	/// _lastInternalBoxText so TextBox_TextChanged can recognise it as ours.
-	/// The Text DP is NOT updated — it stays as the real typed text only.
+	/// Updates the suggestion selection by writing the suggested text into the text box.
 	/// </summary>
 	private void UpdateSuggestionSelection()
 	{
@@ -365,8 +474,7 @@ public sealed class InlineSuggestBox : Control
 	}
 
 	/// <summary>
-	/// Accepts the current suggestion. Writes prefix+fullMatch (no suffix) into
-	/// the TextBox, moves caret to end, updates Text DP, fires SuggestionAccepted.
+	/// Accepts the current suggestion and updates the control state.
 	/// </summary>
 	private void AcceptSuggestion()
 	{
@@ -390,7 +498,7 @@ public sealed class InlineSuggestBox : Control
 	}
 
 	/// <summary>
-	/// Dismisses the suggestion by restoring the TextBox to the real typed text.
+	/// Dismisses the current suggestion and restores the original text.
 	/// </summary>
 	private void DismissSuggestion()
 	{
@@ -408,7 +516,9 @@ public sealed class InlineSuggestBox : Control
 		ClearState();
 	}
 
-	/// <summary>Resets match state. Does not touch the TextBox.</summary>
+	/// <summary>
+	/// Clears the current match state without affecting the text box content.
+	/// </summary>
 	private void ClearState()
 	{
 		_currentFullMatch = string.Empty;
@@ -418,6 +528,11 @@ public sealed class InlineSuggestBox : Control
 
 	// ── Helpers ──────────────────────────────────────────────────────────
 
+	/// <summary>
+	/// Gets the current token from the full text based on split rules.
+	/// </summary>
+	/// <param name="fullText">The full text to parse.</param>
+	/// <returns>A tuple containing the token and its start index.</returns>
 	private (string token, int startIndex) GetCurrentToken(string fullText)
 	{
 		if (!MultiSuggestEnabled || SplitRules is null || SplitRules.Count == 0)

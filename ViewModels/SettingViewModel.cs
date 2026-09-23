@@ -44,7 +44,7 @@ public partial class SettingViewModel : ObservableObject
 		{
 			try
 			{
-				//Todo: Fix UserName and Repo
+				//TODO: Fix UserName and Repo
 				string username = "";
 				string repo = "";
 				LastUpdateCheck = DateTime.Now.ToShortDateString();
@@ -85,7 +85,7 @@ public partial class SettingViewModel : ObservableObject
 	[RelayCommand]
 	private async Task GoToUpdateAsync()
 	{
-		//Todo: Change Uri
+		//TODO: Change Uri
 		await Launcher.LaunchUriAsync(new Uri(""));
 	}
 

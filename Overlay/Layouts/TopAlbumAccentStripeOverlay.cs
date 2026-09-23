@@ -1,6 +1,5 @@
 ﻿using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.Foundation;
 using Windows.Storage;
@@ -35,6 +34,10 @@ public class TopAlbumAccentStripeOverlay : OverlayBase
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the UI layout for the top album accent stripe overlay.
+	/// </summary>
+	/// <returns>A Grid representing the root of the overlay layout.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -178,6 +181,11 @@ public class TopAlbumAccentStripeOverlay : OverlayBase
 		return root;
 	}
 
+	/// <summary>
+	/// Applies a gradient color to the stripe fill.
+	/// </summary>
+	/// <param name="color1">The first color of the gradient.</param>
+	/// <param name="color2">The second color of the gradient.</param>
 	private void ApplyStripeGradient(Color color1, Color color2)
 	{
 		var gradientBrush = new LinearGradientBrush
@@ -194,6 +202,11 @@ public class TopAlbumAccentStripeOverlay : OverlayBase
 		_stripeFill?.Fill = gradientBrush;
 	}
 
+	/// <summary>
+	/// Handles the event when the cover art image is opened and analyzes colors.
+	/// </summary>
+	/// <param name="sender">The object that raised the event.</param>
+	/// <param name="e">Event data.</param>
 	private async void CoverArtImage_Opened(object sender, RoutedEventArgs e)
 	{
 		if (_colorAnalyzer is null) return;
@@ -228,12 +241,23 @@ public class TopAlbumAccentStripeOverlay : OverlayBase
 		ApplyStripeGradient(accentColor1, accentColor2);
 	}
 
+	/// <summary>
+	/// Updates the progress indicator of the overlay.
+	/// </summary>
+	/// <param name="value">The progress value between 0 and 1.</param>
 	public override void UpdateProgress(double value)
 	{
 		value = Math.Clamp(value, 0, 1);
 		_stripeFill?.Width = _stripeContainerWidth * value;
 	}
 
+	/// <summary>
+	/// Updates the track information displayed in the overlay.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
+	/// <param name="art">Path to the album art file.</param>
 	public async void UpdateTrack(string title, string artist, string album, string art)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -255,6 +279,12 @@ public class TopAlbumAccentStripeOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

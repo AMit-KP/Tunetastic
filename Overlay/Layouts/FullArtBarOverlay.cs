@@ -19,12 +19,20 @@ public class FullArtBarOverlay : OverlayBase
 	private TextBlock? _toolTipText;
 	private const double ProgressBarWidth = 100;
 
+	/// <summary>
+	/// Initializes a new instance of the FullArtBarOverlay class.
+	/// </summary>
+	/// <param name="theme">The theme for the overlay.</param>
 	public FullArtBarOverlay(OverlayTheme theme)
 	{
 		Theme = theme;
 		RootGrid = Build();
 	}
 
+	/// <summary>
+	/// Builds the UI layout for the hover reveal overlay.
+	/// </summary>
+	/// <returns>A Grid representing the root of the overlay layout.</returns>
 	private Grid Build()
 	{
 		var root = new Grid
@@ -159,12 +167,20 @@ public class FullArtBarOverlay : OverlayBase
 		return root;
 	}
 
+	/// <inheritdoc/>
 	public override void UpdateProgress(double value)
 	{
 		value = Math.Clamp(value, 0, 1);
 		_progressFill?.Width = ProgressBarWidth * value;
 	}
 
+	/// <summary>
+	/// Updates the track information.
+	/// </summary>
+	/// <param name="title">The title of the track.</param>
+	/// <param name="artist">The artist of the track.</param>
+	/// <param name="album">The album of the track.</param>
+	/// <param name="art">The artwork image for the track.</param>
 	public void UpdateTrack(string title, string artist, string album, BitmapImage? art = null)
 	{
 		_titleText?.Text = title ?? string.Empty;
@@ -179,6 +195,12 @@ public class FullArtBarOverlay : OverlayBase
 		UpdateToolTipText(title ?? string.Empty, artist ?? string.Empty, album ?? string.Empty);
 	}
 
+	/// <summary>
+	/// Updates the tooltip text with track information.
+	/// </summary>
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
 	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
 	{
 		if (_toolTipText is null) return;

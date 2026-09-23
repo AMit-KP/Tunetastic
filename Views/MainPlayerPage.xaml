@@ -316,6 +316,86 @@
 			</Grid>
 		</Canvas>
 
+		<Grid x:Name="SyncControls"
+		      HorizontalAlignment="Left"
+		      VerticalAlignment="Top"
+		      ColumnSpacing="5"
+		      Visibility="Collapsed">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+			<Grid x:Name="SyncCore"
+			      Grid.Column="0"
+			      HorizontalAlignment="Left"
+			      VerticalAlignment="Top"
+			      ColumnSpacing="5">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<RepeatButton x:Name="DecreaseButton"
+				              Grid.Column="0"
+				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				              Click="DecreaseButton_Click"
+				              ToolTipService.ToolTip="Hold to Decrease">
+					<FontIcon Glyph="&#xF8AB;" />
+				</RepeatButton>
+				<Border Grid.Column="1"
+				        Padding="8,0,8,3"
+				        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				        CornerRadius="8">
+					<TextBlock x:Name="SyncTime"
+					           Width="90"
+					           HorizontalAlignment="Center"
+					           VerticalAlignment="Center"
+					           HorizontalTextAlignment="Center"
+					           Style="{ThemeResource BodyStrongTextBlockStyle}" />
+				</Border>
+				<RepeatButton x:Name="IncreaseButton"
+				              Grid.Column="2"
+				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+				              Click="IncreaseButton_Click"
+				              ToolTipService.ToolTip="Hold to Increase">
+					<FontIcon Glyph="&#xF8AA;" />
+				</RepeatButton>
+			</Grid>
+			<Button x:Name="AcceptSyncButton"
+			        Grid.Column="1"
+			        VerticalAlignment="Top"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+			        ToolTipService.ToolTip="Accept and Save">
+				<FontIcon Glyph="&#xF78C;" />
+				<Button.Flyout>
+					<Flyout>
+						<StackPanel Orientation="Vertical"
+						            Spacing="10">
+							<Button x:Name="SaveAsOffsetButton"
+							        HorizontalAlignment="Center"
+							        Click="SaveAsOffsetButton_Click"
+							        Content="Save as offset metadata"
+							        ToolTipService.ToolTip="Save as offset metadata in the lrc file. Like [offset:±number]." />
+							<Button x:Name="SaveByTimestampsButton"
+							        HorizontalAlignment="Center"
+							        Click="SaveByTimestampsButton_Click"
+							        Content="Save by modifying timestamps"
+							        ToolTipService.ToolTip="Save by changing timestamps in the lrc file." />
+						</StackPanel>
+					</Flyout>
+				</Button.Flyout>
+			</Button>
+			<Button x:Name="CancelSyncButton"
+			        Grid.Column="2"
+			        VerticalAlignment="Top"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+			        Click="CancelSyncButton_Click"
+			        ToolTipService.ToolTip="Cancel">
+				<FontIcon Glyph="&#xF78A;" />
+			</Button>
+		</Grid>
+
 		<Grid x:Name="MusicDetails"
 		      Width="Auto"
 		      Height="Auto"
@@ -436,14 +516,20 @@
 								              Icon="Edit"
 								              Label="Edit"
 								              ToolTipService.ToolTip="Edit the lyrics" />
-								<!--<AppBarSeparator x:Name="Separator2"/>
+								<AppBarSeparator x:Name="Separator2" />
+								<AppBarButton x:Name="SyncLyricsButton"
+								              Click="SyncLyricsButton_Click"
+								              Icon="Sync"
+								              Label="Sync"
+								              ToolTipService.ToolTip="Syncronize the lyrics" />
+								<!--<AppBarSeparator x:Name="Separator3"/>
 								<AppBarButton x:Name="SearchLyricsButton"
 								              Click="SearchAppBarButton_Click"
 								              Icon="Find"
 								              IsEnabled="False"
 								              Label="Search"
 								              ToolTipService.ToolTip="Search for lyrics on internet" />-->
-								<AppBarSeparator x:Name="Separator3" />
+								<AppBarSeparator x:Name="Separator4" />
 								<AppBarButton x:Name="ClearLyricsButton"
 								              Click="ClearAppBarButton_Click"
 								              Icon="Delete"

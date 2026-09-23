@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using TagLib;
+using Tunetastic.Views.Common;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using Windows.Foundation;
@@ -361,7 +362,7 @@ public sealed partial class MainPage : Page
 			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
 			{
 				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
-				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+				GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
 			}
 		}
 		playLists = null;
@@ -831,6 +832,7 @@ public sealed partial class MainPage : Page
 						},
 
 						DefaultButton = ContentDialogButton.Primary,
+						RequestedTheme = App.Current.ThemeService.ActualTheme,
 						XamlRoot = App.MainWindow.Content.XamlRoot
 					};
 
@@ -915,9 +917,9 @@ public sealed partial class MainPage : Page
 							PendingLyrics = 1;
 						}
 
-						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 						try
 						{
+							LibraryWatcherService.MarkSelfInitiated(songData.Path);
 							audioModel.Save();
 						}
 						catch (IOException)
@@ -934,14 +936,47 @@ public sealed partial class MainPage : Page
 
 							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 						}
+
+						songData.DateAdded = new FileInfo(songData.Path).LastWriteTime;
+						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 					}
-					//TODO: await UpdateUI();
+					// Refresh the visible library/playlist page's song list so the edited metadata is reflected immediately
+					if (NavFrame.Content is TunetasticPageBase visibleView)
+						await visibleView.RefreshListAsync();
 				}
 
 				_songData = null;
 				_frontCoverArtPath = null;
 			}
 		}
+	}
+
+	private int _libraryRefreshInProgress = 0;
+
+	/// <summary>
+	/// Refreshes the currently visible library/playlist page after auto-scan has
+	/// processed file changes and written them to the database. Safe to call from
+	/// background threads — marshals to the UI thread, coalesces bursts of changes
+	/// into a single refresh and prevents concurrent refreshes from overlapping.
+	/// </summary>
+	public void RefreshVisibleLibraryPage()
+	{
+		if (LibraryScanner.IsScanning) return; // scan-aware page init handles that case
+		if (Interlocked.CompareExchange(ref _libraryRefreshInProgress, 1, 0) != 0) return;
+
+		App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
+		{
+			try
+			{
+				await Task.Delay(300); // merge adjacent rename/flush raises into one refresh
+				if (NavFrame.Content is TunetasticPageBase visibleView)
+					await visibleView.RefreshListAsync();
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _libraryRefreshInProgress, 0);
+			}
+		});
 	}
 
 	private async void ClearButton_Click(object sender, RoutedEventArgs e)
@@ -1302,9 +1337,6 @@ public sealed partial class MainPage : Page
 			.ToList();
 
 		ArtistTeachingTipContent.Inlines.Clear();
-
-		//ArtistTeachingTipContent.Inlines.Add(new Run { Text = "Inline auto-suggestion for existing albums.", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		//ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• " });
 		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
