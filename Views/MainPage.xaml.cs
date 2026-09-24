@@ -318,7 +318,7 @@ public sealed partial class MainPage : Page
 	{
 		if (args.InvokedItem is string itemText && itemText == "Add New Playlist")
 		{
-			ShowAddPlaylistDialog();
+			_ = ShowAddPlaylistDialog();
 		}
 	}
 
@@ -333,7 +333,8 @@ public sealed partial class MainPage : Page
 	/// prepares any accompanying UI elements, and retrieves the existing playlist names from persistent storage.
 	/// Upon user confirmation, it validates and handles the creation or addition of a new playlist.
 	/// </remarks>
-	private async void ShowAddPlaylistDialog()
+	/// <returns>The name of the playlist that was created or added, or null if the dialog was cancelled.</returns>
+	public async Task<string?> ShowAddPlaylistDialog()
 	{
 		AddPlaylistDialog.Visibility = Visibility.Visible;
 		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
@@ -352,20 +353,26 @@ public sealed partial class MainPage : Page
 		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
 		MainWindow._instance.WindowResizePermission(true);
 
+		string? createdPlaylistName = null;
+
 		if (result == ContentDialogResult.Primary)
 		{
-			if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
+			var name = PlaylistNameBox.Text.Trim();
+			if (CreateNewPlaylist(name))
 			{
-				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
-				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created.");
+				await DatabaseHelper.Instance.CreatePlaylist(name);
+				GlobalNotification.Info($"{name} Playlist created.");
+				createdPlaylistName = name;
 			}
 			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
 			{
-				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
-				GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+				await DatabaseHelper.Instance.AddSongsToPlaylist(name, PlaylistFileSongs);
+				GlobalNotification.Info($"{name} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+				createdPlaylistName = name;
 			}
 		}
 		playLists = null;
+		return createdPlaylistName;
 	}
 
 	/// <summary>
