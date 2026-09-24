@@ -332,14 +332,20 @@ public sealed partial class MainPage : Page
 	/// prepares any accompanying UI elements, and retrieves the existing playlist names from persistent storage.
 	/// Upon user confirmation, it validates and handles the creation or addition of a new playlist.
 	/// </remarks>
+	/// <param name="allowImport">
+	/// Whether to show the "select an existing playlist file" option. Only makes sense from the
+	/// nav menu's dedicated playlist-management entry point - not from "Add to playlist", where
+	/// importing a file would silently also add the song(s) the user was in the middle of adding.
+	/// </param>
 	/// <returns>The name of the playlist that was created or added, or null if the dialog was cancelled.</returns>
-	public async Task<string?> ShowAddPlaylistDialog()
+	public async Task<string?> ShowAddPlaylistDialog(bool allowImport = true)
 	{
 		AddPlaylistDialog.Visibility = Visibility.Visible;
 		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = string.Empty;
 		ErrorMessage.Text = "";
 		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
+		ImportPlaylistPanel.Visibility = allowImport ? Visibility.Visible : Visibility.Collapsed;
 		var desc = new TextBlock();
 		desc.Inlines.Add(new Run() { Text = "You can also select an existing playlist file." });
 		desc.Inlines.Add(new LineBreak());

@@ -239,7 +239,8 @@
 					           Foreground="Red"
 					           Text=""
 					           TextWrapping="WrapWholeWords" />
-					<StackPanel Width="400"
+					<StackPanel x:Name="ImportPlaylistPanel"
+					            Width="400"
 					            Orientation="Horizontal"
 					            Spacing="10">
 						<TextBlock x:Name="AddPlaylistDialogDescription"

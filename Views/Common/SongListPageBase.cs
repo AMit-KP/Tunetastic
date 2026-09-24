@@ -297,7 +297,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	/// </summary>
 	private async void CreatePlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var playlistName = await MainPage._instance!.ShowAddPlaylistDialog();
+		var playlistName = await MainPage._instance!.ShowAddPlaylistDialog(allowImport: false);
 		if (playlistName != null)
 			AddToPlaylist_Click(new MenuFlyoutItem { Text = playlistName }, e);
 	}
