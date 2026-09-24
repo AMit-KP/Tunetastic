@@ -284,7 +284,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					break;
 
 				case PlaybackState.Ended:
-					_musicPlayer.Next(autoChange: true);
+					_ = _musicPlayer.Next(autoChange: true);
 					break;
 			}
 		});
@@ -459,7 +459,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_midpointTimer?.Stop();
 		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
-		_musicPlayer.Next();
+		_ = _musicPlayer.Next();
 	}
 
 	/// <summary>
@@ -475,7 +475,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		_midpointTimer?.Stop();
 		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
-		_musicPlayer.Previous();
+		_ = _musicPlayer.Previous();
 	}
 
 	/// <summary>

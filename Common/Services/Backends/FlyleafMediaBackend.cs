@@ -75,9 +75,13 @@ internal sealed class FlyleafMediaBackend : IMediaBackend
 	/// Asynchronously opens the specified media file for playback.
 	/// </summary>
 	/// <param name="path">The path to the media file.</param>
-	/// <returns>A task representing the asynchronous operation.</returns>
-	public async Task OpenAsync(string path)
-		=> await Task.Run(() => _player.Open(path));
+	/// <returns>False if the file could not be opened.</returns>
+	public async Task<bool> OpenAsync(string path)
+	{
+		// Flyleaf doesn't throw for a missing or unreadable file; it reports it in the result.
+		var result = await Task.Run(() => _player.Open(path));
+		return result.Success;
+	}
 
 	/// <summary>
 	/// Starts playing the media.
