@@ -108,8 +108,17 @@ public sealed partial class SettingsPage : Page
 				Libraries?.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
 
 				LibraryFolders.IsExpanded = true;
-				GlobalNotification.Info("Please do a Full Scan.");
-				//TODO add highlight for scan
+
+				// A Full Scan reprocesses every song in every library from scratch, so it's
+				// needed once to build the initial FileScanMeta baseline. After that, a new
+				// folder's files show up as "appeared" to the catch-up diff, which only touches
+				// what's new - no need to make the user re-scan the whole library just to add
+				// one folder to it.
+				var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
+				if (trackedMeta.Count > 0 && !LibraryScanner.IsScanning)
+					_ = AutoScanReconciler.RunCatchUpDiff();
+				else
+					GlobalNotification.Info("Please do a Full Scan.");
 			}
 		}
 		catch (Exception)
