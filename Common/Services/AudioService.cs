@@ -147,14 +147,20 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="handler">The session event handler to remove.</param>
 	private void RemoveSession(SessionEventHandler handler)
 	{
+		bool needsRewait;
 		lock (_sessionsLock)
 		{
 			try { handler.Session.UnRegisterEventClient(handler); } catch { /* session may already be gone */ }
 			_sessionHandlers.Remove(handler);
-
-			if (_sessionHandlers.Count == 0)
-				_ = WaitAndSubscribeToAppVolumeAsync();
+			needsRewait = _sessionHandlers.Count == 0;
 		}
+
+		// WaitAndSubscribeToAppVolumeAsync runs FindAllAppSessions synchronously before its first
+		// await, which enumerates every output device over COM. Starting it while _sessionsLock is
+		// still held would block any other thread waiting on that lock (e.g. the UI thread reading
+		// app volume) for as long as that enumeration takes, which can stall during a device change.
+		if (needsRewait)
+			_ = WaitAndSubscribeToAppVolumeAsync();
 	}
 
 	/// <summary>
