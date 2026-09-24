@@ -27,6 +27,7 @@ public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
 	private bool _isUpdatingSlider = false;
+	private bool _pausedByMute = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
 
@@ -1077,8 +1078,24 @@ public sealed partial class MainPage : Page
 
 			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
 
-			if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true") && (isMuted || volume == 0))
-				MusicPlayer.Instance.Pause();
+			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"))
+				return;
+
+			if (isMuted || volume == 0)
+			{
+				if (MusicPlayer.Instance.IsPlaying)
+				{
+					_pausedByMute = true;
+					MusicPlayer.Instance.Pause();
+				}
+			}
+			else if (_pausedByMute)
+			{
+				// Only resume if we're the ones who paused it - a manual pause before
+				// unmuting shouldn't be overridden.
+				_pausedByMute = false;
+				MusicPlayer.Instance.Play();
+			}
 		});
 	}
 
