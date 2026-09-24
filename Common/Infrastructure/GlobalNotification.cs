@@ -12,21 +12,24 @@ public static class GlobalNotification
 	/// The notification will be shown with a blue color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the notification.</param>
-	public async static void Info(string message)
+	public static void Info(string message)
 	{
-		Growl.InfoGlobal(new GrowlInfo
+		RunOnUIThread(async () =>
 		{
-			ShowDateTime = false,
-			UseBlueColorForInfo = true,
-			StaysOpen = false,
-			IsClosable = true,
-			Title = "Tunetastic",
-			Message = message
+			Growl.InfoGlobal(new GrowlInfo
+			{
+				ShowDateTime = false,
+				UseBlueColorForInfo = true,
+				StaysOpen = false,
+				IsClosable = true,
+				Title = "Tunetastic",
+				Message = message
+			});
+
+			await Task.Delay(20);
+
+			MainWindow._instance.BringToFront();
 		});
-
-		await Task.Delay(20);
-
-		MainWindow._instance.BringToFront();
 	}
 
 	/// <summary>
@@ -34,20 +37,23 @@ public static class GlobalNotification
 	/// The notification will be shown with an error color and will automatically close.
 	/// </summary>
 	/// <param name="message">The error message content to display in the notification.</param>
-	public async static void Error(string message)
+	public static void Error(string message)
 	{
-		Growl.ErrorGlobal(new GrowlInfo
+		RunOnUIThread(async () =>
 		{
-			ShowDateTime = false,
-			StaysOpen = false,
-			IsClosable = true,
-			Title = "Tunetastic",
-			Message = message
+			Growl.ErrorGlobal(new GrowlInfo
+			{
+				ShowDateTime = false,
+				StaysOpen = false,
+				IsClosable = true,
+				Title = "Tunetastic",
+				Message = message
+			});
+
+			await Task.Delay(20);
+
+			MainWindow._instance.BringToFront();
 		});
-
-		await Task.Delay(20);
-
-		MainWindow._instance.BringToFront();
 	}
 
 	/// <summary>
@@ -55,19 +61,37 @@ public static class GlobalNotification
 	/// The notification will be shown with a warning color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the warning notification.</param>
-	public async static void Warning(string message)
+	public static void Warning(string message)
 	{
-		Growl.WarningGlobal(new GrowlInfo
+		RunOnUIThread(async () =>
 		{
-			ShowDateTime = false,
-			StaysOpen = false,
-			IsClosable = true,
-			Title = "Tunetastic",
-			Message = message
+			Growl.WarningGlobal(new GrowlInfo
+			{
+				ShowDateTime = false,
+				StaysOpen = false,
+				IsClosable = true,
+				Title = "Tunetastic",
+				Message = message
+			});
+
+			await Task.Delay(20);
+
+			MainWindow._instance.BringToFront();
 		});
+	}
 
-		await Task.Delay(20);
-
-		MainWindow._instance.BringToFront();
+	/// <summary>
+	/// Runs the given action on the UI thread. Growl notifications create WinUI controls, which
+	/// can only be created on the UI thread; callers here include background work (e.g. the
+	/// library scanner), so this can't assume it's already there.
+	/// </summary>
+	/// <param name="action">The action to run.</param>
+	private static void RunOnUIThread(Action action)
+	{
+		var dispatcherQueue = App.MainWindow?.DispatcherQueue;
+		if (dispatcherQueue == null || dispatcherQueue.HasThreadAccess)
+			action();
+		else
+			dispatcherQueue.TryEnqueue(() => action());
 	}
 }
