@@ -297,7 +297,14 @@ public class AudioService : IDisposable, IMMNotificationClient
 		UnsubscribeFromDevice(oldDevice);
 		_currentDevice = newDevice;
 		SubscribeToDevice(_currentDevice);
-		oldDevice.Dispose();
+
+		// Disposing releases COM objects, which can block on the shared Core Audio notification
+		// thread that Windows uses to deliver IMMNotificationClient callbacks to every listener in
+		// the process (not just this one - e.g. FlyleafLib registers its own). That thread can
+		// itself be waiting on this UI thread (FlyleafLib's device-change handler dispatches back
+		// to the UI thread and blocks on it), so releasing synchronously here can deadlock the two
+		// threads against each other. Do it off the UI thread instead.
+		_ = Task.Run(() => oldDevice.Dispose());
 		return true;
 	}
 
