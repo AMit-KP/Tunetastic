@@ -253,7 +253,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	/// Populates the "Add to playlist" submenu of the song context menu with all playlists known to the database.
 	/// </summary>
 	/// <remarks>
-	/// If no playlists exist, a single disabled-looking "No Playlists created" item is shown instead.
+	/// A "Create new playlist..." entry is always shown first, so there's no dead end when no playlists exist yet.
 	/// The method clears existing submenu entries before adding fresh ones on every open.
 	/// </remarks>
 	protected async void MenuFlyoutOpened(object sender, object e)
@@ -263,18 +263,20 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 
 		addToPlaylist?.Items.Clear();
 
+		var createItem = new MenuFlyoutItem
+		{
+			Text = "Create new playlist...",
+			Icon = new FontIcon { Glyph = "" }
+		};
+		createItem.Click += CreatePlaylist_Click;
+		addToPlaylist?.Items.Add(createItem);
+
 		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 		if (playLists == null || playLists.Count == 0)
-		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = "No Playlists created",
-				Foreground = new SolidColorBrush(Colors.Red)
-			};
-			addToPlaylist?.Items.Add(menuItem);
 			return;
-		}
+
+		addToPlaylist?.Items.Add(new MenuFlyoutSeparator());
 
 		foreach (var playList in playLists)
 		{
@@ -286,6 +288,18 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 			menuItem.Click += AddToPlaylist_Click;
 			addToPlaylist?.Items.Add(menuItem);
 		}
+	}
+
+	/// <summary>
+	/// Opens the "Create Playlist" dialog and, once a playlist is created, adds the currently
+	/// selected song(s) to it - reuses AddToPlaylist_Click's existing selection handling by
+	/// feeding it a synthetic menu item carrying the new playlist's name.
+	/// </summary>
+	private async void CreatePlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var playlistName = await MainPage._instance!.ShowAddPlaylistDialog();
+		if (playlistName != null)
+			AddToPlaylist_Click(new MenuFlyoutItem { Text = playlistName }, e);
 	}
 
 	/// <summary>Adds the currently selected song(s) to the chosen playlist.</summary>
