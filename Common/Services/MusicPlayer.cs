@@ -920,7 +920,7 @@ public class MusicPlayer
 				}
 			}
 			if (success)
-				GlobalNotification.Info($"Updated metadata for:\n{path}");
+				GlobalNotification.Success($"Updated metadata for:\n{path}");
 			else
 				GlobalNotification.Error($"Failed to update metadata for:\n{path}");
 

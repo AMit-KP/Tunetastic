@@ -424,7 +424,7 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 					}
 					ArtistsGroup.Remove(artistModel);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Artist {artistModel.Artist} deleted.");
+					GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Artist {artistModel.Artist} deleted.");
 				}
 				if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 				{
@@ -569,7 +569,7 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 				ArtistTileView.Items.Remove(artistModel);
 
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected artists deleted.");
+			GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected artists deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
