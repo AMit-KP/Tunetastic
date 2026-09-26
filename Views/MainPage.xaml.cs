@@ -1081,20 +1081,32 @@ public sealed partial class MainPage : Page
 			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"))
 				return;
 
-			if (isMuted || volume == 0)
+			if (isMuted)
 			{
 				if (MusicPlayer.Instance.IsPlaying)
 				{
 					_pausedByMute = true;
 					MusicPlayer.Instance.Pause();
 				}
+				return;
 			}
-			else if (_pausedByMute)
+
+			if (_pausedByMute)
 			{
 				// Only resume if we're the ones who paused it - a manual pause before
-				// unmuting shouldn't be overridden.
+				// unmuting shouldn't be overridden. Resume as soon as we're unmuted, regardless
+				// of the current volume level - the mute button only flips the mute flag, it
+				// doesn't touch the volume, so requiring volume > 0 here as well would leave
+				// playback paused forever after an unmute that happens while volume is still 0.
 				_pausedByMute = false;
 				MusicPlayer.Instance.Play();
+				return;
+			}
+
+			if (volume == 0 && MusicPlayer.Instance.IsPlaying)
+			{
+				_pausedByMute = true;
+				MusicPlayer.Instance.Pause();
 			}
 		});
 	}
