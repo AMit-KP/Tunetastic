@@ -14,15 +14,21 @@
 #      a comment asks a maintainer to fix it instead. "Base branch" here
 #      always means the PR's actual base (e.g. development), never master.
 #
-# Commits are created via the Git Data API (blob/tree/commit/ref), not local
-# git commit + push, so GitHub signs them and they show up as "Verified".
+# Commits are pushed with a plain `git push` over HTTPS using the checkout
+# token, relying on the PR's "Allow edits by maintainers" setting (the
+# GitHub Data API does NOT honor that setting - it only checks direct fork
+# collaborator status - so it is deliberately not used here).
+#
+# Commits are signed with an SSH key (git config gpg.format=ssh) so they
+# show up as "Verified" on GitHub. The signing key is a personal SSH key
+# already registered as a signing key on the maintainer's GitHub account;
+# because of that, these commits are attributed to that account rather than
+# github-actions[bot]. Stored as the SSH_SIGNING_KEY secret (no passphrase).
 #
 # Commits are pushed to the PR's branch - on the author's fork for fork
 # PRs - which GitHub only accepts when the PR allows edits by maintainers
-# (on by default). Since VERSION_BUMP_PAT belongs to a different account
-# than the PR author, GitHub can require manual approval before Build
-# re-runs on the new commit; this workflow auto-approves that re-run using
-# the same PAT, since a maintainer already approved the original build.
+# (on by default; check the PR page or `maintainer_can_modify` via the API
+# if a push unexpectedly fails).
 #
 # Note: the `secrets` context cannot be referenced directly inside a step's
 # `if:` condition - GitHub Actions does not expose it there. Each job has a
@@ -253,46 +259,40 @@ jobs:
           gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "The AssemblyVersion / FileVersion lines were not updated in this PR, so there is no version to sync from. @$OWNER - reply with a comment of the form /set-version 1.x.x.x (for example /set-version 1.57.0.0) and I will set AssemblyVersion and FileVersion to that full version and update the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match.
           $marker"
 
+      - name: Set up commit signing (SSH)
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true'
+        env:
+          SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
+          chmod 600 ~/.ssh/commit_signing_key
+          git config user.name "Amit Patra"
+          git config user.email "amitpatra28061996@gmail.com"
+          git config gpg.format ssh
+          git config user.signingkey ~/.ssh/commit_signing_key
+          git config commit.gpgsign true
+
       - name: Commit and push the version update
         id: commit
         if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true'
         env:
-          GH_TOKEN: ${{ github.token }}
-          PUSH_TOKEN: ${{ secrets.VERSION_BUMP_PAT || github.token }}
           HEAD_REPO: ${{ steps.pr.outputs.repo }}
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           VERSION: ${{ steps.sync.outputs.short }}
           HAS_PAT: ${{ steps.patcheck.outputs.has_pat }}
         run: |
-          set -euo pipefail
-
-          changed="$(git diff --name-only)"
-          if [ -z "$changed" ]; then
+          git add -A
+          if git diff --cached --quiet; then
             echo "Versions already in sync - nothing to commit."
             exit 0
           fi
-
-          parent_sha="$(git rev-parse HEAD)"
-          base_tree="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits/$parent_sha" --jq .tree.sha)"
-
-          tree_json="$(jq -n --arg base "$base_tree" '{base_tree: $base, tree: []}')"
-          while IFS= read -r path; do
-            b64="$(base64 -w0 "$path")"
-            blob_sha="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/blobs" -f content="$b64" -f encoding=base64 --jq .sha)"
-            tree_json="$(jq --arg path "$path" --arg sha "$blob_sha" \
-              '.tree += [{path: $path, mode: "100644", type: "blob", sha: $sha}]' <<< "$tree_json")"
-          done <<< "$changed"
-
-          tree_sha="$(echo "$tree_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/trees" --input - --jq .sha)"
-
-          commit_json="$(jq -n --arg msg "Bump version to $VERSION" --arg tree "$tree_sha" --arg parent "$parent_sha" \
-            '{message: $msg, tree: $tree, parents: [$parent]}')"
-          new_commit="$(echo "$commit_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits" --input - --jq .sha)"
-
-          GH_TOKEN="$PUSH_TOKEN" gh api -X PATCH "repos/$HEAD_REPO/git/refs/heads/$PR_BRANCH" -f sha="$new_commit" -F force=false > /dev/null
-
-          echo "sha=$new_commit" >> "$GITHUB_OUTPUT"
-
+          git commit -m "Bump version to $VERSION"
+          # Push to the PR's head repository (the fork for fork PRs). Relies
+          # on "Allow edits by maintainers" and the token actions/checkout
+          # configured earlier (VERSION_BUMP_PAT if set).
+          git push "https://github.com/$HEAD_REPO.git" "HEAD:$PR_BRANCH"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           if [ "$HAS_PAT" != "true" ]; then
             echo "::warning::VERSION_BUMP_PAT is not set, so this commit did not re-trigger Build. Required checks on the new head commit will stay pending until Build is re-run."
           fi
@@ -492,48 +492,43 @@ jobs:
           gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="🚧 **Can't do it, chief.**
           You asked for \`$REQUESTED\`, but \`$BASE_REF\` is already at \`$BASE_VERSION\` — and I don't do downgrades, no matter how nicely you ask. 😅 Nothing changed. Send me a version higher than \`$BASE_VERSION\` and we're good to go." > /dev/null
 
+      - name: Set up commit signing (SSH)
+        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && steps.sync.outputs.older != 'true'
+        env:
+          SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
+          chmod 600 ~/.ssh/commit_signing_key
+          git config user.name "Amit Patra"
+          git config user.email "amitpatra28061996@gmail.com"
+          git config gpg.format ssh
+          git config user.signingkey ~/.ssh/commit_signing_key
+          git config commit.gpgsign true
+
       - name: Commit, push, and confirm
         id: commit
         if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && steps.sync.outputs.older != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          PUSH_TOKEN: ${{ secrets.VERSION_BUMP_PAT || github.token }}
           HEAD_REPO: ${{ steps.pr.outputs.repo }}
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           PR_NUMBER: ${{ github.event.issue.number }}
           VERSION: ${{ steps.cmd.outputs.version }}
           HAS_PAT: ${{ steps.patcheck.outputs.has_pat }}
         run: |
-          set -euo pipefail
-
-          changed="$(git diff --name-only)"
-          if [ -z "$changed" ]; then
+          git add -A
+          if git diff --cached --quiet; then
             echo "Versions already set - nothing to commit."
             gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="All four version fields already match $VERSION - nothing to change." > /dev/null
             exit 0
           fi
-
-          parent_sha="$(git rev-parse HEAD)"
-          base_tree="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits/$parent_sha" --jq .tree.sha)"
-
-          tree_json="$(jq -n --arg base "$base_tree" '{base_tree: $base, tree: []}')"
-          while IFS= read -r path; do
-            b64="$(base64 -w0 "$path")"
-            blob_sha="$(GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/blobs" -f content="$b64" -f encoding=base64 --jq .sha)"
-            tree_json="$(jq --arg path "$path" --arg sha "$blob_sha" \
-              '.tree += [{path: $path, mode: "100644", type: "blob", sha: $sha}]' <<< "$tree_json")"
-          done <<< "$changed"
-
-          tree_sha="$(echo "$tree_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/trees" --input - --jq .sha)"
-
-          commit_json="$(jq -n --arg msg "Set version to $VERSION" --arg tree "$tree_sha" --arg parent "$parent_sha" \
-            '{message: $msg, tree: $tree, parents: [$parent]}')"
-          new_commit="$(echo "$commit_json" | GH_TOKEN="$PUSH_TOKEN" gh api "repos/$HEAD_REPO/git/commits" --input - --jq .sha)"
-
-          GH_TOKEN="$PUSH_TOKEN" gh api -X PATCH "repos/$HEAD_REPO/git/refs/heads/$PR_BRANCH" -f sha="$new_commit" -F force=false > /dev/null
-
-          echo "sha=$new_commit" >> "$GITHUB_OUTPUT"
-
+          git commit -m "Set version to $VERSION"
+          # Push to the PR's head repository (the fork for fork PRs). Relies
+          # on "Allow edits by maintainers" and the token actions/checkout
+          # configured earlier (VERSION_BUMP_PAT if set).
+          git push "https://github.com/$HEAD_REPO.git" "HEAD:$PR_BRANCH"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           body="Set version to $VERSION (AssemblyVersion and FileVersion), and synced the Version property in Tunetastic.csproj and the Version in Package.appxmanifest to match."
           if [ "$HAS_PAT" != "true" ]; then
             body="$body Note: this commit did not re-trigger Build (VERSION_BUMP_PAT is not set), so re-run Build if the PR needs passing checks."
