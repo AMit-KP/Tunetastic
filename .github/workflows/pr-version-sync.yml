@@ -9,6 +9,10 @@
 #      a maintainer to reply with "/set-version 1.x.x.x". Such a reply
 #      sets AssemblyVersion/FileVersion to the full version, syncs the
 #      other two fields, and commits to the PR branch.
+#   3. If the head version (job 1) or the requested /set-version (job 2) is
+#      LOWER than the version on the PR's base branch, nothing is written -
+#      a comment asks a maintainer to fix it instead. "Base branch" here
+#      always means the PR's actual base (e.g. development), never master.
 #
 # Commits are created via the Git Data API (blob/tree/commit/ref), not local
 # git commit + push, so GitHub signs them and they show up as "Verified".
@@ -19,6 +23,12 @@
 # than the PR author, GitHub can require manual approval before Build
 # re-runs on the new commit; this workflow auto-approves that re-run using
 # the same PAT, since a maintainer already approved the original build.
+#
+# Note: the `secrets` context cannot be referenced directly inside a step's
+# `if:` condition - GitHub Actions does not expose it there. Each job has a
+# small early step ("Detect PAT availability") that reads the secret via
+# `env:` (which IS allowed) and republishes it as a step output; all later
+# `if:` conditions check that output instead of `secrets` directly.
 #
 # Credentials:
 #   - PRs from branches in this repo: the default GITHUB_TOKEN can push.
@@ -63,6 +73,12 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'pull_request'
     steps:
+      - name: Detect PAT availability
+        id: patcheck
+        env:
+          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
+        run: echo "has_pat=$HAS_PAT" >> "$GITHUB_OUTPUT"
+
       # workflow_run.pull_requests is unreliable for fork PRs, so look the PR
       # up by the commit the build ran on.
       - name: Find the pull request for this build
@@ -109,6 +125,18 @@ jobs:
             return $null
           }
 
+          # Compares two 1.x.x.x strings positionally. Returns -1 if $a < $b,
+          # 1 if $a > $b, 0 if equal.
+          function Compare-Version([string]$a, [string]$b) {
+            $ap = $a.Split('.') | ForEach-Object { [int]$_ }
+            $bp = $b.Split('.') | ForEach-Object { [int]$_ }
+            for ($i = 0; $i -lt 4; $i++) {
+              if ($ap[$i] -lt $bp[$i]) { return -1 }
+              if ($ap[$i] -gt $bp[$i]) { return 1 }
+            }
+            return 0
+          }
+
           # Read/write files without changing their BOM (Get-Content/Set-Content
           # would drop it) so the commit only contains the intended edits.
           function Read-File([string]$Path) {
@@ -136,10 +164,12 @@ jobs:
             throw "AssemblyVersion '$headVersion' is not in the 1.x.x.x format."
           }
 
-          # Compare with the point where the PR branched off (the merge base),
-          # not the current tip of the base branch. Otherwise a base branch that
-          # moved ahead with its own bump makes an untouched PR look bumped, and
-          # a PR that bumps to the same number as the base looks untouched.
+          # Compare with the point where the PR branched off (the merge base
+          # of HEAD and the PR's actual base branch, e.g. development - never
+          # master), not the current tip of the base branch. Otherwise a base
+          # branch that moved ahead with its own bump makes an untouched PR
+          # look bumped, and a PR that bumps to the same number as the base
+          # looks untouched.
           $mergeBase = "$(git merge-base HEAD "origin/$env:BASE_REF")".Trim()
           if ($LASTEXITCODE -ne 0 -or -not $mergeBase) {
             throw "Could not find a merge base with origin/$env:BASE_REF."
@@ -148,11 +178,21 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Failed to read Tunetastic.csproj at merge base $mergeBase." }
           $baseVersion = Read-ProjectVersion ($baseRaw -join "`n")
 
-          if ($headVersion -eq $baseVersion) {
+          if (-not $baseVersion -or $headVersion -eq $baseVersion) {
             echo "bumped=false" >> $env:GITHUB_OUTPUT
+            echo "older=false" >> $env:GITHUB_OUTPUT
             exit 0
           }
+
+          if ((Compare-Version $headVersion $baseVersion) -lt 0) {
+            echo "bumped=false" >> $env:GITHUB_OUTPUT
+            echo "older=true" >> $env:GITHUB_OUTPUT
+            echo "base_version=$baseVersion" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
           echo "bumped=true" >> $env:GITHUB_OUTPUT
+          echo "older=false" >> $env:GITHUB_OUTPUT
 
           $p = $headVersion.Split('.')
           $short = "$($p[0]).$($p[1]).$($p[2])"
@@ -176,8 +216,27 @@ jobs:
 
           echo "short=$short" >> $env:GITHUB_OUTPUT
 
+      - name: Warn about a version older than the base branch
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.older == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+          BASE_VERSION: ${{ steps.sync.outputs.base_version }}
+        run: |
+          marker='<!-- pr-version-sync:older -->'
+          existing="$(gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --jq '.[].body')"
+          if grep -qF -e "$marker" <<< "$existing"; then
+            echo "Already warned about an older version on this PR - skipping."
+            exit 0
+          fi
+          gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body "⏪ **Hold up — this version is going backwards.**
+          This PR has a lower AssemblyVersion/FileVersion than \`$BASE_REF\`, which is already at \`$BASE_VERSION\`. I don't do time travel, so I've left the version fields untouched. @$OWNER — bump it above \`$BASE_VERSION\`, or reply \`/set-version 1.x.x.x\` and I'll take care of the rest. 🚀
+          $marker"
+
       - name: Ask a maintainer for the version
-        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'false'
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'false' && steps.sync.outputs.older != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           OWNER: ${{ github.repository_owner }}
@@ -203,7 +262,7 @@ jobs:
           HEAD_REPO: ${{ steps.pr.outputs.repo }}
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           VERSION: ${{ steps.sync.outputs.short }}
-          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
+          HAS_PAT: ${{ steps.patcheck.outputs.has_pat }}
         run: |
           set -euo pipefail
 
@@ -239,7 +298,7 @@ jobs:
           fi
 
       - name: Auto-approve the re-triggered Build run
-        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true' && secrets.VERSION_BUMP_PAT != ''
+        if: steps.pr.outputs.found == 'true' && steps.sync.outputs.bumped == 'true' && steps.patcheck.outputs.has_pat == 'true'
         env:
           GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
           HEAD_SHA: ${{ steps.commit.outputs.sha }}
@@ -269,6 +328,12 @@ jobs:
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
       startsWith(github.event.comment.body, '/set-version')
     steps:
+      - name: Detect PAT availability
+        id: patcheck
+        env:
+          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
+        run: echo "has_pat=$HAS_PAT" >> "$GITHUB_OUTPUT"
+
       # Instant feedback that the command was picked up.
       - name: Acknowledge the command
         env:
@@ -309,6 +374,7 @@ jobs:
             echo "branch=$(jq -r '.head.ref' <<< "$pr")"
             echo "repo=$(jq -r '.head.repo.full_name' <<< "$pr")"
             echo "state=$(jq -r '.state' <<< "$pr")"
+            echo "base_ref=$(jq -r '.base.ref' <<< "$pr")"
           } >> "$GITHUB_OUTPUT"
 
       - name: Check out the PR head commit
@@ -325,8 +391,27 @@ jobs:
         shell: pwsh
         env:
           FULL_VERSION: ${{ steps.cmd.outputs.version }}
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
         run: |
           $ErrorActionPreference = 'Stop'
+
+          function Read-ProjectVersion([string]$Text) {
+            if ($Text -match '<AssemblyVersion>\s*([^<]+?)\s*</AssemblyVersion>') { return $Matches[1] }
+            if ($Text -match '<FileVersion>\s*([^<]+?)\s*</FileVersion>') { return $Matches[1] }
+            return $null
+          }
+
+          # Compares two 1.x.x.x strings positionally. Returns -1 if $a < $b,
+          # 1 if $a > $b, 0 if equal.
+          function Compare-Version([string]$a, [string]$b) {
+            $ap = $a.Split('.') | ForEach-Object { [int]$_ }
+            $bp = $b.Split('.') | ForEach-Object { [int]$_ }
+            for ($i = 0; $i -lt 4; $i++) {
+              if ($ap[$i] -lt $bp[$i]) { return -1 }
+              if ($ap[$i] -gt $bp[$i]) { return 1 }
+            }
+            return 0
+          }
 
           # Read/write files without changing their BOM (Get-Content/Set-Content
           # would drop it) so the commit only contains the intended edits.
@@ -347,6 +432,23 @@ jobs:
           if ($full -notmatch '^\d+\.\d+\.\d+\.\d+$') {
             throw "Version '$full' is not in the 1.x.x.x format."
           }
+
+          # Refuse to set a version lower than the PR's actual base branch
+          # (e.g. development - never master), the same way job 1 does.
+          $mergeBase = "$(git merge-base HEAD "origin/$env:BASE_REF")".Trim()
+          if ($LASTEXITCODE -eq 0 -and $mergeBase) {
+            $baseRaw = git show "${mergeBase}:Tunetastic.csproj" 2>$null
+            if ($LASTEXITCODE -eq 0) {
+              $baseVersion = Read-ProjectVersion ($baseRaw -join "`n")
+              if ($baseVersion -and (Compare-Version $full $baseVersion) -lt 0) {
+                echo "older=true" >> $env:GITHUB_OUTPUT
+                echo "base_version=$baseVersion" >> $env:GITHUB_OUTPUT
+                exit 0
+              }
+            }
+          }
+          echo "older=false" >> $env:GITHUB_OUTPUT
+
           $p = $full.Split('.')
           $short = "$($p[0]).$($p[1]).$($p[2])"
 
@@ -378,9 +480,21 @@ jobs:
 
           echo "short=$short" >> $env:GITHUB_OUTPUT
 
+      - name: Warn about a version older than the base branch
+        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && steps.sync.outputs.older == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+          BASE_VERSION: ${{ steps.sync.outputs.base_version }}
+          REQUESTED: ${{ steps.cmd.outputs.version }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="🚧 **Can't do it, chief.**
+          You asked for \`$REQUESTED\`, but \`$BASE_REF\` is already at \`$BASE_VERSION\` — and I don't do downgrades, no matter how nicely you ask. 😅 Nothing changed. Send me a version higher than \`$BASE_VERSION\` and we're good to go." > /dev/null
+
       - name: Commit, push, and confirm
         id: commit
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open'
+        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && steps.sync.outputs.older != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PUSH_TOKEN: ${{ secrets.VERSION_BUMP_PAT || github.token }}
@@ -388,7 +502,7 @@ jobs:
           PR_BRANCH: ${{ steps.pr.outputs.branch }}
           PR_NUMBER: ${{ github.event.issue.number }}
           VERSION: ${{ steps.cmd.outputs.version }}
-          HAS_PAT: ${{ secrets.VERSION_BUMP_PAT != '' }}
+          HAS_PAT: ${{ steps.patcheck.outputs.has_pat }}
         run: |
           set -euo pipefail
 
@@ -427,7 +541,7 @@ jobs:
           gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body" > /dev/null
 
       - name: Auto-approve the re-triggered Build run
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && secrets.VERSION_BUMP_PAT != ''
+        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state == 'open' && steps.sync.outputs.older != 'true' && steps.patcheck.outputs.has_pat == 'true'
         env:
           GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
           HEAD_SHA: ${{ steps.commit.outputs.sha }}
