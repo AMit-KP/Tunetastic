@@ -981,6 +981,10 @@ public sealed partial class MainPage : Page
 		else
 			SwitchToAppVolumeSliderControl();
 
+		// Volume/mute notifications only fire on an actual level change, not on a device switch, so
+		// without this the slider keeps showing the old device's volume after the output changes.
+		App.Current.AudioService.DeviceChanged += RefreshVolumeSliderFromService;
+
 		VolumeSlider.ValueChanged += VolumeSlider_ValueChanged;
 		AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(App.Hwnd)).Changed += (s, e) => UpdateDragRects();
 		VolumeSlider.Loaded += (s, e) => UpdateDragRects();
@@ -995,11 +999,7 @@ public sealed partial class MainPage : Page
 
 		audioService.SystemVolumeChanged += OnVolumeChanged;
 
-		var volume = audioService.GetVolume();
-		var isMuted = audioService.IsMuted();
-
-		VolumeSlider.Value = volume;
-		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+		RefreshVolumeSliderFromService();
 	}
 
 	public void SwitchToAppVolumeSliderControl()
@@ -1011,11 +1011,25 @@ public sealed partial class MainPage : Page
 
 		audioService.AppVolumeChanged += OnVolumeChanged;
 
-		var volume = audioService.GetAppVolume();
-		var isMuted = audioService.IsAppMuted();
+		RefreshVolumeSliderFromService();
+	}
 
-		VolumeSlider.Value = volume;
-		VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+	private void RefreshVolumeSliderFromService()
+	{
+		DispatcherQueue.TryEnqueue(() =>
+		{
+			var audioService = App.Current.AudioService;
+			var useSystemVolume = bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true");
+
+			var volume = useSystemVolume ? audioService.GetVolume() : audioService.GetAppVolume();
+			var isMuted = useSystemVolume ? audioService.IsMuted() : audioService.IsAppMuted();
+
+			_isUpdatingSlider = true;
+			VolumeSlider.Value = volume;
+			_isUpdatingSlider = false;
+
+			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
+		});
 	}
 
 	private void UpdateDragRects()

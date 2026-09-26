@@ -28,6 +28,13 @@ public class AudioService : IDisposable, IMMNotificationClient
 	public event Action<double, bool>? AppVolumeChanged;
 
 	/// <summary>
+	/// Occurs when the default output device is replaced. Volume/mute notifications only fire on an
+	/// actual level change, not on a device switch, so listeners must re-read GetVolume()/IsMuted()
+	/// (or the app equivalents) here to stay in sync with the new device.
+	/// </summary>
+	public event Action? DeviceChanged;
+
+	/// <summary>
 	/// Gets the default audio endpoint device.
 	/// </summary>
 	/// <returns>The current MMDevice instance.</returns>
@@ -470,7 +477,10 @@ public class AudioService : IDisposable, IMMNotificationClient
 		RunOnUIThread(() =>
 		{
 			if (ReplaceDevice(() => _enumerator.GetDevice(defaultDeviceId)))
+			{
 				SubscribeToAppVolume();
+				DeviceChanged?.Invoke();
+			}
 		});
 	}
 
@@ -489,6 +499,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 			{
 				ClearAllSessions();
 				_ = WaitAndSubscribeToAppVolumeAsync();
+				DeviceChanged?.Invoke();
 			}
 		});
 	}
