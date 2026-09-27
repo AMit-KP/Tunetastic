@@ -896,6 +896,54 @@ public sealed partial class MainPage : Page
 		AppTitle.Animate = startAnimation;
 	}
 
+	/// <summary>
+	/// Builds a before/after table of the pending tag changes, one row per changed field.
+	/// </summary>
+	/// <param name="changes">The changes to display, as (field name, previous value, new value) tuples.</param>
+	/// <remarks>
+	/// Each cell wraps to at most two lines; longer values are trimmed with an ellipsis so the dialog stays compact.
+	/// </remarks>
+	private static Grid BuildTagChangesTable(List<(string Field, string Before, string After)> changes)
+	{
+		var table = new Grid { ColumnSpacing = 16, RowSpacing = 8 };
+
+		table.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+		void AddCell(int row, int column, string text, bool header = false)
+		{
+			var cell = new TextBlock
+			{
+				Text = string.IsNullOrWhiteSpace(text) ? "—" : text,
+				TextWrapping = TextWrapping.Wrap,
+				MaxLines = 2,
+				TextTrimming = TextTrimming.CharacterEllipsis,
+				FontWeight = header ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
+				Opacity = header ? 0.65 : 1.0,
+				VerticalAlignment = VerticalAlignment.Top
+			};
+			Grid.SetRow(cell, row);
+			Grid.SetColumn(cell, column);
+			table.Children.Add(cell);
+		}
+
+		table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+		AddCell(0, 0, "Field", header: true);
+		AddCell(0, 1, "Before", header: true);
+		AddCell(0, 2, "After", header: true);
+
+		for (int i = 0; i < changes.Count; i++)
+		{
+			table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+			AddCell(i + 1, 0, changes[i].Field);
+			AddCell(i + 1, 1, changes[i].Before);
+			AddCell(i + 1, 2, changes[i].After);
+		}
+
+		return table;
+	}
+
 	public async void ShowSongInfo(Song? songData)
 	{
 		if (songData != null)
@@ -1006,23 +1054,58 @@ public sealed partial class MainPage : Page
 				var editResult = await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
 
-				if (editResult == ContentDialogResult.Primary)
-				{
-					ContentDialog confirmationDialog = new ContentDialog()
+					if (editResult == ContentDialogResult.Primary)
 					{
-						Title = "Confirm Changes",
-						CloseButtonText = "No",
-						PrimaryButtonText = "Yes",
+						var changes = new List<(string Field, string Before, string After)>();
 
-						Content = new TextBlock
+						if (CoverArtChanged.Visibility == Visibility.Visible)
+							changes.Add(("Cover Art", string.IsNullOrEmpty(songData.Cover) ? "No cover art" : "Existing cover art", _frontCoverArtPath is not null ? "New image" : "Removed"));
+						if (TitleChanged.Visibility == Visibility.Visible)
+							changes.Add(("Title", songData.Title, TitleTextBox.Text));
+						if (ArtistChanged.Visibility == Visibility.Visible)
+							changes.Add(("Artist", songData.Artists, ArtistTextBox.Text));
+						if (AlbumChanged.Visibility == Visibility.Visible)
+							changes.Add(("Album", songData.Album, AlbumTextBox.Text));
+						if (GenreChanged.Visibility == Visibility.Visible)
+							changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
+						if (YearChanged.Visibility == Visibility.Visible)
+							changes.Add(("Year", songData.Year, YearNumberBox.Text));
+						if (LyricsChanged.Visibility == Visibility.Visible)
+							changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
+
+						var content = changes.Count > 0
+							? new StackPanel
+							{
+								Spacing = 12,
+								Children =
+								{
+									new TextBlock
+									{
+										Text = $"The following change{(changes.Count > 1 ? "s" : "")} will be written to the file:",
+										TextWrapping = TextWrapping.WrapWholeWords
+									},
+									new ScrollViewer
+									{
+										MaxHeight = 340,
+										VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+										Content = BuildTagChangesTable(changes)
+									}
+								}
+							}
+							: (object)new TextBlock { Text = "Are you sure you want to make these changes?" };
+
+						ContentDialog confirmationDialog = new ContentDialog()
 						{
-							Text = "Are you sure you want to make these changes?",
-						},
+							Title = "Confirm Changes",
+							CloseButtonText = "No",
+							PrimaryButtonText = "Yes",
 
-						DefaultButton = ContentDialogButton.Primary,
-						RequestedTheme = App.Current.ThemeService.ActualTheme,
-						XamlRoot = App.MainWindow.Content.XamlRoot
-					};
+							Content = content,
+
+							DefaultButton = ContentDialogButton.Primary,
+							RequestedTheme = App.Current.ThemeService.ActualTheme,
+							XamlRoot = App.MainWindow.Content.XamlRoot
+						};
 
 					MainWindow._instance.WindowResizePermission(false);
 					ContentDialogResult confirmationResult = await confirmationDialog.ShowAsync();
