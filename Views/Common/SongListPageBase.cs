@@ -158,7 +158,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 		_ = AdjustAlphabetSize();
 	}
 
-	/// <summary>Wires the scrubber events once: tap → section jump, scroll → highlight/bubble updates.</summary>
+	/// <summary>Wires the scrubber events once: tap → section jump, scroll → highlight updates.</summary>
 	private void WireScrubberEvents()
 	{
 		if (_scrubberWired) return;

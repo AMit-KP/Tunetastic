@@ -20,7 +20,7 @@ namespace Tunetastic.Common.Controls;
 /// <remarks>
 /// The control is purely visual and gestural — it never sees the data model. The hosting page (via the
 /// shared page bases) feeds it the ordered letter set, points it at the active <see cref="ListViewBase"/>,
-/// converts <see cref="ScrollProgress"/> offsets into highlighted letters / bubble text and performs the
+/// converts <see cref="ScrollProgress"/> offsets into highlighted letters and performs the
 /// smooth section jump when <see cref="LetterTapped"/> fires.
 /// </remarks>
 public sealed partial class AlphabetScrubber : UserControl
@@ -71,9 +71,6 @@ public sealed partial class AlphabetScrubber : UserControl
 
 	/// <summary>Raised on every scroll change of the target list with the current offset and viewport height.</summary>
 	public event EventHandler<(double Offset, double Viewport)>? ScrollProgress;
-
-	/// <summary>True while the user is actively dragging the rail (press + move beyond the threshold).</summary>
-	public bool IsDragging => _pressed && _moved;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="AlphabetScrubber"/> class.
@@ -136,7 +133,7 @@ public sealed partial class AlphabetScrubber : UserControl
 	/// <summary>
 	/// Rebuilds the rail. <paramref name="lettersInOrder"/> is the full ordered letter set (# placement and
 	/// descending reversal already applied by the caller); <paramref name="availableLetters"/> marks the
-	/// letters that actually have content — the rest render dimmed and are skipped by taps and the bubble.
+	/// letters that actually have content — the rest render dimmed and are skipped by taps.
 	/// With <paramref name="railVisible"/> false (sorts without letters, e.g. Duration) the rail hides but
 	/// the thumb keeps working.
 	/// </summary>
