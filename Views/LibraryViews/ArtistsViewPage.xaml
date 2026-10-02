@@ -222,6 +222,7 @@
 			<ListView x:Name="ArtistTileView"
 			          Margin="10"
 			          Padding="12"
+			          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 			          VerticalAlignment="Top"
 			          HorizontalContentAlignment="Stretch"
 			          IsItemClickEnabled="True"

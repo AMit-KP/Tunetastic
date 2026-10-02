@@ -121,7 +121,7 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 	/// <returns>A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.</returns>
 	protected Task AdjustAlphabetSize()
 	{
-		Scrubber.Margin = new Thickness(0, 10, 30, 10);
+		Scrubber.Margin = new Thickness(0, 10, 0, 10);
 		Scrubber.TargetList = TileView;
 		return Task.CompletedTask;
 	}

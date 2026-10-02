@@ -303,7 +303,7 @@
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AlbumGroupSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
-				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				          ScrollViewer.VerticalScrollMode="Enabled"
 				          SelectionChanged="ListView_SelectionChanged"
 				          SelectionMode="Single">
@@ -458,7 +458,7 @@
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AlbumGroupSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
-				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				          ScrollViewer.VerticalScrollMode="Enabled"
 				          SelectionChanged="ListView_SelectionChanged"
 				          SelectionMode="Single">

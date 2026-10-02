@@ -222,9 +222,9 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	{
 		Scrubber.Margin = CurrentViewStyleText() switch
 		{
-			"List View" => new Thickness(0, 50, 30, 10),
-			"Compact View" => new Thickness(0, 10, 30, 10),
-			_ => new Thickness(0, 10, 30, 10)
+			"List View" => new Thickness(0, 50, 0, 10),
+			"Compact View" => new Thickness(0, 10, 0, 10),
+			_ => new Thickness(0, 10, 0, 10)
 		};
 		Scrubber.TargetList = GetCurrentViewStyle();
 		return Task.CompletedTask;

@@ -222,6 +222,7 @@
 			<ListView x:Name="GenreTileView"
 			          Margin="10"
 			          Padding="12"
+			          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 			          VerticalAlignment="Top"
 			          HorizontalContentAlignment="Stretch"
 			          IsItemClickEnabled="True"
