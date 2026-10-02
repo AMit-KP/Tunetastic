@@ -773,8 +773,8 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;
-		availableLetters = ArtistsGroup.Select(artist => artist.Artist.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-		bool hasSpecialCharacters = ArtistsGroup.Select(artist => artist.Artist.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+		availableLetters = ArtistsGroup.Select(artist => FirstLetter(artist.Artist)).Where(c => c != "#").Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = ArtistsGroup.Any(artist => FirstLetter(artist.Artist) == "#");
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
 	}
@@ -792,7 +792,7 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 	{
 		ArtistModel? targetArtist = null;
 
-		targetArtist = letter != "#" ? ArtistsGroup.FirstOrDefault(artist => artist.Artist.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistsGroup.FirstOrDefault(artist => !char.IsLetter(artist.Artist[0]));
+		targetArtist = letter != "#" ? ArtistsGroup.FirstOrDefault(artist => artist.Artist.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistsGroup.FirstOrDefault(artist => FirstLetter(artist.Artist) == "#");
 
 		if (targetArtist != null)
 		{

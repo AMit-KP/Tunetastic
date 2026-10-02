@@ -300,16 +300,16 @@ public sealed partial class YearDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = YearGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = YearGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => FirstLetter(song.Title)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Any(song => FirstLetter(song.Title) == "#");
 				break;
 			case "Artists":
-				availableLetters = YearGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = YearGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => FirstLetter(song.Artists)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Any(song => FirstLetter(song.Artists) == "#");
 				break;
 			case "Album":
-				availableLetters = YearGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = YearGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => FirstLetter(song.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Any(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 
@@ -442,15 +442,15 @@ public sealed partial class YearDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => FirstLetter(song.Title) == "#");
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => FirstLetter(song.Artists) == "#");
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 		if (targetSong != null)

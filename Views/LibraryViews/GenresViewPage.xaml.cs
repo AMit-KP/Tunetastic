@@ -767,8 +767,8 @@ public sealed partial class GenresViewPage : TileListPageBase
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;
-		availableLetters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-		bool hasSpecialCharacters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+		availableLetters = GenresGroup.Select(genre => FirstLetter(genre.Genre)).Where(c => c != "#").Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = GenresGroup.Any(genre => FirstLetter(genre.Genre) == "#");
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
 	}
@@ -786,7 +786,7 @@ public sealed partial class GenresViewPage : TileListPageBase
 	{
 		GenreModel? targetGenre = null;
 
-		targetGenre = letter != "#" ? GenresGroup.FirstOrDefault(genre => genre.Genre.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenresGroup.FirstOrDefault(genre => !char.IsLetter(genre.Genre[0]));
+		targetGenre = letter != "#" ? GenresGroup.FirstOrDefault(genre => genre.Genre.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenresGroup.FirstOrDefault(genre => FirstLetter(genre.Genre) == "#");
 
 		if (targetGenre != null)
 		{
