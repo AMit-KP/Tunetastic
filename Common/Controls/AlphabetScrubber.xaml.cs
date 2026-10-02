@@ -28,6 +28,7 @@ public sealed partial class AlphabetScrubber : UserControl
 	private const double DragThreshold = 5.0;       // px of vertical travel before a press becomes a drag
 	private const double WaveReach = 4.5;           // wave falloff spread, in letter rows (bigger = wider bulge)
 	private const double WaveStrength = 1.25;       // extra scale at the finger (scale = 1 + WaveStrength·f)
+	private const double WavePush = 14.0;           // px a letter slides left out of the rail at full falloff
 	private const double IdleLetterOpacity = 0.38;  // prototype idle letter alpha
 	private const double EmptyLetterOpacity = 0.12;
 	private const double EmptyBoost = 0.35;         // empty letters brighten less under the wave
@@ -47,10 +48,12 @@ public sealed partial class AlphabetScrubber : UserControl
 	private readonly List<Visual?> _visuals = [];
 	private readonly List<double> _scales = [];
 	private readonly List<double> _opacities = [];
+	private readonly List<double> _offsets = [];
 	private readonly List<double> _restOpacity = [];
 	private readonly List<bool> _available = [];
 	private readonly HashSet<string> _highlighted = [];
 	private readonly SolidColorBrush _letterBrush;
+	private bool _geometryStale;                    // letter bounds changed → CenterPoint needs a re-apply
 
 	private ListViewBase? _targetList;
 	private ScrollViewer? _scrollViewer;
@@ -146,10 +149,12 @@ public sealed partial class AlphabetScrubber : UserControl
 		_visuals.Clear();
 		_scales.Clear();
 		_opacities.Clear();
+		_offsets.Clear();
 		_restOpacity.Clear();
 		_available.Clear();
 		Rail.Children.Clear();
 		Rail.RowDefinitions.Clear();
+		_geometryStale = true;
 
 		for (var i = 0; i < _letters.Count; i++)
 		{
@@ -163,6 +168,7 @@ public sealed partial class AlphabetScrubber : UserControl
 				FontSize = 11.5,
 				FontWeight = FontWeights.SemiBold,
 				HorizontalAlignment = HorizontalAlignment.Right,
+				VerticalAlignment = VerticalAlignment.Center,
 				Margin = new Thickness(0, 0, 14, 0)
 			};
 		ToolTipService.SetPlacement(block, PlacementMode.Left);
@@ -177,6 +183,7 @@ public sealed partial class AlphabetScrubber : UserControl
 			_restOpacity.Add(isAvailable ? IdleLetterOpacity : EmptyLetterOpacity);
 			_scales.Add(1);
 			_opacities.Add(_restOpacity[i]);
+			_offsets.Add(0);
 		}
 
 		_railVisible = railVisible && _letters.Count > 0;
@@ -305,6 +312,13 @@ public sealed partial class AlphabetScrubber : UserControl
 	{
 		var active = false;
 
+		// letter bounds became measurable since the last rebuild → apply the scale anchors now
+		if (_geometryStale && _blocks.Count > 0 && _blocks[0].ActualWidth > 0)
+		{
+			_geometryStale = false;
+			ApplyLetterGeometry();
+		}
+
 		// the wave peak eases toward the finger instead of following it exactly
 		if (!double.IsNaN(_pointerY))
 		{
@@ -335,15 +349,18 @@ public sealed partial class AlphabetScrubber : UserControl
 
 			var targetScale = 1 + WaveStrength * falloff;
 			var targetOpacity = _restOpacity[i] + (1 - _restOpacity[i]) * falloff * (_available[i] ? 1 : EmptyBoost);
+			var targetOffset = -falloff * WavePush;   // letters slide left out of the rail as the wave passes
 
 			_scales[i] += (targetScale - _scales[i]) * waveMove;
 			_opacities[i] += (targetOpacity - _opacities[i]) * waveMove;
-			if (Math.Abs(targetScale - _scales[i]) > 0.002 || Math.Abs(targetOpacity - _opacities[i]) > 0.002) active = true;
+			_offsets[i] += (targetOffset - _offsets[i]) * waveMove;
+			if (Math.Abs(targetScale - _scales[i]) > 0.002 || Math.Abs(targetOpacity - _opacities[i]) > 0.002 || Math.Abs(targetOffset - _offsets[i]) > 0.05) active = true;
 
 			if (_visuals[i] is not { } visual) continue;
 			var scale = (float)_scales[i];
 			visual.Scale = new Vector3(scale, scale, 1);
 			visual.Opacity = (float)_opacities[i];
+			visual.Offset = new Vector3((float)_offsets[i], 0, 0);
 		}
 
 		_thumbOpacity += (_thumbTarget - _thumbOpacity) * (1 - Math.Exp(-deltaMs / ThumbEaseTau));
@@ -364,6 +381,8 @@ public sealed partial class AlphabetScrubber : UserControl
 	/// <summary>Scales letters around their right-center, matching the prototype's transform-origin.</summary>
 	private void ApplyLetterGeometry()
 	{
+		if (_blocks.Count == 0 || _blocks[0].ActualWidth <= 0) return;   // layout not ready yet — the tick retries
+		_geometryStale = false;
 		for (var i = 0; i < _blocks.Count; i++)
 		{
 			if (_visuals[i] is not { } visual) continue;
