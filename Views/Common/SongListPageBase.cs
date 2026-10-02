@@ -155,6 +155,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 		Scrubber.SetLetters(letters, available, hasLetters);
 		Scrubber.TargetList = GetCurrentViewStyle();
 		WireScrubberEvents();
+		_ = AdjustAlphabetSize();
 	}
 
 	/// <summary>Wires the scrubber events once: tap → section jump, scroll → highlight/bubble updates.</summary>

@@ -815,9 +815,13 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 		}
 	}
 
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+	/// <summary>
+	/// Maps an artist tile to its alphabet section letter.
+	/// </summary>
+	protected override string LetterForItem(object item)
+		=> item is ArtistModel artist ? FirstLetter(artist.Artist) : "#";
 
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
 	/// <summary>
 	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.

@@ -830,13 +830,17 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		}
 	}
 
+	/// <summary>
+	/// Maps an album tile to its alphabet section letter.
+	/// </summary>
+	protected override string LetterForItem(object item)
+		=> item is AlbumModel album ? FirstLetter(album.Album) : "#";
+
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
 		UpdateShimmerPlaceholderCount(e.NewSize);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 	}
-
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
 
 	/// <summary>
 	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
