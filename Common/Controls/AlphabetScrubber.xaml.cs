@@ -14,7 +14,7 @@ namespace Tunetastic.Common.Controls;
 /// <summary>
 /// Android style A–Z fast scroll rail for the library pages: press and drag the letter strip to scrub
 /// the bound list continuously like a scrollbar, tap a letter to jump to its section, with a proximity
-/// wave over the letters, a large letter bubble that follows the finger and a thin auto-fading scroll thumb.
+/// wave over the letters and a thin auto-fading scroll thumb.
 /// </summary>
 /// <remarks>
 /// The control is purely visual and gestural — it never sees the data model. The hosting page (via the
@@ -27,9 +27,6 @@ public sealed partial class AlphabetScrubber : UserControl
 	private const double DragThreshold = 5.0;       // px of vertical travel before a press becomes a drag
 	private const double WaveReach = 3.0;           // wave falloff spread, in letter rows
 	private const double WaveStrength = 0.8;        // extra scale at the finger (scale = 1 + WaveStrength·f)
-	private const double BubbleSize = 86;           // side of the letter bubble
-	private const double BubbleGap = 14;            // gap between bubble and the rail
-	private const double BubbleHalf = BubbleSize / 2;
 	private const double IdleLetterOpacity = 0.38;  // prototype idle letter alpha
 	private const double EmptyLetterOpacity = 0.12;
 	private const double EmptyBoost = 0.35;         // empty letters brighten less under the wave
@@ -50,18 +47,11 @@ public sealed partial class AlphabetScrubber : UserControl
 
 	private ListViewBase? _targetList;
 	private ScrollViewer? _scrollViewer;
-	private Popup? _bubblePopup;
-	private TextBlock _bubbleText = null!;
-	private Border _bubbleBorder = null!;
 
 	private bool _railVisible = true;
 	private bool _pressed, _moved;
 	private double _pressY;
 	private double _pointerY = double.NaN;          // NaN → pointer not on the rail; wave at rest
-	private bool _bubbleOpen;
-	private double _bubbleVisibility;               // 0..1 animated popup visibility
-	private double _bubblePulse = 1;                // 1.14 → 1 pulse on letter change
-	private string? _bubbleLetter;
 	private double _thumbOpacity;
 	private double _thumbTarget;
 
@@ -85,7 +75,6 @@ public sealed partial class AlphabetScrubber : UserControl
 
 		_letterBrush = new SolidColorBrush(Colors.White);
 
-		BuildBubble();
 		ApplyTheme();
 
 		ActualThemeChanged += (_, _) => ApplyTheme();
@@ -104,8 +93,6 @@ public sealed partial class AlphabetScrubber : UserControl
 			_pressed = false;
 			_moved = false;
 			_pointerY = double.NaN;
-			_bubbleOpen = false;
-			if (_bubblePopup != null) _bubblePopup.IsOpen = false;
 		};
 	}
 
@@ -199,70 +186,6 @@ public sealed partial class AlphabetScrubber : UserControl
 		EnsureTicking();
 	}
 
-	/// <summary>Updates the bubble letter while the user is dragging (the host resolves the real top letter).</summary>
-	public void SetBubbleLetter(string letter)
-	{
-		if (!_bubbleOpen || _bubbleLetter == letter) return;
-		_bubbleLetter = letter;
-		_bubbleText.Text = letter;
-		_bubblePulse = 1.14;
-		EnsureTicking();
-	}
-
-	// ── Bubble ────────────────────────────────────────────────────
-
-	/// <summary>Creates the letter bubble as a code-built popup anchored to the control's root grid.</summary>
-	private void BuildBubble()
-	{
-		_bubbleText = new TextBlock { FontSize = 40, FontWeight = FontWeights.SemiBold };
-		_bubbleBorder = new Border
-		{
-			Width = BubbleSize,
-			Height = BubbleSize,
-			CornerRadius = new CornerRadius(26),
-			Child = _bubbleText,
-			IsHitTestVisible = false,
-			Opacity = 0,
-			RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5),
-			RenderTransform = new ScaleTransform { ScaleX = 0.55, ScaleY = 0.55 }
-		};
-		_bubblePopup = new Popup
-		{
-			Child = _bubbleBorder,
-			IsLightDismissEnabled = false,
-			HorizontalOffset = -(BubbleSize + BubbleGap)
-		};
-		Root.Children.Add(_bubblePopup);
-	}
-
-	private void ShowBubbleAt(double y)
-	{
-		_bubbleLetter = NearestAvailableLetter(IndexFromY(y));
-		if (_bubbleLetter == null) return;
-		_bubbleText.Text = _bubbleLetter;
-		MoveBubble(y);
-		_bubblePopup!.IsOpen = true;
-		_bubbleOpen = true;
-		EnsureTicking();
-	}
-
-	/// <summary>Centers the bubble on the finger, clamped so it never leaves the window vertically.</summary>
-	private void MoveBubble(double y)
-	{
-		if (_bubblePopup == null) return;
-		var rootTop = TransformToVisual(null).TransformPoint(new Windows.Foundation.Point(0, 0)).Y;
-		var window = XamlRoot?.Content as FrameworkElement;
-		var windowHeight = window?.ActualHeight ?? ActualHeight;
-		var clamped = Math.Clamp(rootTop + y, BubbleHalf + 4, Math.Max(BubbleHalf + 4, windowHeight - BubbleHalf - 4));
-		_bubblePopup.VerticalOffset = clamped - rootTop - BubbleHalf;
-	}
-
-	private void CloseBubble()
-	{
-		_bubbleOpen = false;
-		EnsureTicking();   // the tick closes the popup once the fade-out finishes
-	}
-
 	// ── Pointer handling ──────────────────────────────────────────
 
 	private void Rail_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -274,7 +197,6 @@ public sealed partial class AlphabetScrubber : UserControl
 		_pressY = position.Y;
 		_pointerY = position.Y;
 		Rail.CapturePointer(e.Pointer);
-		ShowBubbleAt(_pressY);
 		EnsureTicking();
 		e.Handled = true;
 	}
@@ -287,10 +209,7 @@ public sealed partial class AlphabetScrubber : UserControl
 		{
 			if (!_moved && Math.Abs(y - _pressY) > DragThreshold) _moved = true;
 			if (_moved)
-			{
 				DragTo(y);
-				MoveBubble(y);
-			}
 		}
 		EnsureTicking();
 		e.Handled = true;
@@ -306,7 +225,6 @@ public sealed partial class AlphabetScrubber : UserControl
 		}
 		_pressed = false;
 		_moved = false;
-		CloseBubble();
 		Rail.ReleasePointerCapture(e.Pointer);
 		// keep the hover wave alive when the mouse stays on the rail
 		var position = e.GetCurrentPoint(Rail).Position;
@@ -356,9 +274,8 @@ public sealed partial class AlphabetScrubber : UserControl
 	// ── Animation tick ────────────────────────────────────────────
 
 	/// <summary>
-	/// Single per-frame tick (house DispatcherTimer pattern) driving all three animated channels: the
-	/// letter wave (eased toward gaussian targets), the bubble scale/fade and the thumb fade. Stops
-	/// itself when everything has settled.
+	/// Single per-frame tick (house DispatcherTimer pattern) driving both animated channels: the letter
+	/// wave (eased toward gaussian targets) and the thumb fade. Stops itself when everything has settled.
 	/// </summary>
 	private void Tick()
 	{
@@ -387,20 +304,6 @@ public sealed partial class AlphabetScrubber : UserControl
 			visual.Scale = new Vector3(scale, scale, 1);
 			visual.Opacity = (float)_opacities[i];
 		}
-
-		var bubbleTarget = _bubbleOpen ? 1 : 0;
-		_bubbleVisibility += (bubbleTarget - _bubbleVisibility) * 0.35;
-		_bubblePulse += (1 - _bubblePulse) * 0.3;
-		if (Math.Abs(bubbleTarget - _bubbleVisibility) > 0.01 || Math.Abs(1 - _bubblePulse) > 0.005) active = true;
-
-		if (_bubbleBorder.RenderTransform is ScaleTransform transform)
-		{
-			var bubbleScale = (0.55 + 0.45 * _bubbleVisibility) * _bubblePulse;
-			transform.ScaleX = bubbleScale;
-			transform.ScaleY = bubbleScale;
-		}
-		_bubbleBorder.Opacity = _bubbleVisibility;
-		if (!_bubbleOpen && _bubbleVisibility <= 0.02 && _bubblePopup!.IsOpen) _bubblePopup.IsOpen = false;
 
 		_thumbOpacity += (_thumbTarget - _thumbOpacity) * 0.2;
 		if (Math.Abs(_thumbTarget - _thumbOpacity) > 0.01) active = true;
@@ -490,8 +393,8 @@ public sealed partial class AlphabetScrubber : UserControl
 	// ── Theming ───────────────────────────────────────────────────
 
 	/// <summary>
-	/// Theme-aware colors: letters White/Black with dimming carried purely by opacity, bubble surfaces
-	/// per theme. Called on construction, theme changes and rail rebuilds.
+	/// Theme-aware colors: letters White/Black with dimming carried purely by opacity. Called on
+	/// construction, theme changes and rail rebuilds.
 	/// </summary>
 	private void ApplyTheme()
 	{
@@ -499,10 +402,6 @@ public sealed partial class AlphabetScrubber : UserControl
 		_letterBrush.Color = dark ? Colors.White : Colors.Black;
 
 		Thumb.Background = new SolidColorBrush(dark ? Color.FromArgb(72, 255, 255, 255) : Color.FromArgb(64, 0, 0, 0));
-		_bubbleBorder.Background = new SolidColorBrush(dark ? Color.FromArgb(255, 61, 61, 61) : Color.FromArgb(255, 243, 243, 243));
-		_bubbleBorder.BorderBrush = new SolidColorBrush(dark ? Colors.Transparent : Color.FromArgb(26, 0, 0, 0));
-		_bubbleBorder.BorderThickness = new Thickness(1);
-		_bubbleText.Foreground = _letterBrush;
 		foreach (var block in _blocks)
 			block.Foreground = _letterBrush;
 	}

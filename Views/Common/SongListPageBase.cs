@@ -168,28 +168,19 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 		Scrubber.ScrollProgress += (_, progress) => OnScrubberScrollProgress(progress.Offset, progress.Viewport);
 	}
 
-	/// <summary>
-	/// Feeds the scrubber from list scrolling: highlights every letter with items on screen and, while
-	/// the user drags the rail, shows the letter of the item at the top edge in the bubble.
-	/// </summary>
+	/// <summary>Feeds the scrubber from list scrolling: highlights every letter with items on screen.</summary>
 	private void OnScrubberScrollProgress(double offset, double viewport)
-	{
-		var (visible, top) = ComputeVisibleLetters(GetCurrentViewStyle(), offset, viewport);
-		Scrubber.SetHighlightedLetters(visible);
-		if (Scrubber.IsDragging && top != null)
-			Scrubber.SetBubbleLetter(top);
-	}
+		=> Scrubber.SetHighlightedLetters(ComputeVisibleLetters(GetCurrentViewStyle(), offset, viewport));
 
 	/// <summary>
 	/// Maps the realized containers of the virtualized list onto their section letters — only on-screen
 	/// items are realized, so this stays correct and cheap for any list length or item height.
 	/// </summary>
-	private (List<string> Visible, string? Top) ComputeVisibleLetters(ListViewBase view, double offset, double viewport)
+	private List<string> ComputeVisibleLetters(ListViewBase view, double offset, double viewport)
 	{
 		var visible = new List<string>();
-		string? top = null;
 		var panel = view.ItemsPanelRoot;
-		if (panel == null || viewport <= 0) return (visible, top);
+		if (panel == null || viewport <= 0) return visible;
 
 		foreach (var container in panel.Children)
 		{
@@ -198,13 +189,10 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 			if (slot.Bottom <= offset || slot.Top >= offset + viewport) continue;
 
 			var item = view.ItemFromContainer(element);
-			if (item == null) continue;
-			var letter = LetterForItem(item);
-			visible.Add(letter);
-			if (top == null && slot.Top <= offset && offset < slot.Bottom)
-				top = letter;
+			if (item != null)
+				visible.Add(LetterForItem(item));
 		}
-		return (visible.Distinct().ToList(), top);
+		return visible.Distinct().ToList();
 	}
 
 	/// <summary>
