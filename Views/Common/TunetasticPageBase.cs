@@ -24,7 +24,7 @@ public abstract partial class TunetasticPageBase : Page
 	private StackPanel? _pageButtonsPanel;
 	private ToggleButton? _multiSelectToggle;
 	private Grid? _contentAreaGrid;
-	private StackPanel? _alphabetPanel;
+	private AlphabetScrubber? _scrubber;
 
 	private T RequiredControl<T>(string name) where T : FrameworkElement =>
 		(T)(FindName(name) ?? throw new InvalidOperationException($"Control '{name}' was not found on {GetType().Name}."));
@@ -49,11 +49,6 @@ public abstract partial class TunetasticPageBase : Page
 
 	/// <summary>The root content area used for layout measurements.</summary>
 	protected Grid ContentAreaGrid => _contentAreaGrid ??= RequiredControl<Grid>("ContentGrid");
-
-	/// <summary>The vertical A-Z quick navigation panel. Only present on pages that show it.</summary>
-	protected StackPanel AlphabetPanel => _alphabetPanel ??= RequiredControl<StackPanel>("AlphabetNavigationPanel");
-
-	private AlphabetScrubber? _scrubber;
 
 	/// <summary>The Android-style A–Z scrubber control. Only present on pages that show it.</summary>
 	protected AlphabetScrubber Scrubber => _scrubber ??= RequiredControl<AlphabetScrubber>("AlphabetScrubber");
