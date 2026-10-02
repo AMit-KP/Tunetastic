@@ -10,15 +10,6 @@
 	      Width="44"
 	      Background="Transparent">
 
-		<Border x:Name="Thumb"
-		        Width="4"
-		        MinHeight="40"
-		        CornerRadius="2"
-		        HorizontalAlignment="Right"
-		        VerticalAlignment="Top"
-		        Margin="0,0,3,0"
-		        Opacity="0" />
-
 		<Grid x:Name="Rail"
 		      Background="Transparent" />
 	</Grid>

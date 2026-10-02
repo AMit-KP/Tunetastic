@@ -15,7 +15,7 @@ namespace Tunetastic.Common.Controls;
 /// <summary>
 /// Android style A–Z fast scroll rail for the library pages: press and drag the letter strip to scrub
 /// the bound list continuously like a scrollbar, tap a letter to jump to its section, with a proximity
-/// wave over the letters and a thin auto-fading scroll thumb.
+/// wave over the letters.
 /// </summary>
 /// <remarks>
 /// The control is purely visual and gestural — it never sees the data model. The hosting page (via the
@@ -33,12 +33,9 @@ public sealed partial class AlphabetScrubber : UserControl
 	private const double EmptyLetterOpacity = 0.12;
 	private const double EmptyBoost = 0.35;         // empty letters brighten less under the wave
 	private const double WaveEaseTau = 58.0;        // ms — equals the prototype's 0.25-per-frame ease at 60fps
-	private const double PointerEaseTau = 55.0;     // ms — wave peak glide toward the finger (bigger = more trailing)
-	private const double ThumbEaseTau = 75.0;       // ms — thumb fade ease
-	private const double ThumbFadeMs = 700;
+	private const double PointerEaseTau = 35.0;     // ms — wave peak glide toward the finger (bigger = more trailing)
 
 	private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-	private readonly DispatcherTimer _thumbTimer = new() { Interval = TimeSpan.FromMilliseconds(ThumbFadeMs) };
 	private bool _ticking;
 	private long _lastTickTimestamp;
 	private double _waveY;                          // eased wave peak — glides toward the finger
@@ -63,8 +60,6 @@ public sealed partial class AlphabetScrubber : UserControl
 	private bool _pressed, _moved;
 	private double _pressY;
 	private double _pointerY = double.NaN;          // NaN → pointer not on the rail; wave at rest
-	private double _thumbOpacity;
-	private double _thumbTarget;
 
 	/// <summary>Raised for a quick press (no drag) with the nearest letter that has content.</summary>
 	public event EventHandler<string>? LetterTapped;
@@ -92,7 +87,6 @@ public sealed partial class AlphabetScrubber : UserControl
 		Rail.PointerCanceled += Rail_PointerReleased;
 		Rail.PointerExited += Rail_PointerExited;
 		Rail.SizeChanged += (_, _) => { ApplyLetterGeometry(); RetryScrollViewer(); };
-		_thumbTimer.Tick += (_, _) => { _thumbTarget = 0; EnsureTicking(); };
 		Unloaded += (_, _) =>
 		{
 			if (_ticking)
@@ -100,7 +94,6 @@ public sealed partial class AlphabetScrubber : UserControl
 				_ticking = false;
 				CompositionTarget.Rendering -= OnRenderingTick;
 			}
-			_thumbTimer.Stop();
 			_pressed = false;
 			_moved = false;
 			_pointerY = double.NaN;
@@ -134,8 +127,7 @@ public sealed partial class AlphabetScrubber : UserControl
 	/// Rebuilds the rail. <paramref name="lettersInOrder"/> is the full ordered letter set (# placement and
 	/// descending reversal already applied by the caller); <paramref name="availableLetters"/> marks the
 	/// letters that actually have content — the rest render dimmed and are skipped by taps.
-	/// With <paramref name="railVisible"/> false (sorts without letters, e.g. Duration) the rail hides but
-	/// the thumb keeps working.
+	/// With <paramref name="railVisible"/> false (sorts without letters, e.g. Duration) the rail hides entirely.
 	/// </summary>
 	public void SetLetters(IReadOnlyList<string> lettersInOrder, IEnumerable<string> availableLetters, bool railVisible)
 	{
@@ -297,7 +289,7 @@ public sealed partial class AlphabetScrubber : UserControl
 
 	/// <summary>
 	/// Per-rendered-frame tick (composition render loop — the WinUI equivalent of the prototype's
-	/// requestAnimationFrame loop) driving both animated channels: the letter wave and the thumb fade.
+	/// requestAnimationFrame loop) driving the letter wave.
 	/// All easing is frame-rate independent, and the wave peak glides toward the finger so a drag reads
 	/// as a traveling wave rather than letters swelling in place. Stops itself when everything settled.
 	/// </summary>
@@ -368,10 +360,6 @@ public sealed partial class AlphabetScrubber : UserControl
 			visual.Opacity = (float)_opacities[i];
 		}
 
-		_thumbOpacity += (_thumbTarget - _thumbOpacity) * (1 - Math.Exp(-deltaMs / ThumbEaseTau));
-		if (Math.Abs(_thumbTarget - _thumbOpacity) > 0.01) active = true;
-		Thumb.Opacity = _thumbOpacity;
-
 		return active;
 	}
 
@@ -420,36 +408,7 @@ public sealed partial class AlphabetScrubber : UserControl
 
 	private void OnTargetViewChanged(object? sender, ScrollViewerViewChangedEventArgs args)
 	{
-		if (_scrollViewer == null) return;
-
-		var viewport = _scrollViewer.ViewportHeight;
-		var scrollable = _scrollViewer.ScrollableHeight;
-		if (viewport <= 0 || scrollable <= 0)
-		{
-			_thumbTarget = 0;
-			EnsureTicking();
-		}
-		else
-		{
-			var track = Math.Max(1, ActualHeight);
-			var height = Math.Max(40, viewport / (viewport + scrollable) * track);
-			Thumb.Height = height;
-			Thumb.Margin = new Thickness(0, Math.Clamp(_scrollViewer.VerticalOffset / scrollable, 0, 1) * (track - height), 3, 0);
-			ShowThumb();
-		}
-
 		PublishScrollProgress();
-	}
-
-	private void ShowThumb()
-	{
-		if (_thumbTarget < 1)
-		{
-			_thumbTarget = 1;
-			EnsureTicking();
-		}
-		_thumbTimer.Stop();
-		_thumbTimer.Start();
 	}
 
 	private void PublishScrollProgress()
@@ -469,7 +428,6 @@ public sealed partial class AlphabetScrubber : UserControl
 		var dark = ActualTheme == ElementTheme.Dark;
 		_letterBrush.Color = dark ? Colors.White : Colors.Black;
 
-		Thumb.Background = new SolidColorBrush(dark ? Color.FromArgb(72, 255, 255, 255) : Color.FromArgb(64, 0, 0, 0));
 		foreach (var block in _blocks)
 			block.Foreground = _letterBrush;
 	}
