@@ -2,6 +2,8 @@
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
@@ -9,6 +11,7 @@ using TagLib;
 using Tunetastic.Views.Common;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Graphics;
 using Windows.Services.Store;
@@ -327,46 +330,104 @@ public sealed partial class MainPage : Page
 	private List<string>? playLists;
 
 	/// <summary>
-	/// Displays the dialog for adding a new playlist.
+	/// Displays the custom Add Playlist overlay dialog.
 	/// </summary>
 	/// <remarks>
-	/// This asynchronous method makes the `AddPlaylistDialog` visible and configures its properties,
-	/// including the theme, primary button's state, and description text. It resets the input field,
-	/// prepares any accompanying UI elements, and retrieves the existing playlist names from persistent storage.
-	/// Upon user confirmation, it validates and handles the creation or addition of a new playlist.
+	/// The overlay is a custom in-window dialog instead of a ContentDialog so that its drop zone can receive
+	/// file drops — modal popups in WinUI 3 are hosted in separate input islands that never receive shell
+	/// drag-and-drop. This method makes the overlay visible and configures its properties, including the
+	/// theme, primary button's state, and the drop zone visuals. It resets the input field and retrieves
+	/// the existing playlist names from persistent storage.
 	/// </remarks>
 	private async void ShowAddPlaylistDialog()
 	{
-		AddPlaylistDialog.Visibility = Visibility.Visible;
-		AddPlaylistDialog.RequestedTheme = App.Current.ThemeService.ElementTheme;
+		AddPlaylistOverlay.Visibility = Visibility.Visible;
+		AddPlaylistOverlay.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = string.Empty;
 		ErrorMessage.Text = "";
-		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
+		AddPlaylistCreateButton.Content = "Create";
+		AddPlaylistCreateButton.IsEnabled = false;
 		var desc = new TextBlock();
 		desc.Inlines.Add(new Run() { Text = "You can also select an existing playlist file." });
 		desc.Inlines.Add(new LineBreak());
 		desc.Inlines.Add(new Run() { Text = "Supported formats: M3U, M3U8, PLS, WPL, ZPL" });
 		AddPlaylistDialogDescription.Text = desc.Text;
-		AddPlaylistDialog.PrimaryButtonText = "Create";
+		ResetDropZoneVisual();
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
 		MainWindow._instance.WindowResizePermission(false);
-		ContentDialogResult result = await AddPlaylistDialog.ShowAsync();
-		MainWindow._instance.WindowResizePermission(true);
+		PlaylistNameBox.Focus(FocusState.Programmatic);
+	}
 
-		if (result == ContentDialogResult.Primary)
+	/// <summary>
+	/// Handles the click event of the Create button in the Add Playlist overlay.
+	/// </summary>
+	/// <param name="sender">The source of the event, the Create button.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	/// <remarks>
+	/// Validates and creates the new playlist. When a playlist file was imported into the overlay, the
+	/// songs found in it are added to the newly created playlist as well.
+	/// </remarks>
+	private async void AddPlaylistCreateButton_Click(object sender, RoutedEventArgs e)
+	{
+		if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
 		{
-			if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
-			{
-				await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
-				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created.");
-			}
-			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
-			{
-				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
-				GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
-			}
+			await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
+			GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created.");
 		}
+		if (AddPlaylistCreateButton.Content.ToString() == "Add Playlist")
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
+			GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+		}
+		CloseAddPlaylistOverlay();
+	}
+
+	/// <summary>
+	/// Handles the click event of the Cancel button in the Add Playlist overlay.
+	/// </summary>
+	/// <param name="sender">The source of the event, the Cancel button.</param>
+	/// <param name="e">The event data associated with the button click.</param>
+	private void AddPlaylistCancelButton_Click(object sender, RoutedEventArgs e)
+	{
+		CloseAddPlaylistOverlay();
+	}
+
+	/// <summary>
+	/// Handles the Escape keyboard accelerator of the Add Playlist overlay by closing it.
+	/// </summary>
+	/// <param name="sender">The keyboard accelerator that was invoked.</param>
+	/// <param name="args">The event data associated with the accelerator invocation.</param>
+	private void AddPlaylistOverlay_Escape(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+	{
+		if (AddPlaylistOverlay.Visibility != Visibility.Visible)
+			return;
+
+		args.Handled = true;
+		CloseAddPlaylistOverlay();
+	}
+
+	/// <summary>
+	/// Handles the Enter key in the playlist name box by invoking the Create button, matching the
+	/// default-button behaviour of a ContentDialog.
+	/// </summary>
+	/// <param name="sender">The source of the event, the playlist name box.</param>
+	/// <param name="e">The event data associated with the key press.</param>
+	private void PlaylistNameBox_KeyDown(object sender, KeyRoutedEventArgs e)
+	{
+		if (e.Key == VirtualKey.Enter && AddPlaylistCreateButton.IsEnabled)
+		{
+			AddPlaylistCreateButton_Click(AddPlaylistCreateButton, new RoutedEventArgs());
+		}
+	}
+
+	/// <summary>
+	/// Closes the Add Playlist overlay and restores window interactions.
+	/// </summary>
+	private void CloseAddPlaylistOverlay()
+	{
+		AddPlaylistOverlay.Visibility = Visibility.Collapsed;
+		MainWindow._instance.WindowResizePermission(true);
 		playLists = null;
 	}
 
@@ -389,7 +450,7 @@ public sealed partial class MainPage : Page
 	{
 		string name = PlaylistNameBox.Text.Trim();
 		ErrorMessage.Text = "";
-		AddPlaylistDialog.IsPrimaryButtonEnabled = false;
+		AddPlaylistCreateButton.IsEnabled = false;
 
 		ErrorMessage.Text = name switch
 		{
@@ -402,7 +463,7 @@ public sealed partial class MainPage : Page
 			_ => ""
 		};
 
-		AddPlaylistDialog.IsPrimaryButtonEnabled = ErrorMessage.Text == "";
+		AddPlaylistCreateButton.IsEnabled = ErrorMessage.Text == "";
 	}
 
 	/// <summary>
@@ -639,6 +700,11 @@ public sealed partial class MainPage : Page
 	private List<string> PlaylistFileSongs { get; } = new();
 
 	/// <summary>
+	/// The file extensions of the playlist formats supported for import, via the file picker or drag-and-drop.
+	/// </summary>
+	private static readonly string[] PlaylistExtensions = [".m3u", ".m3u8", ".pls", ".wpl", ".zpl"];
+
+	/// <summary>
 	/// Handles the click event of the Browse button within the Add Playlist dialog.
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the Browse button.</param>
@@ -651,10 +717,9 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private async void BrowseButton_Click(object sender, RoutedEventArgs e)
 	{
-		//TODO: Drag n Drop
 		var picker = new FileOpenPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
 
-		picker.FileTypeChoices.Add("Playlist Files", new List<string>() { ".m3u", ".m3u8", ".pls", ".wpl", ".zpl" });
+		picker.FileTypeChoices.Add("Playlist Files", new List<string>(PlaylistExtensions));
 
 		picker.Title = "Select Playlist File";
 
@@ -664,21 +729,117 @@ public sealed partial class MainPage : Page
 		var file = await picker.PickSingleFileAsync();
 		if (file != null)
 		{
-			var (name, totalcount, songList) = await ImportExportPlaylist.ImportData(file.Path);
-
-			var desc = new TextBlock();
-			desc.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
-			desc.Inlines.Add(new LineBreak());
-			desc.Inlines.Add(new Run() { Text = $"Playlist: {file.Path}" });
-			desc.Inlines.Add(new LineBreak());
-			desc.Inlines.Add(new Run() { Text = $"Tracks: {songList.Count} out of {totalcount} found in library" });
-
-			PlaylistNameBox.Text = name;
-			AddPlaylistDialogDescription.Text = desc.Text;
-			AddPlaylistDialog.PrimaryButtonText = "Add Playlist";
-			PlaylistFileSongs.Clear();
-			PlaylistFileSongs.AddRange(songList);
+			await ImportPlaylistFileAsync(file.Path);
 		}
+	}
+
+	/// <summary>
+	/// Highlights the drop zone when a drag operation containing files enters it.
+	/// </summary>
+	/// <param name="sender">The source of the event, the drop zone.</param>
+	/// <param name="e">The event data associated with the drag operation.</param>
+	private void PlaylistDropZone_DragEnter(object sender, DragEventArgs e)
+	{
+		if (e.DataView.Contains(StandardDataFormats.StorageItems))
+			PlaylistDropZone.BorderBrush = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+	}
+
+	/// <summary>
+	/// Accepts file drags over the drop zone so the cursor reflects a valid drop target.
+	/// </summary>
+	/// <param name="sender">The source of the event, the drop zone.</param>
+	/// <param name="e">The event data associated with the drag operation.</param>
+	/// <remarks>
+	/// The data view must not be read here (e.g. to filter file extensions) — reading it before the Drop
+	/// event breaks the drag pipeline. Only a format availability check is allowed at this point.
+	/// </remarks>
+	private void PlaylistDropZone_DragOver(object sender, DragEventArgs e)
+	{
+		e.AcceptedOperation = e.DataView.Contains(StandardDataFormats.StorageItems)
+			? DataPackageOperation.Copy
+			: DataPackageOperation.None;
+		e.DragUIOverride.Caption = "Drop to import playlist";
+		e.DragUIOverride.IsCaptionVisible = e.AcceptedOperation == DataPackageOperation.Copy;
+		e.Handled = true;
+	}
+
+	/// <summary>
+	/// Restores the drop zone visuals when a drag operation leaves it.
+	/// </summary>
+	/// <param name="sender">The source of the event, the drop zone.</param>
+	/// <param name="e">The event data associated with the drag operation.</param>
+	private void PlaylistDropZone_DragLeave(object sender, DragEventArgs e)
+	{
+		ResetDropZoneVisual();
+	}
+
+	/// <summary>
+	/// Handles the Drop event of the drop zone by importing the dropped playlist file.
+	/// </summary>
+	/// <param name="sender">The source of the event, the drop zone.</param>
+	/// <param name="e">The event data associated with the drop operation.</param>
+	/// <remarks>
+	/// Imports the first dropped file with a supported playlist extension and populates the overlay with its
+	/// details, matching the Browse flow. If none of the dropped files is a supported playlist, an error is shown.
+	/// </remarks>
+	private async void PlaylistDropZone_Drop(object sender, DragEventArgs e)
+	{
+		ResetDropZoneVisual();
+		var deferral = e.GetDeferral();
+		try
+		{
+			if (!e.DataView.Contains(StandardDataFormats.StorageItems))
+				return;
+
+			var items = await e.DataView.GetStorageItemsAsync();
+			var file = items.OfType<IStorageFile>().FirstOrDefault(f => PlaylistExtensions.Contains(Path.GetExtension(f.Name), StringComparer.OrdinalIgnoreCase));
+
+			if (file is null)
+			{
+				ErrorMessage.Text = "Not a supported playlist file";
+				return;
+			}
+
+			await ImportPlaylistFileAsync(file.Path);
+		}
+		finally
+		{
+			deferral.Complete();
+		}
+	}
+
+	/// <summary>
+	/// Restores the drop zone's default border.
+	/// </summary>
+	private void ResetDropZoneVisual()
+	{
+		PlaylistDropZone.BorderBrush = (Brush)Application.Current.Resources["ControlStrokeColorSecondaryBrush"];
+	}
+
+	/// <summary>
+	/// Imports the playlist file at the given path and populates the Add Playlist overlay with its details.
+	/// </summary>
+	/// <param name="path">The full path of the playlist file to import.</param>
+	/// <remarks>
+	/// Shared by the Browse button and the drop zone. Parses the playlist, prefills the playlist name, shows the
+	/// track summary, and stores the found songs so they are added when the user confirms the overlay.
+	/// </remarks>
+	private async Task ImportPlaylistFileAsync(string path)
+	{
+		var (name, totalcount, songList) = await ImportExportPlaylist.ImportData(path);
+
+		var desc = new TextBlock();
+		desc.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
+		desc.Inlines.Add(new LineBreak());
+		desc.Inlines.Add(new Run() { Text = $"Playlist: {path}" });
+		desc.Inlines.Add(new LineBreak());
+		desc.Inlines.Add(new Run() { Text = $"Tracks: {songList.Count} out of {totalcount} found in library" });
+
+		PlaylistNameBox.Text = name;
+		AddPlaylistDialogDescription.Text = desc.Text;
+		AddPlaylistCreateButton.Content = "Add Playlist";
+		PlaylistFileSongs.Clear();
+		PlaylistFileSongs.AddRange(songList);
 	}
 
 	/// <summary>
