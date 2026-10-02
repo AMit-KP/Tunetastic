@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
@@ -30,11 +31,17 @@ public sealed partial class AlphabetScrubber : UserControl
 	private const double IdleLetterOpacity = 0.38;  // prototype idle letter alpha
 	private const double EmptyLetterOpacity = 0.12;
 	private const double EmptyBoost = 0.35;         // empty letters brighten less under the wave
+	private const double WaveEaseTau = 58.0;        // ms — equals the prototype's 0.25-per-frame ease at 60fps
+	private const double PointerEaseTau = 35.0;     // ms — wave peak glide toward the finger
+	private const double ThumbEaseTau = 75.0;       // ms — thumb fade ease
 	private const double ThumbFadeMs = 700;
 
 	private readonly DispatcherQueue _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-	private readonly DispatcherTimer _ticker = new() { Interval = TimeSpan.FromMilliseconds(16) };
 	private readonly DispatcherTimer _thumbTimer = new() { Interval = TimeSpan.FromMilliseconds(ThumbFadeMs) };
+	private bool _ticking;
+	private long _lastTickTimestamp;
+	private double _waveY;                          // eased wave peak — glides toward the finger
+	private bool _waveYValid;
 	private readonly List<string> _letters = [];
 	private readonly List<TextBlock> _blocks = [];
 	private readonly List<Visual?> _visuals = [];
@@ -84,15 +91,19 @@ public sealed partial class AlphabetScrubber : UserControl
 		Rail.PointerCanceled += Rail_PointerReleased;
 		Rail.PointerExited += Rail_PointerExited;
 		Rail.SizeChanged += (_, _) => { ApplyLetterGeometry(); RetryScrollViewer(); };
-		_ticker.Tick += (_, _) => Tick();
 		_thumbTimer.Tick += (_, _) => { _thumbTarget = 0; EnsureTicking(); };
 		Unloaded += (_, _) =>
 		{
-			_ticker.Stop();
+			if (_ticking)
+			{
+				_ticking = false;
+				CompositionTarget.Rendering -= OnRenderingTick;
+			}
 			_thumbTimer.Stop();
 			_pressed = false;
 			_moved = false;
 			_pointerY = double.NaN;
+			_waveYValid = false;
 		};
 	}
 
@@ -274,29 +285,59 @@ public sealed partial class AlphabetScrubber : UserControl
 	// ── Animation tick ────────────────────────────────────────────
 
 	/// <summary>
-	/// Single per-frame tick (house DispatcherTimer pattern) driving both animated channels: the letter
-	/// wave (eased toward gaussian targets) and the thumb fade. Stops itself when everything has settled.
+	/// Per-rendered-frame tick (composition render loop — the WinUI equivalent of the prototype's
+	/// requestAnimationFrame loop) driving both animated channels: the letter wave and the thumb fade.
+	/// All easing is frame-rate independent, and the wave peak glides toward the finger so a drag reads
+	/// as a traveling wave rather than letters swelling in place. Stops itself when everything settled.
 	/// </summary>
-	private void Tick()
+	private void OnRenderingTick(object? sender, object e)
+	{
+		var now = Stopwatch.GetTimestamp();
+		var deltaMs = Math.Min(100.0, (now - _lastTickTimestamp) * 1000.0 / Stopwatch.Frequency);
+		_lastTickTimestamp = now;
+
+		if (Tick(deltaMs)) return;
+		_ticking = false;
+		CompositionTarget.Rendering -= OnRenderingTick;
+	}
+
+	private bool Tick(double deltaMs)
 	{
 		var active = false;
 
+		// the wave peak eases toward the finger instead of following it exactly
+		if (!double.IsNaN(_pointerY))
+		{
+			if (!_waveYValid)
+			{
+				_waveY = _pointerY;
+				_waveYValid = true;
+			}
+			_waveY += (_pointerY - _waveY) * (1 - Math.Exp(-deltaMs / PointerEaseTau));
+			if (Math.Abs(_pointerY - _waveY) > 0.1) active = true;
+		}
+		else
+		{
+			_waveYValid = false;
+		}
+
 		var rowCount = Math.Max(1, _blocks.Count);
 		var rowHeight = Math.Max(1, Rail.ActualHeight) / rowCount;
+		var waveMove = 1 - Math.Exp(-deltaMs / WaveEaseTau);
 		for (var i = 0; i < _blocks.Count; i++)
 		{
 			double falloff = 0;
-			if (!double.IsNaN(_pointerY))
+			if (_waveYValid)
 			{
-				var distance = (_pointerY - (i + 0.5) * rowHeight) / rowHeight;
+				var distance = (_waveY - (i + 0.5) * rowHeight) / rowHeight;
 				falloff = Math.Exp(-distance * distance / WaveReach);
 			}
 
 			var targetScale = 1 + WaveStrength * falloff;
 			var targetOpacity = _restOpacity[i] + (1 - _restOpacity[i]) * falloff * (_available[i] ? 1 : EmptyBoost);
 
-			_scales[i] += (targetScale - _scales[i]) * 0.25;
-			_opacities[i] += (targetOpacity - _opacities[i]) * 0.25;
+			_scales[i] += (targetScale - _scales[i]) * waveMove;
+			_opacities[i] += (targetOpacity - _opacities[i]) * waveMove;
 			if (Math.Abs(targetScale - _scales[i]) > 0.002 || Math.Abs(targetOpacity - _opacities[i]) > 0.002) active = true;
 
 			if (_visuals[i] is not { } visual) continue;
@@ -305,16 +346,19 @@ public sealed partial class AlphabetScrubber : UserControl
 			visual.Opacity = (float)_opacities[i];
 		}
 
-		_thumbOpacity += (_thumbTarget - _thumbOpacity) * 0.2;
+		_thumbOpacity += (_thumbTarget - _thumbOpacity) * (1 - Math.Exp(-deltaMs / ThumbEaseTau));
 		if (Math.Abs(_thumbTarget - _thumbOpacity) > 0.01) active = true;
 		Thumb.Opacity = _thumbOpacity;
 
-		if (!active) _ticker.Stop();
+		return active;
 	}
 
 	private void EnsureTicking()
 	{
-		if (!_ticker.IsEnabled) _ticker.Start();
+		if (_ticking) return;
+		_ticking = true;
+		_lastTickTimestamp = Stopwatch.GetTimestamp();
+		CompositionTarget.Rendering += OnRenderingTick;
 	}
 
 	/// <summary>Scales letters around their right-center, matching the prototype's transform-origin.</summary>
