@@ -315,6 +315,8 @@ public sealed partial class GenreDetailPage : SongListPageBase
 				break;
 		}
 
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
+
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
 		sortDropdownContent.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
@@ -337,8 +339,6 @@ public sealed partial class GenreDetailPage : SongListPageBase
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)] = orderBy;
-
-		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
