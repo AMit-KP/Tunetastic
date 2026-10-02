@@ -28,7 +28,7 @@ public sealed partial class AlphabetScrubber : UserControl
 	private const double DragThreshold = 5.0;       // px of vertical travel before a press becomes a drag
 	private const double WaveReach = 4.5;           // wave falloff spread, in letter rows (bigger = wider bulge)
 	private const double WaveStrength = 1.25;       // extra scale at the finger (scale = 1 + WaveStrength·f)
-	private const double WavePush = 14.0;           // px a letter slides left out of the rail at full falloff
+	private const double WavePush = 8.0;            // px a letter slides left out of the rail at full falloff
 	private const double IdleLetterOpacity = 0.38;  // prototype idle letter alpha
 	private const double EmptyLetterOpacity = 0.12;
 	private const double EmptyBoost = 0.35;         // empty letters brighten less under the wave
