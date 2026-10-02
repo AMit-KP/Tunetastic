@@ -26,13 +26,13 @@ namespace Tunetastic.Common.Controls;
 public sealed partial class AlphabetScrubber : UserControl
 {
 	private const double DragThreshold = 5.0;       // px of vertical travel before a press becomes a drag
-	private const double WaveReach = 3.0;           // wave falloff spread, in letter rows
-	private const double WaveStrength = 0.8;        // extra scale at the finger (scale = 1 + WaveStrength·f)
+	private const double WaveReach = 4.5;           // wave falloff spread, in letter rows (bigger = wider bulge)
+	private const double WaveStrength = 1.25;       // extra scale at the finger (scale = 1 + WaveStrength·f)
 	private const double IdleLetterOpacity = 0.38;  // prototype idle letter alpha
 	private const double EmptyLetterOpacity = 0.12;
 	private const double EmptyBoost = 0.35;         // empty letters brighten less under the wave
 	private const double WaveEaseTau = 58.0;        // ms — equals the prototype's 0.25-per-frame ease at 60fps
-	private const double PointerEaseTau = 35.0;     // ms — wave peak glide toward the finger
+	private const double PointerEaseTau = 55.0;     // ms — wave peak glide toward the finger (bigger = more trailing)
 	private const double ThumbEaseTau = 75.0;       // ms — thumb fade ease
 	private const double ThumbFadeMs = 700;
 
