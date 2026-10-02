@@ -45,6 +45,7 @@ public sealed partial class AlphabetScrubber : UserControl
 	private bool _waveYValid;
 	private readonly List<string> _letters = [];
 	private readonly List<TextBlock> _blocks = [];
+	private readonly List<TranslateTransform> _translates = [];
 	private readonly List<Visual?> _visuals = [];
 	private readonly List<double> _scales = [];
 	private readonly List<double> _opacities = [];
@@ -146,6 +147,7 @@ public sealed partial class AlphabetScrubber : UserControl
 		_letters.AddRange(lettersInOrder);
 		_highlighted.Clear();
 		_blocks.Clear();
+		_translates.Clear();
 		_visuals.Clear();
 		_scales.Clear();
 		_opacities.Clear();
@@ -171,6 +173,10 @@ public sealed partial class AlphabetScrubber : UserControl
 				VerticalAlignment = VerticalAlignment.Center,
 				Margin = new Thickness(0, 0, 14, 0)
 			};
+			// the slide-out is a plain XAML translate: an element visual's Offset is layout-managed by
+			// XAML and writing it would throw every letter to the top of the rail
+			var translate = new TranslateTransform();
+			block.RenderTransform = translate;
 		ToolTipService.SetPlacement(block, PlacementMode.Left);
 		ToolTipService.SetToolTip(block, letter);
 		AutomationProperties.SetName(block, letter);
@@ -178,6 +184,7 @@ public sealed partial class AlphabetScrubber : UserControl
 			Rail.Children.Add(block);
 
 			_blocks.Add(block);
+			_translates.Add(translate);
 			_visuals.Add(TryGetVisual(block));
 			_available.Add(isAvailable);
 			_restOpacity.Add(isAvailable ? IdleLetterOpacity : EmptyLetterOpacity);
@@ -356,11 +363,12 @@ public sealed partial class AlphabetScrubber : UserControl
 			_offsets[i] += (targetOffset - _offsets[i]) * waveMove;
 			if (Math.Abs(targetScale - _scales[i]) > 0.002 || Math.Abs(targetOpacity - _opacities[i]) > 0.002 || Math.Abs(targetOffset - _offsets[i]) > 0.05) active = true;
 
+			_translates[i].X = _offsets[i];
+
 			if (_visuals[i] is not { } visual) continue;
 			var scale = (float)_scales[i];
 			visual.Scale = new Vector3(scale, scale, 1);
 			visual.Opacity = (float)_opacities[i];
-			visual.Offset = new Vector3((float)_offsets[i], 0, 0);
 		}
 
 		_thumbOpacity += (_thumbTarget - _thumbOpacity) * (1 - Math.Exp(-deltaMs / ThumbEaseTau));
