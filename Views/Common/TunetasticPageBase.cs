@@ -53,6 +53,21 @@ public abstract partial class TunetasticPageBase : Page
 	/// <summary>The vertical A-Z quick navigation panel. Only present on pages that show it.</summary>
 	protected StackPanel AlphabetPanel => _alphabetPanel ??= RequiredControl<StackPanel>("AlphabetNavigationPanel");
 
+	private AlphabetScrubber? _scrubber;
+
+	/// <summary>The Android-style A–Z scrubber control. Only present on pages that show it.</summary>
+	protected AlphabetScrubber AlphabetScrubber => _scrubber ??= RequiredControl<AlphabetScrubber>("AlphabetScrubber");
+
+	/// <summary>
+	/// Returns the uppercase first character of a value as its alphabet-section key ("A"–"Z"), or "#"
+	/// for non-letter, empty or null values — safe against empty strings.
+	/// </summary>
+	protected static string FirstLetter(string? value)
+	{
+		var c = value?.Trim().FirstOrDefault() ?? '\0';
+		return char.IsLetter(c) ? char.ToUpperInvariant(c).ToString() : "#";
+	}
+
 	/// <summary>
 	/// Runs the shared initialization flow: shows the settings prompt, lets the page collapse its content views,
 	/// plays the scan progress animation while a library scan is running (recreating the page afterwards),
