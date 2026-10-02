@@ -56,7 +56,7 @@ public abstract partial class TunetasticPageBase : Page
 	private AlphabetScrubber? _scrubber;
 
 	/// <summary>The Android-style A–Z scrubber control. Only present on pages that show it.</summary>
-	protected AlphabetScrubber AlphabetScrubber => _scrubber ??= RequiredControl<AlphabetScrubber>("AlphabetScrubber");
+	protected AlphabetScrubber Scrubber => _scrubber ??= RequiredControl<AlphabetScrubber>("AlphabetScrubber");
 
 	/// <summary>
 	/// Returns the uppercase first character of a value as its alphabet-section key ("A"–"Z"), or "#"
