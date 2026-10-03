@@ -1,4 +1,7 @@
-﻿using SQLite;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using SQLite;
 
 namespace Tunetastic.Common;
 
@@ -55,7 +58,85 @@ public class MusicFormatModel
 	[PrimaryKey]
 	public string Extension { get; set; } = string.Empty;
 	public string Description { get; set; } = string.Empty;
+	public string Category { get; set; } = string.Empty;
+	public string CategoryDescription { get; set; } = string.Empty;
+	public string Codecs { get; set; } = string.Empty;
+	public int SortOrder { get; set; }
 	public bool Enabled { get; set; }
+}
+
+/// <summary>
+/// Represents a grouped category of supported music file formats shown on the settings page.
+/// Implements change notifications so the category header badge (showing the enabled/total
+/// extension count) refreshes dynamically as individual formats are toggled.
+/// </summary>
+public class MusicFormatCategoryModel : INotifyPropertyChanged
+{
+	/// <summary>Gets or sets the category name shown as the group header on the settings page.</summary>
+	public string? Category { get; set; }
+
+	/// <summary>Gets or sets the short description displayed beneath the category header.</summary>
+	public string? CategoryDescription { get; set; }
+
+	/// <summary>Gets or sets the individual music formats belonging to this category.</summary>
+	public ObservableCollection<MusicFormatModel>? Items { get; set; }
+
+	private bool _categoryEnabled;
+
+	/// <summary>
+	/// Gets or sets the category's master toggle state shown in the header. It is initialized from whether
+	/// every format in <see cref="Items"/> is enabled and updated when the user flips the header switch.
+	/// </summary>
+	public bool CategoryEnabled
+	{
+		get => _categoryEnabled;
+		set
+		{
+			if (_categoryEnabled != value)
+			{
+				_categoryEnabled = value;
+				OnPropertyChanged();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the number of extensions currently enabled within this category.
+	/// </summary>
+	public int EnabledCount => Items?.Count(i => i.Enabled) ?? 0;
+
+	/// <summary>
+	/// Gets the accent pill badge text shown next to the category name on the settings page,
+	/// displaying the ratio of enabled extensions to total extensions, e.g. "1/11".
+	/// </summary>
+	public string EnabledBadge => $"{EnabledCount}/{Items?.Count ?? 0}";
+
+	/// <summary>
+	/// Gets a value indicating whether the category has at least one enabled extension,
+	/// controlling the visibility of the enabled/total count pill badge.
+	/// </summary>
+	public bool HasEnabledFormats => EnabledCount > 0;
+
+	/// <summary>
+	/// Raises change notifications for the count-dependent display properties,
+	/// refreshing the category header badge after the enabled states of its items change.
+	/// </summary>
+	public void RefreshCount()
+	{
+		OnPropertyChanged(nameof(EnabledCount));
+		OnPropertyChanged(nameof(EnabledBadge));
+		OnPropertyChanged(nameof(HasEnabledFormats));
+	}
+
+	/// <summary>Raised when a bound display property of this category changes value.</summary>
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	/// <summary>
+	/// Raises <see cref="PropertyChanged"/> for the calling member, or for the explicitly
+	/// named property when <paramref name="propertyName"/> is provided.
+	/// </summary>
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
 /// <summary>
@@ -170,10 +251,16 @@ public class ArtistSplitRule
 /// </summary>
 public sealed class SearchItem
 {
+	/// <summary>Gets or sets which category this search result belongs to.</summary>
 	public SearchItemType Type { get; set; }
 
+	/// <summary>Gets or sets the matched song when <see cref="Type"/> is <see cref="SearchItemType.Title"/>.</summary>
 	public Song? Title { get; set; }
+
+	/// <summary>Gets or sets the matched artist name when <see cref="Type"/> is <see cref="SearchItemType.Artist"/>.</summary>
 	public string? Artist { get; set; }
+
+	/// <summary>Gets or sets the matched album when <see cref="Type"/> is <see cref="SearchItemType.Album"/>.</summary>
 	public AlbumModel? Album { get; set; }
 }
 
@@ -248,6 +335,10 @@ public class FileScanMeta
 	public long LastScannedUtc { get; set; }
 }
 
+/// <summary>
+/// Lightweight projection of the Songs columns that are mirrored by the SongFTS full-text index
+/// (Id, Title, Album, Genre, Year and Artists), shaped for reading rows that feed FTS content.
+/// </summary>
 public class SongFtsSourceRow
 {
 	public int Id { get; set; }
@@ -256,4 +347,15 @@ public class SongFtsSourceRow
 	public string Genre { get; set; } = string.Empty;
 	public string Year { get; set; } = string.Empty;
 	public string Artists { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Maps a row returned by SQLite's <c>PRAGMA table_info(...)</c>, describing a single column of a table.
+/// Used to check whether a column already exists on an existing table before adding it via ALTER TABLE.
+/// </summary>
+public class PragmaTableInfo
+{
+	public int Cid { get; set; }
+	public string? Name { get; set; }
+	public string? Type { get; set; }
 }

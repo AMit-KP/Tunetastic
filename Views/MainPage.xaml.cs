@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using TagLib;
+using Tunetastic.Views.Common;
 using Tunetastic.Views.LibraryViews;
 using Tunetastic.Views.PlaylistViews;
 using Windows.Foundation;
@@ -27,6 +28,8 @@ public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
 	private bool _isUpdatingSlider = false;
+	private bool _pausedByMute = false;
+	private bool _pausedByVolume0 = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
 
@@ -361,7 +364,7 @@ public sealed partial class MainPage : Page
 			if (AddPlaylistDialog.PrimaryButtonText == "Add Playlist")
 			{
 				await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
-				GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+				GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
 			}
 		}
 		playLists = null;
@@ -831,6 +834,7 @@ public sealed partial class MainPage : Page
 						},
 
 						DefaultButton = ContentDialogButton.Primary,
+						RequestedTheme = App.Current.ThemeService.ActualTheme,
 						XamlRoot = App.MainWindow.Content.XamlRoot
 					};
 
@@ -915,7 +919,6 @@ public sealed partial class MainPage : Page
 							PendingLyrics = 1;
 						}
 
-						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 						try
 						{
 							LibraryWatcherService.MarkSelfInitiated(songData.Path);
@@ -935,14 +938,47 @@ public sealed partial class MainPage : Page
 
 							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
 						}
+
+						songData.DateAdded = new FileInfo(songData.Path).LastWriteTime;
+						await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 					}
-					//TODO: await UpdateUI();
+					// Refresh the visible library/playlist page's song list so the edited metadata is reflected immediately
+					if (NavFrame.Content is TunetasticPageBase visibleView)
+						await visibleView.RefreshListAsync();
 				}
 
 				_songData = null;
 				_frontCoverArtPath = null;
 			}
 		}
+	}
+
+	private int _libraryRefreshInProgress = 0;
+
+	/// <summary>
+	/// Refreshes the currently visible library/playlist page after auto-scan has
+	/// processed file changes and written them to the database. Safe to call from
+	/// background threads — marshals to the UI thread, coalesces bursts of changes
+	/// into a single refresh and prevents concurrent refreshes from overlapping.
+	/// </summary>
+	public void RefreshVisibleLibraryPage()
+	{
+		if (LibraryScanner.IsScanning) return; // scan-aware page init handles that case
+		if (Interlocked.CompareExchange(ref _libraryRefreshInProgress, 1, 0) != 0) return;
+
+		App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
+		{
+			try
+			{
+				await Task.Delay(300); // merge adjacent rename/flush raises into one refresh
+				if (NavFrame.Content is TunetasticPageBase visibleView)
+					await visibleView.RefreshListAsync();
+			}
+			finally
+			{
+				Interlocked.Exchange(ref _libraryRefreshInProgress, 0);
+			}
+		});
 	}
 
 	private async void ClearButton_Click(object sender, RoutedEventArgs e)
@@ -1091,8 +1127,33 @@ public sealed partial class MainPage : Page
 
 			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
 
-			if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true") && (isMuted || volume == 0))
+			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"))
+				return;
+
+			if (isMuted && MusicPlayer.Instance.IsPlaying && !_pausedByVolume0)
+			{
+				_pausedByMute = true;
 				MusicPlayer.Instance.Pause();
+				return;
+			}
+
+			if (volume == 0 && MusicPlayer.Instance.IsPlaying && !_pausedByMute)
+			{
+				_pausedByVolume0 = true;
+				MusicPlayer.Instance.Pause();
+				return;
+			}
+
+			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ResumeOnUnmuteStatus)]?.ToString() ?? "true"))
+				return;
+
+			if ((!isMuted && _pausedByMute) || (volume > 0 && _pausedByVolume0))
+			{
+				_pausedByMute = false;
+				_pausedByVolume0 = false;
+				MusicPlayer.Instance.Play();
+				return;
+			}
 		});
 	}
 

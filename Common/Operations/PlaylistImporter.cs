@@ -58,7 +58,7 @@ public static class ImportExportPlaylist
 			return;
 		}
 
-		GlobalNotification.Info($"Playlist exported to: {fullPath}");
+		GlobalNotification.Success($"Playlist exported to: {fullPath}");
 	}
 
 	/// <summary>
