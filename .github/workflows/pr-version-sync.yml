@@ -30,6 +30,10 @@
 # (on by default; check the PR page or `maintainer_can_modify` via the API
 # if a push unexpectedly fails).
 #
+# The commit-to-PR lookup (repos/{repo}/commits/{sha}/pulls) can lag a short
+# while right after a push, so "Find the pull request for this build"
+# retries a few times before giving up.
+#
 # Note: the `secrets` context cannot be referenced directly inside a step's
 # `if:` condition - GitHub Actions does not expose it there. Each job has a
 # small early step ("Detect PAT availability") that reads the secret via
@@ -86,17 +90,28 @@ jobs:
         run: echo "has_pat=$HAS_PAT" >> "$GITHUB_OUTPUT"
 
       # workflow_run.pull_requests is unreliable for fork PRs, so look the PR
-      # up by the commit the build ran on.
+      # up by the commit the build ran on. The commit->PR index can lag a
+      # short while right after a push, so retry a few times before giving
+      # up instead of concluding there's no PR to sync.
       - name: Find the pull request for this build
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          pr="$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/pulls" \
-            --jq 'map(select(.state == "open")) | first // empty')"
+          pr=""
+          for i in $(seq 1 6); do
+            pr="$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/pulls" \
+              --jq 'map(select(.state == "open")) | first // empty')"
+            if [ -n "$pr" ]; then
+              break
+            fi
+            echo "No open PR found yet for commit $HEAD_SHA (attempt $i/6) - GitHub's PR index can lag right after a push. Retrying in 10s..."
+            sleep 10
+          done
+
           if [ -z "$pr" ]; then
-            echo "No open PR found for commit $HEAD_SHA - nothing to do."
+            echo "Still no open PR found for commit $HEAD_SHA after retries - nothing to do."
             echo "found=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
