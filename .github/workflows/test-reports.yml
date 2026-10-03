@@ -1,0 +1,99 @@
+name: Test Partner Center reports
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch weekly installs and ratings
+        env:
+          TENANT: ${{ secrets.PC_TENANT_ID }}
+          CID: ${{ secrets.PC_CLIENT_ID }}
+          SECRET: ${{ secrets.PC_CLIENT_SECRET }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, time, csv, io, urllib.request, urllib.parse, urllib.error
+
+          BASE = "https://manage.devcenter.microsoft.com/consumer/insights/v1.1"
+          STORE_ID = "9PCCNQZTD6PX"
+
+          def http(method, url, token=None, body=None, form=None):
+              h = {}
+              data = None
+              if form is not None:
+                  data = urllib.parse.urlencode(form).encode()
+              elif body is not None:
+                  data = json.dumps(body).encode()
+                  h["Content-Type"] = "application/json"
+              if token:
+                  h["Authorization"] = "Bearer " + token
+              r = urllib.request.Request(url, data=data, headers=h, method=method)
+              try:
+                  with urllib.request.urlopen(r, timeout=120) as resp:
+                      return resp.status, resp.read()
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read()
+
+          def jmsg(raw):
+              try:
+                  j = json.loads(raw)
+                  return str(j.get("message") or j.get("error") or "")[:150]
+              except Exception:
+                  return ""
+
+          st, raw = http("POST",
+              f"https://login.microsoftonline.com/{os.environ['TENANT']}/oauth2/token",
+              form={"grant_type": "client_credentials", "client_id": os.environ["CID"],
+                    "client_secret": os.environ["SECRET"],
+                    "resource": "https://manage.devcenter.microsoft.com"})
+          if st != 200:
+              print("Sign-in failed:", st); raise SystemExit(1)
+          token = json.loads(raw)["access_token"]
+          print("Signed in OK")
+
+          def run(label, query):
+              print("\n=== " + label + " ===")
+              stamp = str(int(time.time()))
+              name = f"readme-stats-test-{label}-{stamp}"
+              st, raw = http("POST", BASE + "/ScheduledQueries", token,
+                             {"Query": query, "Name": name, "Description": name})
+              print("Create query:", st, jmsg(raw) if st != 200 else "")
+              if st != 200: return
+              qid = json.loads(raw)["value"][0]["queryId"]
+              st, raw = http("POST", BASE + "/ScheduledReport", token,
+                             {"Description": name, "QueryId": qid, "ReportName": name, "executeNow": True})
+              print("Create report:", st, jmsg(raw) if st != 200 else "")
+              if st != 200: return
+              rid = json.loads(raw)["value"][0]["reportId"]
+              link = None
+              for i in range(40):
+                  time.sleep(15)
+                  st, raw = http("GET", f"{BASE}/ScheduledReport/execution/{rid}", token)
+                  if st == 200:
+                      v = json.loads(raw).get("value", [])
+                      if v and v[0].get("executionStatus") == "Completed":
+                          link = v[0].get("reportAccessSecureLink"); break
+                  elif st != 404:
+                      print("Status check:", st, jmsg(raw)); return
+                  print("  waiting...", (i + 1) * 15, "s")
+              if not link:
+                  print("Timed out waiting for the report"); return
+              p = urllib.parse.urlsplit(link)
+              link = urllib.parse.urlunsplit((p.scheme, p.netloc, urllib.parse.quote(p.path, safe="/%"), p.query, ""))
+              with urllib.request.urlopen(link, timeout=120) as r:
+                  text = r.read().decode("utf-8-sig")
+              rows = list(csv.reader(io.StringIO(text)))
+              print("Header:", rows[0] if rows else "(empty)")
+              print("Data rows:", max(len(rows) - 1, 0))
+              for row in rows[1:4]:
+                  print("  ", row)
+
+          where = f"WHERE ProductId IN ('{STORE_ID}') TIMESPAN LAST_12_MONTHS AGGREGATED Weekly"
+          for label, q in [
+              ("installs", f"SELECT Date, Market, SuccessfulInstallCount FROM Installs {where}"),
+              ("ratings", f"SELECT Date, OneStars, TwoStars, ThreeStars, FourStars, FiveStars FROM Ratings {where}"),
+          ]:
+              try:
+                  run(label, q)
+              except Exception as e:
+                  print("FAILED:", type(e).__name__)
+          EOF
