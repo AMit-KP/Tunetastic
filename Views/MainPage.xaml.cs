@@ -28,6 +28,8 @@ public sealed partial class MainPage : Page
 {
 	public static MainPage? _instance;
 	private bool _isUpdatingSlider = false;
+	private bool _pausedByMute = false;
+	private bool _pausedByVolume0 = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
 
@@ -1111,8 +1113,33 @@ public sealed partial class MainPage : Page
 
 			VolumeButtonGlyph.Glyph = isMuted ? "\uE74F" : volume <= 0 ? "\uE992" : volume < 33 ? "\uE993" : volume < 66 ? "\uE994" : "\uE995";
 
-			if (bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true") && (isMuted || volume == 0))
+			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true"))
+				return;
+
+			if (isMuted && MusicPlayer.Instance.IsPlaying && !_pausedByVolume0)
+			{
+				_pausedByMute = true;
 				MusicPlayer.Instance.Pause();
+				return;
+			}
+
+			if (volume == 0 && MusicPlayer.Instance.IsPlaying && !_pausedByMute)
+			{
+				_pausedByVolume0 = true;
+				MusicPlayer.Instance.Pause();
+				return;
+			}
+
+			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ResumeOnUnmuteStatus)]?.ToString() ?? "true"))
+				return;
+
+			if ((!isMuted && _pausedByMute) || (volume > 0 && _pausedByVolume0))
+			{
+				_pausedByMute = false;
+				_pausedByVolume0 = false;
+				MusicPlayer.Instance.Play();
+				return;
+			}
 		});
 	}
 

@@ -628,6 +628,12 @@ public sealed partial class SettingsPage : Page
 	private void PauseOnMute_OnToggled(object sender, RoutedEventArgs e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PauseOnMuteStatus)] = PauseOnMute.IsOn;
+		ResumeOnUnmuteSettings.IsEnabled = PauseOnMute.IsOn;
+	}
+
+	private void ResumeOnUnmute_Toggled(object sender, RoutedEventArgs e)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ResumeOnUnmuteStatus)] = ResumeOnUnmute.IsOn;
 	}
 
 	/// <summary>
@@ -874,7 +880,7 @@ public sealed partial class SettingsPage : Page
 		PlayPauseStopFadeSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PlayPauseStopFadeStatus)]?.ToString() ?? "false");
 		PlayPauseStopFadeSwitch_OnToggled(PlayPauseStopFadeSwitch, null);
 
-		/* NOTE Uncomment when crossfade is implemented properly
+		/* NOTE: Uncomment when crossfade is implemented properly
 		AutoAdvanceSwitch.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoAdvanceStatus)]?.ToString() ?? "false");
 		AutoAdvanceSwitch_OnToggled(AutoAdvanceSwitch, null);
 
@@ -888,6 +894,10 @@ public sealed partial class SettingsPage : Page
 		UseSystemVolume.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.UseSystemVolumeStatus)]?.ToString() ?? "true");
 
 		PauseOnMute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.PauseOnMuteStatus)]?.ToString() ?? "true");
+
+		ResumeOnUnmuteSettings.IsEnabled = PauseOnMute.IsOn;
+
+		ResumeOnUnmute.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ResumeOnUnmuteStatus)]?.ToString() ?? "true");
 
 		AutoStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false");
 
