@@ -18,9 +18,10 @@ jobs:
         id: branch
         run: |
           BRANCH="${GITHUB_REF_NAME}"
-          if [ "$BRANCH" = "master" ]; then
+          BRANCH_LC="${BRANCH,,}"
+          if [ "$BRANCH_LC" = "master" ]; then
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          elif [ "$BRANCH" = "development" ]; then
+          elif [ "$BRANCH_LC" = "development" ]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "::error::Releases can only be created from 'master' or 'development' (got '$BRANCH')."
