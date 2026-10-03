@@ -408,7 +408,7 @@ public sealed partial class YearsViewPage : TileListPageBase
 				}
 				YearsGroup.Remove(yearModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
-				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Year {yearModel?.Year} deleted.");
+				GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Year {yearModel?.Year} deleted.");
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 			{
@@ -546,7 +546,7 @@ public sealed partial class YearsViewPage : TileListPageBase
 				YearTileView.Items.Remove(yearModel);
 
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected years deleted.");
+			GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected years deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

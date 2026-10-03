@@ -2,9 +2,28 @@
 
 namespace Tunetastic.Common.Operations;
 
+/// <summary>
+/// Reconciles the scanned library snapshot with the files currently on disk, applying the changes that
+/// happened while the application was not watching the library folders.
+/// </summary>
 public static class AutoScanReconciler
 {
-	public static async Task RunCatchUpDiff()
+	/// <summary>
+	/// Runs one catch-up pass: every matching file on disk is snapshotted and diffed against the tracked scan
+	/// metadata, renames and moves are recovered through <see cref="RenameDetector.DetectRenamesAndMoves"/>, and
+	/// the appeared, modified and unmatched disappeared paths are applied (see
+	/// <see cref="BatchProcessCreatedAndModified"/>).
+	/// </summary>
+	/// <remarks>
+	/// A failing file never aborts the pass: the step is reported through <see cref="GlobalNotification"/> and
+	/// counted. Nothing happens when no library is configured.
+	/// </remarks>
+	/// <param name="showNotification">
+	/// When <see langword="true"/>, a progress notification and a closing summary are shown; when
+	/// <see langword="false"/>, the pass stays silent unless a change fails.
+	/// </param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
+	public static async Task RunCatchUpDiff(bool showNotification)
 	{
 		var libraries = new List<string>();
 		foreach (LibraryModel library in await DatabaseHelper.Instance.GetAllLibraries())
@@ -13,7 +32,8 @@ public static class AutoScanReconciler
 		if (libraries.Count == 0)
 			return;
 
-		GlobalNotification.Info("Scanning for changes please wait...");
+		if (showNotification)
+			GlobalNotification.Info("Scanning for changes please wait...");
 
 		var effectiveRoots = LibraryScanner.ComputeEffectiveRoots(libraries);
 		var extensions = await LibraryScanner.GetEnabledExtensions();
@@ -44,15 +64,35 @@ public static class AutoScanReconciler
 
 		var matchResult = RenameDetector.DetectRenamesAndMoves(disappeared, appeared);
 
+		int failedChanges = 0;
+
 		foreach (var (oldPath, newPath) in matchResult.Renames)
 		{
-			await FileChangeProcessor.ProcessFileChange(oldPath, FileChangeType.Renamed, newPath);
+			try
+			{
+				await FileChangeProcessor.ProcessFileChange(oldPath, FileChangeType.Renamed, newPath);
+			}
+			catch (Exception ex)
+			{
+				// A single failing file must not abort the pass: that would also skip the deletions,
+				// the new files, the folder recount and the notification below.
+				failedChanges++;
+				GlobalNotification.Error($"Couldn't update the library entry for:\n{oldPath}\n{ex.Message}");
+			}
 		}
 
 		if (matchResult.UnmatchedDisappeared.Count > 0)
 		{
-			await DatabaseHelper.Instance.DeleteSongsFromDB(matchResult.UnmatchedDisappeared);
-			await DatabaseHelper.Instance.DeleteFileScanMeta(matchResult.UnmatchedDisappeared);
+			try
+			{
+				await DatabaseHelper.Instance.DeleteSongsFromDB(matchResult.UnmatchedDisappeared);
+				await DatabaseHelper.Instance.DeleteFileScanMeta(matchResult.UnmatchedDisappeared);
+			}
+			catch (Exception ex)
+			{
+				failedChanges++;
+				GlobalNotification.Error($"Couldn't remove the missing tracks from the library.\n{ex.Message}");
+			}
 		}
 
 		var modifiedPaths = onDisk.Keys
@@ -60,13 +100,41 @@ public static class AutoScanReconciler
 			.Where(p => tracked[p].FileSizeBytes != onDisk[p].FileSizeBytes || tracked[p].LastModifiedUtc != onDisk[p].LastModifiedUtc)
 			.ToList();
 
-		await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+		try
+		{
+			await BatchProcessCreatedAndModified(matchResult.UnmatchedAppeared, modifiedPaths);
+		}
+		catch (Exception ex)
+		{
+			failedChanges++;
+			GlobalNotification.Error($"Couldn't add the new or changed tracks to the library.\n{ex.Message}");
+		}
 
-		await LibraryScanner.RefreshAutoScanResultMessage();
+		// onDisk holds every extension-matching file currently on disk — the same set a full scan counts —
+		// so the folder stat can be recounted exactly, including folders emptied by deletions.
+		await LibraryScanner.RefreshAutoScanResultMessage(LibraryScanner.CountFoldersFromPaths(onDisk.Keys));
 
-		GlobalNotification.Info("All libraries are in sync");
+		if (showNotification)
+		{
+			if (failedChanges > 0)
+				GlobalNotification.Warning($"{failedChanges} change(s) could not be applied. See the messages above.");
+			else
+				GlobalNotification.Success("All libraries are in sync");
+		}
 	}
 
+	/// <summary>
+	/// Adds the appeared files and refreshes the modified ones in one batched pass that reads the tags of every
+	/// path in parallel.
+	/// </summary>
+	/// <remarks>
+	/// A tracked path keeps its <see cref="Song.PlayCount"/> and <see cref="Song.DateLastPlayed"/>, so a modified
+	/// file is a refresh rather than a new song; files at or below the ignore threshold and duplicates against the
+	/// database or the batch are skipped.
+	/// </remarks>
+	/// <param name="createdPaths">Paths that appeared since the previous scan.</param>
+	/// <param name="modifiedPaths">Tracked paths whose size or last write time changed.</param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
 	private static async Task BatchProcessCreatedAndModified(List<string> createdPaths, List<string> modifiedPaths)
 	{
 		var allPaths = createdPaths.Concat(modifiedPaths).ToList();
