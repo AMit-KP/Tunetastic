@@ -293,10 +293,16 @@
 				<ToggleSwitch x:Name="UseSystemVolume"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
+			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted or became 0."
 			                  Header="Pause on Mute">
 				<ToggleSwitch x:Name="PauseOnMute"
 				              Toggled="PauseOnMute_OnToggled" />
+			</dev:SettingsCard>
+			<dev:SettingsCard x:Name="ResumeOnUnmuteSettings"
+			                  Description="When turned on, the app will resume the track that is currently playing when the volume is unmuted or increased more than 0. (It'll only trigger if pause happened because of Pause on Mute)"
+			                  Header="Resume on Unmute">
+				<ToggleSwitch x:Name="ResumeOnUnmute"
+				              Toggled="ResumeOnUnmute_Toggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will start playing the track that was last playing."
 			                  Header="Auto-Start playing track when app starts">

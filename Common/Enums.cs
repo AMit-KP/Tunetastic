@@ -215,6 +215,7 @@ public enum LocalSave
 	RestartTrackOnSelectionStatus,
 	UseSystemVolumeStatus,
 	PauseOnMuteStatus,
+	ResumeOnUnmuteStatus,
 	AutoStartStatus,
 	MainPlayerBGBlurValue,
 	LastPlayedTrack,

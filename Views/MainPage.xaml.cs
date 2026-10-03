@@ -1118,10 +1118,10 @@ public sealed partial class MainPage : Page
 
 			if (isMuted && MusicPlayer.Instance.IsPlaying && !_pausedByVolume0)
 			{
-					_pausedByMute = true;
-					MusicPlayer.Instance.Pause();
+				_pausedByMute = true;
+				MusicPlayer.Instance.Pause();
 				return;
-				}
+			}
 
 			if (volume == 0 && MusicPlayer.Instance.IsPlaying && !_pausedByMute)
 			{
@@ -1130,7 +1130,9 @@ public sealed partial class MainPage : Page
 				return;
 			}
 
-			if (_pausedByMute)
+			if (!bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ResumeOnUnmuteStatus)]?.ToString() ?? "true"))
+				return;
+
 			if ((!isMuted && _pausedByMute) || (volume > 0 && _pausedByVolume0))
 			{
 				_pausedByMute = false;
