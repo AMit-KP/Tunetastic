@@ -1,0 +1,54 @@
+name: Test Partner Center API
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test connection
+        env:
+          TENANT: ${{ secrets.PC_TENANT_ID }}
+          CID: ${{ secrets.PC_CLIENT_ID }}
+          SECRET: ${{ secrets.PC_CLIENT_SECRET }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, urllib.request, urllib.parse, urllib.error
+
+          def call(req):
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      return r.status, json.load(r)
+              except urllib.error.HTTPError as e:
+                  try:
+                      b = json.loads(e.read().decode())
+                  except Exception:
+                      b = {}
+                  code = str(b.get("error_description", b.get("error", "")))
+                  return e.code, code.split(":")[0][:60]
+
+          data = urllib.parse.urlencode({
+              "grant_type": "client_credentials",
+              "client_id": os.environ["CID"],
+              "client_secret": os.environ["SECRET"],
+              "resource": "https://manage.devcenter.microsoft.com",
+          }).encode()
+          st, tok = call(urllib.request.Request(
+              f"https://login.microsoftonline.com/{os.environ['TENANT']}/oauth2/token", data=data))
+          print("Token request:", st)
+          if st != 200:
+              print("Sign-in failed:", tok); raise SystemExit(1)
+
+          req = urllib.request.Request(
+              "https://manage.devcenter.microsoft.com/consumer/insights/v1.1/ScheduledDataset",
+              headers={"Authorization": "Bearer " + tok["access_token"]})
+          st, res = call(req)
+          print("Datasets request:", st)
+          if st != 200:
+              print("Failed:", res); raise SystemExit(1)
+
+          for d in res.get("Value", res.get("value", [])):
+              g = lambda k: d.get(k, d.get(k[0].lower() + k[1:], d.get(k.strip(), "")))
+              print("\nDataset:", g("DatasetName"))
+              print("  Columns:", g("SelectableColumns"))
+              print("  Metrics:", g("AvailableMetrics"))
+              print("  Date ranges:", g("AvailableDateRanges"))
+          EOF
