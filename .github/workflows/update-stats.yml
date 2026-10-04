@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Fetch data and redraw graphics
         env:
@@ -42,5 +42,5 @@ jobs:
           git config user.signingkey ~/.ssh/commit_signing_key
           git config commit.gpgsign true
           git add data charts
-          git diff --cached --quiet || git commit -m "Update Store stats"
+          git diff --cached --quiet || git commit -m "Update Store Stats on $(date -u +'%-d %b %Y')"
           git push https://x-access-token:$RELEASE_PAT@github.com/${{ github.repository }}.git HEAD:master
