@@ -328,6 +328,10 @@
 							<controls:DataTable x:Name="Header"
 							                    Margin="12,0,0,0"
 							                    ColumnSpacing="10">
+								<controls:DataColumn Content="#"
+								                     DesiredWidth="40"
+								                     FontWeight="Bold"
+								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 								<controls:DataColumn DesiredWidth="40" />
 								<controls:DataColumn Content="Title"
 								                     DesiredWidth="350"
@@ -355,6 +359,18 @@
 							<controls:DataRow HorizontalAlignment="Left"
 							                  Background="Transparent"
 							                  ContextFlyout="{StaticResource RightClickMenu}">
+								<TextBlock HorizontalAlignment="Left"
+								           VerticalAlignment="Center"
+								           Text="{x:Bind Track, Converter={StaticResource TrackNumberConverter}}"
+								           TextTrimming="CharacterEllipsis">
+									<ToolTipService.ToolTip>
+										<TextBlock>
+											<Run Text="Track: " />
+											<Run FontWeight="Bold"
+											     Text="{x:Bind Track, Converter={StaticResource TrackNumberConverter}}" />
+										</TextBlock>
+									</ToolTipService.ToolTip>
+								</TextBlock>
 								<Grid Width="40"
 								      Height="60"
 								      Margin="0,2,0,2"
@@ -545,10 +561,26 @@
 								      HorizontalAlignment="Right"
 								      VerticalAlignment="Center">
 									<Grid.RowDefinitions>
-										<RowDefinition Height="60" />
+										<RowDefinition Height="30" />
 										<RowDefinition Height="45" />
+										<RowDefinition Height="30" />
 									</Grid.RowDefinitions>
-									<Grid Grid.Row="1"
+									<Grid Grid.Row="0"
+									      VerticalAlignment="Center">
+										<TextBlock HorizontalAlignment="Right"
+										           VerticalAlignment="Top"
+										           Style="{ThemeResource BodyStrongTextBlockStyle}"
+										           Text="{x:Bind Track, Converter={StaticResource TrackNumberConverter}, ConverterParameter=Hash}">
+											<ToolTipService.ToolTip>
+												<TextBlock>
+													<Run Text="Track: " />
+													<Run FontWeight="Bold"
+													     Text="{x:Bind Track, Converter={StaticResource TrackNumberConverter}}" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+										</TextBlock>
+									</Grid>
+									<Grid Grid.Row="2"
 									      VerticalAlignment="Center">
 										<TextBlock HorizontalAlignment="Right"
 										           VerticalAlignment="Bottom"
@@ -564,10 +596,10 @@
 											</ToolTipService.ToolTip>
 										</TextBlock>
 									</Grid>
-									<Grid Grid.Row="0"
+									<Grid Grid.Row="1"
 									      VerticalAlignment="Center">
 										<TextBlock HorizontalAlignment="Right"
-										           VerticalAlignment="Top"
+										           VerticalAlignment="Center"
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
 										           Text="{x:Bind Year}">
 											<ToolTipService.ToolTip>
