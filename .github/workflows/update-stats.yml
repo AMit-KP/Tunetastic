@@ -1,0 +1,35 @@
+name: Update Store stats
+
+on:
+  schedule:
+    - cron: "0 6 * * 3"   # every Wednesday 06:00 UTC (Microsoft's data lags 1-2 days)
+  workflow_dispatch:       # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-stats
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch data and redraw graphics
+        env:
+          PC_TENANT_ID: ${{ secrets.PC_TENANT_ID }}
+          PC_CLIENT_ID: ${{ secrets.PC_CLIENT_ID }}
+          PC_CLIENT_SECRET: ${{ secrets.PC_CLIENT_SECRET }}
+        run: python3 scripts/update_stats.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data charts
+          git diff --cached --quiet || git commit -m "Update Store stats"
+          git push
