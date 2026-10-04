@@ -133,6 +133,29 @@ def update_history(today, installs, ratings, cfg):
     print(f"Fetched {sum(len(v) for v in got.values())} install rows, {len(rgot)} rating weeks")
 
 
+# ---------- releases (analytics packageVersion history) ----------
+def fetch_versions(token, cfg, releases, today, first_week):
+    """Derive release history from the installs analytics grouped by
+    packageVersion: a version's release week is the first week it recorded
+    installs. Unattributable buckets (0.0.0.0 / Unknown) are ignored."""
+    params = {"applicationId": cfg["store_id"], "startDate": us_date(first_week), "endDate": us_date(today),
+              "aggregationLevel": "week", "groupby": "date,packageVersion"}
+    try:
+        rows = fetch_rows(token, "installs", params)
+    except SystemExit as e:
+        print(f"Version history skipped: {e}")
+        return
+    for r in rows:
+        v = (r.get("packageVersion") or "").strip()
+        if not v or v in ("0.0.0.0", "Unknown"):
+            continue
+        v = ".".join(v.split(".")[:3])
+        wk = monday(parse_day(r["date"])).isoformat()
+        if v not in releases or wk < releases[v]:
+            releases[v] = wk
+    print(f"Version history: {len(releases)} releases")
+
+
 # ---------- render ----------
 def render_all(today, installs, ratings, cfg):
     if not installs:
@@ -161,9 +184,14 @@ def render_all(today, installs, ratings, cfg):
         rows.append((None, "Location not reported", by_country["Unknown"]))
 
     events = [(parse_day(k), v) for k, v in sorted(ratings.items())]
-    updates = []
-    for u in cfg.get("updates", []):
-        updates.append((parse_day(u["date"]), u.get("label", "")))
+    releases = load(DATA / "releases.json", {})
+    labeled = [(parse_day(u["date"]), u["label"]) for u in cfg.get("updates", []) if u.get("label")]
+    known = {"v" + v for v, d in releases.items() if d}
+    updates = sorted([(parse_day(d), "v" + v) for v, d in releases.items() if d]
+                     + [x for x in labeled if x[1] not in known])
+    if not updates:  # no release history and no labeled flags yet
+        updates = [(parse_day(u["date"]), "") for u in cfg.get("updates", [])]
+    updates = sorted(set(updates))
     stamp = f"Updated {today.day} {today:%b %Y}"
 
     OUT.mkdir(exist_ok=True)
@@ -187,6 +215,10 @@ def main():
         update_history(today, installs, ratings, cfg)
         save(DATA / "installs.json", installs)
         save(DATA / "ratings.json", ratings)
+        releases = load(DATA / "releases.json", {})
+        first_week = min((parse_day(k) for k in list(installs) + list(ratings)), default=today - dt.timedelta(days=400))
+        fetch_versions(get_token(), cfg, releases, today, first_week)
+        save(DATA / "releases.json", releases)
     render_all(today, installs, ratings, cfg)
 
 
