@@ -53,7 +53,7 @@ jobs:
           def run(label, query):
               print("\n=== " + label + " ===")
               stamp = str(int(time.time()))
-              name = f"readme-stats-test-{label}-{stamp}"
+              name = f"readme stats test {label} {stamp}"
               st, raw = http("POST", BASE + "/ScheduledQueries", token,
                              {"Query": query, "Name": name, "Description": name})
               print("Create query:", st, jmsg(raw) if st != 200 else "")
