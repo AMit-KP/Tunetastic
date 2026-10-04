@@ -10,13 +10,17 @@ namespace Tunetastic.Common.Services;
 public class AudioService : IDisposable, IMMNotificationClient
 {
 	private readonly MMDeviceEnumerator _enumerator;
-	private MMDevice _currentDevice;
+	private volatile MMDevice? _currentDevice;
 	private readonly List<SessionEventHandler> _sessionHandlers = new();
 	private CancellationTokenSource? _sessionWaitCts;
 	private readonly object _sessionsLock = new();
 	private volatile bool _suppressAppVolumeEvent = false;
-	private readonly Microsoft.UI.Dispatching.DispatcherQueue? _dispatcherQueue;
 	private bool _disposed;
+
+	private double _cachedSystemVolume = 50;
+	private bool _cachedSystemMuted;
+	private double _cachedAppVolume = 50;
+	private bool _cachedAppMuted;
 
 	/// <summary>
 	/// Occurs when the system volume changes.
@@ -46,14 +50,21 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// </summary>
 	public AudioService()
 	{
-		_dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 		_enumerator = new MMDeviceEnumerator();
-		_currentDevice = GetFreshDevice();
-		SubscribeToDevice(_currentDevice);
-		_enumerator.RegisterEndpointNotificationCallback(this);
-		// FindAllAppSessions' first pass runs synchronously before its first await; keep its COM
-		// enumeration off the UI thread.
-		_ = Task.Run(WaitAndSubscribeToAppVolumeAsync);
+		_ = Task.Run(Initialize);
+	}
+
+	private void Initialize()
+	{
+		try
+		{
+			_currentDevice = GetFreshDevice();
+			SubscribeToDevice(_currentDevice);
+			_enumerator.RegisterEndpointNotificationCallback(this);
+			RefreshSystemVolumeCache();
+			_ = WaitAndSubscribeToAppVolumeAsync();
+		}
+		catch { /* no usable audio device */ }
 	}
 
 	// ─── Per-session event wrapper ────────────────────────────────────────────
@@ -65,6 +76,21 @@ public class AudioService : IDisposable, IMMNotificationClient
 	{
 		private readonly AudioService _owner;
 		public readonly AudioSessionControl Session;
+
+		/// <summary>
+		/// Whether the tracked session is currently active (rendering audio). Updated from session
+		/// state events so readers never need a COM call to pick the live session. Optimistically
+		/// true until the first state event arrives; sessions are added while active or when no
+		/// active one exists.
+		/// </summary>
+		public volatile bool IsSessionActive = true;
+
+		/// <summary>
+		/// Last known session volume (0-1). Refreshed on volume events and when the session is
+		/// added, so primary-session selection never needs a COM call under the lock. The silent
+		/// SMTC dummy session is pinned at 0; see GetPrimaryHandler.
+		/// </summary>
+		public volatile float CachedVolume = 1f;
 
 		/// <summary>
 		/// Initializes a new instance of the SessionEventHandler class.
@@ -84,7 +110,13 @@ public class AudioService : IDisposable, IMMNotificationClient
 		/// <param name="isMuted">Indicates whether the session is muted.</param>
 		public void OnVolumeChanged(float volume, bool isMuted)
 		{
-			if (_owner._suppressAppVolumeEvent) return;
+			CachedVolume = volume;
+
+			// A stale session (the previous device's, until it expires) must not fight the live
+			// one - its events would make the volume UI flicker between two values.
+			if (_owner._suppressAppVolumeEvent || !_owner.IsPrimaryHandler(this)) return;
+			_owner._cachedAppVolume = (double)volume * 100;
+			_owner._cachedAppMuted = isMuted;
 			_owner.AppVolumeChanged?.Invoke((double)volume * 100, isMuted);
 		}
 
@@ -94,12 +126,16 @@ public class AudioService : IDisposable, IMMNotificationClient
 		/// <param name="state">The new audio session state.</param>
 		public void OnStateChanged(AudioSessionState state)
 		{
+			IsSessionActive = state == AudioSessionState.AudioSessionStateActive;
+
 			// Windows requires notification callbacks to return quickly. RemoveSession unregisters
 			// over COM - a call that can block while the session's device is being torn down (e.g.
 			// Bluetooth switching off) - and may restart the wait (a full device enumeration). Run
 			// it off the notification thread.
 			if (state == AudioSessionState.AudioSessionStateExpired)
 				_ = Task.Run(() => _owner.RemoveSession(this));
+			else if (state == AudioSessionState.AudioSessionStateInactive)
+				_ = Task.Run(() => _owner.PruneStaleSessions());
 		}
 
 		/// <summary>
@@ -144,7 +180,21 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="session">The audio session control to add.</param>
 	private void AddSession(AudioSessionControl session)
 	{
-		var handler = new SessionEventHandler(this, session);
+		// Read the state up front: a session whose device is being torn down can still enumerate
+		// but be dead, and trusting it as active lets it push garbage (e.g. volume 0) that trips
+		// the auto-pause feature. All AddSession paths run on background threads, so the COM call
+		// is safe here.
+		AudioSessionState state;
+		try { state = session.State; }
+		catch { return; }
+		if (state == AudioSessionState.AudioSessionStateExpired) return;
+
+		var handler = new SessionEventHandler(this, session)
+		{
+			IsSessionActive = state == AudioSessionState.AudioSessionStateActive
+		};
+		try { handler.CachedVolume = session.SimpleAudioVolume.Volume; }
+		catch { /* the volume read can fail while the session is being torn down */ }
 
 		// RegisterEventClient is a COM call into Core Audio that synchronizes with Windows' shared
 		// notification thread. Taking _sessionsLock across it deadlocks during a device connect
@@ -187,8 +237,8 @@ public class AudioService : IDisposable, IMMNotificationClient
 
 		// WaitAndSubscribeToAppVolumeAsync runs FindAllAppSessions synchronously before its first
 		// await, which enumerates every output device over COM. Starting it while _sessionsLock is
-		// still held would block any other thread waiting on that lock (e.g. the UI thread reading
-		// app volume) for as long as that enumeration takes, which can stall during a device change.
+		// still held would block any other thread waiting on that lock for as long as that
+		// enumeration takes, which can stall during a device change.
 		if (needsRewait)
 			_ = WaitAndSubscribeToAppVolumeAsync();
 	}
@@ -208,6 +258,80 @@ public class AudioService : IDisposable, IMMNotificationClient
 			try { h.Session.UnRegisterEventClient(h); } catch { /* session may already be gone */ }
 	}
 
+	/// <summary>
+	/// Removes tracked sessions that are no longer active while another tracked session is.
+	/// After a device switch the previous device's session lingers inactive until Windows expires
+	/// it; keeping it around makes volume reads and the Windows mixer see two different values.
+	/// Inactive sessions are kept when no active one exists (e.g. playback is paused).
+	/// </summary>
+	private void PruneStaleSessions()
+	{
+		List<SessionEventHandler> stale;
+		lock (_sessionsLock)
+		{
+			if (_sessionHandlers.Count <= 1) return;
+			if (!_sessionHandlers.Any(h => h.IsSessionActive)) return;
+
+			stale = _sessionHandlers.Where(h => !h.IsSessionActive).ToList();
+			foreach (var h in stale)
+				_sessionHandlers.Remove(h);
+		}
+		foreach (var h in stale)
+			try { h.Session.UnRegisterEventClient(h); } catch { /* session may already be gone */ }
+	}
+
+	/// <summary>
+	/// Returns the handler of the session that owns the app volume: the most recently added
+	/// session that is still active and carries real volume. Tunetastic has a second, silent
+	/// session (the SMTC dummy player, pinned at volume 0) which re-creates on every device
+	/// change - it must never own the app volume, or its zero pushes trip the auto-pause feature
+	/// and the volume UI flickers between the real volume and 0. Sessions with zero volume are
+	/// only used when no session with real volume exists.
+	/// </summary>
+	private SessionEventHandler? GetPrimaryHandler()
+	{
+		SessionEventHandler? primary;
+		lock (_sessionsLock)
+		{
+			primary = PickPrimary(_sessionHandlers);
+		}
+		return primary;
+	}
+
+	/// <summary>
+	/// Whether the given handler owns the app volume (see GetPrimaryHandler). Volume events from
+	/// any other session are ignored so two sessions can't fight over the volume UI.
+	/// </summary>
+	private bool IsPrimaryHandler(SessionEventHandler handler)
+	{
+		lock (_sessionsLock)
+		{
+			return ReferenceEquals(PickPrimary(_sessionHandlers), handler);
+		}
+	}
+
+	/// <summary>
+	/// Picks the newest session that is active with non-zero volume; falls back to the newest
+	/// active one, then the newest with non-zero volume, then the newest of all. Must be called
+	/// under _sessionsLock.
+	/// </summary>
+	private static SessionEventHandler? PickPrimary(List<SessionEventHandler> handlers)
+	{
+		SessionEventHandler? newestActive = null, newestActiveAudible = null, newestAudible = null;
+		foreach (var h in handlers)
+		{
+			if (h.IsSessionActive)
+			{
+				newestActive = h;
+				if (h.CachedVolume > 0.001f)
+					newestActiveAudible = h;
+			}
+			if (h.CachedVolume > 0.001f)
+				newestAudible = h;
+		}
+		return newestActiveAudible ?? newestActive ?? newestAudible ?? handlers.LastOrDefault();
+	}
+
 	// ─── Device/session discovery ─────────────────────────────────────────────
 
 	/// <summary>
@@ -216,10 +340,22 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <returns>A list of tuples containing device IDs and names.</returns>
 	public List<(string Id, string Name)> GetAudioDevices()
 	{
-		return _enumerator
-			.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)
-			.Select(d => (d.ID, d.FriendlyName))
-			.ToList();
+		var result = new List<(string, string)>();
+		var devices = new List<MMDevice>();
+		try
+		{
+			foreach (var device in _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+			{
+				devices.Add(device);
+				result.Add((device.ID, device.FriendlyName));
+			}
+		}
+		catch { /* enumeration can fail while devices churn */ }
+		finally
+		{
+			DisposeDevices(devices);
+		}
+		return result;
 	}
 
 	/// <summary>
@@ -228,24 +364,36 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <returns>A list of tuples containing session names and process IDs.</returns>
 	public List<(string Name, int Pid)> GetAudioSessions()
 	{
-		var sessions = GetFreshDevice().AudioSessionManager.Sessions;
 		var result = new List<(string, int)>();
+		MMDevice? device;
+		try { device = GetFreshDevice(); }
+		catch { return result; }
 
-		for (int i = 0; i < sessions.Count; i++)
+		try
 		{
-			var session = sessions[i];
-			var pid = (int)session.GetProcessID;
-			if (pid == 0) continue;
+			var sessions = device.AudioSessionManager.Sessions;
 
-			try
+			for (int i = 0; i < sessions.Count; i++)
 			{
-				var process = Process.GetProcessById(pid);
-				result.Add((process.ProcessName, pid));
+				var session = sessions[i];
+				var pid = (int)session.GetProcessID;
+				if (pid == 0) continue;
+
+				try
+				{
+					var process = Process.GetProcessById(pid);
+					result.Add((process.ProcessName, pid));
+				}
+				catch (ArgumentException)
+				{
+					// Process no longer running, skip it
+				}
 			}
-			catch (ArgumentException)
-			{
-				// Process no longer running, skip it
-			}
+		}
+		catch { /* the device can be gone while it is being torn down */ }
+		finally
+		{
+			DisposeDevices(new List<MMDevice> { device });
 		}
 
 		return result;
@@ -266,10 +414,6 @@ public class AudioService : IDisposable, IMMNotificationClient
 			{
 				devices.Add(device);
 
-				// Reading AudioSessionManager registers a session notification with Windows that stays
-				// registered until the device is disposed. Without disposing, every pass leaves one more
-				// per output device behind. The AudioSessionControls collected here are separate COM
-				// objects and stay valid after the device is disposed.
 				var sessions = device.AudioSessionManager.Sessions;
 				for (int i = 0; i < sessions.Count; i++)
 				{
@@ -278,21 +422,34 @@ public class AudioService : IDisposable, IMMNotificationClient
 						results.Add(session);
 				}
 			}
+
+			var active = new List<AudioSessionControl>();
+			var alive = new List<AudioSessionControl>();
+			foreach (var session in results)
+			{
+				AudioSessionState state;
+				try { state = session.State; }
+				catch { continue; }
+				if (state == AudioSessionState.AudioSessionStateExpired) continue;
+				alive.Add(session);
+				if (state == AudioSessionState.AudioSessionStateActive)
+					active.Add(session);
+			}
+			return active.Count > 0 ? active : alive;
 		}
 		finally
 		{
 			DisposeDevices(devices);
 		}
-		return results;
 	}
 
 	/// <summary>
 	/// Disposes enumerated MMDevice wrappers on a thread-pool thread. Disposing a device makes COM
 	/// calls (unregistering its session notifications) that can block on Windows' shared Core Audio
 	/// notification thread - the same thread that delivers device callbacks to listeners such as
-	/// FlyleafLib, whose handler dispatches back to the UI thread and waits on it (see ReplaceDevice).
-	/// Disposing on the UI or notification thread can therefore deadlock the process, and a device
-	/// invalidated mid-switch can throw from the same calls.
+	/// FlyleafLib, whose handler dispatches back to the UI thread and waits on it. Disposing on the
+	/// UI or notification thread can therefore deadlock the process, and a device invalidated
+	/// mid-switch can throw from the same calls.
 	/// </summary>
 	/// <param name="devices">The devices to dispose. Each may already be gone.</param>
 	private static void DisposeDevices(List<MMDevice> devices)
@@ -315,8 +472,6 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <returns>A task representing the asynchronous operation.</returns>
 	private async Task WaitAndSubscribeToAppVolumeAsync()
 	{
-		// This is started from several places (startup, a session ending, a device change).
-		// Only one wait should run at a time, so a new one cancels the previous one.
 		CancellationToken token;
 		lock (_sessionsLock)
 		{
@@ -335,10 +490,8 @@ public class AudioService : IDisposable, IMMNotificationClient
 				{
 					found = FindAllAppSessions(Environment.ProcessId);
 				}
-				catch (Exception)
+				catch
 				{
-					// Devices can disappear mid-enumeration while outputs change. Try again next pass
-					// instead of ending the wait for good.
 					found = new();
 				}
 
@@ -346,6 +499,8 @@ public class AudioService : IDisposable, IMMNotificationClient
 				{
 					foreach (var session in found)
 						AddSession(session);
+					PruneStaleSessions();
+					RefreshAppVolumeCache();
 					return;
 				}
 				await Task.Delay(500, token);
@@ -367,12 +522,12 @@ public class AudioService : IDisposable, IMMNotificationClient
 		}
 		catch
 		{
-			// A device can disappear mid-enumeration while outputs change. Don't crash the UI thread
-			// over it; OnSessionCreated still adds sessions as they appear.
 			return;
 		}
 		foreach (var session in found)
 			AddSession(session);
+		PruneStaleSessions();
+		RefreshAppVolumeCache();
 	}
 
 	// ─── Device management ────────────────────────────────────────────────────
@@ -382,71 +537,37 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// </summary>
 	/// <param name="deviceId">The ID of the device to switch to.</param>
 	public void SwitchDevice(string deviceId)
-	{
-		RunOnUIThread(() => ReplaceDevice(() => _enumerator.GetDevice(deviceId)));
-	}
+		=> _ = Task.Run(() => ReplaceDevice(() => _enumerator.GetDevice(deviceId)));
 
 	/// <summary>
-	/// Replaces the current device with a new one. Must run on the UI thread.
+	/// Replaces the current device with a new one. Must only run on a background thread: the COM
+	/// calls it makes block on Windows' shared Core Audio notification thread during device churn
+	/// (see DisposeDevices).
 	/// </summary>
-	/// <param name="getDevice">Returns the device to switch to.</param>
-	/// <returns>True if the device was replaced, false if the new device could not be opened.</returns>
-	private bool ReplaceDevice(Func<MMDevice> getDevice)
+	/// <param name="getDevice">Returns the device to switch to, or null if it cannot be opened.</param>
+	private void ReplaceDevice(Func<MMDevice?> getDevice)
 	{
-		MMDevice newDevice;
-		try
+		if (_disposed) return;
+
+		MMDevice? newDevice;
+		try { newDevice = getDevice(); }
+		catch
 		{
-			newDevice = getDevice();
+			return;
 		}
-		catch (Exception)
-		{
-			// No usable output device (e.g. the last one was just unplugged). Keep the old one
-			// rather than leaving _currentDevice disposed.
-			return false;
-		}
+		if (newDevice == null) return;
 
 		var oldDevice = _currentDevice;
 		_currentDevice = newDevice;
 
-		// UnsubscribeFromDevice and SubscribeToDevice register and unregister session notifications
-		// over COM, and Dispose releases COM objects. All of those calls synchronize with the
-		// shared Core Audio notification thread that Windows uses to deliver device callbacks to
-		// every listener in the process (not just this one - e.g. FlyleafLib registers its own).
-		// That thread can itself be waiting on this UI thread (FlyleafLib's device-change handler
-		// dispatches back to the UI thread and blocks on it), and while a device tears down (e.g.
-		// Bluetooth switching off) the same calls block on the audio service - so doing any of this
-		// on the UI thread deadlocks the app. Do it all off the UI thread. Subscribing can also
-		// fail while the new device is still initializing; volume reads and writes keep working
-		// either way, and the next device change retries.
-		_ = Task.Run(() =>
-		{
-			try { UnsubscribeFromDevice(oldDevice); } catch { /* device may already be gone */ }
-			try { oldDevice.Dispose(); } catch { /* device may already be gone */ }
-			try { SubscribeToDevice(newDevice); } catch { /* device not ready yet */ }
-		});
-		return true;
-	}
+		try { if (oldDevice != null) UnsubscribeFromDevice(oldDevice); } catch { /* device may already be gone */ }
+		try { oldDevice?.Dispose(); } catch { /* device may already be gone */ }
+		try { SubscribeToDevice(newDevice); } catch { /* device not ready yet */ }
 
-	/// <summary>
-	/// Runs an action on the UI thread.
-	/// </summary>
-	/// <param name="action">The action to run.</param>
-	private void RunOnUIThread(Action action)
-	{
-		// Windows raises the IMMNotificationClient callbacks on its own threads, while the UI thread
-		// reads _currentDevice for volume and mute. Replacing the device on the UI thread means a
-		// reader can never be holding a device that another thread has just disposed. It also keeps
-		// the callbacks short, which Windows requires of them.
-		if (_dispatcherQueue == null || _dispatcherQueue.HasThreadAccess)
-		{
-			action();
-			return;
-		}
-
-		_dispatcherQueue.TryEnqueue(() =>
-		{
-			if (!_disposed) action();
-		});
+		ClearAllSessions();
+		_ = WaitAndSubscribeToAppVolumeAsync();
+		RefreshSystemVolumeCache();
+		DeviceChanged?.Invoke();
 	}
 
 	/// <summary>
@@ -475,6 +596,8 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="data">The audio volume notification data.</param>
 	private void OnVolumeNotification(AudioVolumeNotificationData data)
 	{
+		_cachedSystemVolume = (double)data.MasterVolume * 100;
+		_cachedSystemMuted = data.Muted;
 		SystemVolumeChanged?.Invoke((double)data.MasterVolume * 100, data.Muted);
 	}
 
@@ -485,15 +608,12 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="newSession">The new audio session control.</param>
 	private void OnSessionCreated(object sender, IAudioSessionControl newSession)
 	{
-		// Runs on Windows' notification thread. GetProcessID and AddSession (which registers
-		// session events over COM) can block while a device connects or tears down; keep them off
-		// the notification thread so it returns immediately.
 		_ = Task.Run(() =>
-		{
-			var session = new AudioSessionControl(newSession);
-			if (session.GetProcessID != Environment.ProcessId) return;
-			AddSession(session);
-		});
+				{
+					var session = new AudioSessionControl(newSession);
+					if (session.GetProcessID != Environment.ProcessId) return;
+					AddSession(session);
+				});
 	}
 
 	// ─── Volume get/set ───────────────────────────────────────────────────────
@@ -502,22 +622,13 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// Gets the current system volume level.
 	/// </summary>
 	/// <returns>The system volume as a percentage.</returns>
-	public double GetVolume() => _currentDevice.AudioEndpointVolume.MasterVolumeLevelScalar * 100;
+	public double GetVolume() => _cachedSystemVolume;
 
 	/// <summary>
 	/// Gets the current application volume level.
 	/// </summary>
 	/// <returns>The application volume as a percentage.</returns>
-	public double GetAppVolume()
-	{
-		lock (_sessionsLock)
-		{
-			var handler = _sessionHandlers.FirstOrDefault();
-			if (handler == null) return 0;
-			try { return handler.Session.SimpleAudioVolume.Volume * 100; }
-			catch { return 0; }   // session dying mid-read (device switch); the next volume event resyncs
-		}
-	}
+	public double GetAppVolume() => _cachedAppVolume;
 
 	/// <summary>
 	/// Sets the system volume level.
@@ -526,7 +637,14 @@ public class AudioService : IDisposable, IMMNotificationClient
 	public void SetVolume(double volume)
 	{
 		var actual = Math.Clamp((float)volume / 100f, 0f, 1f);
-		_currentDevice.AudioEndpointVolume.MasterVolumeLevelScalar = actual;
+		_cachedSystemVolume = actual * 100;
+		_ = Task.Run(() =>
+		{
+			var device = _currentDevice;
+			if (device == null) return;
+			try { device.AudioEndpointVolume.MasterVolumeLevelScalar = actual; }
+			catch { /* device may be gone */ }
+		});
 	}
 
 	/// <summary>
@@ -535,25 +653,45 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="volume">The volume level to set (0-100).</param>
 	public void SetAppVolume(double volume)
 	{
-		lock (_sessionsLock)
+		var actual = Math.Clamp((float)volume / 100f, 0f, 1f);
+		_cachedAppVolume = actual * 100;
+		_ = Task.Run(() =>
 		{
-			if (_sessionHandlers.Count == 0) return;
-			_suppressAppVolumeEvent = true;
-			var actual = Math.Clamp((float)volume / 100f, 0f, 1f);
-			foreach (var h in _sessionHandlers)
+			SessionEventHandler[] handlers;
+			lock (_sessionsLock)
 			{
-				try { h.Session.SimpleAudioVolume.Volume = actual; }
-				catch { /* session may have expired between lock and set */ }
+				if (_sessionHandlers.Count == 0) return;
+				handlers = _sessionHandlers.ToArray();
+			}
+			_suppressAppVolumeEvent = true;
+			foreach (var h in handlers)
+			{
+				try
+				{
+					h.Session.SimpleAudioVolume.Volume = actual;
+					h.CachedVolume = actual;
+				}
+				catch { /* session may have expired between snapshot and set */ }
 			}
 			_suppressAppVolumeEvent = false;
-		}
+		});
 	}
 
 	/// <summary>
 	/// Sets the system mute state.
 	/// </summary>
 	/// <param name="mute">True to mute, false to unmute.</param>
-	public void SetMute(bool mute) => _currentDevice.AudioEndpointVolume.Mute = mute;
+	public void SetMute(bool mute)
+	{
+		_cachedSystemMuted = mute;
+		_ = Task.Run(() =>
+		{
+			var device = _currentDevice;
+			if (device == null) return;
+			try { device.AudioEndpointVolume.Mute = mute; }
+			catch { /* device may be gone */ }
+		});
+	}
 
 	/// <summary>
 	/// Sets the application mute state.
@@ -561,32 +699,68 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="mute">True to mute, false to unmute.</param>
 	public void SetAppMute(bool mute)
 	{
-		lock (_sessionsLock)
+		_cachedAppMuted = mute;
+		_ = Task.Run(() =>
 		{
-			foreach (var h in _sessionHandlers)
-				try { h.Session.SimpleAudioVolume.Mute = mute; } catch { }
-		}
+			SessionEventHandler[] handlers;
+			lock (_sessionsLock) handlers = _sessionHandlers.ToArray();
+			foreach (var h in handlers)
+				try { h.Session.SimpleAudioVolume.Mute = mute; } catch { /* session may have expired */ }
+		});
 	}
 
 	/// <summary>
 	/// Gets the current system mute state.
 	/// </summary>
 	/// <returns>True if muted, false otherwise.</returns>
-	public bool IsMuted() => _currentDevice.AudioEndpointVolume.Mute;
+	public bool IsMuted() => _cachedSystemMuted;
 
 	/// <summary>
 	/// Gets the current application mute state.
 	/// </summary>
 	/// <returns>True if muted, false otherwise.</returns>
-	public bool IsAppMuted()
+	public bool IsAppMuted() => _cachedAppMuted;
+
+	/// <summary>
+	/// Refreshes the cached system volume/mute from the current device. Must run off the UI thread.
+	/// </summary>
+	private void RefreshSystemVolumeCache()
 	{
-		lock (_sessionsLock)
+		var device = _currentDevice;
+		if (device == null) return;
+		try
 		{
-			var handler = _sessionHandlers.FirstOrDefault();
-			if (handler == null) return false;
-			try { return handler.Session.SimpleAudioVolume.Mute; }
-			catch { return false; }   // session dying mid-read (device switch)
+			_cachedSystemVolume = device.AudioEndpointVolume.MasterVolumeLevelScalar * 100;
+			_cachedSystemMuted = device.AudioEndpointVolume.Mute;
 		}
+		catch { /* device may be gone */ }
+	}
+
+	/// <summary>
+	/// Refreshes the cached app volume/mute from the primary session and pushes it to listeners.
+	/// Must run off the UI thread.
+	/// </summary>
+	private void RefreshAppVolumeCache()
+	{
+		var handler = GetPrimaryHandler();
+		if (handler == null) return;
+		double volume;
+		bool muted;
+		try
+		{
+			volume = handler.Session.SimpleAudioVolume.Volume * 100;
+			muted = handler.Session.SimpleAudioVolume.Mute;
+		}
+		catch
+		{
+			RemoveSession(handler);
+			return;
+		}
+
+		if (Math.Abs(_cachedAppVolume - volume) < 0.5 && _cachedAppMuted == muted) return;
+		_cachedAppVolume = volume;
+		_cachedAppMuted = muted;
+		AppVolumeChanged?.Invoke(volume, muted);
 	}
 
 	// ─── IMMNotificationClient ────────────────────────────────────────────────
@@ -599,21 +773,8 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// <param name="defaultDeviceId">The ID of the new default device.</param>
 	void IMMNotificationClient.OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
 	{
-		// Windows sends this once per role. Follow only the Multimedia default, the one
-		// GetFreshDevice uses, or a separate Communications device (e.g. a headset) can win.
 		if (flow != DataFlow.Render || role != Role.Multimedia) return;
-		RunOnUIThread(() =>
-		{
-			if (ReplaceDevice(() => _enumerator.GetDevice(defaultDeviceId)))
-			{
-				// FindAllAppSessions enumerates every output device over COM and registers session
-				// notifications - calls that synchronize with Windows' shared notification thread
-				// and can block while a device tears down. Keep them off the UI thread; until the
-				// resubscription finishes, OnSessionCreated keeps the session list current.
-				_ = Task.Run(SubscribeToAppVolume);
-				DeviceChanged?.Invoke();
-			}
-		});
+		_ = Task.Run(() => ReplaceDevice(() => _enumerator.GetDevice(defaultDeviceId)));
 	}
 
 	/// <summary>
@@ -624,18 +785,10 @@ public class AudioService : IDisposable, IMMNotificationClient
 	void IMMNotificationClient.OnDeviceStateChanged(string deviceId, DeviceState newState)
 	{
 		if (newState == DeviceState.Active) return;
-		RunOnUIThread(() =>
+		_ = Task.Run(() =>
 		{
-			if (deviceId != _currentDevice.ID) return;
-			if (ReplaceDevice(GetFreshDevice))
-			{
-				_ = Task.Run(() =>
-				{
-					ClearAllSessions();
-					_ = WaitAndSubscribeToAppVolumeAsync();
-				});
-				DeviceChanged?.Invoke();
-			}
+			if (deviceId != _currentDevice?.ID) return;
+			ReplaceDevice(GetFreshDevice);
 		});
 	}
 
@@ -666,14 +819,16 @@ public class AudioService : IDisposable, IMMNotificationClient
 	public void Dispose()
 	{
 		_disposed = true;
-		UnsubscribeFromDevice(_currentDevice);
+		var device = _currentDevice;
+		if (device != null)
+			try { UnsubscribeFromDevice(device); } catch { /* device may already be gone */ }
 		ClearAllSessions();
 		lock (_sessionsLock)
 		{
 			_sessionWaitCts?.Cancel();
 		}
-		_enumerator.UnregisterEndpointNotificationCallback(this);
-		_currentDevice?.Dispose();
-		_enumerator?.Dispose();
+		try { _enumerator.UnregisterEndpointNotificationCallback(this); } catch { }
+		try { device?.Dispose(); } catch { }
+		_enumerator.Dispose();
 	}
 }
