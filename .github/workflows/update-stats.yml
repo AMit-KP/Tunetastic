@@ -29,9 +29,18 @@ jobs:
       - name: Commit changes
         env:
           RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+          SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Sign commits with the maintainer's SSH signing key (same pattern
+          # as pr-version-sync.yml) so they show as Verified on GitHub.
+          mkdir -p ~/.ssh
+          echo "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
+          chmod 600 ~/.ssh/commit_signing_key
+          git config user.name "Amit Patra"
+          git config user.email "amitpatra28061996@gmail.com"
+          git config gpg.format ssh
+          git config user.signingkey ~/.ssh/commit_signing_key
+          git config commit.gpgsign true
           git add data charts
           git diff --cached --quiet || git commit -m "Update Store stats"
           git push https://x-access-token:$RELEASE_PAT@github.com/${{ github.repository }}.git HEAD:master
