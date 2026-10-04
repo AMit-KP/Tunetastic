@@ -1,0 +1,91 @@
+name: Diagnose ratings report
+on: workflow_dispatch
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Run
+        env:
+          TENANT: ${{ secrets.PC_TENANT_ID }}
+          CID: ${{ secrets.PC_CLIENT_ID }}
+          SECRET: ${{ secrets.PC_CLIENT_SECRET }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, time, csv, io, urllib.request, urllib.parse, urllib.error
+          BASE = "https://manage.devcenter.microsoft.com/consumer/insights/v1.1"
+          SID = "9PCCNQZTD6PX"
+
+          def http(method, url, token=None, body=None, form=None):
+              h, data = {}, None
+              if form is not None:
+                  data = urllib.parse.urlencode(form).encode()
+              elif body is not None:
+                  data = json.dumps(body).encode(); h["Content-Type"] = "application/json"
+              if token: h["Authorization"] = "Bearer " + token
+              r = urllib.request.Request(url, data=data, headers=h, method=method)
+              try:
+                  with urllib.request.urlopen(r, timeout=120) as resp: return resp.status, resp.read()
+              except urllib.error.HTTPError as e: return e.code, e.read()
+
+          def jmsg(raw):
+              try:
+                  j = json.loads(raw); return str(j.get("message") or j.get("error") or "")[:200]
+              except Exception: return ""
+
+          st, raw = http("POST", f"https://login.microsoftonline.com/{os.environ['TENANT']}/oauth2/token",
+              form={"grant_type": "client_credentials", "client_id": os.environ["CID"],
+                    "client_secret": os.environ["SECRET"], "resource": "https://manage.devcenter.microsoft.com"})
+          if st != 200: print("Sign-in failed:", st); raise SystemExit(1)
+          token = json.loads(raw)["access_token"]; print("Signed in OK")
+
+          cols = "Date, OneStars, TwoStars, ThreeStars, FourStars, FiveStars"
+          qs = {
+            "ratings weekly 6m": f"SELECT {cols} FROM Ratings WHERE ProductId IN ('{SID}') TIMESPAN LAST_6_MONTHS AGGREGATED Weekly",
+            "ratings daily 3m": f"SELECT {cols} FROM Ratings WHERE ProductId IN ('{SID}') TIMESPAN LAST_3_MONTHS AGGREGATED Daily",
+          }
+          jobs = {}
+          for label, q in qs.items():
+              name = f"readme stats diag {label} {int(time.time())}"
+              st, raw = http("POST", BASE + "/ScheduledQueries", token, {"Query": q, "Name": name, "Description": name})
+              print(label, "create query:", st, jmsg(raw) if st != 200 else "")
+              if st != 200: continue
+              qid = json.loads(raw)["value"][0]["queryId"]
+              st, raw = http("POST", BASE + "/ScheduledReport", token,
+                             {"Description": name, "QueryId": qid, "ReportName": name, "executeNow": True})
+              print(label, "create report:", st, jmsg(raw) if st != 200 else "")
+              if st == 200: jobs[label] = json.loads(raw)["value"][0]["reportId"]
+
+          def show(label, link):
+              p = urllib.parse.urlsplit(link)
+              link = urllib.parse.urlunsplit((p.scheme, p.netloc, urllib.parse.quote(p.path, safe="/%"), p.query, ""))
+              with urllib.request.urlopen(link, timeout=120) as r: text = r.read().decode("utf-8-sig")
+              rows = list(csv.reader(io.StringIO(text)))
+              print(f"\n=== {label}: DONE ===\nHeader:", rows[0] if rows else "(empty)")
+              print("Data rows:", max(len(rows) - 1, 0))
+              for row in rows[1:4]: print("  ", row)
+
+          for i in range(24):
+              if not jobs: break
+              time.sleep(15)
+              for label, rid in list(jobs.items()):
+                  st, raw = http("GET", f"{BASE}/ScheduledReport/execution/{rid}", token)
+                  if st == 200:
+                      v = json.loads(raw).get("value", [])
+                      if v and v[0].get("executionStatus") == "Completed":
+                          try: show(label, v[0]["reportAccessSecureLink"])
+                          except Exception as e: print(label, "download failed:", type(e).__name__)
+                          del jobs[label]; continue
+                  if i % 4 == 3:
+                      out = []
+                      for s in ["Pending", "Running", "Failed", "Completed"]:
+                          st2, r2 = http("GET", f"{BASE}/ScheduledReport/execution/{rid}?executionStatus={s}&getLatestExecution=false", token)
+                          try: n = [x.get("executionStatus") for x in json.loads(r2).get("value", [])]
+                          except Exception: n = jmsg(r2)
+                          out.append(f"{s}:{st2}:{n}")
+                      st3, r3 = http("GET", f"{BASE}/ScheduledReport?reportId={rid}", token)
+                      try: rs = json.loads(r3)["value"][0].get("reportStatus")
+                      except Exception: rs = jmsg(r3)
+                      print(f"  {label} @{(i+1)*15}s | reportStatus={rs} |", " ".join(out))
+          if jobs: print("Not finished:", list(jobs))
+          EOF
