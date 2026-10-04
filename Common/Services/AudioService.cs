@@ -237,14 +237,17 @@ public class AudioService : IDisposable, IMMNotificationClient
 	private List<AudioSessionControl> FindAllAppSessions(int pid)
 	{
 		var results = new List<AudioSessionControl>();
-		foreach (var device in _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
+		var devices = new List<MMDevice>();
+		try
 		{
-			// Reading AudioSessionManager registers a session notification with Windows that stays
-			// registered until the device is disposed. Without this, every polling pass added one
-			// more per output device. The AudioSessionControls collected here are separate COM
-			// objects and stay valid after the device is disposed.
-			using (device)
+			foreach (var device in _enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active))
 			{
+				devices.Add(device);
+
+				// Reading AudioSessionManager registers a session notification with Windows that stays
+				// registered until the device is disposed. Without disposing, every pass leaves one more
+				// per output device behind. The AudioSessionControls collected here are separate COM
+				// objects and stay valid after the device is disposed.
 				var sessions = device.AudioSessionManager.Sessions;
 				for (int i = 0; i < sessions.Count; i++)
 				{
@@ -254,7 +257,34 @@ public class AudioService : IDisposable, IMMNotificationClient
 				}
 			}
 		}
+		finally
+		{
+			DisposeDevices(devices);
+		}
 		return results;
+	}
+
+	/// <summary>
+	/// Disposes enumerated MMDevice wrappers on a thread-pool thread. Disposing a device makes COM
+	/// calls (unregistering its session notifications) that can block on Windows' shared Core Audio
+	/// notification thread - the same thread that delivers device callbacks to listeners such as
+	/// FlyleafLib, whose handler dispatches back to the UI thread and waits on it (see ReplaceDevice).
+	/// Disposing on the UI or notification thread can therefore deadlock the process, and a device
+	/// invalidated mid-switch can throw from the same calls.
+	/// </summary>
+	/// <param name="devices">The devices to dispose. Each may already be gone.</param>
+	private static void DisposeDevices(List<MMDevice> devices)
+	{
+		if (devices.Count == 0)
+			return;
+		_ = Task.Run(() =>
+		{
+			foreach (var device in devices)
+			{
+				try { device.Dispose(); }
+				catch { /* a failed dispose leaves the notification to the device's finalizer */ }
+			}
+		});
 	}
 
 	/// <summary>
@@ -268,6 +298,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 		CancellationToken token;
 		lock (_sessionsLock)
 		{
+			if (_disposed) return;
 			_sessionWaitCts?.Cancel();
 			_sessionWaitCts = new CancellationTokenSource();
 			token = _sessionWaitCts.Token;
@@ -275,7 +306,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 
 		try
 		{
-			while (!token.IsCancellationRequested)
+			while (!_disposed && !token.IsCancellationRequested)
 			{
 				List<AudioSessionControl> found;
 				try
@@ -307,7 +338,17 @@ public class AudioService : IDisposable, IMMNotificationClient
 	public void SubscribeToAppVolume()
 	{
 		ClearAllSessions();
-		var found = FindAllAppSessions(Environment.ProcessId);
+		List<AudioSessionControl> found;
+		try
+		{
+			found = FindAllAppSessions(Environment.ProcessId);
+		}
+		catch
+		{
+			// A device can disappear mid-enumeration while outputs change. Don't crash the UI thread
+			// over it; OnSessionCreated still adds sessions as they appear.
+			return;
+		}
 		foreach (var session in found)
 			AddSession(session);
 	}
@@ -575,7 +616,10 @@ public class AudioService : IDisposable, IMMNotificationClient
 		_disposed = true;
 		UnsubscribeFromDevice(_currentDevice);
 		ClearAllSessions();
-		_sessionWaitCts?.Cancel();
+		lock (_sessionsLock)
+		{
+			_sessionWaitCts?.Cancel();
+		}
 		_enumerator.UnregisterEndpointNotificationCallback(this);
 		_currentDevice?.Dispose();
 		_enumerator?.Dispose();
