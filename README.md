@@ -19,6 +19,24 @@
 
 </div>
 
+
+## Store stats
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/installs-dark.svg">
+  <img alt="Installs over time" src="charts/installs-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/map-dark.svg">
+  <img alt="Where people install from" src="charts/map-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/ratings-dark.svg">
+  <img alt="Ratings" src="charts/ratings-light.svg">
+</picture>
+
 ---
 
 ## Overview

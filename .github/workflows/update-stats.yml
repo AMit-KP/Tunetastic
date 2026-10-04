@@ -1,0 +1,46 @@
+name: Update Store stats
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # every Monday 06:00 UTC
+  workflow_dispatch:       # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-stats
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch data and redraw graphics
+        env:
+          PC_TENANT_ID: ${{ secrets.PC_TENANT_ID }}
+          PC_CLIENT_ID: ${{ secrets.PC_CLIENT_ID }}
+          PC_CLIENT_SECRET: ${{ secrets.PC_CLIENT_SECRET }}
+        run: python3 scripts/update_stats.py
+
+      - name: Commit changes
+        env:
+          RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
+          SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
+        run: |
+          # Sign commits with the maintainer's SSH signing key (same pattern
+          # as pr-version-sync.yml) so they show as Verified on GitHub.
+          mkdir -p ~/.ssh
+          echo "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
+          chmod 600 ~/.ssh/commit_signing_key
+          git config user.name "Amit Patra"
+          git config user.email "amitpatra28061996@gmail.com"
+          git config gpg.format ssh
+          git config user.signingkey ~/.ssh/commit_signing_key
+          git config commit.gpgsign true
+          git add data charts
+          git diff --cached --quiet || git commit -m "Update Store Stats on $(date -u +'%-d %b %Y')"
+          git push https://x-access-token:$RELEASE_PAT@github.com/${{ github.repository }}.git HEAD:master
