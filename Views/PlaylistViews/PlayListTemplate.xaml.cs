@@ -731,6 +731,8 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			"YearDesc" => (SongProperty.Year, false),
 			"DurationAsc" => (SongProperty.Duration, true),
 			"DurationDesc" => (SongProperty.Duration, false),
+			"TrackAsc" => (SongProperty.Track, true),
+			"TrackDesc" => (SongProperty.Track, false),
 			"PlayCountAsc" => (SongProperty.PlayCount, true),
 			"PlayCountDesc" => (SongProperty.PlayCount, false),
 			"ModifiedTimeAsc" => (SongProperty.DateAdded, true),

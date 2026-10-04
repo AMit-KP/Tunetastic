@@ -186,6 +186,10 @@ public sealed partial class YearDetailPage : SongListPageBase
 				DurationSort.IsChecked = true;
 				break;
 
+			case "Track":
+				TrackSort.IsChecked = true;
+				break;
+
 			case "Title":
 			default:
 				TitleSort.IsChecked = true;
