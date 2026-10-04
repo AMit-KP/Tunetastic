@@ -229,3 +229,44 @@ public class RelativeTimeConverter : IValueConverter
 	public object ConvertBack(object value, Type targetType, object parameter, string language)
 		=> throw new NotImplementedException();
 }
+
+/// <summary>
+/// Converts a song's track number into its display text.
+/// </summary>
+/// <remarks>
+/// The <c>TrackNumberConverter</c> class formats a nullable track number for display in XAML bindings. A <c>null</c>
+/// value (no track number stored) converts to an empty string, while a stored value — including <c>0</c> — renders
+/// as its number. When the binding passes <c>"Hash"</c> as the converter parameter, the number is prefixed with "#"
+/// for header-less layouts such as the compact view. Reverse conversion through the <see cref="ConvertBack"/> method
+/// is not supported and will throw a <see cref="NotImplementedException"/> if called.
+/// </remarks>
+public class TrackNumberConverter : IValueConverter
+{
+	/// <summary>
+	/// Converts a nullable track number into its display text.
+	/// </summary>
+	/// <param name="value">The track number to convert, typically a boxed <see cref="int"/> or <c>null</c>.</param>
+	/// <param name="targetType">The type of the binding target property. Not used in this implementation.</param>
+	/// <param name="parameter">Pass <c>"Hash"</c> to prefix the number with "#"; any other value renders the bare number.</param>
+	/// <param name="language">The culture or language information for conversion. Not used in this implementation.</param>
+	/// <returns>An empty string when the value is null; otherwise the number, optionally prefixed with "#".</returns>
+	public object Convert(object value, Type targetType, object parameter, string language)
+	{
+		if (value is not int track)
+			return string.Empty;
+
+		return parameter is "Hash" ? $"#{track}" : track.ToString();
+	}
+
+	/// <summary>
+	/// This method is not implemented. It is designed to reverse the transformation of a value in a data-binding scenario, but
+	/// it will always throw a <see cref="NotImplementedException"/> in this implementation.
+	/// </summary>
+	/// <param name="value">The binding target value, which would be converted back to the source. Not used in this implementation.</param>
+	/// <param name="targetType">The data type to which the value would be converted. Not used in this implementation.</param>
+	/// <param name="parameter">An optional parameter to be used during the conversion. Not used in this implementation.</param>
+	/// <param name="language">The culture or language information for conversion. Not used in this implementation.</param>
+	/// <returns>Throws a <see cref="NotImplementedException"/> because this method is not implemented.</returns>
+	public object ConvertBack(object value, Type targetType, object parameter, string language)
+		=> throw new NotImplementedException();
+}
