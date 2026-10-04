@@ -1,0 +1,64 @@
+name: Collect finished reports
+on: workflow_dispatch
+jobs:
+  c:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Run
+        env:
+          TENANT: ${{ secrets.PC_TENANT_ID }}
+          CID: ${{ secrets.PC_CLIENT_ID }}
+          SECRET: ${{ secrets.PC_CLIENT_SECRET }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, time, csv, io, urllib.request, urllib.parse, urllib.error
+          BASE = "https://manage.devcenter.microsoft.com/consumer/insights/v1.1"
+
+          def http(method, url, token=None, form=None):
+              h, data = {}, None
+              if form is not None: data = urllib.parse.urlencode(form).encode()
+              if token: h["Authorization"] = "Bearer " + token
+              for attempt in range(4):
+                  r = urllib.request.Request(url, data=data, headers=h, method=method)
+                  try:
+                      with urllib.request.urlopen(r, timeout=120) as resp: return resp.status, resp.read()
+                  except urllib.error.HTTPError as e:
+                      if e.code == 429 and attempt < 3:
+                          print("  (rate limited, waiting 45s)"); time.sleep(45); continue
+                      return e.code, e.read()
+
+          def g(d, k): return d.get(k, d.get(k[0].lower() + k[1:], d.get(k[0].upper() + k[1:])))
+
+          st, raw = http("POST", f"https://login.microsoftonline.com/{os.environ['TENANT']}/oauth2/token",
+              form={"grant_type": "client_credentials", "client_id": os.environ["CID"],
+                    "client_secret": os.environ["SECRET"], "resource": "https://manage.devcenter.microsoft.com"})
+          if st != 200: print("Sign-in failed:", st); raise SystemExit(1)
+          token = json.loads(raw)["access_token"]; print("Signed in OK")
+
+          st, raw = http("GET", BASE + "/ScheduledReport", token)
+          print("List reports:", st)
+          items = [x for x in json.loads(raw).get("value", []) if str(g(x, "ReportName") or "").startswith("readme stats")]
+          print("Our test reports:", len(items))
+
+          shown = 0
+          for x in items[:12]:
+              rid, name = g(x, "ReportId"), g(x, "ReportName")
+              time.sleep(4)
+              st, raw = http("GET", f"{BASE}/ScheduledReport/execution/{rid}", token)
+              status = None
+              if st == 200:
+                  v = json.loads(raw).get("value", [])
+                  status = v[0].get("executionStatus") if v else None
+              print(f"- {name} | reportStatus={g(x,'ReportStatus')} | latest execution: HTTP {st} {status}")
+              if status == "Completed" and shown < 2:
+                  link = v[0]["reportAccessSecureLink"]
+                  p = urllib.parse.urlsplit(link)
+                  link = urllib.parse.urlunsplit((p.scheme, p.netloc, urllib.parse.quote(p.path, safe="/%"), p.query, ""))
+                  with urllib.request.urlopen(link, timeout=120) as r: text = r.read().decode("utf-8-sig")
+                  rows = list(csv.reader(io.StringIO(text)))
+                  print("    Header:", rows[0] if rows else "(empty)")
+                  print("    Data rows:", max(len(rows) - 1, 0))
+                  for row in rows[1:4]: print("      ", row)
+                  shown += 1
+          EOF
