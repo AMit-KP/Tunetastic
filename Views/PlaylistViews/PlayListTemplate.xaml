@@ -183,6 +183,14 @@
 									                Tag="DurationDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Track">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TrackAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TrackDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Play Count">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="PlayCountAsc"

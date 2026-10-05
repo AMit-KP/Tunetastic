@@ -118,6 +118,10 @@
 								                     Click="SortButton_OnClick"
 								                     GroupName="SortBy"
 								                     Text="Duration" />
+								<RadioMenuFlyoutItem x:Name="TrackSort"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Track" />
 								<MenuFlyoutSeparator />
 								<RadioMenuFlyoutItem x:Name="Ascending"
 								                     Click="SortButton_OnClick"

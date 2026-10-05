@@ -32,6 +32,7 @@ public class Song
 	public string? Lyrics { get; set; }
 	public string? FileSize { get; set; }
 	public string PlayerType { get; set; } = "Flyleaf";
+	public int? Track { get; set; }
 }
 
 /// <summary>

@@ -258,6 +258,7 @@ public class LibraryScanner
 				Path = filePath,
 				Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 				Genre = audioModel.Tag.Genres?.FirstOrDefault(g => !string.IsNullOrEmpty(g)) ?? "Unknown Genre",
+				Track = (int)audioModel.Tag.Track,
 				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
 				Lyrics = audioModel.Tag.Lyrics,
 				DateAdded = fileInfo.LastWriteTime,

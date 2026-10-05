@@ -228,7 +228,10 @@ public class DatabaseHelper
 									   AudioCodecDescription TEXT DEFAULT NULL,
 									   FileSize TEXT,
 									   Lyrics TEXT DEFAULT NULL,
-									   PlayerType TEXT NOT NULL DEFAULT 'Flyleaf')");
+									   PlayerType TEXT NOT NULL DEFAULT 'Flyleaf',
+									   Track INTEGER)");
+
+		await AddColumnIfMissing("Songs", "Track", "INTEGER");
 
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Title_nocase ON Songs(Title COLLATE NOCASE)");
 		await _database.ExecuteAsync(@"CREATE INDEX IF NOT EXISTS idx_Songs_Album_nonempty ON Songs(Album) WHERE Album IS NOT NULL AND TRIM(Album) != ''");
@@ -607,9 +610,9 @@ public class DatabaseHelper
 			foreach (var song in songs)
 			{
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType)
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType, Track)
 							   VALUES
-							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?,		   ?)
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?,		   ?,		   ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -628,10 +631,11 @@ public class DatabaseHelper
 							   AudioSampleRate = excluded.AudioSampleRate,
 							   Lyrics = excluded.Lyrics,
 							   FileSize = excluded.FileSize,
-							   PlayerType = excluded.PlayerType;",
+							   PlayerType = excluded.PlayerType,
+							   Track = excluded.Track;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
 							   song.PlayCount, song.Cover, song.Duration, song.DateAdded, song.DateLastPlayed,
-							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType);
+							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType, song.Track);
 
 				SyncSongArtistsForSong(conn, song);
 			}
@@ -672,9 +676,9 @@ public class DatabaseHelper
 				DateTime? lastPlayed = existingSongData.FirstOrDefault(s => s.Path == song.Path)?.DateLastPlayed;
 
 				conn.Execute(@"INSERT OR REPLACE INTO Songs
-							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType)
+							   (Path, Title, Artists, Album, Genre, Year, PlayCount, Cover, Duration, DateAdded, DateLastPlayed, Extension, AudioBitrate, AudioChannels, AudioCodecDescription, AudioSampleRate, Lyrics, FileSize, PlayerType, Track)
 							   VALUES
-							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?,		   ?)
+							   (?,	  ?,	 ?,		  ?,	 ?,		?,	  ?,		 ?,		?,		  ?,		 ?,				 ?,			?,			  ?,			 ?,						?,				 ?,		 ?,		   ?,		   ?)
 							   ON CONFLICT(Path) DO UPDATE SET
 							   Title = excluded.Title,
 							   Artists = excluded.Artists,
@@ -693,10 +697,11 @@ public class DatabaseHelper
 							   AudioSampleRate = excluded.AudioSampleRate,
 							   Lyrics = excluded.Lyrics,
 							   FileSize = excluded.FileSize,
-							   PlayerType = excluded.PlayerType;",
+							   PlayerType = excluded.PlayerType,
+							   Track = excluded.Track;",
 							   song.Path, song.Title, song.Artists, song.Album, song.Genre, song.Year,
 							   existingPlayCount, song.Cover, song.Duration, song.DateAdded, lastPlayed,
-							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType);
+							   song.Extension, song.AudioBitrate, song.AudioChannels, song.AudioCodecDescription, song.AudioSampleRate, song.Lyrics, song.FileSize, song.PlayerType, song.Track);
 
 				SyncSongArtistsForSong(conn, song);
 			}

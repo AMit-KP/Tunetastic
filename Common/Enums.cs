@@ -85,7 +85,8 @@ public enum SongProperty
 	Duration,
 	DateAdded,
 	DateLastPlayed,
-	Extension
+	Extension,
+	Track
 }
 
 /// <summary>
