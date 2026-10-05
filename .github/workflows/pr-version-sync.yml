@@ -102,8 +102,11 @@ jobs:
         run: |
           pr=""
           for i in $(seq 1 6); do
+            # gh api's --jq takes only the filter (no --arg; that is
+            # standalone-jq syntax), so interpolate the SHA into the filter.
+            # Safe: HEAD_SHA is always a hex commit SHA from the event.
             pr="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" \
-              --jq --arg sha "$HEAD_SHA" 'map(select(.head.sha == $sha)) | first // empty')"
+              --jq "map(select(.head.sha == \"$HEAD_SHA\")) | first // empty")"
             if [ -n "$pr" ]; then
               break
             fi
@@ -557,34 +560,3 @@ jobs:
           GH_TOKEN: ${{ secrets.VERSION_BUMP_PAT }}
           HEAD_SHA: ${{ steps.commit.outputs.sha }}
         run: |
-          if [ -z "$HEAD_SHA" ]; then
-            echo "No new commit was made - nothing to approve."
-            exit 0
-          fi
-          for i in $(seq 1 10); do
-            run_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$HEAD_SHA&status=action_required" --jq '.workflow_runs[] | select(.name=="Build") | .id' | head -n1)"
-            if [ -n "$run_id" ]; then
-              gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/approve" && echo "Approved run $run_id" && exit 0
-            fi
-            sleep 5
-          done
-          echo "No pending Build run found needing approval - nothing to approve."
-
-      - name: Report a closed pull request
-        if: steps.cmd.outputs.ok == 'true' && steps.pr.outputs.state != 'open'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-        run: |
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="This pull request is not open, so I did not change any version fields." > /dev/null
-
-      # If anything above failed (most commonly the push), say so on the PR
-      # instead of leaving the maintainer with silence.
-      - name: Report failure
-        if: failure() && steps.cmd.outputs.ok == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="I couldn't apply /set-version. Common causes: the PR is from a fork and VERSION_BUMP_PAT is missing, 'Allow edits from maintainers' is off, or the branch changed while this ran. Details: $RUN_URL" > /dev/null
