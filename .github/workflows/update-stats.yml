@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: update-stats
@@ -31,16 +32,46 @@ jobs:
           RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
           SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
         run: |
+          set -euo pipefail
+          if [ -z "${RELEASE_PAT:-}" ] || [ -z "${SSH_SIGNING_KEY:-}" ]; then
+            echo "RELEASE_PAT or SSH_SIGNING_KEY secret is missing"; exit 1
+          fi
+
+          git add data charts
+          if git diff --cached --quiet; then
+            echo "No changes to commit"; exit 0
+          fi
+
           # Sign commits with the maintainer's SSH signing key (same pattern
           # as pr-version-sync.yml) so they show as Verified on GitHub.
           mkdir -p ~/.ssh
-          echo "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
+          trap 'rm -f ~/.ssh/commit_signing_key' EXIT
+          printf '%s\n' "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
           chmod 600 ~/.ssh/commit_signing_key
           git config user.name "Amit Patra"
           git config user.email "amitpatra28061996@gmail.com"
           git config gpg.format ssh
           git config user.signingkey ~/.ssh/commit_signing_key
           git config commit.gpgsign true
-          git add data charts
-          git diff --cached --quiet || git commit -m "Update Store Stats on $(date -u +'%-d %b %Y')"
-          git push https://x-access-token:$RELEASE_PAT@github.com/${{ github.repository }}.git HEAD:master
+
+          MSG="Update Store Stats on $(date -u +'%-d %b %Y')"
+          git commit -m "$MSG"
+
+          REMOTE="https://x-access-token:${RELEASE_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          BASE="${GITHUB_REF_NAME}"
+
+          # 1) Try a direct push (works if the token owner can bypass branch rules)
+          if git push "$REMOTE" "HEAD:${BASE}"; then
+            echo "Pushed directly to ${BASE}"; exit 0
+          fi
+
+          # 2) Fall back to a pull request and merge it
+          echo "Direct push blocked by branch rules - using a pull request instead"
+          BR="stats-update"
+          git push --force "$REMOTE" "HEAD:refs/heads/${BR}"
+          export GH_TOKEN="$RELEASE_PAT"
+          gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE" --head "$BR" \
+            --title "$MSG" --body "Automated weekly update of Store stats." || echo "PR already open"
+          gh pr merge "$BR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --admin \
+            || gh pr merge "$BR" --repo "$GITHUB_REPOSITORY" --squash --auto \
+            || echo "Merge not allowed automatically - the PR is open for you to merge"

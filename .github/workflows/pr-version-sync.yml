@@ -102,8 +102,11 @@ jobs:
         run: |
           pr=""
           for i in $(seq 1 6); do
+            # gh api's --jq takes only the filter (no --arg; that is
+            # standalone-jq syntax), so interpolate the SHA into the filter.
+            # Safe: HEAD_SHA is always a hex commit SHA from the event.
             pr="$(gh api --paginate "repos/$GITHUB_REPOSITORY/pulls?state=open&per_page=100" \
-              --jq --arg sha "$HEAD_SHA" 'map(select(.head.sha == $sha)) | first // empty')"
+              --jq "map(select(.head.sha == \"$HEAD_SHA\")) | first // empty")"
             if [ -n "$pr" ]; then
               break
             fi
