@@ -3,6 +3,14 @@ name: Create Release
 on:
   # Manual only: Actions tab -> "Create Release" -> choose branch -> Run workflow
   workflow_dispatch:
+    inputs:
+      previous_mode:
+        description: "Which previous release to compare against (master always uses the latest non-prerelease)"
+        type: choice
+        default: same-type
+        options:
+          - same-type   # development -> latest prerelease
+          - any         # development -> GitHub default (latest release of any kind)
 
 permissions:
   contents: write
@@ -18,9 +26,10 @@ jobs:
         id: branch
         run: |
           BRANCH="${GITHUB_REF_NAME}"
-          if [ "$BRANCH" = "master" ]; then
+          BRANCH_LC="${BRANCH,,}"
+          if [ "$BRANCH_LC" = "master" ]; then
             echo "prerelease=false" >> "$GITHUB_OUTPUT"
-          elif [ "$BRANCH" = "development" ]; then
+          elif [ "$BRANCH_LC" = "development" ]; then
             echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "::error::Releases can only be created from 'master' or 'development' (got '$BRANCH')."
@@ -58,12 +67,33 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_PAT }}
         run: |
           TAG="v${{ steps.version.outputs.version }}"
-          FLAGS="--generate-notes"
-          if [ "${{ steps.branch.outputs.prerelease }}" = "true" ]; then
-            FLAGS="$FLAGS --prerelease"
+          PRERELEASE="${{ steps.branch.outputs.prerelease }}"
+          MODE="${{ inputs.previous_mode }}"
+
+          FLAGS=(--generate-notes)
+          if [ "$PRERELEASE" = "true" ]; then
+            FLAGS+=(--prerelease)
+          fi
+
+          # Find the previous release to compare against:
+          #  - master: latest non-prerelease
+          #  - development + same-type: latest prerelease
+          #  - development + any: leave empty (GitHub's default behaviour)
+          PREV=""
+          if [ "$PRERELEASE" = "false" ] || [ "$MODE" = "same-type" ]; then
+            PREV=$(gh release list --exclude-drafts --limit 100 \
+              --json tagName,isPrerelease \
+              --jq "[.[] | select(.isPrerelease == $PRERELEASE)] | .[0].tagName // empty")
+          fi
+
+          if [ -n "$PREV" ]; then
+            echo "Comparing against previous release: $PREV"
+            FLAGS+=(--notes-start-tag "$PREV")
+          else
+            echo "No specific previous release; using GitHub's default."
           fi
 
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
             --title "$TAG" \
-            $FLAGS
+            "${FLAGS[@]}"

@@ -164,7 +164,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	private void UpdateAsPerLastSorting()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var sortBy = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title";
+		var sortBy = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Track";
 		var sortOrder = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending";
 		switch (sortBy)
 		{
@@ -177,8 +177,12 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 				break;
 
 			case "Title":
-			default:
 				TitleSort.IsChecked = true;
+				break;
+
+			case "Track":
+			default:
+				TrackSort.IsChecked = true;
 				break;
 		}
 		switch (sortOrder)

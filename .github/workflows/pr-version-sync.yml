@@ -1,4 +1,4 @@
-# Keeps the four version fields consistent on pull requests:
+﻿# Keeps the four version fields consistent on pull requests:
 #
 #   1. After a successful Build on a PR: if the PR bumped
 #      <AssemblyVersion>/<FileVersion> (1.x.x.x) relative to the point where
