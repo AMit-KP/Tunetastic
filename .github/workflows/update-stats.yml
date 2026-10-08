@@ -1,9 +1,9 @@
-name: Update Store stats
+name: Update stats
 
 on:
   schedule:
-    - cron: "0 6 * * 1"   # every Monday 06:00 UTC
-  workflow_dispatch:       # lets you run it by hand from the Actions tab
+    - cron: "0 6 * * *"    # daily 06:00 UTC: GitHub traffic only keeps 14 days
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -20,7 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Fetch data and redraw graphics
+      - name: Collect GitHub traffic
+        env:
+          GH_TRAFFIC_TOKEN: ${{ secrets.GH_TRAFFIC_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: python3 scripts/collect_github_traffic.py
+
+      - name: Fetch Store data and redraw graphics
         env:
           PC_TENANT_ID: ${{ secrets.PC_TENANT_ID }}
           PC_CLIENT_ID: ${{ secrets.PC_CLIENT_ID }}
@@ -28,6 +34,7 @@ jobs:
         run: python3 scripts/update_stats.py
 
       - name: Commit changes
+        if: always()
         env:
           RELEASE_PAT: ${{ secrets.RELEASE_PAT }}
           SSH_SIGNING_KEY: ${{ secrets.SSH_SIGNING_KEY }}
@@ -54,7 +61,7 @@ jobs:
           git config user.signingkey ~/.ssh/commit_signing_key
           git config commit.gpgsign true
 
-          MSG="Update Store Stats on $(date -u +'%-d %b %Y')"
+          MSG="Update stats on $(date -u +'%-d %b %Y')"
           git commit -m "$MSG"
 
           REMOTE="https://x-access-token:${RELEASE_PAT}@github.com/${GITHUB_REPOSITORY}.git"
@@ -71,7 +78,7 @@ jobs:
           git push --force "$REMOTE" "HEAD:refs/heads/${BR}"
           export GH_TOKEN="$RELEASE_PAT"
           gh pr create --repo "$GITHUB_REPOSITORY" --base "$BASE" --head "$BR" \
-            --title "$MSG" --body "Automated weekly update of Store stats." || echo "PR already open"
+            --title "$MSG" --body "Automated update of Store and GitHub traffic data." || echo "PR already open"
           gh pr merge "$BR" --repo "$GITHUB_REPOSITORY" --squash --delete-branch --admin \
             || gh pr merge "$BR" --repo "$GITHUB_REPOSITORY" --squash --auto \
             || echo "Merge not allowed automatically - the PR is open for you to merge"
