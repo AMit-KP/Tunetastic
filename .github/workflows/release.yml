@@ -17,6 +17,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Create SixLabors license file
+        shell: pwsh
+        env:
+          SIXLABORS_LIC: ${{ secrets.SIXLABORS_LIC }}
+        run: |
+          if (-not $env:SIXLABORS_LIC) { Write-Error "SIXLABORS_LIC secret is missing or empty"; exit 1 }
+          [System.IO.File]::WriteAllText("$PWD\sixlabors.lic", $env:SIXLABORS_LIC)
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 
@@ -59,12 +67,12 @@ jobs:
           $newPath = Join-Path (Split-Path $msix) $newName
           Rename-Item -Path $msix -NewName $newName
           echo "MSIX_RENAMED=$newPath" >> $env:GITHUB_OUTPUT
-      
+
       - name: Upload MSIX to release (${{ matrix.platform }})
         uses: softprops/action-gh-release@v3
         with:
           files: ${{ steps.rename_msix.outputs.MSIX_RENAMED }}
-    
+
       - name: Upload CER to release (x64 only)
         if: matrix.platform == 'x64'
         uses: softprops/action-gh-release@v3
