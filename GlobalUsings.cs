@@ -16,4 +16,3 @@ global using Tunetastic.Common.Services;
 global using Tunetastic.Common.Services.Backends;
 global using Tunetastic.ViewModels;
 global using Tunetastic.Views;
-global using static Tunetastic.Common.Helpers.AppHelper;
