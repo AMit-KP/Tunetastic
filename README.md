@@ -37,6 +37,16 @@
   <img alt="Ratings" src="charts/ratings-light.svg">
 </picture>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/github-views-dark.svg">
+  <img alt="Repo views" src="charts/github-views-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/github-clones-dark.svg">
+  <img alt="Git clones" src="charts/github-clones-light.svg">
+</picture>
+
 ---
 
 ## Overview
