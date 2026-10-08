@@ -155,9 +155,32 @@ def fetch_versions(token, cfg, releases, today, first_week):
             releases[v] = wk
     print(f"Version history: {len(releases)} releases")
 
+def render_github(today):
+    gh = load(DATA / "github_traffic.json", {})
+    if not gh:
+        print("No GitHub traffic data yet - skipping traffic graphs")
+        return
+    days = sorted(gh)
+    dates = [parse_day(d) for d in days]
+    stamp = f"Updated {today.day} {today:%b %Y}"
+    OUT.mkdir(exist_ok=True)
+    for theme, c in render.THEMES.items():
+        (OUT / f"github-views-{theme}.svg").write_text(render.traffic_card(
+            c, dates,
+            [gh[d]["views"] for d in days], [gh[d]["unique_visitors"] for d in days],
+            "Repo views", "Daily page views and unique visitors from GitHub.",
+            stamp, "Views", "Unique visitors"))
+        (OUT / f"github-clones-{theme}.svg").write_text(render.traffic_card(
+            c, dates,
+            [gh[d]["clones"] for d in days], [gh[d]["unique_cloners"] for d in days],
+            "Git clones", "Daily clones and unique cloners from GitHub.",
+            stamp, "Clones", "Unique cloners"))
+    print(f"Drew GitHub traffic graphs for {len(days)} days")
+
 
 # ---------- render ----------
 def render_all(today, installs, ratings, cfg):
+    render_github(today)
     if not installs:
         raise SystemExit("No install data yet - nothing to draw.")
     world = json.loads((ROOT / "scripts" / "world.json").read_text())

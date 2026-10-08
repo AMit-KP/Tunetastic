@@ -258,3 +258,45 @@ def ratings_card(c, weeks, events, stamp):
             '.dp{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.34,1.56,.64,1) backwards}'
             '@media (prefers-reduced-motion:reduce){.lwv{display:none}}')
     return card(c, h, "Ratings", "Total ratings collected since launch.", body, stamp, stars_defs + wdef, rcss)
+
+def traffic_card(c, dates, primary, secondary, title, hint, stamp, p_label, s_label):
+    """Daily line for primary metric (solid, gradient) and secondary metric (dashed)."""
+    h = 380
+    PL, PR, PT, PB = 58, W - PAD, 150, 335
+    n = len(dates)
+    X = lambda i: PL + (i * (PR - PL) / (n - 1) if n > 1 else (PR - PL) / 2)
+    step, top = axis(max(primary + secondary + [1]))
+    g, Y = grid_and_months(c, dates, X, PL, PR, PT, PB, step, top, h - 14)
+
+    pts = [(X(i), Y(v)) for i, v in enumerate(primary)]
+    spts = [(X(i), Y(v)) for i, v in enumerate(secondary)]
+    if n == 1:
+        pts = [(PL, Y(primary[0])), (PR, Y(primary[0]))]
+        spts = [(PL, Y(secondary[0])), (PR, Y(secondary[0]))]
+    line = smooth(pts)
+    sline = smooth(spts)
+    area = line + f"L{pts[-1][0]:.1f},{Y(0):.1f}L{pts[0][0]:.1f},{Y(0):.1f}Z"
+
+    total = sum(primary)
+    peak = max(primary)
+    peak_day = dates[primary.index(peak)]
+    boxes = ""
+    for i, (num, lab) in enumerate([(f"{total:,}", f"{p_label} (all time)"),
+                                    (f"{peak:,}", f"Best day: {peak_day.day} {peak_day:%b %Y}")]):
+        x = PAD + i * 216
+        boxes += (f'<rect x="{x}" y="78" width="204" height="70" rx="10" fill="none" stroke="{c["bd"]}"/>'
+                  f'<text x="{x+16}" y="115" font-size="30" font-weight="700" fill="url(#lg)">{num}</text>'
+                  f'<text x="{x+16}" y="136" font-size="12" fill="{c["mu"]}">{escape(lab)}</text>')
+
+    legend = (f'<rect x="{W-PAD-210}" y="54" width="14" height="4" rx="2" fill="url(#lg)"/>'
+              f'<text x="{W-PAD-190}" y="61" font-size="12" fill="{c["mu"]}">{escape(p_label)}</text>'
+              f'<line x1="{W-PAD-95}" x2="{W-PAD-81}" y1="56" y2="56" stroke="{c["b"]}" stroke-width="2" stroke-dasharray="4 3"/>'
+              f'<text x="{W-PAD-75}" y="61" font-size="12" fill="{c["mu"]}">{escape(s_label)}</text>')
+
+    body = (boxes + legend + g +
+            f'<path class="fd" d="{area}" fill="url(#ag)"/>'
+            f'<path class="gw" d="{line}" pathLength="1" fill="none" stroke="url(#lg)" stroke-width="7" stroke-opacity=".45" filter="url(#gw)"/>'
+            f'<path class="ln" d="{line}" pathLength="1" fill="none" stroke="url(#lg)" stroke-width="2.5" stroke-linejoin="round"/>'
+            f'<path class="fd" d="{sline}" fill="none" stroke="{c["b"]}" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>'
+            f'<circle class="fd" cx="{pts[-1][0]:.1f}" cy="{pts[-1][1]:.1f}" r="5" fill="{c["card"]}" stroke="{c["a"]}" stroke-width="2"/>')
+    return card(c, h, title, hint, body, stamp, "", "")
