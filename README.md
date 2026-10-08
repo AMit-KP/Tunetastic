@@ -301,6 +301,13 @@ Add an animated rainbow border to the player:
 
 Search for **Tunetastic** in the [Microsoft Store](https://github.com/AMit-KP/Tunetastic/tree/master#tunetastic), or follow the store link once available. No manual setup or certificate trust required — just install and play.
 
+### Winget Package Manager
+
+Open Command Prompt or Powershell on your windows and type the following
+```bash
+winget install Tunetastic
+```
+
 ### Github Releases *(Only Recommended if you want the latest version earlier)*
 
 Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download the Store Certificate(.cer) file and the MSIX file for your system architecture. Install the .cer file 1st (Valid for a year). Then, proceed to install the MSIX file.
