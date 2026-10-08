@@ -13,8 +13,14 @@
 [![Language](https://img.shields.io/badge/Language-C%23-239120?logo=csharp)](https://learn.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue)](LICENSE)
 
-<a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
-	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+![Latest Release](https://img.shields.io/github/v/release/AMit-KP/Tunetastic?label=latest)
+![Pre-release](https://img.shields.io/github/v/release/AMit-KP/Tunetastic?include_prereleases&label=preview&color=orange)
+
+<a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank" rel="noopener noreferrer">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://get.microsoft.com/images/en-us%20dark.svg">
+    <img alt="Get it from Microsoft" src="https://get.microsoft.com/images/en-us%20light.svg" width="200">
+  </picture>
 </a>
 
 </div>
