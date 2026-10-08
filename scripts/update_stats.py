@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Fetch Microsoft Store stats, merge into permanent history, and redraw the README graphics.
 
 Usage:
@@ -155,9 +155,31 @@ def fetch_versions(token, cfg, releases, today, first_week):
             releases[v] = wk
     print(f"Version history: {len(releases)} releases")
 
+GH_START = dt.date(2026, 10, 1)
+
+def render_github(today):
+    gh = load(DATA / "github_traffic.json", {})
+    days = sorted(d for d in gh if parse_day(d) >= GH_START)
+    if not days:
+        print("No GitHub traffic data from Oct 1, 2026 yet - skipping traffic graphs")
+        return
+    dates = [parse_day(d) for d in days]
+    stamp = f"Updated {today.day} {today:%b %Y}"
+    OUT.mkdir(exist_ok=True)
+    for theme, c in render.THEMES.items():
+        (OUT / f"github-views-{theme}.svg").write_text(render.traffic_card(
+            c, dates, [gh[d]["views"] for d in days],
+            "Repo views", "Daily page views from GitHub since Oct 1, 2026.",
+            stamp, "Views"))
+        (OUT / f"github-clones-{theme}.svg").write_text(render.traffic_card(
+            c, dates, [gh[d]["clones"] for d in days],
+            "Git clones", "Daily clones from GitHub since Oct 1, 2026.",
+            stamp, "Clones"))
+    print(f"Drew GitHub traffic graphs for {len(days)} days since Oct 1, 2026")
 
 # ---------- render ----------
 def render_all(today, installs, ratings, cfg):
+    render_github(today)
     if not installs:
         raise SystemExit("No install data yet - nothing to draw.")
     world = json.loads((ROOT / "scripts" / "world.json").read_text())
