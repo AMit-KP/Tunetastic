@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.62.12.3612</AssemblyVersion>
-    <FileVersion>1.62.12.3612</FileVersion>
+    <AssemblyVersion>1.62.14.3614</AssemblyVersion>
+    <FileVersion>1.62.14.3614</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -197,21 +197,21 @@
     <PackageReference Include="DevWinUI" Version="9.9.4" />
     <PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
     <PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
-    <PackageReference Include="Downloader" Version="5.5.0" />
-    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.0" />
-    <PackageReference Include="FlyleafLib" Version="3.11.3" />
+    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.2" />
+    <PackageReference Include="FlyleafLib" Version="3.11.11" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
     <PackageReference Include="NAudio.Wasapi" Version="2.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="4.1.2" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="4.1.3" />
     <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
-    <PackageReference Include="System.Management" Version="10.0.11" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
+    <PackageReference Include="System.Management" Version="10.0.12" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="WinUIEx" Version="2.9.3" />
