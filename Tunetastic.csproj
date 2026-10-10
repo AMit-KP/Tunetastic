@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.62.16.3616</AssemblyVersion>
-    <FileVersion>1.62.16.3616</FileVersion>
+    <AssemblyVersion>1.62.22.3622</AssemblyVersion>
+    <FileVersion>1.62.22.3622</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -194,9 +194,8 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Triggers" Version="8.2.251219" />
     <PackageReference Include="Config.Net" Version="5.2.1" />
-    <PackageReference Include="DevWinUI" Version="9.9.4" />
-    <PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
-    <PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
+    <PackageReference Include="DevWinUI" Version="10.6.0" />
+    <PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.2" />
     <PackageReference Include="FlyleafLib" Version="3.11.11" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />

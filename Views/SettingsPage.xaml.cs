@@ -1249,7 +1249,7 @@ public sealed partial class SettingsPage : Page
 		{
 			CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 			CheckForUpdates.IsChecked = false;
-			await MessageBox.ShowSuccessAsync(isModal: true, owner: App.MainWindow, "Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
+			await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
 		}
 		else
 		{
@@ -1258,7 +1258,7 @@ public sealed partial class SettingsPage : Page
 			if (result.OverallState == StorePackageUpdateState.Completed)
 			{
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-				await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow, "Update installed", "The update will apply next time you launch the app.");
+				await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
 			}
 			else
 			{
