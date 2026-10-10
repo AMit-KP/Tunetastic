@@ -288,12 +288,15 @@ public class MusicPlayer
 	/// </param>
 	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true, bool dontReloadCurrent = false)
 	{
-		await LoadSong(startingSong ?? songPaths[0], play, dontReloadCurrent: dontReloadCurrent);
-		_ = Task.Run(() =>
+		var firstSong = startingSong ?? songPaths[0];
+		bool loaded = await TryLoadSong(firstSong, play, dontReloadCurrent: dontReloadCurrent);
+		await Task.Run(() =>
 		{
 			OriginalPlaylist = new List<string>(songPaths);
 			ShuffleSongs(startingSong);
 		});
+		// Skip only once the new playlist is in place, so it moves on within this playlist, not the previous one.
+		if (!loaded) await SkipUnplayableSongs(firstSong, play);
 	}
 
 	/// <summary>
@@ -306,7 +309,7 @@ public class MusicPlayer
 	/// <param name="startup">Indicates whether this is a startup load operation. Default is false.</param>
 	public async void LoadPlaylist(string? startingSong, bool play = true, bool dontReloadCurrent = false, bool startup = false)
 	{
-		await LoadSong(startingSong, play, dontReloadCurrent: dontReloadCurrent, startup: startup);
+		bool loaded = await TryLoadSong(startingSong, play, dontReloadCurrent: dontReloadCurrent, startup: startup);
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		List<string> list = new();
@@ -383,11 +386,12 @@ public class MusicPlayer
 					.Select(s => s.Path).ToList();
 				break;
 		}
-		_ = Task.Run(() =>
+		await Task.Run(() =>
 		{
 			OriginalPlaylist = new List<string>(list);
 			ShuffleSongs(startingSong);
 		});
+		if (!loaded) await SkipUnplayableSongs(startingSong, play);
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -433,11 +437,23 @@ public class MusicPlayer
 	/// <param name="fadeType">The type of fade to apply during transition. Default is null.</param>
 	/// <param name="dontReloadCurrent">If true, prevents reloading the current song if it's already loaded. Default is false.</param>
 	/// <param name="startup">Indicates whether this is a startup load operation. Default is false.</param>
+	/// <remarks>If the song cannot be loaded, playback skips forward to the next song that can.</remarks>
 	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null, bool dontReloadCurrent = false, bool startup = false)
+	{
+		if (!await TryLoadSong(songPath, play, fadeType, dontReloadCurrent, startup))
+			await SkipUnplayableSongs(songPath, play);
+	}
+
+	/// <summary>
+	/// Loads a song into the music player without any recovery if it fails.
+	/// </summary>
+	/// <returns>False if the song could not be loaded.</returns>
+	private async Task<bool> TryLoadSong(string? songPath, bool play = true, FadeType? fadeType = null, bool dontReloadCurrent = false, bool startup = false)
 	{
 		try
 		{
-			if (string.IsNullOrWhiteSpace(songPath)) return;
+			if (string.IsNullOrWhiteSpace(songPath)) return true;
+			int loadId = ++_loadGeneration;
 
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			var position = MusicControl._instance?.ViewModel?.ProgressBarValue ?? 0;
@@ -450,7 +466,7 @@ public class MusicPlayer
 				if (dontReloadCurrent)
 				{
 					if (!IsPlaying && play) Play(playBackPosition: position);
-					return;
+					return true;
 				}
 				if (bool.Parse(localSettings.Values[nameof(LocalSave.RestartTrackOnSelectionStatus)]?.ToString() ?? "false"))
 				{
@@ -459,7 +475,7 @@ public class MusicPlayer
 				else
 				{
 					if (!IsPlaying && play) Play();
-					return;
+					return true;
 				}
 			}
 
@@ -509,17 +525,21 @@ public class MusicPlayer
 						: CrossfadeTransition(capturedSong, selectedFadeTime));
 				}*/
 
-			await _activeBackend.OpenAsync(capturedSong);
+			bool opened = await _activeBackend.OpenAsync(capturedSong);
+			// A newer load started while this one was opening. It owns playback now, so this one
+			// must neither start playing nor count as a failure.
+			if (loadId != _loadGeneration) return true;
+			if (!opened) return false;
 
 			if (capturedPlay) Play(capturedPosition);
 
 			CurrentSong = capturedSong;
 			localSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
+			return true;
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error($"Could not load song:\n{songPath}");
-			Next();
+			return false;
 		}
 	}
 
@@ -621,7 +641,7 @@ public class MusicPlayer
 	/// <summary>
 	/// Plays the previous song in the playlist.
 	/// </summary>
-	public async void Previous()
+	public async Task Previous()
 	{
 		if (LibraryScanner.IsScanning) return;
 		try
@@ -645,14 +665,15 @@ public class MusicPlayer
 
 				bool isPlaying = IsPlaying;
 				bool manualCrossfadeEnabled = bool.Parse(localSettings.Values[nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false");
-				await LoadSong(songToPlay, isPlaying, isPlaying && manualCrossfadeEnabled ? FadeType.Manual : FadeType.None);
+				if (!await TryLoadSong(songToPlay, isPlaying, isPlaying && manualCrossfadeEnabled ? FadeType.Manual : FadeType.None))
+					await SkipUnplayableSongs(songToPlay, isPlaying, backward: true);
 			}
 			else return;
 		}
 		catch (Exception)
 		{
 			GlobalNotification.Error("Could not load previous song.");
-			Next();
+			await Next();
 		}
 	}
 
@@ -660,26 +681,48 @@ public class MusicPlayer
 	/// Plays the next song in the playlist.
 	/// </summary>
 	/// <param name="autoChange">Indicates whether this is an automatic change. Default is false.</param>
-	public async void Next(bool autoChange = false)
+	public async Task Next(bool autoChange = false)
 	{
 		if (LibraryScanner.IsScanning) return;
+
+		bool play = autoChange || IsPlaying;
+		var result = await AdvanceAndLoad(autoChange, play);
+		if (result is { Loaded: false })
+			await SkipUnplayableSongs(result.Value.Path, play);
+	}
+
+	/// <summary>
+	/// The outcome of one attempt to move to the next song.
+	/// </summary>
+	/// <param name="Loaded">Whether the song was loaded.</param>
+	/// <param name="Path">The song that was tried, or null if the failure happened before a song was picked.</param>
+	private readonly record struct AdvanceResult(bool Loaded, string? Path);
+
+	/// <summary>
+	/// Moves to the next song (queue first, then playlist) and tries to load it once.
+	/// </summary>
+	/// <param name="autoChange">Whether the previous song ended on its own.</param>
+	/// <param name="play">Whether the loaded song should start playing.</param>
+	/// <returns>The outcome, or null if there is nothing left to play.</returns>
+	private async Task<AdvanceResult?> AdvanceAndLoad(bool autoChange, bool play)
+	{
 		try
 		{
-			bool isPlaying = autoChange ? autoChange : IsPlaying;
-
 			var queuedList = await DatabaseHelper.Instance.GetQueuedPlayingList();
-			var fadeType = isPlaying
+			var fadeType = play
 				? bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[autoChange ? nameof(LocalSave.AutoAdvanceStatus) : nameof(LocalSave.ManualTrackChangeStatus)]?.ToString() ?? "false")
 					? (autoChange ? FadeType.AutoAdvance : FadeType.Manual) : FadeType.None
 				: FadeType.None;
 
 			if (queuedList?.Count > 0)
 			{
-				await LoadSong(queuedList[0].Path, isPlaying, fadeType);
+				var queuedPath = queuedList[0].Path;
+				// Take the song off the queue before trying it, so a song that fails isn't picked again.
 				await DatabaseHelper.Instance.ClearFromQueue();
+				bool loaded = await TryLoadSong(queuedPath, play, fadeType);
 				if (!SongQueue) GlobalNotification.Info("Queue started.");
 				SongQueue = true;
-				return;
+				return new AdvanceResult(loaded, queuedPath);
 			}
 			else
 			{
@@ -703,24 +746,168 @@ public class MusicPlayer
 					{
 						case RepeatMode.One:
 						case RepeatMode.All:
-							if (OriginalPlaylist != null && ActualPlaylist != null && ActualPlaylist.Count > 0)
-								LoadPlaylist(OriginalPlaylist, ActualPlaylist[0], false);
+							// Reshuffle for the next round, keeping this song first. This used to go through
+							// LoadPlaylist, which also loaded the song, racing the load just below.
+							if (ActualPlaylist?.Count > 0)
+								ShuffleSongs(ActualPlaylist[0]);
 							currentIndex = 0;
 							break;
 						case RepeatMode.None:
 							if (autoChange) Pause();
-							return;
+							return null;
 					}
 				}
 				if (ActualPlaylist != null)
-					await LoadSong(ActualPlaylist[currentIndex], isPlaying, fadeType);
+				{
+					var path = ActualPlaylist[currentIndex];
+					return new AdvanceResult(await TryLoadSong(path, play, fadeType), path);
+				}
 			}
+			return null;
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Could not load next song.");
-			Next(autoChange);
+			return new AdvanceResult(false, null);
 		}
+	}
+
+	/// <summary>
+	/// Moves to the previous song in the playlist and tries to load it once.
+	/// </summary>
+	/// <param name="play">Whether the loaded song should start playing.</param>
+	/// <returns>The outcome, or null if there is no earlier song to try.</returns>
+	private async Task<AdvanceResult?> RetreatAndLoad(bool play)
+	{
+		try
+		{
+			if (!(ActualPlaylist?.Count > 0)) return null;
+			if (currentIndex == 0 && RepeatStatus == RepeatMode.None) return null;
+
+			currentIndex = currentIndex == 0 ? ActualPlaylist.Count - 1 : currentIndex - 1;
+			var path = ActualPlaylist[currentIndex];
+			return new AdvanceResult(await TryLoadSong(path, play, FadeType.None), path);
+		}
+		catch (Exception)
+		{
+			return new AdvanceResult(false, null);
+		}
+	}
+
+	private const int MaxSongsToSkip = 10;
+	private bool _skippingUnplayableSongs;
+	private int _loadGeneration;
+	private string? _lastNotification;
+	private DateTime _lastNotificationTime;
+
+	/// <summary>
+	/// Shows a playback error or warning, unless the same message was just shown.
+	/// </summary>
+	/// <remarks>
+	/// Clicking a song twice quickly loads it twice. For a missing file, each load reaches the
+	/// skip loop on its own, and the second message would be an exact copy of the first.
+	/// </remarks>
+	/// <param name="message">The message to show.</param>
+	/// <param name="warning">True for a warning, false for an error.</param>
+	private void NotifyOnce(string message, bool warning)
+	{
+		if (message == _lastNotification && DateTime.UtcNow - _lastNotificationTime < TimeSpan.FromSeconds(2)) return;
+		_lastNotification = message;
+		_lastNotificationTime = DateTime.UtcNow;
+
+		if (warning) GlobalNotification.Warning(message);
+		else GlobalNotification.Error(message);
+	}
+
+	/// <summary>
+	/// After a song fails to load, keeps moving in the same direction until a song loads, and tells the user once.
+	/// </summary>
+	/// <remarks>
+	/// Stops instead of skipping when the song's library folder itself is unreachable (an unplugged
+	/// drive or a disconnected network share): every other song there would fail too, and a rescan
+	/// at that moment would remove songs that are only temporarily unavailable.
+	/// </remarks>
+	/// <param name="failedPath">The song that failed, or null if it isn't known.</param>
+	/// <param name="play">Whether the song that finally loads should start playing.</param>
+	/// <param name="backward">
+	/// True when the failure came from Previous. Skipping forward instead would land back on the song
+	/// the user just left, so Previous could never get past a missing song.
+	/// </param>
+	private async Task SkipUnplayableSongs(string? failedPath, bool play, bool backward = false)
+	{
+		// LoadPlaylist and Next can both hit the same failure; one loop is enough.
+		if (_skippingUnplayableSongs) return;
+		_skippingUnplayableSongs = true;
+		try
+		{
+			var skipped = new List<string?> { failedPath };
+
+			while (true)
+			{
+				var unavailableFolder = await GetUnavailableLibraryFolder(failedPath);
+				if (unavailableFolder != null)
+				{
+					Pause();
+					NotifyOnce($"Music folder is not available:\n{unavailableFolder}\nReconnect it and try again.", warning: false);
+					return;
+				}
+
+				if (skipped.Count >= MaxSongsToSkip)
+				{
+					Pause();
+					NotifyOnce($"Stopped after {skipped.Count} songs in a row could not be played.\nIf files were moved or deleted, rescan your library.", warning: false);
+					return;
+				}
+
+				// Always move on here, even with Repeat One; replaying the song that just failed would fail again.
+				var result = backward ? await RetreatAndLoad(play) : await AdvanceAndLoad(autoChange: false, play);
+				if (result is not { Loaded: false }) break;
+
+				failedPath = result.Value.Path;
+				skipped.Add(failedPath);
+			}
+
+			if (skipped.Count == 1)
+				NotifyOnce(skipped[0] != null ? $"Could not load song:\n{skipped[0]}" : "Could not load next song.", warning: false);
+			else
+				NotifyOnce($"Skipped {skipped.Count} songs that could not be played.", warning: true);
+		}
+		finally
+		{
+			_skippingUnplayableSongs = false;
+		}
+	}
+
+	/// <summary>
+	/// Finds the library folder a song belongs to, if that folder can't be reached.
+	/// </summary>
+	/// <param name="songPath">The song to check.</param>
+	/// <returns>The unreachable library folder, or null if it is reachable or the song isn't in a library.</returns>
+	private static async Task<string?> GetUnavailableLibraryFolder(string? songPath)
+	{
+		if (string.IsNullOrEmpty(songPath)) return null;
+
+		var library = (await DatabaseHelper.Instance.GetAllLibraries())
+			.Select(l => l.Path)
+			.Where(folder => IsInFolder(songPath, folder))
+			.OrderByDescending(folder => folder.Length)
+			.FirstOrDefault();
+		if (library == null) return null;
+
+		// Directory.Exists can take several seconds on a disconnected network path.
+		bool reachable = await Task.Run(() => Directory.Exists(library));
+		return reachable ? null : library;
+	}
+
+	/// <summary>
+	/// Checks whether a path is inside a folder, without matching "D:\Music2" against "D:\Music".
+	/// </summary>
+	/// <param name="path">The file path.</param>
+	/// <param name="folder">The folder path.</param>
+	/// <returns>True if the path is inside the folder.</returns>
+	private static bool IsInFolder(string path, string folder)
+	{
+		var prefix = folder.EndsWith(Path.DirectorySeparatorChar) ? folder : folder + Path.DirectorySeparatorChar;
+		return path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
 	}
 
 	/// <summary>
