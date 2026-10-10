@@ -357,6 +357,27 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
+## Credits & Special Thanks
+
+[@Mahdi Hosseini](https://github.com/ghost1372) - For the amazing [DevWinUI](https://github.com/ghost1372/DevWinUI) that saved me hours of development and research time as an inexperienced developer.
+ 
+---
+
+## Inspired by
+
+<div align="center">
+
+*"Culture shouldn't exist only for those who can afford it"*
+
+— by Arsi "Hakita" Patala
+
+</div>
+
+If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots:
+
+>**Telegram Bot:** [@Music Downloader](https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1) *(Note: External third-party bot. Use at your own discretion.)*
+
+---
 <div align="center">
 
 Made with ♥ for music lovers on Windows
