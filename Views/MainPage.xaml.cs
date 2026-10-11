@@ -1000,8 +1000,7 @@ public sealed partial class MainPage : Page
 		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
 
 		if (updates.Count != 0)
-			await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow,
-				"App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
+			await MessageBox.ShowInfoAsync("App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
 				buttons: MessageBoxButtons.OK);
 	}
 

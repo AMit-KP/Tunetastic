@@ -20,16 +20,6 @@ public static partial class Constants
 	public static readonly string RootDirectoryPath = Path.Combine(PathHelper.GetAppDataFolderPath(), ProcessInfoHelper.ProductName);
 
 	/// <summary>
-	/// Represents the file path to the application's main configuration file.
-	/// </summary>
-	/// <remarks>
-	/// This path points to the primary configuration file (AppConfig.json) used for storing application settings.
-	/// It is located within the application's root directory and is constructed dynamically at runtime based on
-	/// the application-specific root directory path.
-	/// </remarks>
-	public static readonly string AppConfigPath = Path.Combine(RootDirectoryPath, "AppConfig.json");
-
-	/// <summary>
 	/// Represents the directory path where all thumbnail images are stored.
 	/// </summary>
 	/// <remarks>

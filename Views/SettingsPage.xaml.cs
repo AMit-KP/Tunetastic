@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
@@ -39,6 +40,8 @@ public sealed partial class SettingsPage : Page
 
 	public SettingViewModel ViewModel { get; }
 
+	private int clickCounter;
+
 	public SettingsPage()
 	{
 		ViewModel = App.GetService<SettingViewModel>();
@@ -56,6 +59,8 @@ public sealed partial class SettingsPage : Page
 
 		if (LibraryScanner.IsScanning) ScanButton_Click(null, null);
 		Page_ActualThemeChanged(null, null);
+
+		clickCounter = 5;
 	}
 
 	/// <summary>
@@ -1249,7 +1254,7 @@ public sealed partial class SettingsPage : Page
 		{
 			CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 			CheckForUpdates.IsChecked = false;
-			await MessageBox.ShowSuccessAsync(isModal: true, owner: App.MainWindow, "Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
+			await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
 		}
 		else
 		{
@@ -1258,7 +1263,7 @@ public sealed partial class SettingsPage : Page
 			if (result.OverallState == StorePackageUpdateState.Completed)
 			{
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-				await MessageBox.ShowInfoAsync(isModal: true, owner: App.MainWindow, "Update installed", "The update will apply next time you launch the app.");
+				await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
 			}
 			else
 			{
@@ -1381,5 +1386,21 @@ public sealed partial class SettingsPage : Page
 		{
 			await AutoScanService.DisableAutoScan();
 		}
+	}
+
+	private void MusicDownloader_Reveal(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+	{
+		clickCounter--;
+		if (clickCounter == 0)
+		{
+			MusicDownloadLink.Visibility = Visibility.Visible;
+			ToolTipService.SetToolTip(MusicDownloader_Panel, $"Bot link revealed");
+			MusicDownloader_Description.Inlines.Clear();
+			MusicDownloader_Description.Inlines.Add(new Run { Text = "If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots." });
+			MusicDownloader_Description.Inlines.Add(new LineBreak());
+			MusicDownloader_Description.Inlines.Add(new Run { FontStyle = Windows.UI.Text.FontStyle.Italic, Text = "(Note: External third-party Telegram bot. Use at your own discretion.)" });
+		}
+		else
+			ToolTipService.SetToolTip(MusicDownloader_Panel, $"Click {clickCounter} times to reveal");
 	}
 }

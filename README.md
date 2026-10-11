@@ -327,6 +327,18 @@ Ensure the following workloads are installed in Visual Studio 2026:
 - **.NET desktop development**
 - **Windows application development** (includes Windows App SDK)
 
+#### SixLabors License
+
+This project uses [ImageSharp](https://github.com/SixLabors/ImageSharp), which requires a license key from SixLabors. The key is not included in this repository.
+
+To build locally:
+
+1. Get your own license key at [licensing.sixlabors.com](https://licensing.sixlabors.com/).
+2. Save the license file as `sixlabors.lic` in the project root, next to `Tunetastic.csproj`.
+3. Do not commit this file. It is already listed in `.gitignore`.
+
+Without this file, the build will fail with a license error.
+
 Then press **F5** to build and run.
 
 ---
@@ -334,6 +346,8 @@ Then press **F5** to build and run.
 ## Contributing
 
 Contributions are welcome! Please open an issue to discuss what you'd like to change before submitting a pull request. Make sure your code follows the existing style and that all builds pass cleanly.
+
+Each contributor needs their own SixLabors license key. Do not share keys or commit them to the repository. Pull requests from forks will not have access to the maintainer's CI secrets, so the automated build may fail on them until a maintainer reviews the change.
 
 ---
 
@@ -343,6 +357,27 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
+## Credits & Special Thanks
+
+[@Mahdi Hosseini](https://github.com/ghost1372) - For the amazing [DevWinUI](https://github.com/ghost1372/DevWinUI) that saved me hours of development and research time as an inexperienced developer.
+ 
+---
+
+## Inspired by
+
+<div align="center">
+
+*"Culture shouldn't exist only for those who can afford it"*
+
+— by Arsi "Hakita" Patala
+
+</div>
+
+If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots:
+
+>**Telegram Bot:** [@Music Downloader](https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1) *(Note: External third-party bot. Use at your own discretion.)*
+
+---
 <div align="center">
 
 Made with ♥ for music lovers on Windows

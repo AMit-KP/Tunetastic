@@ -212,23 +212,21 @@ public partial class App : Application
 	/// </summary>
 	private async void InitializeApp()
 	{
-		var menuService = GetService<ContextMenuService>();
-		if (menuService != null && RuntimeHelper.IsPackaged())
+		ContextMenuItem menu = new ContextMenuItem
 		{
-			ContextMenuItem menu = new ContextMenuItem
-			{
-				Title = "Open Tunetastic Here",
-				Param = @"""{path}""",
-				AcceptFileFlag = (int)FileMatchFlagEnum.All,
-				AcceptDirectoryFlag = (int)(DirectoryMatchFlagEnum.Directory | DirectoryMatchFlagEnum.Background | DirectoryMatchFlagEnum.Desktop),
-				AcceptMultipleFilesFlag = (int)FilesMatchFlagEnum.Each,
-				Index = 0,
-				Enabled = true,
-				Icon = ProcessInfoHelper.GetFileVersionInfo().FileName,
-				Exe = "Tunetastic.exe"
-			};
+			Title = "Open Tunetastic Here",
+			Param = @"""{path}""",
+			AcceptFileFlag = (int)FileMatchFlagEnum.All,
+			AcceptDirectoryFlag = (int)(DirectoryMatchFlagEnum.Directory | DirectoryMatchFlagEnum.Background | DirectoryMatchFlagEnum.Desktop),
+			AcceptMultipleFilesFlag = (int)FilesMatchFlagEnum.Each,
+			Index = 0,
+			Enabled = true,
+			Icon = ProcessInfoHelper.GetFileVersionInfo().FileName,
+			Exe = "Tunetastic.exe"
+		};
 
-			await menuService.SaveAsync(menu);
-		}
+		var menuFolder = await ContextMenuService.CreateDefualtMenusFolderAsync();
+		ContextMenuService menuService = new ContextMenuService(menuFolder);
+		await menuService.SaveAsync(menu);
 	}
 }
