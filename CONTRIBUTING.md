@@ -10,6 +10,7 @@ Please read through this before opening an issue or submitting a pull request.
 
 - **Check existing issues** first to see if your bug or idea is already being tracked.
 - For anything beyond a small fix, **open an issue to discuss it first**. This saves you from putting work into something that might not be a good fit for the project.
+- This project uses [ImageSharp](https://github.com/SixLabors/ImageSharp), which requires a license key from SixLabors. The key is not included in this repository. Get your own license key at [licensing.sixlabors.com](https://licensing.sixlabors.com/).
 
 ---
 
@@ -57,9 +58,16 @@ cd Tunetastic
 start Tunetastic.sln
 ```
 
+
+- Save the ImageSharp license file as `sixlabors.lic` in the project root, next to `Tunetastic.csproj`.
+- Do not commit this file. It is already listed in `.gitignore`.
+
+Without this file, the build will fail with a license error.
+
 Required Visual Studio 2026 workloads:
 - **.NET desktop development**
 - **Windows application development** (includes Windows App SDK)
+
 
 Press **F5** to build and run.
 

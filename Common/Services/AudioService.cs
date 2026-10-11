@@ -7,9 +7,10 @@ namespace Tunetastic.Common.Services;
 /// <summary>
 /// Provides audio service functionality for managing system and application volume controls.
 /// </summary>
-public class AudioService : IDisposable, IMMNotificationClient
+public class AudioService : IDisposable
 {
 	private readonly MMDeviceEnumerator _enumerator;
+	private MMDeviceNotificationClient? _notificationClient;
 	private volatile MMDevice? _currentDevice;
 	private readonly List<SessionEventHandler> _sessionHandlers = new();
 	private CancellationTokenSource? _sessionWaitCts;
@@ -60,7 +61,10 @@ public class AudioService : IDisposable, IMMNotificationClient
 		{
 			_currentDevice = GetFreshDevice();
 			SubscribeToDevice(_currentDevice);
-			_enumerator.RegisterEndpointNotificationCallback(this);
+
+			_notificationClient = _enumerator.CreateNotificationClient(useSynchronizationContext: false);
+			_notificationClient.DefaultDeviceChanged += OnDefaultDeviceChanged;
+			_notificationClient.DeviceStateChanged += OnDeviceStateChanged;
 			RefreshSystemVolumeCache();
 			_ = WaitAndSubscribeToAppVolumeAsync();
 		}
@@ -606,13 +610,12 @@ public class AudioService : IDisposable, IMMNotificationClient
 	/// </summary>
 	/// <param name="sender">The event sender.</param>
 	/// <param name="newSession">The new audio session control.</param>
-	private void OnSessionCreated(object sender, IAudioSessionControl newSession)
+	private void OnSessionCreated(object sender, AudioSessionControl newSession)
 	{
 		_ = Task.Run(() =>
 				{
-					var session = new AudioSessionControl(newSession);
-					if (session.GetProcessID != Environment.ProcessId) return;
-					AddSession(session);
+					if (newSession.GetProcessID != Environment.ProcessId) return;
+					AddSession(newSession);
 				});
 	}
 
@@ -763,53 +766,38 @@ public class AudioService : IDisposable, IMMNotificationClient
 		AppVolumeChanged?.Invoke(volume, muted);
 	}
 
-	// ─── IMMNotificationClient ────────────────────────────────────────────────
+	// ─── Endpoint notifications (MMDeviceNotificationClient) ─────────────────
 
 	/// <summary>
 	/// Called when the default audio device changes.
 	/// </summary>
-	/// <param name="flow">The data flow direction.</param>
-	/// <param name="role">The role of the device.</param>
-	/// <param name="defaultDeviceId">The ID of the new default device.</param>
-	void IMMNotificationClient.OnDefaultDeviceChanged(DataFlow flow, Role role, string defaultDeviceId)
+	/// <param name="sender">The event sender.</param>
+	/// <param name="e">Details of the default-device change.</param>
+	private void OnDefaultDeviceChanged(object? sender, DefaultDeviceChangedEventArgs e)
 	{
-		if (flow != DataFlow.Render || role != Role.Multimedia) return;
-		_ = Task.Run(() => ReplaceDevice(() => _enumerator.GetDevice(defaultDeviceId)));
+		if (e.Flow != DataFlow.Render || e.Role != Role.Multimedia) return;
+		// DeviceId is null when there is no longer a default device for this flow/role; the
+		// DeviceStateChanged handler below re-acquires a device once one becomes active again.
+		var deviceId = e.DeviceId;
+		if (deviceId == null) return;
+		_ = Task.Run(() => ReplaceDevice(() => _enumerator.GetDevice(deviceId)));
 	}
 
 	/// <summary>
 	/// Called when the state of an audio device changes.
 	/// </summary>
-	/// <param name="deviceId">The ID of the device.</param>
-	/// <param name="newState">The new device state.</param>
-	void IMMNotificationClient.OnDeviceStateChanged(string deviceId, DeviceState newState)
+	/// <param name="sender">The event sender.</param>
+	/// <param name="e">Details of the device state change.</param>
+	private void OnDeviceStateChanged(object? sender, DeviceStateChangedEventArgs e)
 	{
-		if (newState == DeviceState.Active) return;
+		if (e.NewState == DeviceState.Active) return;
+		var deviceId = e.DeviceId;
 		_ = Task.Run(() =>
 		{
 			if (deviceId != _currentDevice?.ID) return;
 			ReplaceDevice(GetFreshDevice);
 		});
 	}
-
-	/// <summary>
-	/// Called when an audio device is added.
-	/// </summary>
-	/// <param name="deviceId">The ID of the added device.</param>
-	void IMMNotificationClient.OnDeviceAdded(string deviceId) { }
-
-	/// <summary>
-	/// Called when an audio device is removed.
-	/// </summary>
-	/// <param name="deviceId">The ID of the removed device.</param>
-	void IMMNotificationClient.OnDeviceRemoved(string deviceId) { }
-
-	/// <summary>
-	/// Called when a property value of an audio device changes.
-	/// </summary>
-	/// <param name="deviceId">The ID of the device.</param>
-	/// <param name="key">The property key that changed.</param>
-	void IMMNotificationClient.OnPropertyValueChanged(string deviceId, PropertyKey key) { }
 
 	// ─── Dispose ──────────────────────────────────────────────────────────────
 
@@ -827,7 +815,7 @@ public class AudioService : IDisposable, IMMNotificationClient
 		{
 			_sessionWaitCts?.Cancel();
 		}
-		try { _enumerator.UnregisterEndpointNotificationCallback(this); } catch { }
+		try { _notificationClient?.Dispose(); } catch { }
 		try { device?.Dispose(); } catch { }
 		_enumerator.Dispose();
 	}

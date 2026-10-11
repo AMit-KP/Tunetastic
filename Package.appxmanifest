@@ -11,6 +11,7 @@
   xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
   xmlns:desktop5="http://schemas.microsoft.com/appx/manifest/desktop/windows10/5"
   xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
+  xmlns:desktop10="http://schemas.microsoft.com/appx/manifest/desktop/windows10/10"
   xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
   xmlns:uap18="http://schemas.microsoft.com/appx/manifest/uap/windows10/18"
   IgnorableNamespaces="uap rescap uap18">
@@ -18,7 +19,7 @@
 	<Identity
 	  Name="AMit-KP.Tunetastic"
 	  Publisher="CN=B90A5939-9B2E-481A-9AAB-88AC3440759B"
-	  Version="1.61.3.0"/>
+	  Version="1.62.28.0"/>
 
 	<mp:PhoneIdentity PhoneProductId="1e56cd21-fffd-4018-bebd-94b2cb6d6063" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -63,31 +64,34 @@
 					<uap:Rotation Preference="portraitFlipped"/></uap:InitialRotationPreference>
 			</uap:VisualElements>
 			<Extensions>
-				<desktop4:Extension Category="windows.fileExplorerContextMenus">
-					<desktop4:FileExplorerContextMenus>
-						<desktop5:ItemType Type="Directory">
+        <desktop4:Extension Category="windows.fileExplorerContextMenus">
+          <desktop4:FileExplorerContextMenus>
+            <desktop5:ItemType Type="Directory">
 							<desktop5:Verb Id="CustomMenu" Clsid="b4486de7-9f03-4142-93d5-069447178f01"/>
-						</desktop5:ItemType>
-						<desktop5:ItemType Type="*">
+            </desktop5:ItemType>
+            <desktop5:ItemType Type="*">
 							<desktop5:Verb Id="CustomMenu" Clsid="b4486de7-9f03-4142-93d5-069447178f01"/>
-						</desktop5:ItemType>
-						<desktop5:ItemType Type="Directory\Background">
+            </desktop5:ItemType>
+            <desktop5:ItemType Type="Directory\Background">
 							<desktop5:Verb Id="CustomMenu" Clsid="b4486de7-9f03-4142-93d5-069447178f01"/>
-						</desktop5:ItemType>
-					</desktop4:FileExplorerContextMenus>
-				</desktop4:Extension>
-				<com:Extension Category="windows.comServer">
-					<com:ComServer>
+            </desktop5:ItemType>
+            <desktop10:ItemType Type="Drive">
+              <desktop10:Verb Id="CustomMenu" Clsid="b4486de7-9f03-4142-93d5-069447178f01" />
+            </desktop10:ItemType>
+          </desktop4:FileExplorerContextMenus>
+        </desktop4:Extension>
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
 						<com:SurrogateServer DisplayName="Custome Context Menu">
 							<com:Class Id="b4486de7-9f03-4142-93d5-069447178f01" Path="ContextMenuCustomHost.dll" ThreadingModel="STA"/>
-						</com:SurrogateServer>
-					</com:ComServer>
-				</com:Extension>
-				<uap3:Extension Category="windows.appExecutionAlias">
-					<uap3:AppExecutionAlias>
+            </com:SurrogateServer>
+          </com:ComServer>
+        </com:Extension>
+        <uap3:Extension Category="windows.appExecutionAlias">
+          <uap3:AppExecutionAlias>
 						<desktop:ExecutionAlias Alias="Tunetastic.exe"/>
-					</uap3:AppExecutionAlias>
-				</uap3:Extension>
+          </uap3:AppExecutionAlias>
+        </uap3:Extension>
         <uap5:Extension Category="windows.startupTask">
           <uap5:StartupTask TaskId="TunetasticStartOnLoginTask" Enabled="false" DisplayName="Tunetastic" />
         </uap5:Extension>
