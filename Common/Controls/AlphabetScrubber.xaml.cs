@@ -40,6 +40,7 @@ public sealed partial class AlphabetScrubber : UserControl
 	private long _lastTickTimestamp;
 	private double _waveY;                          // eased wave peak — glides toward the finger
 	private bool _waveYValid;
+	private bool _refreshScheduled;
 	private readonly List<string> _letters = [];
 	private readonly List<TextBlock> _blocks = [];
 	private readonly List<TranslateTransform> _translates = [];
@@ -118,9 +119,37 @@ public sealed partial class AlphabetScrubber : UserControl
 				_scrollViewer.ViewChanged -= OnTargetViewChanged;
 				_scrollViewer = null;
 			}
+			if (_targetList != null)
+			{
+				_targetList.SizeChanged -= OnTargetListSizeChanged;
+				_targetList.ContainerContentChanging -= OnTargetContainerContentChanging;
+			}
 			_targetList = value;
+			if (_targetList != null)
+			{
+				_targetList.SizeChanged += OnTargetListSizeChanged;
+				_targetList.ContainerContentChanging += OnTargetContainerContentChanging;
+			}
 			ResolveScrollViewer();
 		}
+	}
+
+	/// <summary>Re-publishes scroll state when the target list (re)arranges — keeps the highlights
+	/// correct on first load and after window resizes without waiting for a scroll.</summary>
+	private void OnTargetListSizeChanged(object? sender, SizeChangedEventArgs args)
+		=> PublishScrollProgress();
+
+	/// <summary>Containers realize as data arrives — schedule one scroll-state refresh per
+	/// realization burst so the highlights are correct on first load without any scrolling.</summary>
+	private void OnTargetContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+	{
+		if (_refreshScheduled) return;
+		_refreshScheduled = true;
+		_dispatcherQueue.TryEnqueue(() =>
+		{
+			_refreshScheduled = false;
+			PublishScrollProgress();
+		});
 	}
 
 	/// <summary>
@@ -186,6 +215,7 @@ public sealed partial class AlphabetScrubber : UserControl
 		Rail.Visibility = _railVisible ? Visibility.Visible : Visibility.Collapsed;
 		ApplyTheme();
 		_dispatcherQueue.TryEnqueue(ApplyLetterGeometry);
+		_dispatcherQueue.TryEnqueue(PublishScrollProgress);   // refresh highlights after a rail rebuild
 		EnsureTicking();
 	}
 
@@ -400,10 +430,15 @@ public sealed partial class AlphabetScrubber : UserControl
 			PublishScrollProgress();
 		});
 
-	/// <summary>Retries ScrollViewer resolution after size changes, e.g. right after the page loads.</summary>
+	/// <summary>Retries ScrollViewer resolution after size changes and refreshes the scroll state.</summary>
 	private void RetryScrollViewer()
 	{
-		if (_targetList != null && _scrollViewer == null) ResolveScrollViewer();
+		if (_targetList != null && _scrollViewer == null)
+		{
+			ResolveScrollViewer();
+			return;
+		}
+		PublishScrollProgress();
 	}
 
 	private void OnTargetViewChanged(object? sender, ScrollViewerViewChangedEventArgs args)
@@ -413,8 +448,9 @@ public sealed partial class AlphabetScrubber : UserControl
 
 	private void PublishScrollProgress()
 	{
-		if (_scrollViewer == null) return;
-		ScrollProgress?.Invoke(this, (_scrollViewer.VerticalOffset, _scrollViewer.ViewportHeight));
+		var viewport = _scrollViewer?.ViewportHeight ?? _targetList?.ActualHeight ?? 0;
+		if (viewport <= 0) return;
+		ScrollProgress?.Invoke(this, (_scrollViewer?.VerticalOffset ?? 0, viewport));
 	}
 
 	// ── Theming ───────────────────────────────────────────────────
