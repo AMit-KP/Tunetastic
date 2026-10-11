@@ -467,11 +467,11 @@ public sealed partial class RecentlyAdded : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					RecentlyAddedSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info("Song/Track deleted." +
-											$"\nTitle: {songData.Title}" +
-											$"\nArtist: {songData.Artists}" +
-											$"\nAlbum: {songData.Album}" +
-											$"\nFile: {songData.Path}");
+					GlobalNotification.Success("Song/Track deleted." +
+												$"\nTitle: {songData.Title}" +
+												$"\nArtist: {songData.Artists}" +
+												$"\nAlbum: {songData.Album}" +
+												$"\nFile: {songData.Path}");
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -600,7 +600,7 @@ public sealed partial class RecentlyAdded : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

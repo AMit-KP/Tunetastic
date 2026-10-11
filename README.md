@@ -13,11 +13,45 @@
 [![Language](https://img.shields.io/badge/Language-C%23-239120?logo=csharp)](https://learn.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue)](LICENSE)
 
-<a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
-	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+[![Latest Release](https://img.shields.io/github/v/release/AMit-KP/Tunetastic?label=Latest&color=green)](https://github.com/AMit-KP/Tunetastic/releases/latest)
+[![Pre-release](https://img.shields.io/github/v/release/AMit-KP/Tunetastic?include_prereleases&label=Pre-release&color=orange)](https://github.com/AMit-KP/Tunetastic/releases)
+
+<a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank" rel="noopener noreferrer">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://get.microsoft.com/images/en-us%20dark.svg">
+    <img alt="Get it from Microsoft" src="https://get.microsoft.com/images/en-us%20light.svg" width="200">
+  </picture>
 </a>
 
 </div>
+
+
+## Store stats
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/installs-dark.svg">
+  <img alt="Installs over time" src="charts/installs-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/map-dark.svg">
+  <img alt="Where people install from" src="charts/map-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/ratings-dark.svg">
+  <img alt="Ratings" src="charts/ratings-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/github-views-dark.svg">
+  <img alt="Repo views" src="charts/github-views-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="charts/github-clones-dark.svg">
+  <img alt="Git clones" src="charts/github-clones-light.svg">
+</picture>
 
 ---
 
@@ -267,6 +301,13 @@ Add an animated rainbow border to the player:
 
 Search for **Tunetastic** in the [Microsoft Store](https://github.com/AMit-KP/Tunetastic/tree/master#tunetastic), or follow the store link once available. No manual setup or certificate trust required — just install and play.
 
+### Winget Package Manager
+
+Open Command Prompt or Powershell on your windows and type the following
+```bash
+winget install Tunetastic
+```
+
 ### Github Releases *(Only Recommended if you want the latest version earlier)*
 
 Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download the Store Certificate(.cer) file and the MSIX file for your system architecture. Install the .cer file 1st (Valid for a year). Then, proceed to install the MSIX file.
@@ -286,6 +327,18 @@ Ensure the following workloads are installed in Visual Studio 2026:
 - **.NET desktop development**
 - **Windows application development** (includes Windows App SDK)
 
+#### SixLabors License
+
+This project uses [ImageSharp](https://github.com/SixLabors/ImageSharp), which requires a license key from SixLabors. The key is not included in this repository.
+
+To build locally:
+
+1. Get your own license key at [licensing.sixlabors.com](https://licensing.sixlabors.com/).
+2. Save the license file as `sixlabors.lic` in the project root, next to `Tunetastic.csproj`.
+3. Do not commit this file. It is already listed in `.gitignore`.
+
+Without this file, the build will fail with a license error.
+
 Then press **F5** to build and run.
 
 ---
@@ -293,6 +346,8 @@ Then press **F5** to build and run.
 ## Contributing
 
 Contributions are welcome! Please open an issue to discuss what you'd like to change before submitting a pull request. Make sure your code follows the existing style and that all builds pass cleanly.
+
+Each contributor needs their own SixLabors license key. Do not share keys or commit them to the repository. Pull requests from forks will not have access to the maintainer's CI secrets, so the automated build may fail on them until a maintainer reviews the change.
 
 ---
 
@@ -302,6 +357,27 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
+## Credits & Special Thanks
+
+[@Mahdi Hosseini](https://github.com/ghost1372) - For the amazing [DevWinUI](https://github.com/ghost1372/DevWinUI) that saved me hours of development and research time as an inexperienced developer.
+ 
+---
+
+## Inspired by
+
+<div align="center">
+
+*"Culture shouldn't exist only for those who can afford it"*
+
+— by Arsi "Hakita" Patala
+
+</div>
+
+If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots:
+
+>**Telegram Bot:** [@Music Downloader](https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1) *(Note: External third-party bot. Use at your own discretion.)*
+
+---
 <div align="center">
 
 Made with ♥ for music lovers on Windows

@@ -188,6 +188,10 @@ public sealed partial class GenreDetailPage : SongListPageBase
 				DurationSort.IsChecked = true;
 				break;
 
+			case "Track":
+				TrackSort.IsChecked = true;
+				break;
+
 			case "Title":
 			default:
 				TitleSort.IsChecked = true;
@@ -615,11 +619,11 @@ public sealed partial class GenreDetailPage : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					GenreGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info("Song/Track deleted." +
-											$"\nTitle: {songData.Title}" +
-											$"\nArtist: {songData.Artists}" +
-											$"\nAlbum: {songData.Album}" +
-											$"\nFile: {songData.Path}");
+					GlobalNotification.Success("Song/Track deleted." +
+												$"\nTitle: {songData.Title}" +
+												$"\nArtist: {songData.Artists}" +
+												$"\nAlbum: {songData.Album}" +
+												$"\nFile: {songData.Path}");
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -753,7 +757,7 @@ public sealed partial class GenreDetailPage : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

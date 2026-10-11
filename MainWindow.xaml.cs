@@ -160,9 +160,15 @@ public sealed partial class MainWindow : WindowEx
 		await LibraryWatcherService.StopWatching();
 
 		await MusicPlayer.Instance.SaveOnExitActionsAsync();
+
+		Growl.ClearGlobal();
+
 		App.Current.AudioService.Dispose();
 		TaskbarOverlayManager.Shutdown();
 		this.Close();
+
+		// NOTE: Hard-terminate to avoid a random shutdown crash
+		Environment.Exit(0);
 	}
 
 	public void WindowResizePermission(bool permission)

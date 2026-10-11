@@ -6,5 +6,6 @@
 	<converters:DateFormatConverter x:Key="DateFormatConverter" />
 	<converters:RelativeTimeConverter x:Key="RelativeTimeConverter" />
 	<converters:DurationToFullTimeConverter x:Key="DurationToFullTimeConverter" />
+	<converters:TrackNumberConverter x:Key="TrackNumberConverter" />
 	<toolkit:BoolToVisibilityConverter x:Key="BoolToVisibility" />
 </ResourceDictionary>

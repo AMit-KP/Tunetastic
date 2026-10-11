@@ -399,7 +399,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 				}
 				AlbumsGroup.Remove(albumModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
-				GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Album {albumModel?.Album} deleted.");
+				GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Album {albumModel?.Album} deleted.");
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 			{
@@ -541,7 +541,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 				AlbumTileView.Items.Remove(albumModel);
 
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected albums deleted.");
+			GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected albums deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

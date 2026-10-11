@@ -15,6 +15,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Create SixLabors license file
+        shell: pwsh
+        env:
+          SIXLABORS_LIC: ${{ secrets.SIXLABORS_LIC }}
+        run: |
+          if (-not $env:SIXLABORS_LIC) { Write-Error "SIXLABORS_LIC secret is missing or empty"; exit 1 }
+          [System.IO.File]::WriteAllText("$PWD\sixlabors.lic", $env:SIXLABORS_LIC)
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 

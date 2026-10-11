@@ -164,7 +164,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	private void UpdateAsPerLastSorting()
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var sortBy = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title";
+		var sortBy = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Track";
 		var sortOrder = localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending";
 		switch (sortBy)
 		{
@@ -177,8 +177,12 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 				break;
 
 			case "Title":
-			default:
 				TitleSort.IsChecked = true;
+				break;
+
+			case "Track":
+			default:
+				TrackSort.IsChecked = true;
 				break;
 		}
 		switch (sortOrder)
@@ -598,11 +602,11 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					AlbumGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Info("Song/Track deleted." +
-											$"\nTitle: {songData.Title}" +
-											$"\nArtist: {songData.Artists}" +
-											$"\nAlbum: {songData.Album}" +
-											$"\nFile: {songData.Path}");
+					GlobalNotification.Success("Song/Track deleted." +
+												$"\nTitle: {songData.Title}" +
+												$"\nArtist: {songData.Artists}" +
+												$"\nAlbum: {songData.Album}" +
+												$"\nFile: {songData.Path}");
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -736,7 +740,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{

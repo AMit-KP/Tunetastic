@@ -141,10 +141,16 @@ public partial class App : Application
 		bool autoSync = bool.Parse(localSettings.Values[nameof(LocalSave.AutoScanEnabled)]?.ToString() ?? "false");
 		await DatabaseHelper.Instance.InitializeDatabase();
 
-		if (scanAtStartup)
-			await new LibraryScanner().UpdateMetaData();
-		else
-			await Task.Delay(500);
+		// One-time full scan after updating to a targeted version (see PostUpdateScanService).
+		bool postUpdateScanRan = await PostUpdateScanService.RunIfEligible();
+
+		if (!postUpdateScanRan)
+		{
+			if (scanAtStartup)
+				await new LibraryScanner().UpdateMetaData();
+			else
+				await Task.Delay(500);
+		}
 
 		if (autoSync)
 			await AutoScanService.ResumeIfEnabled();
@@ -206,23 +212,21 @@ public partial class App : Application
 	/// </summary>
 	private async void InitializeApp()
 	{
-		var menuService = GetService<ContextMenuService>();
-		if (menuService != null && RuntimeHelper.IsPackaged())
+		ContextMenuItem menu = new ContextMenuItem
 		{
-			ContextMenuItem menu = new ContextMenuItem
-			{
-				Title = "Open Tunetastic Here",
-				Param = @"""{path}""",
-				AcceptFileFlag = (int)FileMatchFlagEnum.All,
-				AcceptDirectoryFlag = (int)(DirectoryMatchFlagEnum.Directory | DirectoryMatchFlagEnum.Background | DirectoryMatchFlagEnum.Desktop),
-				AcceptMultipleFilesFlag = (int)FilesMatchFlagEnum.Each,
-				Index = 0,
-				Enabled = true,
-				Icon = ProcessInfoHelper.GetFileVersionInfo().FileName,
-				Exe = "Tunetastic.exe"
-			};
+			Title = "Open Tunetastic Here",
+			Param = @"""{path}""",
+			AcceptFileFlag = (int)FileMatchFlagEnum.All,
+			AcceptDirectoryFlag = (int)(DirectoryMatchFlagEnum.Directory | DirectoryMatchFlagEnum.Background | DirectoryMatchFlagEnum.Desktop),
+			AcceptMultipleFilesFlag = (int)FilesMatchFlagEnum.Each,
+			Index = 0,
+			Enabled = true,
+			Icon = ProcessInfoHelper.GetFileVersionInfo().FileName,
+			Exe = "Tunetastic.exe"
+		};
 
-			await menuService.SaveAsync(menu);
-		}
+		var menuFolder = await ContextMenuService.CreateDefualtMenusFolderAsync();
+		ContextMenuService menuService = new ContextMenuService(menuFolder);
+		await menuService.SaveAsync(menu);
 	}
 }
