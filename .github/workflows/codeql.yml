@@ -1,0 +1,47 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [ "master", "Development" ]
+  pull_request:
+    branches: [ "master", "Development" ]
+  schedule:
+    - cron: '0 6 * * 0'
+    
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: manual
+
+      - name: Restore NuGet packages
+        run: dotnet restore Tunetastic.sln --configfile nuget.config
+
+      - name: Build
+        run: msbuild Tunetastic.sln /p:Configuration=Debug /p:Platform=x64 /p:AppxPackageSigningEnabled=false
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"
