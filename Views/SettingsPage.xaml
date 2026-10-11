@@ -597,6 +597,30 @@
 				        Click="BuyMeACoffee_Click"
 				        Content="Support Development ☕" />
 			</dev:SettingsCard>
+
+			<dev:SettingsCard x:Name="MusicDownloader_Panel"
+			                  PointerPressed="MusicDownloader_Reveal"
+			                  ToolTipService.ToolTip="Click 5 times to reveal">
+				<dev:SettingsCard.Header>
+					<TextBlock>
+						<Run FontStyle="Italic"
+						     FontWeight="SemiBold"
+						     Text="&quot;Culture shouldn't exist only for those who can afford it&quot;" />
+						<LineBreak />
+						<Run Text="                                                       — by Arsi Hakita Patala" />
+					</TextBlock>
+				</dev:SettingsCard.Header>
+				<dev:SettingsCard.Description>
+					<TextBlock x:Name="MusicDownloader_Description">
+						<Run Text="If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots." />
+					</TextBlock>
+				</dev:SettingsCard.Description>
+				<HyperlinkButton x:Name="MusicDownloadLink"
+				                 Content="Music Downloader"
+				                 NavigateUri="https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1"
+				                 Visibility="Collapsed" />
+			</dev:SettingsCard>
+
 			<!--  Reset  -->
 
 			<StackPanel Orientation="Horizontal"
