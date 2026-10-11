@@ -29,8 +29,8 @@ internal interface IMediaBackend : IDisposable
 	/// Asynchronously opens the specified media file for playback.
 	/// </summary>
 	/// <param name="path">The path to the media file.</param>
-	/// <returns>A task representing the asynchronous operation.</returns>
-	Task OpenAsync(string path);
+	/// <returns>False if the file could not be opened (missing, unreachable or unreadable).</returns>
+	Task<bool> OpenAsync(string path);
 
 	/// <summary>
 	/// Starts playing the media.
