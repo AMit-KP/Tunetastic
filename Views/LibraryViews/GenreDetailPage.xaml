@@ -428,7 +428,6 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 				</ListView>
@@ -595,7 +594,6 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 
