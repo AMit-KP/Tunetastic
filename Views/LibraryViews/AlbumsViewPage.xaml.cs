@@ -101,6 +101,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	private async Task UpdateListBasedOnSorting()
 	{
 		var albumModel = AlbumTileView.SelectedItem as AlbumModel;
+
+		UpdateShimmerPlaceholderCount(new Size(ContentGrid.ActualWidth, ContentGrid.ActualHeight));
 		ShimmerRepeater.Visibility = Visibility.Visible;
 
 		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
@@ -112,6 +114,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		groups = null;
 
 		ShimmerRepeater.Visibility = Visibility.Collapsed;
+		ShimmerRepeater.ItemsSource = null;
 		AlbumTileView.Visibility = Visibility.Visible;
 
 		NavigationPanelEvaluate();
@@ -847,7 +850,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
-		UpdateShimmerPlaceholderCount(e.NewSize);
+		if (ShimmerRepeater.Visibility == Visibility.Visible)
+			UpdateShimmerPlaceholderCount(e.NewSize);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 	}
 
