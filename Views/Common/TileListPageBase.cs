@@ -58,6 +58,8 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 		Scrubber.SetLetters(letters, available, hasLetters);
 		Scrubber.TargetList = TileView;
 		WireScrubberEvents();
+		
+		InvalidateScrubberHighlightFeed();
 		_ = AdjustAlphabetSize();
 	}
 
@@ -71,39 +73,15 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 		Scrubber.ScrollProgress += (_, progress) => OnScrubberScrollProgress(progress.Offset, progress.Viewport);
 	}
 
-	/// <summary>Feeds the scrubber from list scrolling: highlights every letter with tiles on screen.</summary>
-	private void OnScrubberScrollProgress(double offset, double viewport)
-		=> Scrubber.SetHighlightedLetters(ComputeVisibleLetters(TileView, offset, viewport));
-
-	/// <summary>
-	/// Maps the realized containers of the virtualized grid onto their section letters — only on-screen
-	/// tiles are realized, so this stays correct and cheap for any grid length or tile size.
-	/// </summary>
-	private List<string> ComputeVisibleLetters(ListViewBase view, double offset, double viewport)
-	{
-		var visible = new List<string>();
-		var panel = view.ItemsPanelRoot;
-		if (panel == null || viewport <= 0) return visible;
-
-		foreach (var container in panel.Children)
-		{
-			if (container is not FrameworkElement element) continue;
-			var slot = LayoutInformation.GetLayoutSlot(element);
-			if (slot.Bottom <= offset || slot.Top >= offset + viewport) continue;
-
-			var item = view.ItemFromContainer(element);
-			if (item != null)
-				visible.Add(LetterForItem(item));
-		}
-		return visible.Distinct().ToList();
-	}
+	/// <summary>The list the scrubber tracks for scroll highlights — the page's tile grid.</summary>
+	protected override ListViewBase? ScrubberTarget => TileView;
 
 	/// <summary>
 	/// Maps a displayed tile to its alphabet section letter ("A"–"Z" or "#"). Tile pages override this;
 	/// the default only backs derived pages without a rail (e.g. YearsViewPage).
 	/// </summary>
 	/// <param name="item">The tile whose section letter is needed.</param>
-	protected virtual string LetterForItem(object item) => "#";
+	protected override string LetterForItem(object item) => "#";
 
 	/// <summary>
 	/// Scrolls the view to the first tile of the given alphabet section.
