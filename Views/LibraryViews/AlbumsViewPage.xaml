@@ -363,11 +363,7 @@
 										<Image x:Name="AlbumCover"
 										       Width="150"
 										       HorizontalAlignment="Center"
-										       VerticalAlignment="Center">
-											<Image.Source>
-												<BitmapImage UriSource="{x:Bind Cover}" />
-											</Image.Source>
-										</Image>
+										       VerticalAlignment="Center" Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
 									</Grid>
 								</Grid>
 								<TextBlock x:Name="AlbumTextBlock"
