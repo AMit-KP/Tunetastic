@@ -395,16 +395,16 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = AllSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AllSongs.Select(song => FirstLetter(song.Title)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Any(song => FirstLetter(song.Title) == "#");
 				break;
 			case "Artists":
-				availableLetters = AllSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AllSongs.Select(song => FirstLetter(song.Artists)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Any(song => FirstLetter(song.Artists) == "#");
 				break;
 			case "Album":
-				availableLetters = AllSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AllSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AllSongs.Select(song => FirstLetter(song.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AllSongs.Any(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 
@@ -426,15 +426,15 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => FirstLetter(song.Title) == "#");
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => FirstLetter(song.Artists) == "#");
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? AllSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AllSongs.FirstOrDefault(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 		if (targetSong != null)
@@ -459,9 +459,21 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 		}
 	}
 
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+	/// <summary>
+	/// Maps a song to its alphabet section letter based on the active sort field.
+	/// </summary>
+	protected override string LetterForItem(object item)
+	{
+		var song = (Song)item;
+		return _lastSortBy switch
+		{
+			"Artists" => FirstLetter(song.Artists),
+			"Album" => FirstLetter(song.Album),
+			_ => FirstLetter(song.Title)
+		};
+	}
 
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
 	/// <summary>
 	/// Handles the event when the "Go to Settings" button is clicked.

@@ -298,14 +298,16 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = ArtistGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = ArtistGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = ArtistGroupSongs.Select(song => FirstLetter(song.Title)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = ArtistGroupSongs.Any(song => FirstLetter(song.Title) == "#");
 				break;
 			case "Album":
-				availableLetters = ArtistGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = ArtistGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = ArtistGroupSongs.Select(song => FirstLetter(song.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = ArtistGroupSongs.Any(song => FirstLetter(song.Album) == "#");
 				break;
 		}
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
@@ -329,8 +331,6 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)] = orderBy;
-
-		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -436,15 +436,15 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => FirstLetter(song.Title) == "#");
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => FirstLetter(song.Artists) == "#");
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? ArtistGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistGroupSongs.FirstOrDefault(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 		if (targetSong != null)
@@ -469,9 +469,20 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 		}
 	}
 
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+	/// <summary>
+	/// Maps a song to its alphabet section letter based on the active sort field.
+	/// </summary>
+	protected override string LetterForItem(object item)
+	{
+		var song = (Song)item;
+		return _lastSortBy switch
+		{
+			"Album" => FirstLetter(song.Album),
+			_ => FirstLetter(song.Title)
+		};
+	}
 
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
 	/// <summary>
 	/// Handles the event when the "Go to Settings" button is clicked.

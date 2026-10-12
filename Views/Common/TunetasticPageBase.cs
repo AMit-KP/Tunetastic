@@ -24,7 +24,7 @@ public abstract partial class TunetasticPageBase : Page
 	private StackPanel? _pageButtonsPanel;
 	private ToggleButton? _multiSelectToggle;
 	private Grid? _contentAreaGrid;
-	private StackPanel? _alphabetPanel;
+	private AlphabetScrubber? _scrubber;
 
 	private T RequiredControl<T>(string name) where T : FrameworkElement =>
 		(T)(FindName(name) ?? throw new InvalidOperationException($"Control '{name}' was not found on {GetType().Name}."));
@@ -50,8 +50,18 @@ public abstract partial class TunetasticPageBase : Page
 	/// <summary>The root content area used for layout measurements.</summary>
 	protected Grid ContentAreaGrid => _contentAreaGrid ??= RequiredControl<Grid>("ContentGrid");
 
-	/// <summary>The vertical A-Z quick navigation panel. Only present on pages that show it.</summary>
-	protected StackPanel AlphabetPanel => _alphabetPanel ??= RequiredControl<StackPanel>("AlphabetNavigationPanel");
+	/// <summary>The Android-style A–Z scrubber control. Only present on pages that show it.</summary>
+	protected AlphabetScrubber Scrubber => _scrubber ??= RequiredControl<AlphabetScrubber>("AlphabetScrubber");
+
+	/// <summary>
+	/// Returns the uppercase first character of a value as its alphabet-section key ("A"–"Z"), or "#"
+	/// for non-letter, empty or null values — safe against empty strings.
+	/// </summary>
+	protected static string FirstLetter(string? value)
+	{
+		var c = value?.Trim().FirstOrDefault() ?? '\0';
+		return char.IsLetter(c) ? char.ToUpperInvariant(c).ToString() : "#";
+	}
 
 	/// <summary>
 	/// Runs the shared initialization flow: shows the settings prompt, lets the page collapse its content views,

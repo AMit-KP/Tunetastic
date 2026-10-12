@@ -9,8 +9,8 @@
                         xmlns:dev="using:DevWinUI"
                         xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                        xmlns:scrubber="using:Tunetastic.Common.Controls"
                         xmlns:views="using:Tunetastic.Views.Common"
-                        ActualThemeChanged="Page_ActualThemeChanged"
                         Loaded="Page_Loaded"
                         SizeChanged="Page_SizeChanged"
                         mc:Ignorable="d">
@@ -303,7 +303,7 @@
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AlbumGroupSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
-				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				          ScrollViewer.VerticalScrollMode="Enabled"
 				          SelectionChanged="ListView_SelectionChanged"
 				          SelectionMode="Single">
@@ -458,7 +458,7 @@
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind AlbumGroupSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
-				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				          ScrollViewer.VerticalScrollMode="Enabled"
 				          SelectionChanged="ListView_SelectionChanged"
 				          SelectionMode="Single">
@@ -631,13 +631,7 @@
 
 				</ListView>
 			</Grid>
-			<StackPanel x:Name="AlphabetNavigationPanel"
-			            Margin="0,50,30,10"
-			            HorizontalAlignment="Right"
-			            VerticalAlignment="Stretch"
-			            Orientation="Vertical"
-			            Spacing="0">
-			</StackPanel>
+			<scrubber:AlphabetScrubber x:Name="AlphabetScrubber" />
 		</Grid>
 	</Grid>
 </views:SongListPageBase>

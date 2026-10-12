@@ -773,8 +773,8 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;
-		availableLetters = ArtistsGroup.Select(artist => artist.Artist.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-		bool hasSpecialCharacters = ArtistsGroup.Select(artist => artist.Artist.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+		availableLetters = ArtistsGroup.Select(artist => FirstLetter(artist.Artist)).Where(c => c != "#").Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = ArtistsGroup.Any(artist => FirstLetter(artist.Artist) == "#");
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
 	}
@@ -792,7 +792,7 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 	{
 		ArtistModel? targetArtist = null;
 
-		targetArtist = letter != "#" ? ArtistsGroup.FirstOrDefault(artist => artist.Artist.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistsGroup.FirstOrDefault(artist => !char.IsLetter(artist.Artist[0]));
+		targetArtist = letter != "#" ? ArtistsGroup.FirstOrDefault(artist => artist.Artist.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : ArtistsGroup.FirstOrDefault(artist => FirstLetter(artist.Artist) == "#");
 
 		if (targetArtist != null)
 		{
@@ -815,9 +815,13 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 		}
 	}
 
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+	/// <summary>
+	/// Maps an artist tile to its alphabet section letter.
+	/// </summary>
+	protected override string LetterForItem(object item)
+		=> item is ArtistModel artist ? FirstLetter(artist.Artist) : "#";
 
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
 	/// <summary>
 	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.

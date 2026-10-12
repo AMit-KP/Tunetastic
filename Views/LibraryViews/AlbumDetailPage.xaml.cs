@@ -290,14 +290,16 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = AlbumGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AlbumGroupSongs.Select(song => FirstLetter(song.Title)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AlbumGroupSongs.Any(song => FirstLetter(song.Title) == "#");
 				break;
 			case "Artists":
-				availableLetters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = AlbumGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = AlbumGroupSongs.Select(song => FirstLetter(song.Artists)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = AlbumGroupSongs.Any(song => FirstLetter(song.Artists) == "#");
 				break;
 		}
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
@@ -321,8 +323,6 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)] = orderBy;
-
-		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -428,15 +428,15 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => FirstLetter(song.Title) == "#");
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => FirstLetter(song.Artists) == "#");
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? AlbumGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumGroupSongs.FirstOrDefault(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 		if (targetSong != null)
@@ -461,8 +461,20 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		}
 	}
 
+	/// <summary>
+	/// Maps a song to its alphabet section letter based on the active sort field.
+	/// </summary>
+	protected override string LetterForItem(object item)
+	{
+		var song = (Song)item;
+		return _lastSortBy switch
+		{
+			"Artists" => FirstLetter(song.Artists),
+			_ => FirstLetter(song.Title)
+		};
+	}
+
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
 
 	/// <summary>
 	/// Handles the event when the "Go to Settings" button is clicked.

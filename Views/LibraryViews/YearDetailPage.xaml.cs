@@ -300,18 +300,20 @@ public sealed partial class YearDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				availableLetters = YearGroupSongs.Select(song => song.Title.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = YearGroupSongs.Select(song => song.Title.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => FirstLetter(song.Title)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Any(song => FirstLetter(song.Title) == "#");
 				break;
 			case "Artists":
-				availableLetters = YearGroupSongs.Select(song => song.Artists.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = YearGroupSongs.Select(song => song.Artists.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => FirstLetter(song.Artists)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Any(song => FirstLetter(song.Artists) == "#");
 				break;
 			case "Album":
-				availableLetters = YearGroupSongs.Select(song => song.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-				hasSpecialCharacters = YearGroupSongs.Select(song => song.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+				availableLetters = YearGroupSongs.Select(song => FirstLetter(song.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = YearGroupSongs.Any(song => FirstLetter(song.Album) == "#");
 				break;
 		}
+
+		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 
 		var sortDropdownContent = new TextBlock();
 		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
@@ -335,8 +337,6 @@ public sealed partial class YearDetailPage : SongListPageBase
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)] = orderBy;
-
-		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 	}
 
 	/// <summary>
@@ -442,15 +442,15 @@ public sealed partial class YearDetailPage : SongListPageBase
 		switch (sortBy)
 		{
 			case "Title":
-				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Title[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => FirstLetter(song.Title) == "#");
 				break;
 
 			case "Artists":
-				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Artists[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => FirstLetter(song.Artists) == "#");
 				break;
 
 			case "Album":
-				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => !char.IsLetter(song.Album[0]));
+				targetSong = letter != "#" ? YearGroupSongs.FirstOrDefault(song => song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : YearGroupSongs.FirstOrDefault(song => FirstLetter(song.Album) == "#");
 				break;
 		}
 		if (targetSong != null)
@@ -475,9 +475,21 @@ public sealed partial class YearDetailPage : SongListPageBase
 		}
 	}
 
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+	/// <summary>
+	/// Maps a song to its alphabet section letter based on the active sort field.
+	/// </summary>
+	protected override string LetterForItem(object item)
+	{
+		var song = (Song)item;
+		return _lastSortBy switch
+		{
+			"Artists" => FirstLetter(song.Artists),
+			"Album" => FirstLetter(song.Album),
+			_ => FirstLetter(song.Title)
+		};
+	}
 
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
 	/// <summary>
 	/// Handles the event when the "Go to Settings" button is clicked.

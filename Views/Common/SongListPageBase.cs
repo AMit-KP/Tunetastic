@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.Common;
@@ -42,6 +43,10 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	protected abstract Button MoreButtonControl { get; }
 
 	private MenuFlyout? _viewStyleMenu;
+
+	/// <summary>The sort field the rail was last built for ("Title", "Artists", "Album", …).</summary>
+	protected string? _lastSortBy;
+	private bool _scrubberWired;
 
 	/// <summary>The flyout holding the compact/list view style radio items.</summary>
 	protected MenuFlyout ViewStyleMenu => _viewStyleMenu ??= RequiredControlFlyout("ViewStyle");
@@ -116,7 +121,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	}
 
 	/// <summary>
-	/// Populates the alphabet navigation panel with letters and optionally a special character marker
+	/// Populates the alphabet scrubber with letters and optionally a special character marker
 	/// for navigating sections of songs.
 	/// </summary>
 	/// <param name="availableLetters">
@@ -132,69 +137,71 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	/// <param name="hasSpecialCharacters">
 	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
 	/// </param>
-	protected async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
+	protected void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, string sortBy, bool hasSpecialCharacters)
 	{
-		AlphabetPanel.Children.Clear();
-		if (availableLetters == null && !hasSpecialCharacters) return;
+		_lastSortBy = sortBy;
 
-		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
-		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
-		if (!order) fullAlphabet = fullAlphabet.Reverse();
+		var letters = new List<string>(Enumerable.Range('A', 26).Select(x => ((char)x).ToString()));
+		if (hasSpecialCharacters) letters.Insert(0, "#");
+		if (!order) letters.Reverse();
 
-		var viewStyle = CurrentViewStyleText();
-		double availableSpace = ContentAreaGrid.ActualHeight - viewStyle switch
-		{
-			"List View" => 60,
-			"Compact View" => 20,
-			_ => 20
-		};
-		if (availableSpace <= 0) return;
+		var hasLetters = availableLetters != null || hasSpecialCharacters;
+		var available = new List<string>();
+		if (hasLetters && availableLetters != null)
+			available.AddRange(availableLetters.Where(letters.Contains));
+		if (hasSpecialCharacters)
+			available.Add("#");
 
-		double autoHeight = availableSpace / fullAlphabet.Count();
-
-		var transparentBrush = new SolidColorBrush(Colors.Transparent);
-
-		foreach (var letter in fullAlphabet)
-		{
-			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
-
-			var foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray);
-			var Button = new Button
-			{
-				Content = letter,
-				Foreground = foreground,
-				Opacity = hasSongs ? 1 : 0.5,
-				Background = transparentBrush,
-				BorderBrush = transparentBrush,
-				BorderThickness = new Thickness(0),
-				IsHitTestVisible = hasSongs,
-				Margin = new Thickness(0),
-				HorizontalContentAlignment = HorizontalAlignment.Right,
-				VerticalContentAlignment = VerticalAlignment.Stretch,
-				Padding = new Thickness(0),
-				HorizontalAlignment = HorizontalAlignment.Right,
-				VerticalAlignment = VerticalAlignment.Stretch,
-				Height = autoHeight
-			};
-			Button.Resources["ButtonBackgroundPointerOver"] = transparentBrush;
-			Button.Resources["ButtonBackgroundPressed"] = transparentBrush;
-			Button.Resources["ButtonForegroundPointerOver"] = foreground;
-			Button.Resources["ButtonForegroundPressed"] = foreground;
-			Button.Resources["ButtonBorderBrushPointerOver"] = transparentBrush;
-			Button.Resources["ButtonBorderBrushPressed"] = transparentBrush;
-
-			if (hasSongs)
-			{
-				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
-				ToolTipService.SetToolTip(Button, letter);
-				Button.Tapped += (s, e) => ScrollToSection(letter, sortBy);
-			}
-
-			AlphabetPanel.Children.Add(Button);
-		}
+		Scrubber.SetLetters(letters, available, hasLetters);
+		Scrubber.TargetList = GetCurrentViewStyle();
+		WireScrubberEvents();
 		_ = AdjustAlphabetSize();
-		availableLetters = null;
 	}
+
+	/// <summary>Wires the scrubber events once: tap → section jump, scroll → highlight updates.</summary>
+	private void WireScrubberEvents()
+	{
+		if (_scrubberWired) return;
+		_scrubberWired = true;
+
+		Scrubber.LetterTapped += (_, letter) => ScrollToSection(letter, _lastSortBy ?? "Title");
+		Scrubber.ScrollProgress += (_, progress) => OnScrubberScrollProgress(progress.Offset, progress.Viewport);
+	}
+
+	/// <summary>Feeds the scrubber from list scrolling: highlights every letter with items on screen.</summary>
+	private void OnScrubberScrollProgress(double offset, double viewport)
+		=> Scrubber.SetHighlightedLetters(ComputeVisibleLetters(GetCurrentViewStyle(), offset, viewport));
+
+	/// <summary>
+	/// Maps the realized containers of the virtualized list onto their section letters — only on-screen
+	/// items are realized, so this stays correct and cheap for any list length or item height.
+	/// </summary>
+	private List<string> ComputeVisibleLetters(ListViewBase view, double offset, double viewport)
+	{
+		var visible = new List<string>();
+		var panel = view.ItemsPanelRoot;
+		if (panel == null || viewport <= 0) return visible;
+
+		foreach (var container in panel.Children)
+		{
+			if (container is not FrameworkElement element) continue;
+			var slot = LayoutInformation.GetLayoutSlot(element);
+			if (slot.Bottom <= offset || slot.Top >= offset + viewport) continue;
+
+			var item = view.ItemFromContainer(element);
+			if (item != null)
+				visible.Add(LetterForItem(item));
+		}
+		return visible.Distinct().ToList();
+	}
+
+	/// <summary>
+	/// Maps a displayed item to its alphabet section letter ("A"–"Z" or "#") based on the active sort field.
+	/// Rail pages override this; the default (by title) only backs derived pages without a rail.
+	/// </summary>
+	/// <param name="item">The item whose section letter is needed.</param>
+	protected virtual string LetterForItem(object item)
+		=> item is Song song ? FirstLetter(song.Title) : "#";
 
 	/// <summary>
 	/// Scrolls the view to the first song of the given alphabet section.
@@ -207,46 +214,20 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 	}
 
 	/// <summary>
-	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
+	/// Repositions the scrubber for the active view style and re-targets it at the active list. Called on
+	/// view switches, sort changes and page resizes; the control sizes its own letters to the height.
 	/// </summary>
 	/// <returns>A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.</returns>
 	protected Task AdjustAlphabetSize()
 	{
-		var viewStyle = CurrentViewStyleText();
-		double availableSpace = ContentAreaGrid.ActualHeight - viewStyle switch
+		Scrubber.Margin = CurrentViewStyleText() switch
 		{
-			"List View" => 60,
-			"Compact View" => 20,
-			_ => 20
+			"List View" => new Thickness(0, 50, 0, 10),
+			"Compact View" => new Thickness(0, 10, 0, 10),
+			_ => new Thickness(0, 10, 0, 10)
 		};
-
-		AlphabetPanel.Margin = viewStyle switch
-		{
-			"List View" => new Thickness(0, 50, 30, 10),
-			"Compact View" => new Thickness(0, 10, 30, 10),
-			_ => new Thickness(0, 10, 30, 10)
-		};
-
-		if (availableSpace <= 0) return Task.CompletedTask;
-
-		double totalLetters = AlphabetPanel.Children.Count;
-
-		double autoHeight = availableSpace / totalLetters;
-
-		foreach (var button in AlphabetPanel.Children.OfType<Button>())
-		{
-			button.Height = autoHeight;
-		}
+		Scrubber.TargetList = GetCurrentViewStyle();
 		return Task.CompletedTask;
-	}
-
-	/// <summary>
-	/// Re-colors enabled alphabet navigation buttons when the page theme changes.
-	/// </summary>
-	protected void ApplyAlphabetThemeColors(FrameworkElement sender, object args)
-	{
-		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
-		AlphabetPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
 
 	/// <summary>
