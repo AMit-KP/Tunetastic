@@ -1,20 +1,14 @@
-﻿name: Build
+name: Build
 
 on:
   pull_request:
     branches: [ "master", "Development" ]
-  # Used ONLY by the license-notice job below to comment on fork PRs.
-  # Never add a checkout or any step that runs PR code to that job.
-  pull_request_target:
-    branches: [ "master", "Development" ]
-    types: [ opened, reopened, synchronize ]
 
 permissions:
   contents: read
 
 jobs:
   build:
-    if: github.event_name == 'pull_request'
     runs-on: windows-latest
     strategy:
       matrix:
@@ -49,28 +43,3 @@ jobs:
 
       - name: Build (${{ matrix.platform }}, ${{ steps.license.outputs.configuration }})
         run: msbuild Tunetastic.sln /p:Configuration=${{ steps.license.outputs.configuration }} /p:Platform=${{ matrix.platform }} /p:AppxPackageSigningEnabled=false
-
-  license-notice:
-    # Fork PRs only: same-repo PRs get the secret, so they need no notice.
-    if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.fork == true
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-    steps:
-      - name: Comment about the SixLabors license
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: |
-          # Comment only once per PR.
-          marker='<!-- build:sixlabors-license -->'
-          existing="$(gh api --paginate "repos/$GH_REPO/issues/$PR_NUMBER/comments" --jq '.[].body')"
-          if grep -qF -e "$marker" <<< "$existing"; then
-            echo "Already commented on this PR - skipping."
-            exit 0
-          fi
-          gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body "👋 Thanks for the PR! GitHub doesn't share repository secrets with PRs from forks, so this PR's **Build** check compiles in Debug without the project's SixLabors license (Release builds need one). A green check here means your changes compile. A maintainer will do the full Release build with the license before merging.
-
-          To build locally, see the setup steps [here](https://github.com/AMit-KP/Tunetastic/tree/master#sixlabors-license)
-          $marker"
