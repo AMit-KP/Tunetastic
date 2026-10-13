@@ -24,6 +24,10 @@ namespace Tunetastic.Views.LibraryViews;
 /// </remarks>
 public sealed partial class GenresViewPage : TileListPageBase
 {
+	private double _lastSizedWidth = -1;
+	private int _lastSizedCount = -1;
+	private double _adjustedTileMargin = 10;
+
 	/// <summary>
 	/// Gets or sets the collection of <c>GenreModel</c> objects, representing groups of songs organized by Genre.
 	/// </summary>
@@ -704,6 +708,11 @@ public sealed partial class GenresViewPage : TileListPageBase
 		int itemCount = GenreTileView.Items.Count;
 		if (itemCount <= 0) return;
 
+		if (availableWidth == _lastSizedWidth && itemCount == _lastSizedCount)
+			return;
+		_lastSizedWidth = availableWidth;
+		_lastSizedCount = itemCount;
+
 		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
 		int count = Math.Min(itemCount, maxFitCount);
 
@@ -721,6 +730,8 @@ public sealed partial class GenresViewPage : TileListPageBase
 			adjustedItemWidth += extraPerTile;
 			adjustedMargin += extraPerTile * 0.5;
 		}
+
+		_adjustedTileMargin = adjustedMargin;
 
 		for (int i = 0; i < itemCount; i++)
 		{
@@ -743,14 +754,12 @@ public sealed partial class GenresViewPage : TileListPageBase
 	/// <param name="args">
 	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
 	/// </param>
-	/// <remarks>
-	/// This method is invoked whenever a container's UI content is about to change for a specific genre tile in the <c>GenreTileView</c>.
-	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
-	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the genre view.
-	/// </remarks>
 	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		GenreTileView_SizeChanged(null, null);
+		
+		if (args.ItemContainer is ListViewItem container)
+			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}
 
 	/// <summary>

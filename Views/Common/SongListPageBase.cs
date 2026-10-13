@@ -155,6 +155,8 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 		Scrubber.SetLetters(letters, available, hasLetters);
 		Scrubber.TargetList = GetCurrentViewStyle();
 		WireScrubberEvents();
+
+		InvalidateScrubberHighlightFeed();
 		_ = AdjustAlphabetSize();
 	}
 
@@ -168,39 +170,15 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 		Scrubber.ScrollProgress += (_, progress) => OnScrubberScrollProgress(progress.Offset, progress.Viewport);
 	}
 
-	/// <summary>Feeds the scrubber from list scrolling: highlights every letter with items on screen.</summary>
-	private void OnScrubberScrollProgress(double offset, double viewport)
-		=> Scrubber.SetHighlightedLetters(ComputeVisibleLetters(GetCurrentViewStyle(), offset, viewport));
-
-	/// <summary>
-	/// Maps the realized containers of the virtualized list onto their section letters — only on-screen
-	/// items are realized, so this stays correct and cheap for any list length or item height.
-	/// </summary>
-	private List<string> ComputeVisibleLetters(ListViewBase view, double offset, double viewport)
-	{
-		var visible = new List<string>();
-		var panel = view.ItemsPanelRoot;
-		if (panel == null || viewport <= 0) return visible;
-
-		foreach (var container in panel.Children)
-		{
-			if (container is not FrameworkElement element) continue;
-			var slot = LayoutInformation.GetLayoutSlot(element);
-			if (slot.Bottom <= offset || slot.Top >= offset + viewport) continue;
-
-			var item = view.ItemFromContainer(element);
-			if (item != null)
-				visible.Add(LetterForItem(item));
-		}
-		return visible.Distinct().ToList();
-	}
+	/// <summary>The list the scrubber tracks for scroll highlights — the currently active view style.</summary>
+	protected override ListViewBase? ScrubberTarget => GetCurrentViewStyle();
 
 	/// <summary>
 	/// Maps a displayed item to its alphabet section letter ("A"–"Z" or "#") based on the active sort field.
 	/// Rail pages override this; the default (by title) only backs derived pages without a rail.
 	/// </summary>
 	/// <param name="item">The item whose section letter is needed.</param>
-	protected virtual string LetterForItem(object item)
+	protected override string LetterForItem(object item)
 		=> item is Song song ? FirstLetter(song.Title) : "#";
 
 	/// <summary>

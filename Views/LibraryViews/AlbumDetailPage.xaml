@@ -376,7 +376,7 @@
 								      Margin="0,2,0,2"
 								      CornerRadius="10">
 									<Image VerticalAlignment="Center"
-									       Source="{x:Bind Cover}" />
+									       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
 								</Grid>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
@@ -442,7 +442,6 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 				</ListView>
@@ -497,7 +496,7 @@
 											      CornerRadius="10">
 												<Image HorizontalAlignment="Center"
 												       VerticalAlignment="Center"
-												       Source="{x:Bind Cover}" />
+												       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
 											</Grid>
 										</Grid>
 										<StackPanel Grid.Column="2"
@@ -625,7 +624,6 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 

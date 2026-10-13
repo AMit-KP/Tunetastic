@@ -16,6 +16,10 @@ namespace Tunetastic.Views.LibraryViews;
 /// </remarks>
 public sealed partial class AlbumsViewPage : TileListPageBase
 {
+	private double _lastSizedWidth = -1;
+	private int _lastSizedCount = -1;
+	private double _adjustedTileMargin = 10;
+
 	/// <summary>
 	/// Gets or sets the collection of <c>AlbumModel</c> objects, representing groups of songs organized by album.
 	/// </summary>
@@ -97,6 +101,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	private async Task UpdateListBasedOnSorting()
 	{
 		var albumModel = AlbumTileView.SelectedItem as AlbumModel;
+
+		UpdateShimmerPlaceholderCount(new Size(ContentGrid.ActualWidth, ContentGrid.ActualHeight));
 		ShimmerRepeater.Visibility = Visibility.Visible;
 
 		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
@@ -108,6 +114,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		groups = null;
 
 		ShimmerRepeater.Visibility = Visibility.Collapsed;
+		ShimmerRepeater.ItemsSource = null;
 		AlbumTileView.Visibility = Visibility.Visible;
 
 		NavigationPanelEvaluate();
@@ -726,6 +733,11 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		int itemCount = AlbumTileView.Items.Count;
 		if (itemCount <= 0) return;
 
+		if (availableWidth == _lastSizedWidth && itemCount == _lastSizedCount)
+			return;
+		_lastSizedWidth = availableWidth;
+		_lastSizedCount = itemCount;
+
 		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
 		int count = Math.Min(itemCount, maxFitCount);
 
@@ -743,6 +755,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 			adjustedItemWidth += extraPerTile;
 			adjustedMargin += extraPerTile * 0.5;
 		}
+
+		_adjustedTileMargin = adjustedMargin;
 
 		for (int i = 0; i < itemCount; i++)
 		{
@@ -764,14 +778,12 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	/// <param name="args">
 	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
 	/// </param>
-	/// <remarks>
-	/// This method is invoked whenever a container's UI content is about to change for a specific album tile in the <c>AlbumTileView</c>.
-	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
-	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the album view.
-	/// </remarks>
 	private void AlbumTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		AlbumTileView_SizeChanged(null, null);
+
+		if (args.ItemContainer is ListViewItem container)
+			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}
 
 	/// <summary>
@@ -838,7 +850,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
-		UpdateShimmerPlaceholderCount(e.NewSize);
+		if (ShimmerRepeater.Visibility == Visibility.Visible)
+			UpdateShimmerPlaceholderCount(e.NewSize);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 	}
 
