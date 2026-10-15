@@ -2,9 +2,9 @@
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using TagLib;
@@ -375,7 +375,7 @@ public sealed partial class MainPage : Page
 			await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
 			GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created.");
 		}
-		if (AddPlaylistCreateButton.Content.ToString() == "Add Playlist")
+		if (AddPlaylistCreateButton.Content.ToString() == "Add Playlist" && PlaylistFileSongs.Count > 0)
 		{
 			await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
 			GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
@@ -828,15 +828,16 @@ public sealed partial class MainPage : Page
 	{
 		var (name, totalcount, songList) = await ImportExportPlaylist.ImportData(path);
 
-		var desc = new TextBlock();
-		desc.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
-		desc.Inlines.Add(new LineBreak());
-		desc.Inlines.Add(new Run() { Text = $"Playlist: {path}" });
-		desc.Inlines.Add(new LineBreak());
-		desc.Inlines.Add(new Run() { Text = $"Tracks: {songList.Count} out of {totalcount} found in library" });
+		AddPlaylistDialogDescription.Inlines.Clear();
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
+		AddPlaylistDialogDescription.Inlines.Add(new LineBreak());
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Playlist:" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {path}" });
+		AddPlaylistDialogDescription.Inlines.Add(new LineBreak());
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Tracks:" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {songList.Count} out of {totalcount} found in library" });
 
 		PlaylistNameBox.Text = name;
-		AddPlaylistDialogDescription.Text = desc.Text;
 		AddPlaylistCreateButton.Content = "Add Playlist";
 		PlaylistFileSongs.Clear();
 		PlaylistFileSongs.AddRange(songList);
