@@ -227,12 +227,22 @@ public static class CliPlaylistAdd
 		{
 			foreach (var file in ExpandInput(input, failures))
 			{
-				if (!enabledExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+				string fullPath;
+				try
 				{
-					failures.Add(new InputFailure { Input = file, Reason = $"File type '{Path.GetExtension(file)}' is disabled in Settings > File Extensions." });
+					fullPath = Path.GetFullPath(file);
+				}
+				catch (Exception ex)
+				{
+					failures.Add(new InputFailure { Input = file, Reason = $"Invalid path: {ex.Message}" });
 					continue;
 				}
-				files.Add(Path.GetFullPath(file));
+				if (!enabledExtensions.Contains(Path.GetExtension(fullPath).ToLowerInvariant()))
+				{
+					failures.Add(new InputFailure { Input = fullPath, Reason = $"File type '{Path.GetExtension(fullPath)}' is disabled in Settings > File Extensions." });
+					continue;
+				}
+				files.Add(fullPath);
 			}
 		}
 
@@ -274,7 +284,7 @@ public static class CliPlaylistAdd
 		if (input.IndexOfAny(['*', '?', '[']) >= 0)
 		{
 			var directory = Path.GetDirectoryName(input);
-			var pattern = Path.GetFileName(input);
+			var pattern = Path.GetFileName(input) ?? "*.*";
 			if (string.IsNullOrEmpty(directory))
 				directory = Directory.GetCurrentDirectory();
 

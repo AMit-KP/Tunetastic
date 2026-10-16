@@ -95,10 +95,11 @@ public static class CliMetadataReader
 		else
 			defaulted.Add("Title (file name fallback)");
 
-		if (tag.Performers.Length > 0)
+		var performers = tag.Performers.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+		if (performers.Count > 0)
 		{
-			imported.Add($"Artist '{tag.Performers[0]}'");
-			foreach (var extra in tag.Performers.Skip(1).Where(p => !string.IsNullOrWhiteSpace(p)))
+			imported.Add($"Artist '{performers[0]}'");
+			foreach (var extra in performers.Skip(1))
 				skipped.Add($"Artist '{extra}' (only the first performer is stored)");
 		}
 		else
@@ -114,10 +115,11 @@ public static class CliMetadataReader
 		else
 			defaulted.Add("Album (Unknown Album)");
 
-		if (tag.Genres.Length > 0)
+		var genres = tag.Genres.Where(g => !string.IsNullOrWhiteSpace(g)).ToList();
+		if (genres.Count > 0)
 		{
-			imported.Add($"Genre '{tag.Genres[0]}'");
-			foreach (var extra in tag.Genres.Skip(1).Where(g => !string.IsNullOrWhiteSpace(g)))
+			imported.Add($"Genre '{genres[0]}'");
+			foreach (var extra in genres.Skip(1))
 				skipped.Add($"Genre '{extra}' (only the first genre is stored)");
 		}
 		else
@@ -132,6 +134,8 @@ public static class CliMetadataReader
 
 		if (tag.Track > 0)
 			imported.Add($"Track number '{tag.Track}'");
+		else
+			defaulted.Add("Track number (none in tags)");
 		if (tag.TrackCount > 0)
 			skipped.Add($"Track count '{tag.TrackCount}' (library has no track-count column)");
 		if (tag.Disc > 0)
