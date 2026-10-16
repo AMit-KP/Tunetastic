@@ -158,6 +158,26 @@ Smart playlists keep your most-reached-for music always at hand, and you can bui
 
 ---
 
+### ⌨️ Command Line — `playlist add`
+
+Tunetastic can be driven from the terminal (via the `Tunetastic.exe` execution alias) to add local audio files to a playlist — handy for batch imports and scripting:
+
+```bash
+tunetastic playlist add "My Playlist" "C:\Music\song.mp3"
+tunetastic playlist add "My Playlist" "C:\Music\*.mp3"
+tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run
+```
+
+- The playlist is created when it does not exist (pass `--no-create` to fail instead).
+- Folders are scanned recursively; wildcards work in any shell. Multiple files, patterns and folders can be mixed in one call.
+- All embedded metadata is imported with the same routine the library scan uses: title, artist, album, year, genre, track number, lyrics and embedded cover art. Your duplicate-detection and minimum-duration settings are respected.
+- Fields the library has no column for (album artist, disc number, composer, extra performers/genres/pictures, BPM, …) are listed in the output instead of being silently ignored.
+- Output: a human-readable summary on stderr plus a machine-readable JSON report on stdout. Exit codes: `0` = success, `1` = completed with failed inputs, `2` = usage/config error.
+
+Notes: the command works whether or not the app window is open (open views refresh the next time they load). Tracks added from folders outside your configured libraries behave like any other library track, but a full library re-scan only keeps tracks that live inside a library folder.
+
+---
+
 ### 🔍 Quick Search
 
 A quick search bar sits in the top panel, letting you instantly search across your entire library by song title, artist, album, genre, or year — no need to navigate away from wherever you are.

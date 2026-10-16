@@ -20,6 +20,9 @@ public static class Startup
 	[STAThread]
 	static void Main(string[] args)
 	{
+		if (Common.Cli.CliRunner.TryRun(args))
+			return;
+
 		bool createdNew;
 		using var mutex = new Mutex(true, "Tunetastic.Mutex", out createdNew);
 
