@@ -107,11 +107,13 @@ public static class CliPlaylistAdd
 				continue;
 			}
 
+			string? readWarning = null;
 			if (!import.TagsReadable)
 			{
 				// The scan imports such files with fallback values; the CLI does the same instead of
-				// dropping a playable track. The fallback is explicit in the report, never silent.
-				import.Warnings.Add(await DescribeReadFailure(file));
+				// dropping a playable track. The fallback is reported explicitly, never silently,
+				// but only when the track is actually imported (see below).
+				readWarning = await DescribeReadFailure(file);
 			}
 
 			// Resolve to the stored row (case-insensitive): re-imports keep their history and casing.
@@ -144,6 +146,8 @@ public static class CliPlaylistAdd
 			}
 
 			candidates.Add(import);
+			if (readWarning != null)
+				import.Warnings.Add(readWarning);
 		}
 
 		report.Failures.AddRange(failures);
