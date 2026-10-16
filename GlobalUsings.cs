@@ -7,6 +7,7 @@ global using Microsoft.UI.Xaml;
 global using Microsoft.UI.Xaml.Controls;
 global using Microsoft.UI.Xaml.Navigation;
 global using Tunetastic.Common;
+global using Tunetastic.Common.Cli;
 global using Tunetastic.Common.Controls;
 global using Tunetastic.Common.Converters;
 global using Tunetastic.Common.Helpers;

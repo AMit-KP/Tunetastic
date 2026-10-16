@@ -1,3 +1,4 @@
+﻿using System.Globalization;
 using SQLite;
 
 namespace Tunetastic.Common.Cli;
@@ -10,7 +11,7 @@ public sealed class CliPlaylistAddOptions
 	/// <summary>Gets whether a missing playlist is created. Defaults to true.</summary>
 	public bool CreateIfMissing { get; init; } = true;
 
-	/// <summary>Gets whether to only report what would happen without writing anything. Defaults to false.</summary>
+	/// <summary>Gets whether to only report what would happen without changing the library or playlists. Defaults to false.</summary>
 	public bool DryRun { get; init; } = false;
 }
 
@@ -26,14 +27,15 @@ public sealed class CliFatalException : Exception
 /// <summary>
 /// Imports local audio files into the library and adds them to a playlist.
 /// Reuses the library scan's metadata routine and playlist storage, so CLI imports behave exactly
-/// like tracks added through the UI. Runs in-process against the shared app database, which means it
-/// works whether or not the Tunetastic window is open; views that are already open refresh the next
+/// like tracks added through the UI. Opens the shared app database directly, which means it works
+/// whether or not the Tunetastic window is open; views that are already open refresh the next
 /// time they load.
 /// </summary>
 public static class CliPlaylistAdd
 {
 	/// <summary>
 	/// Adds <paramref name="inputs"/> (files, wildcards and/or folders) to <paramref name="playlistName"/>.
+	/// Input order is preserved and defines the playlist order.
 	/// </summary>
 	/// <param name="playlistName">The target playlist. Created when missing unless disabled in <paramref name="options"/>.</param>
 	/// <param name="inputs">Files, wildcard patterns and/or folders. Folders are scanned recursively.</param>
@@ -43,6 +45,7 @@ public static class CliPlaylistAdd
 	public static async Task<PlaylistAddReport> AddAsync(string playlistName, IReadOnlyList<string> inputs, CliPlaylistAddOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		options ??= new CliPlaylistAddOptions();
+		playlistName = playlistName.Trim();
 
 		var nameError = ValidatePlaylistName(playlistName);
 		if (nameError != null)
@@ -53,21 +56,37 @@ public static class CliPlaylistAdd
 
 		try
 		{
-			await DatabaseHelper.Instance.InitializeDatabase();
+			await WithBusyRetry(() => DatabaseHelper.Instance.InitializeDatabase());
 		}
 		catch (Exception ex)
 		{
 			throw new CliFatalException($"Could not open the Tunetastic library database: {ex.Message}");
 		}
 
-		var (ignoreDuration, ignoreDuplicates) = ReadPreferences();
+		var (ignoreDuration, ignoreDuplicates, prefsNotice) = ReadPreferences();
 		var enabledExtensions = await WithBusyRetry(() => LibraryScanner.GetEnabledExtensions());
+		var libraryRoots = await GetEffectiveLibraryRoots();
+
+		// Fail fast on --no-create so scripting gets a deterministic error even with no usable inputs.
+		// An existing playlist is resolved to its stored casing: the database compares names
+		// case-sensitively, so all later operations must use the stored form.
+		string? storedName = (await WithBusyRetry(() => DatabaseHelper.Instance.GetAllPlaylistNames()))
+			.FirstOrDefault(n => string.Equals(n, playlistName, StringComparison.OrdinalIgnoreCase));
+		if (storedName == null && !options.CreateIfMissing)
+			throw new CliFatalException($"Playlist '{playlistName}' does not exist. Re-run without --no-create to create it.");
+		bool playlistExists = storedName != null;
+		if (playlistExists)
+			playlistName = storedName!;
+
+		var report = new PlaylistAddReport { Playlist = playlistName, DryRun = options.DryRun };
+		if (prefsNotice != null)
+			report.Notices.Add(prefsNotice);
 
 		var failures = new List<InputFailure>();
 		var candidateFiles = ResolveInputs(inputs, enabledExtensions, failures);
 
-		var report = new PlaylistAddReport { Playlist = playlistName, DryRun = options.DryRun };
-
+		var seenInRun = new HashSet<(string Title, string Artist, string Album)>();
+		var addedPaths = new HashSet<string>(StringComparer.Ordinal);
 		var candidates = new List<CliMetadataReader.TrackImport>();
 		foreach (var file in candidateFiles)
 		{
@@ -84,15 +103,34 @@ public static class CliPlaylistAdd
 				continue;
 			}
 
-			if (import.Song.Duration <= ignoreDuration && ignoreDuration > 0)
+			if (!import.TagsReadable)
 			{
-				report.Tracks.Add(SkippedEntry(import, $"Duration {import.Song.Duration:0.#}s is at or below the 'ignore tracks below duration' setting ({ignoreDuration:0.#}s)."));
+				failures.Add(new InputFailure { Input = file, Reason = "Embedded tags could not be read; the file may be corrupt or unsupported." });
 				continue;
 			}
 
-			if (ignoreDuplicates && await WithBusyRetry(() => DatabaseHelper.Instance.SongMetadataExists(import.Song.Title, import.Song.Artists, import.Song.Album)))
+			// Resolve to the stored row (case-insensitive): re-imports keep their history and casing.
+			var stored = await WithBusyRetry(() => DatabaseHelper.Instance.GetSongByPathNoCase(file));
+			string effectivePath = stored?.Path ?? file;
+			if (stored != null)
 			{
-				report.Tracks.Add(SkippedEntry(import, "A track with the same title, artist and album is already in the library (duplicate detection is on)."));
+				import.Song.PlayCount = stored.PlayCount;
+				import.Song.DateLastPlayed = stored.DateLastPlayed;
+				import.Song.Path = stored.Path;
+			}
+
+			if (import.Song.Duration <= ignoreDuration)
+			{
+				report.Tracks.Add(SkippedEntry(import, effectivePath, $"Duration {import.Song.Duration:0.#}s is at or below the 'ignore tracks below duration' setting ({ignoreDuration:0.#}s)."));
+				continue;
+			}
+
+			var identity = (import.Song.Title, import.Song.Artists, import.Song.Album);
+			bool duplicateInRun = !seenInRun.Add(identity);
+			bool duplicateInDb = ignoreDuplicates && await WithBusyRetry(() => DatabaseHelper.Instance.SongMetadataExists(import.Song.Title, import.Song.Artists, import.Song.Album, excludePath: effectivePath));
+			if (duplicateInRun || duplicateInDb)
+			{
+				report.Tracks.Add(SkippedEntry(import, effectivePath, "A track with the same title, artist and album is already in the library (duplicate detection is on)."));
 				continue;
 			}
 
@@ -102,84 +140,89 @@ public static class CliPlaylistAdd
 		report.Failures.AddRange(failures);
 
 		if (candidates.Count == 0)
-			return report;
+			return FinalReport(report, created: false, wouldCreate: false);
 
 		bool created = false;
-		bool exists = (await WithBusyRetry(() => DatabaseHelper.Instance.GetAllPlaylistNames())).Contains(playlistName);
-		if (!exists)
+		if (!playlistExists && !options.DryRun)
 		{
-			if (!options.CreateIfMissing)
-				throw new CliFatalException($"Playlist '{playlistName}' does not exist. Re-run without --no-create to create it.");
-
-			if (!options.DryRun)
-			{
-				await WithBusyRetry<bool>(async () =>
-				{
-					await DatabaseHelper.Instance.CreatePlaylist(playlistName);
-					return true;
-				});
-				exists = true;
-				created = true;
-			}
+			await WithBusyRetry(() => DatabaseHelper.Instance.CreatePlaylist(playlistName));
+			playlistExists = true;
+			created = true;
 		}
 
-		HashSet<string> alreadyInPlaylist = new(StringComparer.OrdinalIgnoreCase);
-		if (exists && !options.DryRun)
-		{
-			var inPlaylist = await WithBusyRetry(() => DatabaseHelper.Instance.GetSongsInPlaylist(playlistName));
-			alreadyInPlaylist = inPlaylist.Select(s => s.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
-		}
+		// Read-only snapshot; always computed so dry runs report membership truthfully.
+		var inPlaylist = await WithBusyRetry(() => DatabaseHelper.Instance.GetSongsInPlaylist(playlistName));
+		var alreadyInPlaylist = inPlaylist.Select(s => s.Path).ToHashSet(StringComparer.Ordinal);
 
 		if (!options.DryRun)
 		{
 			var songs = candidates.Select(c => c.Song).ToList();
-			var metas = candidates.Select(c => LibraryScanner.BuildFileScanMeta(c.Path)).ToList();
+			// Scan-meta is only tracked for files inside the libraries: the auto-scan reconciler
+			// deletes tracked paths it cannot find under a library root, so out-of-library tracks
+			// must not be registered there.
+			var metas = candidates
+				.Where(c => IsUnderLibraryRoot(c.Song.Path, libraryRoots))
+				.Select(c => LibraryScanner.BuildFileScanMeta(c.Song.Path))
+				.ToList();
 
-			await WithBusyRetry<bool>(async () =>
+			try
 			{
-				await DatabaseHelper.Instance.InsertMultipleSongs(songs);
-				return true;
-			});
-			await WithBusyRetry<bool>(async () =>
+				await WithBusyRetry(() => DatabaseHelper.Instance.InsertMultipleSongs(songs));
+				await WithBusyRetry(() => DatabaseHelper.Instance.UpdateFileScanMeta(metas));
+				await WithBusyRetry(() => DatabaseHelper.Instance.AddSongsToPlaylist(playlistName, songs.Select(s => s.Path).ToList()));
+			}
+			catch (Exception ex)
 			{
-				await DatabaseHelper.Instance.UpdateFileScanMeta(metas);
-				return true;
-			});
-			await WithBusyRetry<bool>(async () =>
-			{
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlistName, songs.Select(s => s.Path).ToList());
-				return true;
-			});
+				report.Failures.Add(new InputFailure
+				{
+					Input = $"{candidates.Count} track(s)",
+					Reason = $"Database write failed partway: {ex.Message} The library may be partially updated; re-run to complete."
+				});
+				return FinalReport(report, created, wouldCreate: false);
+			}
 		}
 
 		foreach (var import in candidates)
 		{
+			string effectivePath = import.Song.Path;
+			if (!IsUnderLibraryRoot(effectivePath, libraryRoots))
+				import.Warnings.Add("Lives outside your configured libraries: excluded from auto-scan tracking and dropped by the next full re-scan.");
 			if (options.DryRun)
 			{
-				report.Tracks.Add(Entry(import, TrackStatus.WouldAdd, null));
+				report.Tracks.Add(Entry(import, effectivePath, alreadyInPlaylist.Contains(effectivePath) ? TrackStatus.AlreadyPresent : TrackStatus.WouldAdd, null));
 			}
-			else if (alreadyInPlaylist.Contains(import.Path))
+			else if (alreadyInPlaylist.Contains(effectivePath) || !addedPaths.Add(effectivePath))
 			{
-				report.Tracks.Add(Entry(import, TrackStatus.AlreadyPresent, "Already in this playlist; kept the existing position."));
+				report.Tracks.Add(Entry(import, effectivePath, TrackStatus.AlreadyPresent, "Already in this playlist; kept the existing position."));
 			}
 			else
 			{
-				report.Tracks.Add(Entry(import, TrackStatus.Added, null));
+				report.Tracks.Add(Entry(import, effectivePath, TrackStatus.Added, null));
 			}
 		}
 
+		return FinalReport(report, created, wouldCreate: options.DryRun && !playlistExists);
+	}
+
+	/// <summary>
+	/// Copies the accumulated tracks and failures into the returned report with its creation flags.
+	/// </summary>
+	private static PlaylistAddReport FinalReport(PlaylistAddReport report, bool created, bool wouldCreate)
+	{
 		return new PlaylistAddReport
 		{
-			Playlist = playlistName,
+			Playlist = report.Playlist,
 			PlaylistCreated = created,
-			DryRun = options.DryRun,
+			PlaylistWouldBeCreated = wouldCreate,
+			DryRun = report.DryRun,
 			Tracks = report.Tracks,
 			Failures = report.Failures,
+			Notices = report.Notices,
 		};
 	}
 
 	/// <summary>
-	/// Validates a playlist name with the same rules as the "Add New Playlist" dialog.
+	/// Validates a playlist name with the same rules as the "Add New Playlist" dialog (which trims first).
 	/// </summary>
 	/// <returns>The problem, or null when the name is valid.</returns>
 	internal static string? ValidatePlaylistName(string name)
@@ -200,72 +243,107 @@ public static class CliPlaylistAdd
 	/// <summary>
 	/// Reads the user's scan preferences, falling back to permissive defaults when settings are unavailable.
 	/// </summary>
-	private static (double ignoreDuration, bool ignoreDuplicates) ReadPreferences()
+	/// <returns>The ignore-duration, the duplicate flag, and a notice when the fallback was used.</returns>
+	private static (double ignoreDuration, bool ignoreDuplicates, string? notice) ReadPreferences()
 	{
 		try
 		{
 			var settings = Windows.Storage.ApplicationData.Current.LocalSettings;
-			double duration = double.Parse(settings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
+			double duration = double.Parse(settings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0", CultureInfo.InvariantCulture);
 			bool duplicates = bool.Parse(settings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
-			return (duration, duplicates);
+			return (duration, duplicates, null);
 		}
 		catch
 		{
-			return (0, false);
+			return (0, false, "App settings were unavailable; using no minimum duration and duplicate detection off.");
 		}
 	}
 
 	/// <summary>
-	/// Expands the CLI inputs to an ordered, de-duplicated file list. Folders are scanned recursively.
-	/// Files whose extension is disabled in Settings are reported as input failures; the rest is returned.
+	/// Loads the effective library roots used to decide whether a file gets scan-meta tracking.
+	/// </summary>
+	private static async Task<HashSet<string>> GetEffectiveLibraryRoots()
+	{
+		var libraries = await WithBusyRetry(() => DatabaseHelper.Instance.GetAllLibraries());
+		return LibraryScanner.ComputeEffectiveRoots(libraries.Select(l => l.Path).ToList()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+	}
+
+	/// <summary>
+	/// Determines whether <paramref name="path"/> is the same folder as, or lives beneath, one of <paramref name="roots"/>.
+	/// Mirrors the scanner's nesting check so CLI tracking agrees with auto-scan.
+	/// </summary>
+	private static bool IsUnderLibraryRoot(string path, HashSet<string> roots)
+	{
+		foreach (var root in roots)
+		{
+			var trimmed = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			if (string.Equals(path, trimmed, StringComparison.OrdinalIgnoreCase)
+				|| path.StartsWith(trimmed + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+				return true;
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// Expands the CLI inputs to a de-duplicated file list in input order (which defines playlist order).
+	/// A literal file with a disabled extension is a failure; folder- and pattern-expanded files with
+	/// disabled extensions are filtered silently, like the library scan does.
 	/// </summary>
 	private static List<string> ResolveInputs(IReadOnlyList<string> inputs, List<string> enabledExtensions, List<InputFailure> failures)
 	{
-		var files = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		var files = new List<string>();
+
+		void Add(string file)
+		{
+			string fullPath;
+			try
+			{
+				fullPath = Path.GetFullPath(file);
+			}
+			catch (Exception ex)
+			{
+				failures.Add(new InputFailure { Input = file, Reason = $"Invalid path: {ex.Message}" });
+				return;
+			}
+			if (seen.Add(fullPath))
+				files.Add(fullPath);
+		}
 
 		foreach (var input in inputs)
 		{
+			if (File.Exists(input))
+			{
+				if (!enabledExtensions.Contains(Path.GetExtension(input).ToLowerInvariant()))
+					failures.Add(new InputFailure { Input = input, Reason = $"File type '{Path.GetExtension(input)}' is disabled in Settings > File Extensions." });
+				else
+					Add(input);
+				continue;
+			}
+
 			foreach (var file in ExpandInput(input, failures))
 			{
-				string fullPath;
-				try
-				{
-					fullPath = Path.GetFullPath(file);
-				}
-				catch (Exception ex)
-				{
-					failures.Add(new InputFailure { Input = file, Reason = $"Invalid path: {ex.Message}" });
-					continue;
-				}
-				if (!enabledExtensions.Contains(Path.GetExtension(fullPath).ToLowerInvariant()))
-				{
-					failures.Add(new InputFailure { Input = fullPath, Reason = $"File type '{Path.GetExtension(fullPath)}' is disabled in Settings > File Extensions." });
-					continue;
-				}
-				files.Add(fullPath);
+				if (enabledExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+					Add(file);
 			}
 		}
 
-		return files.OrderBy(f => f, StringComparer.OrdinalIgnoreCase).ToList();
+		return files;
 	}
 
 	/// <summary>
-	/// Expands one input to files: a literal file, a folder (recursive), or a wildcard pattern.
+	/// Expands one non-literal input to files: a folder (recursive, skipping inaccessible
+	/// subfolders like the scanner) or a wildcard pattern (<c>*</c> and <c>?</c> only).
 	/// </summary>
 	private static IEnumerable<string> ExpandInput(string input, List<InputFailure> failures)
 	{
-		if (File.Exists(input))
-		{
-			yield return input;
-			yield break;
-		}
-
 		if (Directory.Exists(input))
 		{
-			string[] found;
+			var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+			List<string> found = new();
 			try
 			{
-				found = Directory.GetFiles(input, "*.*", SearchOption.AllDirectories);
+				found.AddRange(Directory.EnumerateFiles(input, "*.*", options));
 			}
 			catch (Exception ex)
 			{
@@ -273,7 +351,7 @@ public static class CliPlaylistAdd
 				yield break;
 			}
 
-			if (found.Length == 0)
+			if (found.Count == 0)
 				failures.Add(new InputFailure { Input = input, Reason = "Folder contains no files." });
 
 			foreach (var file in found)
@@ -281,7 +359,7 @@ public static class CliPlaylistAdd
 			yield break;
 		}
 
-		if (input.IndexOfAny(['*', '?', '[']) >= 0)
+		if (input.IndexOfAny(['*', '?']) >= 0)
 		{
 			var directory = Path.GetDirectoryName(input);
 			var pattern = Path.GetFileName(input) ?? "*.*";
@@ -311,12 +389,15 @@ public static class CliPlaylistAdd
 		yield break;
 	}
 
-	private static TrackEntry Entry(CliMetadataReader.TrackImport import, TrackStatus status, string? reason)
+	/// <summary>
+	/// Builds the report entry for a track that was read.
+	/// </summary>
+	private static TrackEntry Entry(CliMetadataReader.TrackImport import, string effectivePath, TrackStatus status, string? reason)
 	{
 		return new TrackEntry
 		{
-			Path = import.Path,
-			Title = string.IsNullOrWhiteSpace(import.Song.Title) ? System.IO.Path.GetFileNameWithoutExtension(import.Path) : import.Song.Title,
+			Path = effectivePath,
+			Title = string.IsNullOrWhiteSpace(import.Song.Title) ? System.IO.Path.GetFileNameWithoutExtension(effectivePath) : import.Song.Title,
 			Status = status,
 			Reason = reason,
 			Imported = import.Imported,
@@ -326,9 +407,12 @@ public static class CliPlaylistAdd
 		};
 	}
 
-	private static TrackEntry SkippedEntry(CliMetadataReader.TrackImport import, string reason)
+	/// <summary>
+	/// Builds the report entry for a track skipped by policy.
+	/// </summary>
+	private static TrackEntry SkippedEntry(CliMetadataReader.TrackImport import, string effectivePath, string reason)
 	{
-		return Entry(import, TrackStatus.Skipped, reason);
+		return Entry(import, effectivePath, TrackStatus.Skipped, reason);
 	}
 
 	/// <summary>
@@ -350,12 +434,37 @@ public static class CliPlaylistAdd
 		}
 	}
 
+	/// <summary>
+	/// Retries a database operation without a result when the app process holds the database lock.
+	/// </summary>
+	private static async Task WithBusyRetry(Func<Task> operation, int attempts = 15)
+	{
+		for (int attempt = 1; ; attempt++)
+		{
+			try
+			{
+				await operation();
+				return;
+			}
+			catch (Exception ex) when (IsLocked(ex) && attempt < attempts)
+			{
+				await Task.Delay(200 * attempt);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Determines whether <paramref name="ex"/> is a database lock contention that is worth retrying.
+	/// Only SQLite errors qualify; message sniffing is a fallback for provider variants of the same error.
+	/// </summary>
 	private static bool IsLocked(Exception ex)
 	{
-		if (ex is SQLiteException sqliteEx && (sqliteEx.Result == SQLite3.Result.Busy || sqliteEx.Result == SQLite3.Result.Locked))
+		if (ex is not SQLiteException sqliteEx)
+			return false;
+		if (sqliteEx.Result == SQLite3.Result.Busy || sqliteEx.Result == SQLite3.Result.Locked)
 			return true;
 
-		return ex.Message.Contains("busy", StringComparison.OrdinalIgnoreCase)
-			|| ex.Message.Contains("locked", StringComparison.OrdinalIgnoreCase);
+		return sqliteEx.Message.Contains("busy", StringComparison.OrdinalIgnoreCase)
+			|| sqliteEx.Message.Contains("locked", StringComparison.OrdinalIgnoreCase);
 	}
 }

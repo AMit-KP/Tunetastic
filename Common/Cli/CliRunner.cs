@@ -1,3 +1,6 @@
+﻿using System.Runtime.InteropServices;
+using System.Text;
+
 namespace Tunetastic.Common.Cli;
 
 /// <summary>
@@ -18,7 +21,8 @@ public static class CliRunner
 		"\n" +
 		"Options:\n" +
 		"  --no-create   Fail when the playlist does not exist instead of creating it.\n" +
-		"  --dry-run     Report what would happen without writing anything.\n" +
+		"  --dry-run     Report what would happen without changing the library or playlists.\n" +
+		"  --          Treat all following arguments as inputs, even when they start with --.\n" +
 		"  --help, -h    Show this help.\n" +
 		"\n" +
 		"Exit codes:\n" +
@@ -31,6 +35,11 @@ public static class CliRunner
 		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\*.mp3\"\n" +
 		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run";
 
+	[DllImport("kernel32.dll", SetLastError = true)]
+	private static extern bool AttachConsole(int dwProcessId);
+
+	private const int AttachParentProcess = -1;
+
 	/// <summary>
 	/// Runs the CLI command when <paramref name="args"/> starts one.
 	/// </summary>
@@ -38,17 +47,53 @@ public static class CliRunner
 	/// <returns>True when the arguments were a CLI command and the caller should exit.</returns>
 	public static bool TryRun(string[] args)
 	{
-		if (args.Length == 0 || !string.Equals(args[0], "playlist", StringComparison.OrdinalIgnoreCase))
+		if (args.Length == 0)
 			return false;
+
+		if (string.Equals(args[0], "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(args[0], "-h", StringComparison.OrdinalIgnoreCase))
+		{
+			EnsureConsole();
+			Console.Error.WriteLine(Usage);
+			Environment.ExitCode = 0;
+			return true;
+		}
+
+		if (!string.Equals(args[0], "playlist", StringComparison.OrdinalIgnoreCase))
+			return false;
+
+		EnsureConsole();
 
 		int exitCode;
 		if (args.Length >= 2 && string.Equals(args[1], "add", StringComparison.OrdinalIgnoreCase))
 			exitCode = RunPlaylistAdd(args.Skip(2).ToList());
+		else if (args.Length >= 2 && (string.Equals(args[1], "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(args[1], "-h", StringComparison.OrdinalIgnoreCase)))
+		{
+			Console.Error.WriteLine(Usage);
+			exitCode = 0;
+		}
 		else
 			exitCode = UsageError("Unknown playlist command. Did you mean 'tunetastic playlist add ...'?");
 
 		Environment.ExitCode = exitCode;
 		return true;
+	}
+
+	/// <summary>
+	/// Attaches the parent console (when launched from one without redirection) and selects UTF-8
+	/// output so tag content renders correctly. Best effort: never fails the command.
+	/// </summary>
+	private static void EnsureConsole()
+	{
+		try
+		{
+			Console.OutputEncoding = Encoding.UTF8;
+			if (!Console.IsOutputRedirected)
+				AttachConsole(AttachParentProcess);
+		}
+		catch
+		{
+			// Headless launch or no console: output handles simply go nowhere.
+		}
 	}
 
 	private static int RunPlaylistAdd(List<string> args)
@@ -57,15 +102,21 @@ public static class CliRunner
 		bool dryRun = false;
 		var positional = new List<string>();
 
-		foreach (var arg in args)
+		for (int i = 0; i < args.Count; i++)
 		{
+			var arg = args[i];
+			if (arg == "--")
+			{
+				positional.AddRange(args.Skip(i + 1));
+				break;
+			}
 			if (string.Equals(arg, "--no-create", StringComparison.OrdinalIgnoreCase))
 				createIfMissing = false;
 			else if (string.Equals(arg, "--dry-run", StringComparison.OrdinalIgnoreCase))
 				dryRun = true;
 			else if (string.Equals(arg, "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(arg, "-h", StringComparison.OrdinalIgnoreCase))
 			{
-				Console.Out.WriteLine(Usage);
+				Console.Error.WriteLine(Usage);
 				return 0;
 			}
 			else if (arg.StartsWith("--", StringComparison.Ordinal))
@@ -83,9 +134,16 @@ public static class CliRunner
 		var inputs = positional.Skip(1).ToList();
 
 		PlaylistAddReport report;
+		using var cts = new CancellationTokenSource();
+		void CancelHandler(object? sender, ConsoleCancelEventArgs e)
+		{
+			e.Cancel = true;
+			cts.Cancel();
+		}
+		Console.CancelKeyPress += CancelHandler;
 		try
 		{
-			report = CliPlaylistAdd.AddAsync(playlistName, inputs, options).GetAwaiter().GetResult();
+			report = CliPlaylistAdd.AddAsync(playlistName, inputs, options, cts.Token).GetAwaiter().GetResult();
 		}
 		catch (CliFatalException ex)
 		{
@@ -101,6 +159,10 @@ public static class CliRunner
 		{
 			Console.Error.WriteLine($"Error: Unexpected failure: {ex.Message}");
 			return 2;
+		}
+		finally
+		{
+			Console.CancelKeyPress -= CancelHandler;
 		}
 
 		report.WriteHuman(Console.Error);

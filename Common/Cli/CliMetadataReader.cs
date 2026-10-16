@@ -1,4 +1,4 @@
-namespace Tunetastic.Common.Cli;
+﻿namespace Tunetastic.Common.Cli;
 
 /// <summary>
 /// Reads the importable metadata of a single audio file for the CLI playlist command.
@@ -38,7 +38,8 @@ public static class CliMetadataReader
 
 	/// <summary>
 	/// Reads <paramref name="path"/> into a library-ready <see cref="Song"/> and reports which
-	/// embedded values were imported, defaulted or skipped.
+	/// embedded values were imported, defaulted or skipped. The imported/defaulted decisions mirror
+	/// the <see cref="LibraryScanner"/> fallbacks exactly (null means missing; empty is stored as-is).
 	/// </summary>
 	/// <param name="path">The full path of the audio file to read.</param>
 	/// <returns>The read result. Never returns null; unreadable files yield a filename-based fallback song.</returns>
@@ -52,12 +53,14 @@ public static class CliMetadataReader
 		var warnings = new List<string>();
 
 		TagFields tag = new();
+		bool diagnosticsOk = false;
 		if (succeeded)
 		{
 			try
 			{
 				using var file = TagLib.File.Create(path);
 				tag = TagFields.FromTag(file.Tag);
+				diagnosticsOk = true;
 			}
 			catch (Exception ex)
 			{
@@ -89,13 +92,30 @@ public static class CliMetadataReader
 			};
 		}
 
-		// Title / artist / album / genre / year follow the same fallbacks as LibraryScanner.
-		if (!string.IsNullOrWhiteSpace(tag.Title))
+		if (!diagnosticsOk)
+		{
+			// The song itself was read fine; only the second diagnostic pass failed.
+			// Report the stored values instead of claiming defaults that were never used.
+			warnings.Add("Detailed tag diagnostics unavailable; the values below are the stored song values.");
+			ReportStoredSong(song, imported, defaulted, skipped);
+			return new TrackImport
+			{
+				Path = path,
+				Song = song,
+				TagsReadable = true,
+				Imported = imported,
+				Defaulted = defaulted,
+				Skipped = skipped,
+				Warnings = warnings,
+			};
+		}
+
+		if (tag.Title != null)
 			imported.Add($"Title '{tag.Title}'");
 		else
 			defaulted.Add("Title (file name fallback)");
 
-		var performers = tag.Performers.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+		var performers = tag.Performers.Where(p => !string.IsNullOrEmpty(p)).ToList();
 		if (performers.Count > 0)
 		{
 			imported.Add($"Artist '{performers[0]}'");
@@ -107,15 +127,15 @@ public static class CliMetadataReader
 			defaulted.Add("Artist (Unknown Artist)");
 		}
 
-		foreach (var albumArtist in tag.AlbumArtists.Where(a => !string.IsNullOrWhiteSpace(a)))
+		foreach (var albumArtist in tag.AlbumArtists.Where(a => !string.IsNullOrEmpty(a)))
 			skipped.Add($"Album artist '{albumArtist}' (library has no album-artist column)");
 
-		if (!string.IsNullOrWhiteSpace(tag.Album))
+		if (tag.Album != null)
 			imported.Add($"Album '{tag.Album}'");
 		else
 			defaulted.Add("Album (Unknown Album)");
 
-		var genres = tag.Genres.Where(g => !string.IsNullOrWhiteSpace(g)).ToList();
+		var genres = tag.Genres.Where(g => !string.IsNullOrEmpty(g)).ToList();
 		if (genres.Count > 0)
 		{
 			imported.Add($"Genre '{genres[0]}'");
@@ -143,7 +163,7 @@ public static class CliMetadataReader
 		if (tag.DiscCount > 0)
 			skipped.Add($"Disc count '{tag.DiscCount}' (library has no disc-count column)");
 
-		foreach (var composer in tag.Composers.Where(c => !string.IsNullOrWhiteSpace(c)))
+		foreach (var composer in tag.Composers.Where(c => !string.IsNullOrEmpty(c)))
 			skipped.Add($"Composer '{composer}' (library has no composer column)");
 
 		if (!string.IsNullOrWhiteSpace(tag.Lyrics))
@@ -176,16 +196,7 @@ public static class CliMetadataReader
 		if (tag.BeatsPerMinute > 0)
 			skipped.Add($"BPM '{tag.BeatsPerMinute}' (library has no BPM column)");
 
-		imported.Add($"Duration '{TimeSpan.FromSeconds(song.Duration):m\\:ss}' (probed)");
-		imported.Add($"File type '{song.Extension}' ({song.PlayerType} playback engine)");
-		if (!string.IsNullOrWhiteSpace(song.AudioBitrate))
-			imported.Add($"Bitrate '{song.AudioBitrate}' (probed)");
-		if (!string.IsNullOrWhiteSpace(song.AudioSampleRate))
-			imported.Add($"Sample rate '{song.AudioSampleRate}' (probed)");
-		if (!string.IsNullOrWhiteSpace(song.AudioChannels))
-			imported.Add($"Channels '{song.AudioChannels}' (probed)");
-		if (!string.IsNullOrWhiteSpace(song.FileSize))
-			imported.Add($"File size '{song.FileSize}'");
+		ReportProbedValues(song, imported, defaulted);
 
 		if (song.Duration <= 0)
 			warnings.Add("Duration could not be determined; the track may not play.");
@@ -200,6 +211,47 @@ public static class CliMetadataReader
 			Skipped = skipped,
 			Warnings = warnings,
 		};
+	}
+
+	/// <summary>
+	/// Reports the file-derived (probed) values of <paramref name="song"/>.
+	/// </summary>
+	private static void ReportProbedValues(Song song, List<string> imported, List<string> defaulted)
+	{
+		if (song.Duration > 0)
+			imported.Add($"Duration '{TimeSpan.FromSeconds(song.Duration):m\\:ss}' (probed)");
+		else
+			defaulted.Add("Duration (could not be determined)");
+		imported.Add($"File type '{song.Extension}' ({song.PlayerType} playback engine)");
+		if (!string.IsNullOrWhiteSpace(song.AudioBitrate))
+			imported.Add($"Bitrate '{song.AudioBitrate}' (probed)");
+		if (!string.IsNullOrWhiteSpace(song.AudioSampleRate))
+			imported.Add($"Sample rate '{song.AudioSampleRate}' (probed)");
+		if (!string.IsNullOrWhiteSpace(song.AudioChannels))
+			imported.Add($"Channels '{song.AudioChannels}' (probed)");
+		if (!string.IsNullOrWhiteSpace(song.FileSize))
+			imported.Add($"File size '{song.FileSize}'");
+	}
+
+	/// <summary>
+	/// Reports the values of an already-read <paramref name="song"/> when the diagnostic tag pass failed.
+	/// </summary>
+	private static void ReportStoredSong(Song song, List<string> imported, List<string> defaulted, List<string> skipped)
+	{
+		imported.Add($"Title '{song.Title}' (stored)");
+		imported.Add($"Artist '{song.Artists}' (stored)");
+		imported.Add($"Album '{song.Album}' (stored)");
+		imported.Add($"Genre '{song.Genre}' (stored)");
+		imported.Add($"Year '{song.Year}' (stored)");
+		if (song.Track > 0)
+			imported.Add($"Track number '{song.Track}' (stored)");
+		else
+			defaulted.Add("Track number (none in tags)");
+		if (!string.IsNullOrWhiteSpace(song.Lyrics))
+			imported.Add("Lyrics (stored)");
+		imported.Add("Cover art (stored thumbnail)");
+		skipped.Add("Unmapped embedded fields (diagnostics unavailable for this file)");
+		ReportProbedValues(song, imported, defaulted);
 	}
 
 	/// <summary>

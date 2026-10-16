@@ -709,9 +709,13 @@ public class DatabaseHelper
 
 		await _database.RunInTransactionAsync(conn =>
 		{
+			var restoredPaths = new HashSet<string>(songs.Select(s => s.Path));
 			foreach (var link in existingPlaylistLinks)
 			{
-				conn.Execute("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES (?, ?)", link.PlaylistId, link.SongPath);
+				// Only restore links whose song survived the rescan; the CLI can link tracks that live
+				// outside the libraries, and restoring those would violate the foreign key and wipe the DB.
+				if (restoredPaths.Contains(link.SongPath))
+					conn.Execute("INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath) VALUES (?, ?)", link.PlaylistId, link.SongPath);
 			}
 		});
 
@@ -843,6 +847,29 @@ public class DatabaseHelper
 		{
 			var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ?", path);
 			return result.Count() > 0 ? result.FirstOrDefault() : null;
+		}
+		catch (Exception)
+		{
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Retrieves a song from the database by its file path, ignoring case.
+	/// Used by the CLI import so a path passed with different casing resolves to the stored row
+	/// instead of creating a case-variant duplicate (the <c>Songs.Path</c> key uses binary collation).
+	/// </summary>
+	/// <param name="path">The file path of the song to retrieve from the database.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains the matching
+	/// <see cref="Song"/> object if found, or null if no match is found or an error occurs.
+	/// </returns>
+	public async Task<Song?> GetSongByPathNoCase(string path)
+	{
+		try
+		{
+			var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ? COLLATE NOCASE", path);
+			return result.Count > 0 ? result[0] : null;
 		}
 		catch (Exception)
 		{

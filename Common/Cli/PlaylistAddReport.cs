@@ -1,4 +1,5 @@
-using System.Text.Json;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Tunetastic.Common.Cli;
 
@@ -14,7 +15,10 @@ public sealed class PlaylistAddReport
 	/// <summary>Gets whether the playlist was created by this run.</summary>
 	public bool PlaylistCreated { get; init; }
 
-	/// <summary>Gets whether this was a dry run (nothing was written).</summary>
+	/// <summary>Gets whether a dry run would create the playlist.</summary>
+	public bool PlaylistWouldBeCreated { get; init; }
+
+	/// <summary>Gets whether this was a dry run (the library and playlists were not changed).</summary>
 	public bool DryRun { get; init; }
 
 	/// <summary>Gets the per-track outcomes.</summary>
@@ -23,24 +27,37 @@ public sealed class PlaylistAddReport
 	/// <summary>Gets the inputs that failed before any metadata could be read (missing files, unreadable files, ...).</summary>
 	public List<InputFailure> Failures { get; init; } = new();
 
+	/// <summary>Gets run-level notes that are not tied to a single track (settings fallbacks, ...).</summary>
+	public List<string> Notices { get; init; } = new();
+
 	/// <summary>Gets the number of tracks added to the playlist.</summary>
 	public int AddedCount => Tracks.Count(t => t.Status == TrackStatus.Added || t.Status == TrackStatus.WouldAdd);
 
 	/// <summary>Gets the number of tracks skipped by policy (duplicate, too short, disabled format, ...).</summary>
 	public int SkippedCount => Tracks.Count(t => t.Status == TrackStatus.Skipped || t.Status == TrackStatus.AlreadyPresent);
 
+	private static readonly JsonSerializerOptions JsonOptions = new()
+	{
+		WriteIndented = true,
+		Converters = { new JsonStringEnumConverter() },
+	};
+
 	/// <summary>Serializes the report to indented JSON for stdout.</summary>
 	public string ToJson()
 	{
-		return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+		return JsonSerializer.Serialize(this, JsonOptions);
 	}
 
 	/// <summary>
 	/// Writes a human-readable rendering of the report to <paramref name="writer"/>.
+	/// Tag-derived text is sanitized so control characters cannot corrupt the terminal.
 	/// </summary>
 	public void WriteHuman(TextWriter writer)
 	{
-		writer.WriteLine(DryRun ? $"Dry run for playlist '{Playlist}':" : $"Playlist '{Playlist}':{(PlaylistCreated ? " (created)" : "")}");
+		if (DryRun)
+			writer.WriteLine($"Dry run for playlist '{Clean(Playlist)}'{(PlaylistWouldBeCreated ? " (would be created)" : "")}:");
+		else
+			writer.WriteLine($"Playlist '{Clean(Playlist)}':{(PlaylistCreated ? " (created)" : "")}");
 
 		foreach (var track in Tracks)
 		{
@@ -51,23 +68,38 @@ public sealed class PlaylistAddReport
 				TrackStatus.AlreadyPresent => "Already in playlist",
 				_ => "Skipped",
 			};
-			writer.WriteLine($"  [{label}] {track.Title} ({track.Path})");
+			writer.WriteLine($"  [{label}] {Clean(track.Title)} ({Clean(track.Path)})");
 			if (!string.IsNullOrWhiteSpace(track.Reason))
-				writer.WriteLine($"    Reason: {track.Reason}");
+				writer.WriteLine($"    Reason: {Clean(track.Reason)}");
 			foreach (var line in track.Imported)
-				writer.WriteLine($"    + {line}");
+				writer.WriteLine($"    + {Clean(line)}");
 			foreach (var line in track.Defaulted)
-				writer.WriteLine($"    ~ {line}");
+				writer.WriteLine($"    ~ {Clean(line)}");
 			foreach (var line in track.Skipped)
-				writer.WriteLine($"    - {line}");
+				writer.WriteLine($"    - {Clean(line)}");
 			foreach (var line in track.Warnings)
-				writer.WriteLine($"    ! {line}");
+				writer.WriteLine($"    ! {Clean(line)}");
 		}
 
 		foreach (var failure in Failures)
-			writer.WriteLine($"  [Failed] {failure.Input}: {failure.Reason}");
+			writer.WriteLine($"  [Failed] {Clean(failure.Input)}: {Clean(failure.Reason)}");
 
-		writer.WriteLine($"Done: {AddedCount} added, {SkippedCount} skipped, {Failures.Count} failed.");
+		foreach (var notice in Notices)
+			writer.WriteLine($"  Note: {Clean(notice)}");
+
+		writer.WriteLine(DryRun
+			? $"Done: {AddedCount} would be added, {SkippedCount} skipped, {Failures.Count} failed."
+			: $"Done: {AddedCount} added, {SkippedCount} skipped, {Failures.Count} failed.");
+	}
+
+	/// <summary>
+	/// Replaces control characters with spaces so hostile tag content cannot spoof terminal output.
+	/// </summary>
+	private static string Clean(string? value)
+	{
+		if (string.IsNullOrEmpty(value))
+			return string.Empty;
+		return new string(value.Select(c => char.IsControl(c) ? ' ' : c).ToArray());
 	}
 }
 
