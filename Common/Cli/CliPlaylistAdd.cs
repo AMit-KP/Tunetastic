@@ -130,7 +130,9 @@ public static class CliPlaylistAdd
 			bool duplicateInDb = ignoreDuplicates && await WithBusyRetry(() => DatabaseHelper.Instance.SongMetadataExists(import.Song.Title, import.Song.Artists, import.Song.Album, excludePath: effectivePath));
 			if (duplicateInRun || duplicateInDb)
 			{
-				report.Tracks.Add(SkippedEntry(import, effectivePath, "A track with the same title, artist and album is already in the library (duplicate detection is on)."));
+				report.Tracks.Add(SkippedEntry(import, effectivePath, duplicateInDb
+					? "A track with the same title, artist and album is already in the library (duplicate detection is on)."
+					: "The same track appears more than once in this run."));
 				continue;
 			}
 
@@ -234,7 +236,7 @@ public static class CliPlaylistAdd
 		if (name.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
 			return "Name contains invalid characters: \\ / : * ? \" < > |";
 		if (name.EndsWith(" ") || name.EndsWith("."))
-			return "Name cannot end with a space or period.";
+			return "Name cannot end with a period";
 		if (name.Length > 255)
 			return "Name is too long (max 255 characters).";
 		return null;
