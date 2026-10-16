@@ -53,6 +53,10 @@ public static class CliPlaylistAdd
 		if (inputs == null || inputs.Count == 0)
 			throw new CliFatalException("No input files given. Pass at least one file, wildcard or folder.");
 
+		string? dbOverride = Environment.GetEnvironmentVariable("TUNETASTIC_DB_PATH");
+		if (string.IsNullOrWhiteSpace(dbOverride) && !HasPackageIdentity())
+			throw new CliFatalException("The CLI cannot reach the library from an unpackaged build. Run the installed (packaged) Tunetastic app, or set TUNETASTIC_DB_PATH to a database file (testing only).");
+
 		try
 		{
 			await WithBusyRetry(() => DatabaseHelper.Instance.InitializeDatabase());
@@ -232,6 +236,24 @@ public static class CliPlaylistAdd
 			Failures = report.Failures,
 			Notices = report.Notices,
 		};
+	}
+
+	/// <summary>
+	/// Determines whether this process runs with package identity (installed MSIX / VS-packaged debug).
+	/// Without it, <c>Windows.Storage.ApplicationData</c> is unavailable and the shared library
+	/// database cannot be reached.
+	/// </summary>
+	private static bool HasPackageIdentity()
+	{
+		try
+		{
+			_ = Windows.Storage.ApplicationData.Current.LocalFolder;
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
 	}
 
 	/// <summary>

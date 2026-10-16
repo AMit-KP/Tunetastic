@@ -174,6 +174,7 @@ tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run
 - Fields the library has no column for (album artist, disc number, composer, extra performers/genres/pictures, sort names, MusicBrainz IDs, ReplayGain, BPM, …) are listed in the output instead of being silently ignored.
 - Output: a human-readable summary on stderr plus, when the command runs to a report, a machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`). Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
 - `--dry-run` reports what would happen without changing your library or playlists. It still ensures the database schema and writes cover-thumbnail files (cleaned up by the next full library scan).
+- Testing without the installed app: set `TUNETASTIC_DB_PATH` to a database file to run the CLI unpackaged against an isolated database (app settings fall back to defaults there).
 
 Example JSON report (stdout):
 

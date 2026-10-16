@@ -186,7 +186,15 @@ public class DatabaseHelper
 	/// <returns>A <see cref="Task"/> that completes once schema creation, migration, and seeding have finished.</returns>
 	public async Task InitializeDatabase()
 	{
-		var dbPath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tunetastic.db3");
+		// Testing hook: point the CLI (or any caller) at an isolated database file.
+		// When unset, the app's packaged LocalState database is used as before.
+		string? overridePath = Environment.GetEnvironmentVariable("TUNETASTIC_DB_PATH");
+		var dbPath = !string.IsNullOrWhiteSpace(overridePath)
+			? overridePath!
+			: Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tunetastic.db3");
+		var directory = Path.GetDirectoryName(dbPath);
+		if (!string.IsNullOrEmpty(directory))
+			Directory.CreateDirectory(directory);
 		_database = new SQLiteAsyncConnection(dbPath);
 
 		await _database.ExecuteAsync("PRAGMA foreign_keys = ON");
