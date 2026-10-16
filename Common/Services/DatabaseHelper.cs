@@ -664,7 +664,7 @@ public class DatabaseHelper
 	public async Task UpdateSongsDatabase(List<Song> songs)
 	{
 		var existingSongData = await _database.QueryAsync<Song>("SELECT Path, PlayCount, DateLastPlayed FROM Songs");
-		var existingPlaylistLinks = await _database.QueryAsync<(int PlaylistId, string SongPath)>("SELECT PlaylistId, SongPath FROM PlaylistSongs");
+		var existingPlaylistLinks = await _database.QueryAsync<(int PlaylistId, string SongPath, int Position)>("SELECT PlaylistId, SongPath, Position FROM PlaylistSongs");
 
 		await DeleteAllSongsFromDB();
 
@@ -714,8 +714,9 @@ public class DatabaseHelper
 			{
 				// Only restore links whose song survived the rescan; the CLI can link tracks that live
 				// outside the libraries, and restoring those would violate the foreign key and wipe the DB.
+				// Position is restored too, so playlist order survives a re-scan.
 				if (restoredPaths.Contains(link.SongPath))
-					conn.Execute("INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath) VALUES (?, ?)", link.PlaylistId, link.SongPath);
+					conn.Execute("INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath, Position) VALUES (?, ?, ?)", link.PlaylistId, link.SongPath, link.Position);
 			}
 		});
 
@@ -858,6 +859,7 @@ public class DatabaseHelper
 	/// Retrieves a song from the database by its file path, ignoring case.
 	/// Used by the CLI import so a path passed with different casing resolves to the stored row
 	/// instead of creating a case-variant duplicate (the <c>Songs.Path</c> key uses binary collation).
+	/// Lock errors propagate so the caller can retry; other failures return null.
 	/// </summary>
 	/// <param name="path">The file path of the song to retrieve from the database.</param>
 	/// <returns>
@@ -870,6 +872,10 @@ public class DatabaseHelper
 		{
 			var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ? COLLATE NOCASE", path);
 			return result.Count > 0 ? result[0] : null;
+		}
+		catch (SQLiteException ex) when (ex.Result == SQLite3.Result.Busy || ex.Result == SQLite3.Result.Locked)
+		{
+			throw;
 		}
 		catch (Exception)
 		{

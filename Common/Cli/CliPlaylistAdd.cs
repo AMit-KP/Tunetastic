@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using SQLite;
+﻿using SQLite;
 
 namespace Tunetastic.Common.Cli;
 
@@ -65,7 +64,6 @@ public static class CliPlaylistAdd
 
 		var (ignoreDuration, ignoreDuplicates, prefsNotice) = ReadPreferences();
 		var enabledExtensions = await WithBusyRetry(() => LibraryScanner.GetEnabledExtensions());
-		var libraryRoots = await GetEffectiveLibraryRoots();
 
 		// Fail fast on --no-create so scripting gets a deterministic error even with no usable inputs.
 		// An existing playlist is resolved to its stored casing: the database compares names
@@ -82,8 +80,10 @@ public static class CliPlaylistAdd
 		if (prefsNotice != null)
 			report.Notices.Add(prefsNotice);
 
+		var libraryRoots = await GetEffectiveLibraryRoots(report.Notices);
+
 		var failures = new List<InputFailure>();
-		var candidateFiles = ResolveInputs(inputs, enabledExtensions, failures);
+		var candidateFiles = ResolveInputs(inputs, enabledExtensions, failures, report.Notices);
 
 		var seenInRun = new HashSet<(string Title, string Artist, string Album)>();
 		var addedPaths = new HashSet<string>(StringComparer.Ordinal);
@@ -105,12 +105,15 @@ public static class CliPlaylistAdd
 
 			if (!import.TagsReadable)
 			{
-				failures.Add(new InputFailure { Input = file, Reason = "Embedded tags could not be read; the file may be corrupt or unsupported." });
-				continue;
+				// The scan imports such files with fallback values; the CLI does the same instead of
+				// dropping a playable track. The fallback is explicit in the report, never silent.
+				import.Warnings.Add(await DescribeReadFailure(file));
 			}
 
 			// Resolve to the stored row (case-insensitive): re-imports keep their history and casing.
-			var stored = await WithBusyRetry(() => DatabaseHelper.Instance.GetSongByPathNoCase(file));
+			// The exact match uses the indexed key; the NOCASE fallback only runs for new casings.
+			var stored = await WithBusyRetry(() => DatabaseHelper.Instance.GetSongByPath(file));
+			stored ??= await WithBusyRetry(() => DatabaseHelper.Instance.GetSongByPathNoCase(file));
 			string effectivePath = stored?.Path ?? file;
 			if (stored != null)
 			{
@@ -128,11 +131,11 @@ public static class CliPlaylistAdd
 			var identity = (import.Song.Title, import.Song.Artists, import.Song.Album);
 			bool duplicateInRun = !seenInRun.Add(identity);
 			bool duplicateInDb = ignoreDuplicates && await WithBusyRetry(() => DatabaseHelper.Instance.SongMetadataExists(import.Song.Title, import.Song.Artists, import.Song.Album, excludePath: effectivePath));
-			if (duplicateInRun || duplicateInDb)
+			if (ignoreDuplicates && (duplicateInRun || duplicateInDb))
 			{
 				report.Tracks.Add(SkippedEntry(import, effectivePath, duplicateInDb
 					? "A track with the same title, artist and album is already in the library (duplicate detection is on)."
-					: "The same track appears more than once in this run."));
+					: "The same track appears more than once in this run (duplicate detection is on)."));
 				continue;
 			}
 
@@ -147,7 +150,17 @@ public static class CliPlaylistAdd
 		bool created = false;
 		if (!playlistExists && !options.DryRun)
 		{
-			await WithBusyRetry(() => DatabaseHelper.Instance.CreatePlaylist(playlistName));
+			cancellationToken.ThrowIfCancellationRequested();
+			try
+			{
+				await WithBusyRetry(() => DatabaseHelper.Instance.CreatePlaylist(playlistName));
+			}
+			catch (Exception ex)
+			{
+				foreach (var c in candidates)
+					report.Failures.Add(new InputFailure { Input = c.Song.Path, Reason = $"Playlist '{playlistName}' could not be created: {ex.Message}" });
+				return FinalReport(report, created, wouldCreate: false);
+			}
 			playlistExists = true;
 			created = true;
 		}
@@ -158,6 +171,7 @@ public static class CliPlaylistAdd
 
 		if (!options.DryRun)
 		{
+			cancellationToken.ThrowIfCancellationRequested();
 			var songs = candidates.Select(c => c.Song).ToList();
 			// Scan-meta is only tracked for files inside the libraries: the auto-scan reconciler
 			// deletes tracked paths it cannot find under a library root, so out-of-library tracks
@@ -175,11 +189,8 @@ public static class CliPlaylistAdd
 			}
 			catch (Exception ex)
 			{
-				report.Failures.Add(new InputFailure
-				{
-					Input = $"{candidates.Count} track(s)",
-					Reason = $"Database write failed partway: {ex.Message} The library may be partially updated; re-run to complete."
-				});
+				foreach (var c in candidates)
+					report.Failures.Add(new InputFailure { Input = c.Song.Path, Reason = $"Database write failed partway: {ex.Message} State is unknown; re-run to complete." });
 				return FinalReport(report, created, wouldCreate: false);
 			}
 		}
@@ -243,7 +254,8 @@ public static class CliPlaylistAdd
 	}
 
 	/// <summary>
-	/// Reads the user's scan preferences, falling back to permissive defaults when settings are unavailable.
+	/// Reads the user's scan preferences with the same culture the scanner uses, falling back to
+	/// permissive defaults when settings are unavailable.
 	/// </summary>
 	/// <returns>The ignore-duration, the duplicate flag, and a notice when the fallback was used.</returns>
 	private static (double ignoreDuration, bool ignoreDuplicates, string? notice) ReadPreferences()
@@ -251,7 +263,7 @@ public static class CliPlaylistAdd
 		try
 		{
 			var settings = Windows.Storage.ApplicationData.Current.LocalSettings;
-			double duration = double.Parse(settings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0", CultureInfo.InvariantCulture);
+			double duration = double.Parse(settings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 			bool duplicates = bool.Parse(settings.Values[nameof(LocalSave.IgnoreDuplicateEnabled)]?.ToString() ?? "false");
 			return (duration, duplicates, null);
 		}
@@ -263,11 +275,40 @@ public static class CliPlaylistAdd
 
 	/// <summary>
 	/// Loads the effective library roots used to decide whether a file gets scan-meta tracking.
+	/// Computed silently (unlike the scanner, which notifies): the CLI has no window for toasts.
+	/// Missing folders are reported once via <paramref name="notices"/>.
 	/// </summary>
-	private static async Task<HashSet<string>> GetEffectiveLibraryRoots()
+	private static async Task<HashSet<string>> GetEffectiveLibraryRoots(List<string> notices)
 	{
-		var libraries = await WithBusyRetry(() => DatabaseHelper.Instance.GetAllLibraries());
-		return LibraryScanner.ComputeEffectiveRoots(libraries.Select(l => l.Path).ToList()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+		var paths = (await WithBusyRetry(() => DatabaseHelper.Instance.GetAllLibraries()))
+			.Select(l => l.Path)
+			.OrderBy(f => f.Length)
+			.ToList();
+
+		var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		foreach (var folder in paths)
+		{
+			if (!Directory.Exists(folder))
+			{
+				notices.Add($"Library folder not found, skipped for scan tracking: {folder}");
+				continue;
+			}
+			if (!roots.Any(parent => IsSameOrNestedPath(folder, parent)))
+				roots.Add(folder);
+		}
+		return roots;
+	}
+
+	/// <summary>
+	/// Determines whether <paramref name="path"/> is the same folder as <paramref name="parent"/> or lives
+	/// beneath it. Mirrors the scanner's separator-aware nesting check.
+	/// </summary>
+	private static bool IsSameOrNestedPath(string path, string parent)
+	{
+		var trimmedParent = parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+		return string.Equals(path, trimmedParent, StringComparison.OrdinalIgnoreCase)
+			|| path.StartsWith(trimmedParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
 	}
 
 	/// <summary>
@@ -276,25 +317,20 @@ public static class CliPlaylistAdd
 	/// </summary>
 	private static bool IsUnderLibraryRoot(string path, HashSet<string> roots)
 	{
-		foreach (var root in roots)
-		{
-			var trimmed = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			if (string.Equals(path, trimmed, StringComparison.OrdinalIgnoreCase)
-				|| path.StartsWith(trimmed + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-				return true;
-		}
-		return false;
+		return roots.Any(root => IsSameOrNestedPath(path, root));
 	}
 
 	/// <summary>
 	/// Expands the CLI inputs to a de-duplicated file list in input order (which defines playlist order).
+	/// Expansion results within one folder or pattern are sorted by path for determinism.
 	/// A literal file with a disabled extension is a failure; folder- and pattern-expanded files with
-	/// disabled extensions are filtered silently, like the library scan does.
+	/// disabled extensions are counted in a single notice, like the library scan filters silently.
 	/// </summary>
-	private static List<string> ResolveInputs(IReadOnlyList<string> inputs, List<string> enabledExtensions, List<InputFailure> failures)
+	private static List<string> ResolveInputs(IReadOnlyList<string> inputs, List<string> enabledExtensions, List<InputFailure> failures, List<string> notices)
 	{
 		var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		var files = new List<string>();
+		int disabledCount = 0;
 
 		void Add(string file)
 		{
@@ -316,10 +352,13 @@ public static class CliPlaylistAdd
 		{
 			if (File.Exists(input))
 			{
-				if (!enabledExtensions.Contains(Path.GetExtension(input).ToLowerInvariant()))
-					failures.Add(new InputFailure { Input = input, Reason = $"File type '{Path.GetExtension(input)}' is disabled in Settings > File Extensions." });
+				// Normalize to on-disk casing: rescan comparisons are ordinal, so a differently
+				// cased literal would otherwise churn history and playlist links on re-scan.
+				string literal = ResolveDiskCasing(input) ?? input;
+				if (!enabledExtensions.Contains(Path.GetExtension(literal).ToLowerInvariant()))
+					failures.Add(new InputFailure { Input = literal, Reason = $"File type '{Path.GetExtension(literal)}' is disabled in Settings > File Extensions." });
 				else
-					Add(input);
+					Add(literal);
 				continue;
 			}
 
@@ -327,25 +366,51 @@ public static class CliPlaylistAdd
 			{
 				if (enabledExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
 					Add(file);
+				else
+					disabledCount++;
 			}
 		}
+
+		if (disabledCount > 0)
+			notices.Add($"{disabledCount} file(s) skipped: extension disabled in Settings > File Extensions.");
 
 		return files;
 	}
 
 	/// <summary>
-	/// Expands one non-literal input to files: a folder (recursive, skipping inaccessible
-	/// subfolders like the scanner) or a wildcard pattern (<c>*</c> and <c>?</c> only).
+	/// Resolves <paramref name="path"/> to its on-disk casing via the parent directory.
+	/// Returns null when the casing cannot be determined; callers then keep the given path.
+	/// </summary>
+	private static string? ResolveDiskCasing(string path)
+	{
+		try
+		{
+			var name = Path.GetFileName(path);
+			var directory = Path.GetDirectoryName(path);
+			if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(directory) || name.IndexOfAny(['*', '?']) >= 0)
+				return null;
+			return Directory.GetFiles(directory, name).FirstOrDefault();
+		}
+		catch
+		{
+			return null;
+		}
+	}
+
+	/// <summary>
+	/// Expands one non-literal input to files, sorted by path: a folder (recursive, skipping
+	/// inaccessible subfolders like the scanner, depth-limited against junction loops) or a wildcard
+	/// pattern (<c>*</c> and <c>?</c> in the file name only).
 	/// </summary>
 	private static IEnumerable<string> ExpandInput(string input, List<InputFailure> failures)
 	{
 		if (Directory.Exists(input))
 		{
-			var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true };
+			var options = new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true, MaxRecursionDepth = 128 };
 			List<string> found = new();
 			try
 			{
-				found.AddRange(Directory.EnumerateFiles(input, "*.*", options));
+				found.AddRange(Directory.EnumerateFiles(input, "*.*", options).OrderBy(f => f, StringComparer.Ordinal));
 			}
 			catch (Exception ex)
 			{
@@ -368,10 +433,18 @@ public static class CliPlaylistAdd
 			if (string.IsNullOrEmpty(directory))
 				directory = Directory.GetCurrentDirectory();
 
+			if (directory.IndexOfAny(['*', '?']) >= 0)
+			{
+				failures.Add(new InputFailure { Input = input, Reason = "Wildcards are only supported in the file name; pass a folder to include subfolders." });
+				yield break;
+			}
+
 			string[] found;
 			try
 			{
-				found = Directory.Exists(directory) ? Directory.GetFiles(directory, pattern) : [];
+				found = Directory.Exists(directory)
+					? Directory.GetFiles(directory, pattern).OrderBy(f => f, StringComparer.Ordinal).ToArray()
+					: [];
 			}
 			catch (Exception ex)
 			{
@@ -415,6 +488,26 @@ public static class CliPlaylistAdd
 	private static TrackEntry SkippedEntry(CliMetadataReader.TrackImport import, string effectivePath, string reason)
 	{
 		return Entry(import, effectivePath, TrackStatus.Skipped, reason);
+	}
+
+	/// <summary>
+	/// Describes why a full metadata read failed. When the tags themselves open fine, the failure
+	/// came from a later step (typically an undecodable cover picture), which the message says.
+	/// </summary>
+	private static async Task<string> DescribeReadFailure(string file)
+	{
+		try
+		{
+			await Task.Run(() =>
+			{
+				using var _ = TagLib.File.Create(file);
+			});
+		}
+		catch
+		{
+			return "Embedded tags could not be read; imported with file-name fallback values.";
+		}
+		return "Full metadata read failed (possibly undecodable cover art); imported with fallback values.";
 	}
 
 	/// <summary>

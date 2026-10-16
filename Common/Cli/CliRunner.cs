@@ -14,10 +14,12 @@ public static class CliRunner
 		"Usage:\n" +
 		"  tunetastic playlist add \"<playlist>\" <file | pattern | folder> [more ...] [options]\n" +
 		"\n" +
-		"Adds local audio files to a playlist, importing all embedded metadata (title, artist,\n" +
-		"album, year, genre, track number, lyrics, cover art, ...). The playlist is created when\n" +
-		"it does not exist. Folders are scanned recursively; wildcards (C:\\Music\\*.mp3) work in\n" +
-		"any shell. Prints a human-readable summary to stderr and a JSON report to stdout.\n" +
+		"Adds local audio files to a playlist, importing the metadata the library can store (title, artist,\n" +
+		"album, year, genre, track number, lyrics, cover art, ...). Everything else found in the file\n" +
+		"is listed in the report instead of being silently ignored. The playlist is created when\n" +
+		"the first track is added and it does not exist yet. Folders are scanned recursively;\n" +
+		"wildcards (C:\\Music\\*.mp3) work in any shell. Prints a human-readable summary to stderr\n" +
+		"and, when the command runs to a report, a JSON report to stdout.\n" +
 		"\n" +
 		"Options:\n" +
 		"  --no-create   Fail when the playlist does not exist instead of creating it.\n" +
@@ -26,9 +28,9 @@ public static class CliRunner
 		"  --help, -h    Show this help.\n" +
 		"\n" +
 		"Exit codes:\n" +
-		"  0  All tracks added (or dry run / already present).\n" +
+		"  0  Success: no inputs failed (check the added/skipped counts in the report).\n" +
 		"  1  Completed, but some inputs failed.\n" +
-		"  2  Usage error or the command could not run.\n" +
+		"  2  Usage error, the command could not run, or it was cancelled (Ctrl+C).\n" +
 		"\n" +
 		"Examples:\n" +
 		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\song.mp3\"\n" +
@@ -64,22 +66,30 @@ public static class CliRunner
 		EnsureConsole();
 
 		int exitCode;
-		if (args.Length >= 2 && string.Equals(args[1], "add", StringComparison.OrdinalIgnoreCase))
-			exitCode = RunPlaylistAdd(args.Skip(2).ToList());
-		else if (args.Length >= 2 && (string.Equals(args[1], "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(args[1], "-h", StringComparison.OrdinalIgnoreCase)))
+		try
 		{
-			Console.Error.WriteLine(Usage);
-			exitCode = 0;
+			if (args.Length >= 2 && string.Equals(args[1], "add", StringComparison.OrdinalIgnoreCase))
+				exitCode = RunPlaylistAdd(args.Skip(2).ToList());
+			else if (args.Length >= 2 && (string.Equals(args[1], "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(args[1], "-h", StringComparison.OrdinalIgnoreCase)))
+			{
+				Console.Error.WriteLine(Usage);
+				exitCode = 0;
+			}
+			else
+				exitCode = UsageError("Unknown playlist command. Did you mean 'tunetastic playlist add ...'?");
 		}
-		else
-			exitCode = UsageError("Unknown playlist command. Did you mean 'tunetastic playlist add ...'?");
+		catch (IOException)
+		{
+			// Headless launch without usable console handles: nothing can be reported.
+			exitCode = 2;
+		}
 
 		Environment.ExitCode = exitCode;
 		return true;
 	}
 
 	/// <summary>
-	/// Attaches the parent console (when launched from one without redirection) and selects UTF-8
+	/// Attaches the parent console (when launched from one with a visible console) and selects UTF-8
 	/// output so tag content renders correctly. Best effort: never fails the command.
 	/// </summary>
 	private static void EnsureConsole()
@@ -87,7 +97,7 @@ public static class CliRunner
 		try
 		{
 			Console.OutputEncoding = Encoding.UTF8;
-			if (!Console.IsOutputRedirected)
+			if (!Console.IsErrorRedirected)
 				AttachConsole(AttachParentProcess);
 		}
 		catch
@@ -135,8 +145,12 @@ public static class CliRunner
 
 		PlaylistAddReport report;
 		using var cts = new CancellationTokenSource();
+		int cancelPresses = 0;
 		void CancelHandler(object? sender, ConsoleCancelEventArgs e)
 		{
+			// First Ctrl+C cancels gracefully; a second one lets the process die.
+			if (++cancelPresses > 1)
+				return;
 			e.Cancel = true;
 			cts.Cancel();
 		}

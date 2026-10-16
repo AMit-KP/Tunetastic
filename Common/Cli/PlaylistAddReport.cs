@@ -87,19 +87,22 @@ public sealed class PlaylistAddReport
 		foreach (var notice in Notices)
 			writer.WriteLine($"  Note: {Clean(notice)}");
 
+		int skipped = Tracks.Count(t => t.Status == TrackStatus.Skipped);
+		int present = Tracks.Count(t => t.Status == TrackStatus.AlreadyPresent);
 		writer.WriteLine(DryRun
-			? $"Done: {AddedCount} would be added, {SkippedCount} skipped, {Failures.Count} failed."
-			: $"Done: {AddedCount} added, {SkippedCount} skipped, {Failures.Count} failed.");
+			? $"Done: {AddedCount} would be added, {skipped} skipped, {present} already in playlist, {Failures.Count} failed."
+			: $"Done: {AddedCount} added, {skipped} skipped, {present} already in playlist, {Failures.Count} failed.");
 	}
 
 	/// <summary>
-	/// Replaces control characters with spaces so hostile tag content cannot spoof terminal output.
+	/// Replaces control and invisible format characters (including bidi marks) with spaces so hostile
+	/// tag content cannot spoof terminal output.
 	/// </summary>
 	private static string Clean(string? value)
 	{
 		if (string.IsNullOrEmpty(value))
 			return string.Empty;
-		return new string(value.Select(c => char.IsControl(c) ? ' ' : c).ToArray());
+		return new string(value.Select(c => char.IsControl(c) || char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.Format ? ' ' : c).ToArray());
 	}
 }
 

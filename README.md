@@ -168,12 +168,37 @@ tunetastic playlist add "My Playlist" "C:\Music\*.mp3"
 tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run
 ```
 
-- The playlist is created when it does not exist (pass `--no-create` to fail instead).
-- Folders are scanned recursively; wildcards work in any shell. Multiple files, patterns and folders can be mixed in one call, and tracks are added in the order given.
-- All embedded metadata is imported with the same routine the library scan uses: title, artist, album, year, genre, track number, lyrics and embedded cover art. Your duplicate-detection and minimum-duration settings are respected. Re-importing a track keeps its play count and playback position in the playlist.
-- Fields the library has no column for (album artist, disc number, composer, extra performers/genres/pictures, BPM, …) are listed in the output instead of being silently ignored.
-- Output: a human-readable summary on stderr plus a machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`). Exit codes: `0` = success, `1` = completed with failed inputs, `2` = usage/config error.
-- `--dry-run` reports what would happen without changing your library or playlists (it still ensures the database schema and may cache cover thumbnails).
+- The playlist is created when the first track is added and it does not exist yet (pass `--no-create` to fail instead).
+- Folders are scanned recursively (unreadable subfolders are skipped); wildcards are supported in the file name (`C:\Music\*.mp3`) in any shell. Multiple files, patterns and folders can be mixed in one call. Inputs are added in the order given; within one folder or pattern, files are added sorted by path.
+- All metadata the library can store is imported with the same routine the library scan uses: title, artist, album, year, genre, track number, lyrics and embedded cover art. Only the release year is kept (TagLib exposes no fuller date to the reader). Your duplicate-detection and minimum-duration settings are respected. Re-importing a track keeps its play count and playback position in the playlist.
+- Fields the library has no column for (album artist, disc number, composer, extra performers/genres/pictures, sort names, MusicBrainz IDs, ReplayGain, BPM, …) are listed in the output instead of being silently ignored.
+- Output: a human-readable summary on stderr plus, when the command runs to a report, a machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`). Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
+- `--dry-run` reports what would happen without changing your library or playlists. It still ensures the database schema and writes cover-thumbnail files (cleaned up by the next full library scan).
+
+Example JSON report (stdout):
+
+```json
+{
+  "Playlist": "My Playlist",
+  "PlaylistCreated": true,
+  "PlaylistWouldBeCreated": false,
+  "DryRun": false,
+  "Tracks": [
+    {
+      "Path": "C:\\Music\\song.mp3",
+      "Title": "Song",
+      "Status": "Added",
+      "Reason": null,
+      "Imported": ["Title 'Song'", "Cover art (embedded image/jpeg)"],
+      "Defaulted": [],
+      "Skipped": ["Album artist 'X' (library has no album-artist column)"],
+      "Warnings": []
+    }
+  ],
+  "Failures": [],
+  "Notices": []
+}
+```
 
 Notes: the command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Tracks added from folders outside your configured libraries are excluded from auto-scan tracking and dropped by the next full re-scan, which only keeps tracks inside library folders.
 

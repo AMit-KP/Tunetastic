@@ -196,6 +196,8 @@ public static class CliMetadataReader
 		if (tag.BeatsPerMinute > 0)
 			skipped.Add($"BPM '{tag.BeatsPerMinute}' (library has no BPM column)");
 
+		ReportUnmappedFields(tag, skipped);
+
 		ReportProbedValues(song, imported, defaulted);
 
 		if (song.Duration <= 0)
@@ -211,6 +213,68 @@ public static class CliMetadataReader
 			Skipped = skipped,
 			Warnings = warnings,
 		};
+	}
+
+	/// <summary>
+	/// Reports embedded values that have no matching library column. Every value listed here was
+	/// present in the file but could not be stored; nothing is silently dropped.
+	/// </summary>
+	private static void ReportUnmappedFields(TagFields tag, List<string> skipped)
+	{
+		foreach (var (label, value) in new[]
+		{
+			("Subtitle", tag.Subtitle),
+			("Description", tag.Description),
+			("Title sort name", tag.TitleSort),
+			("Album sort name", tag.AlbumSort),
+			("Publisher", tag.Publisher),
+			("ISRC", tag.ISRC),
+			("Initial key", tag.InitialKey),
+			("Remixed by", tag.RemixedBy),
+			("Media length", tag.Length),
+			("MusicBrainz artist ID", tag.MusicBrainzArtistId),
+			("MusicBrainz release group ID", tag.MusicBrainzReleaseGroupId),
+			("MusicBrainz release ID", tag.MusicBrainzReleaseId),
+			("MusicBrainz release artist ID", tag.MusicBrainzReleaseArtistId),
+			("MusicBrainz track ID", tag.MusicBrainzTrackId),
+			("MusicBrainz disc ID", tag.MusicBrainzDiscId),
+			("MusicBrainz release status", tag.MusicBrainzReleaseStatus),
+			("MusicBrainz release type", tag.MusicBrainzReleaseType),
+			("MusicBrainz release country", tag.MusicBrainzReleaseCountry),
+			("Music IP ID", tag.MusicIpId),
+			("Amazon ID", tag.AmazonId),
+		})
+		{
+			if (!string.IsNullOrWhiteSpace(value))
+				skipped.Add($"{label} '{value}' (library has no matching column)");
+		}
+
+		foreach (var (label, values) in new[]
+		{
+			("Performer sort name", tag.PerformersSort),
+			("Performer role", tag.PerformersRole),
+			("Album artist sort name", tag.AlbumArtistsSort),
+			("Composer sort name", tag.ComposersSort),
+		})
+		{
+			foreach (var item in values.Where(v => !string.IsNullOrWhiteSpace(v)))
+				skipped.Add($"{label} '{item}' (library has no matching column)");
+		}
+
+		foreach (var (label, gain) in new[]
+		{
+			("ReplayGain track gain", tag.ReplayGainTrackGain),
+			("ReplayGain track peak", tag.ReplayGainTrackPeak),
+			("ReplayGain album gain", tag.ReplayGainAlbumGain),
+			("ReplayGain album peak", tag.ReplayGainAlbumPeak),
+		})
+		{
+			if (!double.IsNaN(gain))
+				skipped.Add($"{label} '{gain}' (library has no matching column)");
+		}
+
+		if (tag.DateTagged.HasValue)
+			skipped.Add($"Date tagged '{tag.DateTagged:yyyy-MM-dd}' (date the tag was written; library stores no tag-write dates)");
 	}
 
 	/// <summary>
@@ -260,9 +324,16 @@ public static class CliMetadataReader
 	private sealed class TagFields
 	{
 		public string? Title { get; init; }
+		public string? TitleSort { get; init; }
+		public string? Subtitle { get; init; }
+		public string? Description { get; init; }
 		public string[] Performers { get; init; } = [];
+		public string[] PerformersSort { get; init; } = [];
+		public string[] PerformersRole { get; init; } = [];
 		public string[] AlbumArtists { get; init; } = [];
+		public string[] AlbumArtistsSort { get; init; } = [];
 		public string? Album { get; init; }
+		public string? AlbumSort { get; init; }
 		public string[] Genres { get; init; } = [];
 		public uint Year { get; init; }
 		public uint Track { get; init; }
@@ -270,6 +341,7 @@ public static class CliMetadataReader
 		public uint Disc { get; init; }
 		public uint DiscCount { get; init; }
 		public string[] Composers { get; init; } = [];
+		public string[] ComposersSort { get; init; } = [];
 		public string? Lyrics { get; init; }
 		public int PictureCount { get; init; }
 		public string? PictureMimeType { get; init; }
@@ -278,15 +350,43 @@ public static class CliMetadataReader
 		public string? Conductor { get; init; }
 		public string? Copyright { get; init; }
 		public uint BeatsPerMinute { get; init; }
+		public DateTime? DateTagged { get; init; }
+		public string? MusicBrainzArtistId { get; init; }
+		public string? MusicBrainzReleaseGroupId { get; init; }
+		public string? MusicBrainzReleaseId { get; init; }
+		public string? MusicBrainzReleaseArtistId { get; init; }
+		public string? MusicBrainzTrackId { get; init; }
+		public string? MusicBrainzDiscId { get; init; }
+		public string? MusicIpId { get; init; }
+		public string? AmazonId { get; init; }
+		public string? MusicBrainzReleaseStatus { get; init; }
+		public string? MusicBrainzReleaseType { get; init; }
+		public string? MusicBrainzReleaseCountry { get; init; }
+		public double ReplayGainTrackGain { get; init; }
+		public double ReplayGainTrackPeak { get; init; }
+		public double ReplayGainAlbumGain { get; init; }
+		public double ReplayGainAlbumPeak { get; init; }
+		public string? InitialKey { get; init; }
+		public string? RemixedBy { get; init; }
+		public string? Publisher { get; init; }
+		public string? ISRC { get; init; }
+		public string? Length { get; init; }
 
 		public static TagFields FromTag(TagLib.Tag tag)
 		{
 			return new TagFields
 			{
 				Title = tag.Title,
+				TitleSort = tag.TitleSort,
+				Subtitle = tag.Subtitle,
+				Description = tag.Description,
 				Performers = tag.Performers ?? [],
+				PerformersSort = tag.PerformersSort ?? [],
+				PerformersRole = tag.PerformersRole ?? [],
 				AlbumArtists = tag.AlbumArtists ?? [],
+				AlbumArtistsSort = tag.AlbumArtistsSort ?? [],
 				Album = tag.Album,
+				AlbumSort = tag.AlbumSort,
 				Genres = tag.Genres ?? [],
 				Year = tag.Year,
 				Track = tag.Track,
@@ -294,6 +394,7 @@ public static class CliMetadataReader
 				Disc = tag.Disc,
 				DiscCount = tag.DiscCount,
 				Composers = tag.Composers ?? [],
+				ComposersSort = tag.ComposersSort ?? [],
 				Lyrics = tag.Lyrics,
 				PictureCount = tag.Pictures?.Length ?? 0,
 				PictureMimeType = tag.Pictures?.Length > 0 ? tag.Pictures[0].MimeType : null,
@@ -302,6 +403,27 @@ public static class CliMetadataReader
 				Conductor = tag.Conductor,
 				Copyright = tag.Copyright,
 				BeatsPerMinute = tag.BeatsPerMinute,
+				DateTagged = tag.DateTagged,
+				MusicBrainzArtistId = tag.MusicBrainzArtistId,
+				MusicBrainzReleaseGroupId = tag.MusicBrainzReleaseGroupId,
+				MusicBrainzReleaseId = tag.MusicBrainzReleaseId,
+				MusicBrainzReleaseArtistId = tag.MusicBrainzReleaseArtistId,
+				MusicBrainzTrackId = tag.MusicBrainzTrackId,
+				MusicBrainzDiscId = tag.MusicBrainzDiscId,
+				MusicIpId = tag.MusicIpId,
+				AmazonId = tag.AmazonId,
+				MusicBrainzReleaseStatus = tag.MusicBrainzReleaseStatus,
+				MusicBrainzReleaseType = tag.MusicBrainzReleaseType,
+				MusicBrainzReleaseCountry = tag.MusicBrainzReleaseCountry,
+				ReplayGainTrackGain = tag.ReplayGainTrackGain,
+				ReplayGainTrackPeak = tag.ReplayGainTrackPeak,
+				ReplayGainAlbumGain = tag.ReplayGainAlbumGain,
+				ReplayGainAlbumPeak = tag.ReplayGainAlbumPeak,
+				InitialKey = tag.InitialKey,
+				RemixedBy = tag.RemixedBy,
+				Publisher = tag.Publisher,
+				ISRC = tag.ISRC,
+				Length = tag.Length,
 			};
 		}
 	}

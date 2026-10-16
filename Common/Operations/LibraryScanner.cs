@@ -195,10 +195,12 @@ public class LibraryScanner
 			}
 			catch (Exception)
 			{
-				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
-				await RefreshAutoScanResultMessage(message: "No tracks could be added");
+				// Never wipe the library on a failed scan: the failure can be transient (e.g. a locked
+				// database while another process writes), and deleting everything destroys data that the
+				// scan never touched. Leave the previous library in place and report the failure.
+				await RefreshAutoScanResultMessage(message: "Library scan failed; kept the existing library.");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-				return ("Error", "No tracks could be added", failedFiles.ToList());
+				return ("Error", "Library scan failed; kept the existing library.", failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
