@@ -70,10 +70,8 @@ jobs:
           PRERELEASE="${{ steps.branch.outputs.prerelease }}"
           MODE="${{ inputs.previous_mode }}"
 
-          FLAGS=(--generate-notes)
-          if [ "$PRERELEASE" = "true" ]; then
-            FLAGS+=(--prerelease)
-          fi
+          NOTES_RAW="$RUNNER_TEMP/notes_raw.md"
+          NOTES="$RUNNER_TEMP/notes.md"
 
           # Find the previous release to compare against:
           #  - master: latest non-prerelease
@@ -86,14 +84,31 @@ jobs:
               --jq "[.[] | select(.isPrerelease == $PRERELEASE)] | .[0].tagName // empty")
           fi
 
+          # Generate notes via the API so we can post-process them
+          API_ARGS=(-f "tag_name=$TAG" -f "target_commitish=$GITHUB_SHA")
           if [ -n "$PREV" ]; then
             echo "Comparing against previous release: $PREV"
-            FLAGS+=(--notes-start-tag "$PREV")
+            API_ARGS+=(-f "previous_tag_name=$PREV")
           else
             echo "No specific previous release; using GitHub's default."
+          fi
+
+          gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            "${API_ARGS[@]}" --jq '.body' > "$NOTES_RAW"
+
+          # Drop PR entries whose title starts with "Update stats on"
+          grep -v -E '^\* Update stats on' "$NOTES_RAW" > "$NOTES" || true
+
+          echo "---- Final release notes ----"
+          cat "$NOTES"
+
+          FLAGS=()
+          if [ "$PRERELEASE" = "true" ]; then
+            FLAGS+=(--prerelease)
           fi
 
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
             --title "$TAG" \
+            --notes-file "$NOTES" \
             "${FLAGS[@]}"
