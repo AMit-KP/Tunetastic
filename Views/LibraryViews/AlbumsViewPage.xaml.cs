@@ -269,50 +269,79 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (AlbumTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddAlbumsSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
+				await AddAlbumSongsToPlayList(playlistName, albumModel);
+			}
+		}
+	}
+
 	/// <summary>
-	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
+	/// Handles the logic for adding songs to a selected playlist from the current view.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the menu item representing the target playlist.</param>
-	/// <param name="e">The event data triggered by the menu item's click action.</param>
+	/// <param name="sender">The source of the event, typically the menu item representing a playlist.</param>
+	/// <param name="e">Event data associated with the click action.</param>
 	/// <remarks>
-	/// This method is invoked when the user selects the "Add to Playlist" option.
-	/// It identifies the selected songs or groups of songs based on the view's multi-select mode.
-	/// If multiple albums are selected, it fetches all songs corresponding to those albums and adds them to the chosen playlist.
-	/// In single selection mode, the process targets the respective group of album.
-	/// Updates are performed through interactions with the database using asynchronous operations.
-	/// A notification is displayed upon successfully adding the songs to the playlist.
+	/// This method is triggered when a user selects the "Add to Playlist" option for one or more songs.
+	/// It determines the selected songs from the active view style and adds them to the chosen playlist.
+	/// Uses asynchronous operations to interact with the database for playlist updates.
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (AlbumTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var albumModels = AlbumTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
-																		 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected albums, added to {playlist} playlist.");
+			await AddAlbumsSongsToPlayList(playlist);
 		}
 		else
 		{
 			var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddAlbumSongsToPlayList(playlist, albumModel);
+		}
+	}
 
-			if (playlist != null && albumModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
-																			 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel.Album} added to {playlist} playlist.");
-			}
+	private async Task AddAlbumSongsToPlayList(string? playlist, AlbumModel? albumModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (playlist != null && albumModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
+																		 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																		 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel.Album} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddAlbumsSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		var albumModels = AlbumTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
+																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected albums, added to {playlist} playlist.");
 		}
 	}
 

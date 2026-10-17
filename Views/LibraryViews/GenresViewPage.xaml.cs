@@ -288,6 +288,26 @@ public sealed partial class GenresViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (GenreTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddGenresSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
+				await AddGenreSongsToPlayList(playlistName, genreModel);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
@@ -303,35 +323,46 @@ public sealed partial class GenresViewPage : TileListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (GenreTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var genreModels = GenreTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-																		 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to {playlist} playlist.");
+			await AddGenresSongsToPlayList(playlist);
 		}
 		else
 		{
 			var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddGenreSongsToPlayList(playlist, genreModel);
+		}
+	}
 
-			if (playlist != null && genreModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-																			 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Genre {genreModel.Genre} added to {playlist} playlist.");
-			}
+	private async Task AddGenreSongsToPlayList(string? playlist, GenreModel? genreModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (playlist != null && genreModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
+																		 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																		 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Genre {genreModel.Genre} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddGenresSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var genreModels = GenreTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
+																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to {playlist} playlist.");
 		}
 	}
 
@@ -757,7 +788,7 @@ public sealed partial class GenresViewPage : TileListPageBase
 	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		GenreTileView_SizeChanged(null, null);
-		
+
 		if (args.ItemContainer is ListViewItem container)
 			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}

@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
+using Flyleaf.FFmpeg;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Tunetastic.Views.Common;
@@ -489,6 +490,26 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+			var listView = GetCurrentViewStyle();
+			if (listView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+				await AddSongToPlayList(playlistName, song);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the logic for adding songs to a selected playlist from the current view.
 	/// </summary>
@@ -501,29 +522,39 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
+		var playlist = (sender as MenuFlyoutItem)?.Text;
+
 		var listView = GetCurrentViewStyle();
 		if (listView.IsMultiSelectCheckBoxEnabled)
 		{
-			var songs = listView.SelectedItems;
-			List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
-
-			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+			await AddSongsToPlayList(playlist);
 		}
 		else
 		{
 			var song = (sender as MenuFlyoutItem)?.DataContext as Song;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddSongToPlayList(playlist, song);
+		}
+	}
 
-			if (playlist != null && song != null)
-			{
-				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-				GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
-			}
+	private async Task AddSongToPlayList(string? playlist, Song? song)
+	{
+		if (playlist != null && song != null)
+		{
+			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+			GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddSongsToPlayList(string? playlist)
+	{
+		var listView = GetCurrentViewStyle();
+		var songs = listView.SelectedItems;
+		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
 		}
 	}
 

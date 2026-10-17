@@ -867,15 +867,18 @@
 			</ContentDialog>
 		</Grid>
 
-		<!-- Custom modal overlay for playlist creation: mirrors the ContentDialog look, but lives in the page
-		     tree so its drop zone can receive file drops — modal popups are hosted in separate input islands
-		     that never receive shell drag-and-drop. -->
+		<!--
+			Custom modal overlay for playlist creation: mirrors the ContentDialog look, but lives in the page
+			tree so its drop zone can receive file drops — modal popups are hosted in separate input islands
+			that never receive shell drag-and-drop.
+		-->
 		<Grid x:Name="AddPlaylistOverlay"
-		      Visibility="Collapsed"
+		      Background="#80000000"
 		      KeyboardAcceleratorPlacementMode="Hidden"
-		      Background="#80000000">
+		      Visibility="Collapsed">
 			<Grid.KeyboardAccelerators>
-				<KeyboardAccelerator Key="Escape" Invoked="AddPlaylistOverlay_Escape" />
+				<KeyboardAccelerator Key="Escape"
+				                     Invoked="AddPlaylistOverlay_Escape" />
 			</Grid.KeyboardAccelerators>
 			<Border Width="450"
 			        HorizontalAlignment="Center"
@@ -891,16 +894,16 @@
 					</Grid.RowDefinitions>
 					<StackPanel Grid.Row="0"
 					            Padding="24"
-					            Spacing="10"
-					            Background="#0FFFFFFF">
-						<TextBlock Text="Create New Playlist"
+					            Background="#0FFFFFFF"
+					            Spacing="10">
+						<TextBlock Margin="0,0,0,8"
 						           FontSize="20"
 						           FontWeight="SemiBold"
-						           Margin="0,0,0,8" />
+						           Text="Create New Playlist" />
 						<TextBox x:Name="PlaylistNameBox"
+						         KeyDown="PlaylistNameBox_KeyDown"
 						         PlaceholderText="Enter playlist name"
-						         TextChanged="OnPlaylistNameChanged"
-						         KeyDown="PlaylistNameBox_KeyDown" />
+						         TextChanged="OnPlaylistNameChanged" />
 						<TextBlock x:Name="ErrorMessage"
 						           Foreground="Red"
 						           Text=""
@@ -923,30 +926,37 @@
 						<Border x:Name="PlaylistDropZone"
 						        MinHeight="96"
 						        Padding="12"
-						        CornerRadius="{ThemeResource ControlCornerRadius}"
+						        AllowDrop="True"
 						        Background="{ThemeResource LayerFillColorDefaultBrush}"
 						        BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
 						        BorderThickness="1"
-						        AllowDrop="True"
+						        CornerRadius="{ThemeResource ControlCornerRadius}"
 						        DragEnter="PlaylistDropZone_DragEnter"
-						        DragOver="PlaylistDropZone_DragOver"
 						        DragLeave="PlaylistDropZone_DragLeave"
+						        DragOver="PlaylistDropZone_DragOver"
 						        Drop="PlaylistDropZone_Drop">
-							<StackPanel VerticalAlignment="Center"
-							            HorizontalAlignment="Center"
+							<StackPanel HorizontalAlignment="Center"
+							            VerticalAlignment="Center"
 							            Spacing="6">
-								<FontIcon Glyph="&#xE8E5;"
+								<FontIcon HorizontalAlignment="Center"
 								          FontSize="24"
-								          HorizontalAlignment="Center" />
-								<TextBlock Text="Drag &amp; drop a playlist file here"
-								           HorizontalAlignment="Center" />
+								          Glyph="&#xE8E5;" />
+								<TextBlock HorizontalAlignment="Center"
+								           Text="Drag &amp; drop a playlist file here" />
 							</StackPanel>
 						</Border>
+						<TextBlock x:Name="AddPlaylistSongsNote"
+						           Margin="0,8,0,0"
+						           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+						           Text="The selected songs/tracks will be automatically added to this playlist."
+						           TextWrapping="WrapWholeWords"
+						           Visibility="Collapsed">
+						</TextBlock>
 					</StackPanel>
 					<Border Grid.Row="1"
 					        Padding="24"
-					        BorderThickness="0,1,0,0"
-					        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}">
+					        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+					        BorderThickness="0,1,0,0">
 						<Grid ColumnSpacing="8">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
@@ -954,15 +964,15 @@
 							</Grid.ColumnDefinitions>
 							<Button x:Name="AddPlaylistCreateButton"
 							        Grid.Column="0"
-							        Content="Create"
-							        Style="{StaticResource AccentButtonStyle}"
-							        IsEnabled="False"
 							        HorizontalAlignment="Stretch"
-							        Click="AddPlaylistCreateButton_Click" />
+							        Click="AddPlaylistCreateButton_Click"
+							        Content="Create"
+							        IsEnabled="False"
+							        Style="{StaticResource AccentButtonStyle}" />
 							<Button Grid.Column="1"
+							        HorizontalAlignment="Stretch"
 							        Click="AddPlaylistCancelButton_Click"
-							        Content="Cancel"
-							        HorizontalAlignment="Stretch" />
+							        Content="Cancel" />
 						</Grid>
 					</Border>
 				</Grid>

@@ -41,6 +41,9 @@ public sealed partial class MainPage : Page
 	private List<string> AlbumSuggestions { get; } = new();
 	private List<string> GenreSuggestions { get; } = new();
 
+	public record AddPlaylistDialogResult(AddPlaylistResult Result, string? Name = null);
+	private TaskCompletionSource<AddPlaylistDialogResult>? _addPlaylistTcs;
+
 	/// <summary>
 	/// Event triggered when the main player page's visibility state changes.
 	/// </summary>
@@ -319,11 +322,11 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	/// <param name="sender">The NavigationView control that raised the event.</param>
 	/// <param name="args">Event arguments containing details of the invoked item.</param>
-	private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+	private async void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
 	{
 		if (args.InvokedItem is string itemText && itemText == "Add New Playlist")
 		{
-			ShowAddPlaylistDialog();
+			await ShowAddPlaylistDialog();
 		}
 	}
 
@@ -339,8 +342,13 @@ public sealed partial class MainPage : Page
 	/// theme, primary button's state, and the drop zone visuals. It resets the input field and retrieves
 	/// the existing playlist names from persistent storage.
 	/// </remarks>
-	private async void ShowAddPlaylistDialog()
+	public async Task<AddPlaylistDialogResult> ShowAddPlaylistDialog(bool songsToAddAfterCreate = false)
 	{
+		if (_addPlaylistTcs is { Task.IsCompleted: false })
+			return await _addPlaylistTcs.Task;
+
+		_addPlaylistTcs = new TaskCompletionSource<AddPlaylistDialogResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+
 		AddPlaylistOverlay.Visibility = Visibility.Visible;
 		AddPlaylistOverlay.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = string.Empty;
@@ -355,8 +363,12 @@ public sealed partial class MainPage : Page
 		ResetDropZoneVisual();
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
+		AddPlaylistSongsNote.Visibility = songsToAddAfterCreate ? Visibility.Visible : Visibility.Collapsed;
+
 		MainWindow._instance.WindowResizePermission(false);
 		PlaylistNameBox.Focus(FocusState.Programmatic);
+
+		return await _addPlaylistTcs.Task;
 	}
 
 	/// <summary>
@@ -370,17 +382,26 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private async void AddPlaylistCreateButton_Click(object sender, RoutedEventArgs e)
 	{
-		if (CreateNewPlaylist(PlaylistNameBox.Text.Trim()))
+		var outcome = AddPlaylistResult.Cancelled;
+		var name = PlaylistNameBox.Text.Trim();   // capture before closing/clearing
+
+		if (CreateNewPlaylist(name))
 		{
-			await DatabaseHelper.Instance.CreatePlaylist(PlaylistNameBox.Text.Trim());
-			GlobalNotification.Info($"{PlaylistNameBox.Text.Trim()} Playlist created.");
+			await DatabaseHelper.Instance.CreatePlaylist(name);
+			GlobalNotification.Info($"{name} Playlist created.");
+			outcome = AddPlaylistResult.Created;
 		}
+
 		if (AddPlaylistCreateButton.Content.ToString() == "Add Playlist" && PlaylistFileSongs.Count > 0)
 		{
-			await DatabaseHelper.Instance.AddSongsToPlaylist(PlaylistNameBox.Text.Trim(), PlaylistFileSongs);
-			GlobalNotification.Success($"{PlaylistNameBox.Text.Trim()} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+			await DatabaseHelper.Instance.AddSongsToPlaylist(name, PlaylistFileSongs);
+			GlobalNotification.Success($"{name} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+			outcome = AddPlaylistResult.Created;
 		}
-		CloseAddPlaylistOverlay();
+
+		CloseAddPlaylistOverlay(new AddPlaylistDialogResult(
+			outcome,
+			outcome == AddPlaylistResult.Cancelled ? null : name));
 	}
 
 	/// <summary>
@@ -390,7 +411,7 @@ public sealed partial class MainPage : Page
 	/// <param name="e">The event data associated with the button click.</param>
 	private void AddPlaylistCancelButton_Click(object sender, RoutedEventArgs e)
 	{
-		CloseAddPlaylistOverlay();
+		CloseAddPlaylistOverlay(new AddPlaylistDialogResult(AddPlaylistResult.Cancelled));
 	}
 
 	/// <summary>
@@ -404,7 +425,7 @@ public sealed partial class MainPage : Page
 			return;
 
 		args.Handled = true;
-		CloseAddPlaylistOverlay();
+		CloseAddPlaylistOverlay(new AddPlaylistDialogResult(AddPlaylistResult.Cancelled));
 	}
 
 	/// <summary>
@@ -424,11 +445,14 @@ public sealed partial class MainPage : Page
 	/// <summary>
 	/// Closes the Add Playlist overlay and restores window interactions.
 	/// </summary>
-	private void CloseAddPlaylistOverlay()
+	private void CloseAddPlaylistOverlay(AddPlaylistDialogResult result)
 	{
+		AddPlaylistSongsNote.Visibility = Visibility.Collapsed;
 		AddPlaylistOverlay.Visibility = Visibility.Collapsed;
 		MainWindow._instance.WindowResizePermission(true);
 		playLists = null;
+
+		_addPlaylistTcs?.TrySetResult(result);
 	}
 
 	/// <summary>
