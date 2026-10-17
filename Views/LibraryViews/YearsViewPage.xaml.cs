@@ -275,6 +275,26 @@ public sealed partial class YearsViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (YearTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddYearsSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var yearModel = (sender as MenuFlyoutItem)?.DataContext as YearModel;
+				await AddYearSongsToPlayList(playlistName, yearModel);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
@@ -290,35 +310,47 @@ public sealed partial class YearsViewPage : TileListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (YearTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var yearModels = YearTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
-																		 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Year.ToString()} IN ({string.Join(",", yearModels.Select(y => $"'{((y as YearModel)?.Year == "Unknown" ? "Unknown Year" : (y as YearModel)?.Year)}'"))})");
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to {playlist} playlist.");
+			await AddYearsSongsToPlayList(playlist);
 		}
 		else
 		{
 			var yearModel = (sender as MenuFlyoutItem)?.DataContext as YearModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddYearSongsToPlayList(playlist, yearModel);
+		}
+	}
 
-			if (playlist != null && yearModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
-																			 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Year.ToString()} = '{(yearModel.Year == "Unknown" ? "Unknown Year" : yearModel.Year)}'");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Year {yearModel.Year} added to {playlist} playlist.");
-			}
+	private async Task AddYearSongsToPlayList(string? playlist, YearModel? yearModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (playlist != null && yearModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
+																		 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																		 whereCondition: $"{SongProperty.Year.ToString()} = '{(yearModel.Year == "Unknown" ? "Unknown Year" : yearModel.Year)}'");
+
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Year {yearModel.Year} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddYearsSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var yearModels = YearTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
+																	 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Year.ToString()} IN ({string.Join(",", yearModels.Select(y => $"'{((y as YearModel)?.Year == "Unknown" ? "Unknown Year" : (y as YearModel)?.Year)}'"))})");
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to {playlist} playlist.");
 		}
 	}
 

@@ -282,6 +282,26 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (ArtistTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddArtistsSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var artistModel = (sender as MenuFlyoutItem)?.DataContext as ArtistModel;
+				await AddArtistSongsToPlayList(playlistName, artistModel);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
@@ -297,36 +317,47 @@ public sealed partial class ArtistsViewPage : TileListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (ArtistTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var artistModels = ArtistTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)!).ToList(),
-																		   orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
-																		   ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		   matchAll: false);
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected artists, added to {playlist} playlist.");
+			await AddArtistsSongsToPlayList(playlist);
 		}
 		else
 		{
 			var artistModel = (sender as MenuFlyoutItem)?.DataContext as ArtistModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddArtistSongsToPlayList(playlist, artistModel);
+		}
+	}
+	private async Task AddArtistSongsToPlayList(string? playlist, ArtistModel? artistModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
-			if (playlist != null && artistModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel?.Artist == "Unknown" ? "Unknown Artist" : artistModel?.Artist!,
-																			  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
-																			  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Artist {artistModel!.Artist} added to {playlist} playlist.");
-			}
+		if (playlist != null && artistModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.GetSongsByArtist(artistName: artistModel.Artist == "Unknown" ? "Unknown Artist" : artistModel.Artist!,
+																		  orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
+																		  ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending");
+
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Artist {artistModel.Artist} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddArtistsSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var artistModels = ArtistTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.GetSongsByArtists(artistNames: artistModels.Select(x => ((x as ArtistModel)?.Artist == "Unknown" ? "Unknown Artist" : (x as ArtistModel)?.Artist)!).ToList(),
+																	   orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.ArtistDetailViewSortBy)]?.ToString() ?? "Title"),
+																	   ascending: (localSettings.Values[nameof(LocalSave.ArtistDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	   matchAll: false);
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected artists, added to {playlist} playlist.");
 		}
 	}
 

@@ -1,6 +1,4 @@
 ﻿using CommunityToolkit.WinUI;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Media;
 
 namespace Tunetastic.Views.Common;
 
@@ -224,22 +222,21 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 
 		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
-		if (playLists == null || playLists.Count == 0)
+		var createNewMenu = new MenuFlyoutItem
 		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = "No Playlists created",
-				Foreground = new SolidColorBrush(Colors.Red)
-			};
-			addToPlaylist?.Items.Add(menuItem);
-			return;
-		}
+			Text = "Create/Add New playlist",
+			Icon = new FontIcon { Glyph = "\uF8AA" },
+		};
+		ToolTipService.SetToolTip(createNewMenu, "Create/Add a new playlist and add the selected songs/tracks to it.");
+		createNewMenu.Click += NewPlaylist_Click;
+		addToPlaylist?.Items.Add(createNewMenu);
 
 		foreach (var playList in playLists)
 		{
 			var menuItem = new MenuFlyoutItem
 			{
-				Text = playList
+				Text = playList,
+				Icon = new FontIcon { Glyph = "\uE728" }
 			};
 			ToolTipService.SetToolTip(menuItem, BuildAddToPlaylistTooltip(MultiSelectToggle.IsChecked == true, playList));
 			menuItem.Click += AddToPlaylist_Click;
@@ -252,4 +249,7 @@ public abstract partial class SongListPageBase : TunetasticPageBase
 
 	/// <summary>Builds the tooltip text shown on an "Add to playlist" menu entry.</summary>
 	protected abstract string BuildAddToPlaylistTooltip(bool multiSelect, string playList);
+
+	/// <summary>Opens the Add Playlist dialog on MainPage so the user can create/import a playlist.</summary>
+	protected abstract void NewPlaylist_Click(object sender, RoutedEventArgs e);
 }
