@@ -161,6 +161,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           token: ${{ github.token }}
+          # This job is triggered by workflow_run, so actions/checkout refuses
+          # fork PR code unless explicitly opted in. Safe here because nothing
+          # from the checkout is ever executed (see "Security notes" above).
+          allow-unsafe-pr-checkout: true
 
       # TOCTOU guard: the PR ref can move if the author pushes after Build
       # started. Fail if what we checked out is not the commit that was built.
