@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using FlyleafLib;
 using FlyleafLib.MediaPlayer;
+using Windows.Storage;
 
 namespace Tunetastic.Common.Operations;
 
@@ -292,25 +293,11 @@ public class LibraryScanner
 
 			if (song.Duration <= 0)
 			{
-				if (!FlyleafLib.Engine.IsLoaded)
-				{
-					var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
-					Engine.Start(new EngineConfig
-					{
-						UIRefresh = false,
-						FFmpegPath = ffmpegPath,
-					});
-				}
+				var file = await StorageFile.GetFileFromPathAsync(filePath);
+				var music = await file.Properties.GetMusicPropertiesAsync();
 
-				FlyleafLib.Config config = new FlyleafLib.Config();
-				config.Video.Enabled = false;
-				config.Audio.Enabled = true;
-				config.Player.AutoPlay = false;
-				var tempPlayer = new Player(config);
-				tempPlayer.Open(filePath);
-				song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-				tempPlayer.Stop();
-				tempPlayer.Dispose();
+				TimeSpan duration = music.Duration;
+				song.Duration = duration.TotalSeconds;
 				song.PlayerType = "Flyleaf";
 			}
 
@@ -321,14 +308,10 @@ public class LibraryScanner
 			double duration = 0;
 			try
 			{
-				FlyleafLib.Config config = new FlyleafLib.Config();
-				config.Video.Enabled = false;
-				config.Audio.Enabled = true;
-				config.Player.AutoPlay = false;
-				var tempPlayer = new Player(config);
-				tempPlayer.Open(filePath);
-				duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-				tempPlayer.Dispose();
+				var file = await StorageFile.GetFileFromPathAsync(filePath);
+				var music = await file.Properties.GetMusicPropertiesAsync();
+
+				duration = music.Duration.TotalSeconds;
 			}
 			catch (Exception)
 			{
