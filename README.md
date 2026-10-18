@@ -308,9 +308,21 @@ Open Command Prompt or Powershell on your windows and type the following
 winget install Tunetastic
 ```
 
-### Github Releases *(Only Recommended if you want the latest version earlier)*
+### GitHub Releases *(Recommended only if you want new versions before the Store gets them)*
 
-Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download the Store Certificate(.cer) file and the MSIX file for your system architecture. Install the .cer file 1st (Valid for a year). Then, proceed to install the MSIX file.
+1. Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download these two files:
+   - `Tunetastic_Certificate.cer`
+   - The `.msix` file for your system architecture (`x64` or `arm64`)
+2. Install the certificate first:
+   - Double-click the `.cer` file and choose **Install Certificate**.
+   - Select **Local Machine** and click Next (approve the admin prompt).
+   - Choose **Place all certificates in the following store**, click **Browse**, and select **Trusted People**.
+   - Click Next, then Finish.
+3. Double-click the `.msix` file and click **Install**.
+
+> **Note:** The certificate only needs to be installed once. You can skip step 2 for later releases.
+>
+> **Note:** The GitHub and Microsoft Store versions are signed differently and can't update each other. If you have the Store version installed, uninstall it before installing from GitHub (and vice versa).
 
 ### Building from Source
 

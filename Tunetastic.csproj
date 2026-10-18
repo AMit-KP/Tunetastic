@@ -21,7 +21,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.62.28</Version>
+    <Version>1.66.19</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
     <NoWarn>$(NoWarn);CS0618</NoWarn>
@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.62.28.3628</AssemblyVersion>
-    <FileVersion>1.62.28.3628</FileVersion>
+    <AssemblyVersion>1.66.19.3830</AssemblyVersion>
+    <FileVersion>1.66.19.3430</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -196,21 +196,22 @@
     <PackageReference Include="Config.Net" Version="5.2.1" />
     <PackageReference Include="DevWinUI" Version="10.7.0" />
     <PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="9.0.1.1" />
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.2" />
-    <PackageReference Include="FlyleafLib" Version="3.11.11" />
+    <PackageReference Include="FlyleafLib" Version="3.11.12" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
-    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="4.1.3" />
     <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
-    <PackageReference Include="System.Management" Version="10.0.12" />
+    <PackageReference Include="System.Management" Version="10.0.13" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="WinUIEx" Version="2.9.3" />
@@ -288,6 +289,7 @@
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxPackageDir>C:\Users\amitp\source\repos\Tunetastic\AppPackages\</AppxPackageDir>
   <CreateMSIXPackage>True</CreateMSIXPackage>
+  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 </PropertyGroup>
   <Target Name="TransformAllT4Templates" BeforeTargets="BeforeBuild">
     <ItemGroup>

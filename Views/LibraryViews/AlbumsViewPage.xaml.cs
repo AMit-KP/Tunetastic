@@ -16,6 +16,10 @@ namespace Tunetastic.Views.LibraryViews;
 /// </remarks>
 public sealed partial class AlbumsViewPage : TileListPageBase
 {
+	private double _lastSizedWidth = -1;
+	private int _lastSizedCount = -1;
+	private double _adjustedTileMargin = 10;
+
 	/// <summary>
 	/// Gets or sets the collection of <c>AlbumModel</c> objects, representing groups of songs organized by album.
 	/// </summary>
@@ -97,6 +101,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	private async Task UpdateListBasedOnSorting()
 	{
 		var albumModel = AlbumTileView.SelectedItem as AlbumModel;
+
+		UpdateShimmerPlaceholderCount(new Size(ContentGrid.ActualWidth, ContentGrid.ActualHeight));
 		ShimmerRepeater.Visibility = Visibility.Visible;
 
 		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
@@ -108,6 +114,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		groups = null;
 
 		ShimmerRepeater.Visibility = Visibility.Collapsed;
+		ShimmerRepeater.ItemsSource = null;
 		AlbumTileView.Visibility = Visibility.Visible;
 
 		NavigationPanelEvaluate();
@@ -262,50 +269,79 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (AlbumTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddAlbumsSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
+				await AddAlbumSongsToPlayList(playlistName, albumModel);
+			}
+		}
+	}
+
 	/// <summary>
-	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
+	/// Handles the logic for adding songs to a selected playlist from the current view.
 	/// </summary>
-	/// <param name="sender">The source of the event, typically the menu item representing the target playlist.</param>
-	/// <param name="e">The event data triggered by the menu item's click action.</param>
+	/// <param name="sender">The source of the event, typically the menu item representing a playlist.</param>
+	/// <param name="e">Event data associated with the click action.</param>
 	/// <remarks>
-	/// This method is invoked when the user selects the "Add to Playlist" option.
-	/// It identifies the selected songs or groups of songs based on the view's multi-select mode.
-	/// If multiple albums are selected, it fetches all songs corresponding to those albums and adds them to the chosen playlist.
-	/// In single selection mode, the process targets the respective group of album.
-	/// Updates are performed through interactions with the database using asynchronous operations.
-	/// A notification is displayed upon successfully adding the songs to the playlist.
+	/// This method is triggered when a user selects the "Add to Playlist" option for one or more songs.
+	/// It determines the selected songs from the active view style and adds them to the chosen playlist.
+	/// Uses asynchronous operations to interact with the database for playlist updates.
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (AlbumTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var albumModels = AlbumTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
-																		 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected albums, added to {playlist} playlist.");
+			await AddAlbumsSongsToPlayList(playlist);
 		}
 		else
 		{
 			var albumModel = (sender as MenuFlyoutItem)?.DataContext as AlbumModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddAlbumSongsToPlayList(playlist, albumModel);
+		}
+	}
 
-			if (playlist != null && albumModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
-																			 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel.Album} added to {playlist} playlist.");
-			}
+	private async Task AddAlbumSongsToPlayList(string? playlist, AlbumModel? albumModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (playlist != null && albumModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
+																		 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																		 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel.Album} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddAlbumsSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		var albumModels = AlbumTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.AlbumDetailViewSortBy)]?.ToString() ?? "Title"),
+																	 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Album.ToString()} IN ({string.Join(",", albumModels.Select(y => $"'{((y as AlbumModel)?.Album == "Unknown" ? "Unknown Album" : (y as AlbumModel)?.Album)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected albums, added to {playlist} playlist.");
 		}
 	}
 
@@ -726,6 +762,11 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		int itemCount = AlbumTileView.Items.Count;
 		if (itemCount <= 0) return;
 
+		if (availableWidth == _lastSizedWidth && itemCount == _lastSizedCount)
+			return;
+		_lastSizedWidth = availableWidth;
+		_lastSizedCount = itemCount;
+
 		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
 		int count = Math.Min(itemCount, maxFitCount);
 
@@ -743,6 +784,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 			adjustedItemWidth += extraPerTile;
 			adjustedMargin += extraPerTile * 0.5;
 		}
+
+		_adjustedTileMargin = adjustedMargin;
 
 		for (int i = 0; i < itemCount; i++)
 		{
@@ -764,14 +807,12 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	/// <param name="args">
 	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
 	/// </param>
-	/// <remarks>
-	/// This method is invoked whenever a container's UI content is about to change for a specific album tile in the <c>AlbumTileView</c>.
-	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
-	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the album view.
-	/// </remarks>
 	private void AlbumTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		AlbumTileView_SizeChanged(null, null);
+
+		if (args.ItemContainer is ListViewItem container)
+			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}
 
 	/// <summary>
@@ -788,8 +829,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;
-		availableLetters = AlbumsGroup.Select(album => album.Album.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-		bool hasSpecialCharacters = AlbumsGroup.Select(album => album.Album.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+		availableLetters = AlbumsGroup.Select(album => FirstLetter(album.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = AlbumsGroup.Any(album => FirstLetter(album.Album) == "#");
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
 	}
@@ -807,7 +848,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	{
 		AlbumModel? targetAlbum = null;
 
-		targetAlbum = letter != "#" ? AlbumsGroup.FirstOrDefault(album => album.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumsGroup.FirstOrDefault(album => !char.IsLetter(album.Album[0]));
+		targetAlbum = letter != "#" ? AlbumsGroup.FirstOrDefault(album => album.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : AlbumsGroup.FirstOrDefault(album => FirstLetter(album.Album) == "#");
 
 		if (targetAlbum != null)
 		{
@@ -830,13 +871,18 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		}
 	}
 
+	/// <summary>
+	/// Maps an album tile to its alphabet section letter.
+	/// </summary>
+	protected override string LetterForItem(object item)
+		=> item is AlbumModel album ? FirstLetter(album.Album) : "#";
+
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
-		UpdateShimmerPlaceholderCount(e.NewSize);
+		if (ShimmerRepeater.Visibility == Visibility.Visible)
+			UpdateShimmerPlaceholderCount(e.NewSize);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 	}
-
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
 
 	/// <summary>
 	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.
