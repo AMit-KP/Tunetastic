@@ -293,12 +293,9 @@ public class LibraryScanner
 
 			if (song.Duration <= 0)
 			{
-				var file = await StorageFile.GetFileFromPathAsync(filePath);
-				var music = await file.Properties.GetMusicPropertiesAsync();
-
-				TimeSpan duration = music.Duration;
-				song.Duration = duration.TotalSeconds;
-				song.PlayerType = "Flyleaf";
+				var d = FFmpegProbe.GetDuration(filePath);
+				if (d is { } dur && dur > TimeSpan.Zero)
+					song.Duration = dur.TotalSeconds;
 			}
 
 			return (song, true);

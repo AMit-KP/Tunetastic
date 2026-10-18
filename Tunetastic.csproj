@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.66.11.3822</AssemblyVersion>
-    <FileVersion>1.66.11.3422</FileVersion>
+    <AssemblyVersion>1.66.14.3825</AssemblyVersion>
+    <FileVersion>1.66.14.3425</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -196,6 +196,7 @@
     <PackageReference Include="Config.Net" Version="5.2.1" />
     <PackageReference Include="DevWinUI" Version="10.7.0" />
     <PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="9.0.1.1" />
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.2" />
     <PackageReference Include="FlyleafLib" Version="3.11.11" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
@@ -288,6 +289,7 @@
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxPackageDir>C:\Users\amitp\source\repos\Tunetastic\AppPackages\</AppxPackageDir>
   <CreateMSIXPackage>True</CreateMSIXPackage>
+  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 </PropertyGroup>
   <Target Name="TransformAllT4Templates" BeforeTargets="BeforeBuild">
     <ItemGroup>
