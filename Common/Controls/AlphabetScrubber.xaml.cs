@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Dispatching;
@@ -8,7 +8,6 @@ using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
-using Windows.UI;
 
 namespace Tunetastic.Common.Controls;
 
@@ -195,9 +194,9 @@ public sealed partial class AlphabetScrubber : UserControl
 			// XAML and writing it would throw every letter to the top of the rail
 			var translate = new TranslateTransform();
 			block.RenderTransform = translate;
-		ToolTipService.SetPlacement(block, PlacementMode.Left);
-		ToolTipService.SetToolTip(block, letter);
-		AutomationProperties.SetName(block, letter);
+			ToolTipService.SetPlacement(block, PlacementMode.Left);
+			ToolTipService.SetToolTip(block, letter);
+			AutomationProperties.SetName(block, letter);
 			Grid.SetRow(block, i);
 			Rail.Children.Add(block);
 
