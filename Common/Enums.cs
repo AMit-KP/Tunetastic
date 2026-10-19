@@ -292,7 +292,16 @@ public enum LocalSave
 	ScanResult_Time,
 	ScanResult_Message,
 	PostUpdateScanDoneVersion,
+	SystemTrayIconStyle,
 	CLIOutputColorEnabled
+}
+
+public enum SystemTrayIconStyle
+{
+	FullColor,
+	MonochromeAuto,
+	Dark,
+	Light
 }
 
 public enum AddPlaylistResult
@@ -300,3 +309,4 @@ public enum AddPlaylistResult
 	Cancelled,
 	Created
 }
+
