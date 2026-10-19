@@ -179,6 +179,18 @@
 				<ToggleSwitch Name="AutoSyncSwitch" />
 			</dev:SettingsCard>
 
+			<dev:SettingsCard Description="Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details."
+			                  Header="CLI Output Style">
+				<ComboBox x:Name="CLIOutputColor">
+					<ComboBoxItem Content="Colorful (Default)"
+					              Tag="True"
+					              ToolTipService.ToolTip="Enables rich ANSI colors, status badges, and inline code formatting for terminal output." />
+					<ComboBoxItem Content="Plain Text"
+					              Tag="False"
+					              ToolTipService.ToolTip="Monochrome output without escape codes; ideal for redirecting to text files or minimal terminals." />
+				</ComboBox>
+			</dev:SettingsCard>
+
 			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
 			                      Description="Select which Pre-defined Libraries and Playlists to show/hide on Navigation"
 			                      Header="Libraries and Playlists to show">

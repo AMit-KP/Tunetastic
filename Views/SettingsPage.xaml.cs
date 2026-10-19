@@ -872,6 +872,8 @@ public sealed partial class SettingsPage : Page
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
 		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
 		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
+		CLIOutputColor.SelectedItem = CLIOutputColor.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.CLIOutputColorEnabled)]?.ToString() ?? "True"));
+		CLIOutputColor.SelectionChanged += CLIOutputColor_SelectionChanged;
 	}
 
 	/// <summary>
@@ -1403,6 +1405,12 @@ public sealed partial class SettingsPage : Page
 		{
 			await AutoScanService.DisableAutoScan();
 		}
+	}
+
+	private void CLIOutputColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (CLIOutputColor.SelectedItem is ComboBoxItem selectedItem)
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CLIOutputColorEnabled)] = selectedItem.Tag?.ToString() == "True";
 	}
 
 	private void MusicDownloader_Reveal(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)

@@ -158,6 +158,70 @@ Smart playlists keep your most-reached-for music always at hand, and you can bui
 
 ---
 
+### ⌨️ Command Line — `playlist add`
+
+Tunetastic can be driven from the terminal (via the `Tunetastic.exe` execution alias) to add local audio files to a playlist — handy for batch imports and scripting:
+
+```powershell
+# PowerShell (append | Out-Host)
+tunetastic --help | Out-Host
+tunetastic playlist add "My Playlist" "C:\Music\song.mp3" | Out-Host
+tunetastic playlist add "My Playlist" "C:\Music\*.mp3" | Out-Host
+tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run | Out-Host
+tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --json | Out-Host
+```
+
+```cmd
+:: Command Prompt (cmd.exe - append | more)
+tunetastic --help | more
+tunetastic playlist add "My Playlist" "C:\Music\song.mp3" | more
+tunetastic playlist add "My Playlist" "C:\Music\*.mp3" | more
+tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run | more
+tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --json | more
+```
+
+> [!NOTE]
+> **Terminal Output Piping**: Because Tunetastic is packaged as a Windows GUI application, Windows terminals do not attach console output handles unless the command is piped. Append `| Out-Host` in PowerShell or `| more` in Command Prompt to view output in your terminal.
+> *(Tip: In PowerShell, you can add `function tunetastic { Tunetastic.exe @args | Out-Host }` to your `$PROFILE` to run commands without having to append `| Out-Host` every time).*
+
+- The playlist is created when the first track is added and it does not exist yet (pass `--no-create` to fail instead).
+- Folders are scanned recursively (unreadable subfolders are skipped); wildcards are supported in the file name (`C:\Music\*.mp3`) in any shell. Multiple files, patterns and folders can be mixed in one call. Inputs are added in the order given; within one folder or pattern, files are added sorted by path.
+- All metadata the library can store is imported with the same routine the library scan uses: title, artist, album, year, genre, track number, lyrics and embedded cover art. Only the release year is kept (TagLib exposes no fuller date to the reader). Your duplicate-detection and minimum-duration settings are respected. Re-importing a track keeps its play count and playback position in the playlist.
+- Embedded values the library has no column for (album artist, disc number, disc count, composer, extra performers/genres/pictures, comment, copyright) are listed in the output instead of being silently ignored. Obscure tag fields that almost no music file carries (sort names, MusicBrainz IDs, ReplayGain, BPM, …) are neither stored nor listed.
+- Output: `--json` prints one machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`), and nothing else. Without it, the human-readable report goes to stdout and failed inputs also go to stderr (pipe to `| Out-Host` in PowerShell or `| more` in cmd.exe). Visual formatting (ANSI color badges vs. plain text) can be switched in **Settings > Library & PlayLists > CLI Output Style** or via the `NO_COLOR` environment variable. Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
+- `--dry-run` reports what would happen without changing your library or playlists. It still ensures the database schema and writes cover-thumbnail files (cleaned up by the next full library scan).
+- Files outside your configured library folders are skipped unless you pass `--add-external`. Even with `--add-external`, external tracks are excluded from auto-scan tracking and removed again by the next full library re-scan, which only keeps tracks inside library folders — the flag only lets the import through, it does not protect the track from later rescans.
+- Testing without the installed app: set `TUNETASTIC_DB_PATH` to a database file to run the CLI unpackaged against an isolated database (app settings fall back to defaults there).
+
+Example JSON report (stdout):
+
+```json
+{
+  "Playlist": "My Playlist",
+  "PlaylistCreated": true,
+  "PlaylistWouldBeCreated": false,
+  "DryRun": false,
+  "Tracks": [
+    {
+      "Path": "C:\\Music\\song.mp3",
+      "Title": "Song",
+      "Status": "Added",
+      "Reason": null,
+      "Imported": ["Title 'Song'", "Cover art (embedded image/jpeg)"],
+      "Defaulted": [],
+      "Skipped": ["Album artist 'X' (library has no album-artist column)"],
+      "Warnings": []
+    }
+  ],
+  "Failures": [],
+  "Notices": []
+}
+```
+
+> Notes: the command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Files outside your configured libraries are skipped unless `--add-external` is passed; see the flag description above for the rescan limitation.
+
+---
+
 ### 🔍 Quick Search
 
 A quick search bar sits in the top panel, letting you instantly search across your entire library by song title, artist, album, genre, or year — no need to navigate away from wherever you are.

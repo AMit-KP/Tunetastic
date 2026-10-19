@@ -292,7 +292,8 @@ public enum LocalSave
 	ScanResult_Time,
 	ScanResult_Message,
 	PostUpdateScanDoneVersion,
-	SystemTrayIconStyle
+	SystemTrayIconStyle,
+	CLIOutputColorEnabled
 }
 
 public enum SystemTrayIconStyle
