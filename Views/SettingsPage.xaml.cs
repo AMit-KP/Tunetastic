@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
@@ -803,6 +803,7 @@ public sealed partial class SettingsPage : Page
 		RainbowToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false");
 		RainbowToggle_OnToggled(RainbowToggle, null);
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
+		SystemTrayIconStyle.SelectedItem = SystemTrayIconStyle.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.SystemTrayIconStyle)]?.ToString() ?? "MonochromeAuto"));
 		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
 		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.DisplayName == (localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"));
 		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL"));
@@ -814,6 +815,7 @@ public sealed partial class SettingsPage : Page
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
 		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
 		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
+		SystemTrayIconStyle.SelectionChanged += SystemTrayIconStyle_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 	}
@@ -1016,6 +1018,21 @@ public sealed partial class SettingsPage : Page
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.MinimizeToTray)] = MinimizeToTray.IsOn;
 		MainWindow.SetMinimizeBehaviourStatic(MinimizeToTray.IsOn);
+	}
+
+	/// <summary>
+	/// Handles the event triggered when the selection in the System Tray Icon Style ComboBox changes.
+	/// Updates the application's tray icon style and persists the preference to local settings.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the SystemTrayIconStyle ComboBox.</param>
+	/// <param name="e">Event data for the SelectionChanged event.</param>
+	private void SystemTrayIconStyle_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (SystemTrayIconStyle.SelectedItem is ComboBoxItem selectedItem)
+		{
+			var style = selectedItem.Tag?.ToString() ?? "FullColor";
+			TrayIconService.SetStyle(style);
+		}
 	}
 
 	/// <summary>
