@@ -867,27 +867,40 @@ public class DatabaseHelper
 	/// Retrieves a song from the database by its file path, ignoring case.
 	/// Used by the CLI import so a path passed with different casing resolves to the stored row
 	/// instead of creating a case-variant duplicate (the <c>Songs.Path</c> key uses binary collation).
-	/// Lock errors propagate so the caller can retry; other failures return null.
+	/// Transient database lock contention is retried a few times with a short delay; when the
+	/// database stays busy the caller gets a friendly notification instead of a raw exception and
+	/// the lookup returns null. Other failures return null without noise, as before.
 	/// </summary>
 	/// <param name="path">The file path of the song to retrieve from the database.</param>
 	/// <returns>
 	/// A task that represents the asynchronous operation. The task result contains the matching
-	/// <see cref="Song"/> object if found, or null if no match is found or an error occurs.
+	/// <see cref="Song"/> object if found, or null if no match is found or the lookup could not complete.
 	/// </returns>
 	public async Task<Song?> GetSongByPathNoCase(string path)
 	{
-		try
+		const int maxAttempts = 3;
+
+		for (int attempt = 1; ; attempt++)
 		{
-			var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ? COLLATE NOCASE", path);
-			return result.Count > 0 ? result[0] : null;
-		}
-		catch (SQLiteException ex) when (ex.Result == SQLite3.Result.Busy || ex.Result == SQLite3.Result.Locked)
-		{
-			throw;
-		}
-		catch (Exception)
-		{
-			return null;
+			try
+			{
+				var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ? COLLATE NOCASE", path);
+				return result.Count > 0 ? result[0] : null;
+			}
+			catch (SQLiteException ex) when (ex.Result == SQLite3.Result.Busy || ex.Result == SQLite3.Result.Locked)
+			{
+				if (attempt >= maxAttempts)
+				{
+					if (MainWindow._instance is not null)
+						GlobalNotification.Error($"The music library database stayed busy, so the lookup for '{path}' could not complete. Close other apps using Tunetastic data and try again.");
+					return null;
+				}
+				await Task.Delay(TimeSpan.FromMilliseconds(40));
+			}
+			catch (Exception)
+			{
+				return null;
+			}
 		}
 	}
 

@@ -15,17 +15,21 @@ public static class CliRunner
 		"  tunetastic playlist add \"<playlist>\" <file | pattern | folder> [more ...] [options]\n" +
 		"\n" +
 		"Adds local audio files to a playlist, importing the metadata the library can store (title, artist,\n" +
-		"album, year, genre, track number, lyrics, cover art, ...). Everything else found in the file\n" +
-		"is listed in the report instead of being silently ignored. The playlist is created when\n" +
-		"the first track is added and it does not exist yet. Folders are scanned recursively;\n" +
-		"wildcards (C:\\Music\\*.mp3) work in any shell. Prints a human-readable summary to stderr\n" +
-		"and, when the command runs to a report, a JSON report to stdout.\n" +
+		"album, year, genre, track number, lyrics, cover art, ...). The playlist is created when the\n" +
+		"first track is added and it does not exist yet. Folders are scanned recursively; wildcards\n" +
+		"(C:\\Music\\*.mp3) work in any shell. Files outside the configured library folders are skipped\n" +
+		"unless --add-external is passed.\n" +
+		"\n" +
+		"Output: a human-readable report on stdout, with failed inputs also on stderr. Pass --json for\n" +
+		"a single machine-readable JSON report on stdout (nothing else is printed).\n" +
 		"\n" +
 		"Options:\n" +
-		"  --no-create   Fail when the playlist does not exist instead of creating it.\n" +
-		"  --dry-run     Report what would happen without changing the library or playlists.\n" +
-		"  --          Treat all following arguments as inputs, even when they start with --.\n" +
-		"  --help, -h    Show this help.\n" +
+		"  --no-create       Fail when the playlist does not exist instead of creating it.\n" +
+		"  --dry-run         Report what would happen without changing the library or playlists.\n" +
+		"  --add-external    Also add files outside the configured library folders.\n" +
+		"  --json            Print one JSON report on stdout instead of the human report.\n" +
+		"  --                Treat all following arguments as inputs, even when they start with --.\n" +
+		"  --help, -h        Show this help.\n" +
 		"\n" +
 		"Exit codes:\n" +
 		"  0  Success: no inputs failed (check the added/skipped counts in the report).\n" +
@@ -35,7 +39,8 @@ public static class CliRunner
 		"Examples:\n" +
 		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\song.mp3\"\n" +
 		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\*.mp3\"\n" +
-		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run";
+		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run\n" +
+		"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run --json";
 
 	[DllImport("kernel32.dll", SetLastError = true)]
 	private static extern bool AttachConsole(int dwProcessId);
@@ -55,7 +60,7 @@ public static class CliRunner
 		if (string.Equals(args[0], "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(args[0], "-h", StringComparison.OrdinalIgnoreCase))
 		{
 			EnsureConsole();
-			Console.Error.WriteLine(Usage);
+			Console.Out.WriteLine(Usage);
 			Environment.ExitCode = 0;
 			return true;
 		}
@@ -72,7 +77,7 @@ public static class CliRunner
 				exitCode = RunPlaylistAdd(args.Skip(2).ToList());
 			else if (args.Length >= 2 && (string.Equals(args[1], "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(args[1], "-h", StringComparison.OrdinalIgnoreCase)))
 			{
-				Console.Error.WriteLine(Usage);
+				Console.Out.WriteLine(Usage);
 				exitCode = 0;
 			}
 			else
@@ -110,6 +115,8 @@ public static class CliRunner
 	{
 		bool createIfMissing = true;
 		bool dryRun = false;
+		bool addExternal = false;
+		bool jsonOutput = false;
 		var positional = new List<string>();
 
 		for (int i = 0; i < args.Count; i++)
@@ -124,9 +131,13 @@ public static class CliRunner
 				createIfMissing = false;
 			else if (string.Equals(arg, "--dry-run", StringComparison.OrdinalIgnoreCase))
 				dryRun = true;
+			else if (string.Equals(arg, "--add-external", StringComparison.OrdinalIgnoreCase))
+				addExternal = true;
+			else if (string.Equals(arg, "--json", StringComparison.OrdinalIgnoreCase))
+				jsonOutput = true;
 			else if (string.Equals(arg, "--help", StringComparison.OrdinalIgnoreCase) || string.Equals(arg, "-h", StringComparison.OrdinalIgnoreCase))
 			{
-				Console.Error.WriteLine(Usage);
+				Console.Out.WriteLine(Usage);
 				return 0;
 			}
 			else if (arg.StartsWith("--", StringComparison.Ordinal))
@@ -135,7 +146,7 @@ public static class CliRunner
 				positional.Add(arg);
 		}
 
-		var options = new CliPlaylistAddOptions { CreateIfMissing = createIfMissing, DryRun = dryRun };
+		var options = new CliPlaylistAddOptions { CreateIfMissing = createIfMissing, DryRun = dryRun, AddExternal = addExternal };
 
 		if (positional.Count < 2)
 			return UsageError("Missing arguments. Expected: tunetastic playlist add \"<playlist>\" <file | pattern | folder> [...]");
@@ -179,8 +190,16 @@ public static class CliRunner
 			Console.CancelKeyPress -= CancelHandler;
 		}
 
-		report.WriteHuman(Console.Error);
-		Console.Out.WriteLine(report.ToJson());
+		// Success output: either one clean JSON document on stdout, or the human report with its
+		// ordinary lines on stdout and the failed inputs (also) on stderr.
+		if (jsonOutput)
+		{
+			Console.Out.WriteLine(report.ToJson());
+		}
+		else
+		{
+			report.WriteHuman(Console.Out, Console.Error);
+		}
 
 		return report.Failures.Count > 0 ? 1 : 0;
 	}

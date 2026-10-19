@@ -12,6 +12,13 @@ public sealed class CliPlaylistAddOptions
 
 	/// <summary>Gets whether to only report what would happen without changing the library or playlists. Defaults to false.</summary>
 	public bool DryRun { get; init; } = false;
+
+	/// <summary>
+	/// Gets whether files outside the configured library folders may be added. Defaults to false:
+	/// they are skipped with an explanation instead, because the next full library scan only keeps
+	/// tracks inside the configured libraries.
+	/// </summary>
+	public bool AddExternal { get; init; } = false;
 }
 
 /// <summary>
@@ -95,6 +102,15 @@ public static class CliPlaylistAdd
 		foreach (var file in candidateFiles)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
+
+			// Files outside the configured library folders are skipped unless the user explicitly
+			// opted in with --add-external: the next full library scan only keeps tracks inside
+			// those folders, so an external add without awareness would silently vanish later.
+			if (!options.AddExternal && !IsUnderLibraryRoot(file, libraryRoots))
+			{
+				report.Tracks.Add(SkippedFileEntry(file, "Lives outside your configured library folders. Pass --add-external to add it anyway; note a later full library scan only keeps tracks inside the configured libraries."));
+				continue;
+			}
 
 			CliMetadataReader.TrackImport import;
 			try
@@ -514,6 +530,21 @@ public static class CliPlaylistAdd
 	private static TrackEntry SkippedEntry(CliMetadataReader.TrackImport import, string effectivePath, string reason)
 	{
 		return Entry(import, effectivePath, TrackStatus.Skipped, reason);
+	}
+
+	/// <summary>
+	/// Builds the report entry for a file skipped before it was read (external-path policy), so the
+	/// entry shows only the path and the reason.
+	/// </summary>
+	private static TrackEntry SkippedFileEntry(string path, string reason)
+	{
+		return new TrackEntry
+		{
+			Path = path,
+			Title = System.IO.Path.GetFileNameWithoutExtension(path),
+			Status = TrackStatus.Skipped,
+			Reason = reason,
+		};
 	}
 
 	/// <summary>

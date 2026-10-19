@@ -166,14 +166,16 @@ Tunetastic can be driven from the terminal (via the `Tunetastic.exe` execution a
 tunetastic playlist add "My Playlist" "C:\Music\song.mp3"
 tunetastic playlist add "My Playlist" "C:\Music\*.mp3"
 tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run
+tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --json
 ```
 
 - The playlist is created when the first track is added and it does not exist yet (pass `--no-create` to fail instead).
 - Folders are scanned recursively (unreadable subfolders are skipped); wildcards are supported in the file name (`C:\Music\*.mp3`) in any shell. Multiple files, patterns and folders can be mixed in one call. Inputs are added in the order given; within one folder or pattern, files are added sorted by path.
 - All metadata the library can store is imported with the same routine the library scan uses: title, artist, album, year, genre, track number, lyrics and embedded cover art. Only the release year is kept (TagLib exposes no fuller date to the reader). Your duplicate-detection and minimum-duration settings are respected. Re-importing a track keeps its play count and playback position in the playlist.
-- Fields the library has no column for (album artist, disc number, composer, extra performers/genres/pictures, sort names, MusicBrainz IDs, ReplayGain, BPM, …) are listed in the output instead of being silently ignored.
-- Output: a human-readable summary on stderr plus, when the command runs to a report, a machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`). Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
+- Embedded values the library has no column for (album artist, disc number, disc count, composer, extra performers/genres/pictures, comment, copyright) are listed in the output instead of being silently ignored. Obscure tag fields that almost no music file carries (sort names, MusicBrainz IDs, ReplayGain, BPM, …) are neither stored nor listed.
+- Output: `--json` prints one machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`), and nothing else. Without it, the human-readable report goes to stdout and failed inputs also go to stderr. Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
 - `--dry-run` reports what would happen without changing your library or playlists. It still ensures the database schema and writes cover-thumbnail files (cleaned up by the next full library scan).
+- Files outside your configured library folders are skipped unless you pass `--add-external`. Even with `--add-external`, external tracks are excluded from auto-scan tracking and removed again by the next full library re-scan, which only keeps tracks inside library folders — the flag only lets the import through, it does not protect the track from later rescans.
 - Testing without the installed app: set `TUNETASTIC_DB_PATH` to a database file to run the CLI unpackaged against an isolated database (app settings fall back to defaults there).
 
 Example JSON report (stdout):
@@ -201,7 +203,7 @@ Example JSON report (stdout):
 }
 ```
 
-Notes: the command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Tracks added from folders outside your configured libraries are excluded from auto-scan tracking and dropped by the next full re-scan, which only keeps tracks inside library folders.
+Notes: the command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Files outside your configured libraries are skipped unless `--add-external` is passed; see the flag description above for the rescan limitation.
 
 ---
 

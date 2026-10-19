@@ -5,7 +5,8 @@ namespace Tunetastic.Common.Cli;
 
 /// <summary>
 /// The outcome of one <c>playlist add</c> run: one entry per track plus input-level failures.
-/// Serializes to JSON on stdout for scripting; <see cref="WriteHuman"/> renders the same data for humans on stderr.
+/// <see cref="WriteHuman"/> renders a human-readable report (ordinary lines to one writer, failed
+/// inputs to a second), same data as <see cref="ToJson"/> serializes for scripting.
 /// </summary>
 public sealed class PlaylistAddReport
 {
@@ -49,15 +50,16 @@ public sealed class PlaylistAddReport
 	}
 
 	/// <summary>
-	/// Writes a human-readable rendering of the report to <paramref name="writer"/>.
+	/// Writes a human-readable rendering of the report: header, tracks, notices and the final tally
+	/// go to <paramref name="standard"/>; failed inputs also go to <paramref name="errors"/>.
 	/// Tag-derived text is sanitized so control characters cannot corrupt the terminal.
 	/// </summary>
-	public void WriteHuman(TextWriter writer)
+	public void WriteHuman(TextWriter standard, TextWriter errors)
 	{
 		if (DryRun)
-			writer.WriteLine($"Dry run for playlist '{Clean(Playlist)}'{(PlaylistWouldBeCreated ? " (would be created)" : "")}:");
+			standard.WriteLine($"Dry run for playlist '{Clean(Playlist)}'{(PlaylistWouldBeCreated ? " (would be created)" : "")}:");
 		else
-			writer.WriteLine($"Playlist '{Clean(Playlist)}':{(PlaylistCreated ? " (created)" : "")}");
+			standard.WriteLine($"Playlist '{Clean(Playlist)}':{(PlaylistCreated ? " (created)" : "")}");
 
 		foreach (var track in Tracks)
 		{
@@ -68,28 +70,28 @@ public sealed class PlaylistAddReport
 				TrackStatus.AlreadyPresent => "Already in playlist",
 				_ => "Skipped",
 			};
-			writer.WriteLine($"  [{label}] {Clean(track.Title)} ({Clean(track.Path)})");
+			standard.WriteLine($"  [{label}] {Clean(track.Title)} ({Clean(track.Path)})");
 			if (!string.IsNullOrWhiteSpace(track.Reason))
-				writer.WriteLine($"    Reason: {Clean(track.Reason)}");
+				standard.WriteLine($"    Reason: {Clean(track.Reason)}");
 			foreach (var line in track.Imported)
-				writer.WriteLine($"    + {Clean(line)}");
+				standard.WriteLine($"    + {Clean(line)}");
 			foreach (var line in track.Defaulted)
-				writer.WriteLine($"    ~ {Clean(line)}");
+				standard.WriteLine($"    ~ {Clean(line)}");
 			foreach (var line in track.Skipped)
-				writer.WriteLine($"    - {Clean(line)}");
+				standard.WriteLine($"    - {Clean(line)}");
 			foreach (var line in track.Warnings)
-				writer.WriteLine($"    ! {Clean(line)}");
+				standard.WriteLine($"    ! {Clean(line)}");
 		}
 
-		foreach (var failure in Failures)
-			writer.WriteLine($"  [Failed] {Clean(failure.Input)}: {Clean(failure.Reason)}");
-
 		foreach (var notice in Notices)
-			writer.WriteLine($"  Note: {Clean(notice)}");
+			standard.WriteLine($"  Note: {Clean(notice)}");
+
+		foreach (var failure in Failures)
+			errors.WriteLine($"  [Failed] {Clean(failure.Input)}: {Clean(failure.Reason)}");
 
 		int skipped = Tracks.Count(t => t.Status == TrackStatus.Skipped);
 		int present = Tracks.Count(t => t.Status == TrackStatus.AlreadyPresent);
-		writer.WriteLine(DryRun
+		standard.WriteLine(DryRun
 			? $"Done: {AddedCount} would be added, {skipped} skipped, {present} already in playlist, {Failures.Count} failed."
 			: $"Done: {AddedCount} added, {skipped} skipped, {present} already in playlist, {Failures.Count} failed.");
 	}
