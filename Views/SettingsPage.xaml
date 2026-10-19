@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -449,6 +449,20 @@
 			                  Header="Minimize the app to system tray">
 				<ToggleSwitch x:Name="MinimizeToTray"
 				              Toggled="MinimizeToTray_OnToggled" />
+			</dev:SettingsCard>
+
+			<dev:SettingsCard Description="Choose the style of the system tray icon."
+			                  Header="System tray icon style">
+				<ComboBox x:Name="SystemTrayIconStyle">
+					<ComboBoxItem Content="Full color"
+					              Tag="FullColor" />
+					<ComboBoxItem Content="Monochrome (Auto)"
+					              Tag="MonochromeAuto" />
+					<ComboBoxItem Content="Dark"
+					              Tag="Dark" />
+					<ComboBoxItem Content="Light"
+					              Tag="Light" />
+				</ComboBox>
 			</dev:SettingsCard>
 
 			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information."
