@@ -27,6 +27,9 @@ public static class CliRunner
 				"\n" +
 				"Output: a human-readable report on stdout, with failed inputs also on stderr. Pass --json for\n" +
 				"a single machine-readable JSON report on stdout (nothing else is printed).\n" +
+				"Because Tunetastic is packaged as a Windows GUI app, pipe to see console output:\n" +
+				"  PowerShell:  tunetastic --help | Out-Host\n" +
+				"  cmd.exe:     tunetastic --help | more\n" +
 				"\n" +
 				"Options:\n" +
 				"  --no-create       Fail when the playlist does not exist instead of creating it.\n" +
@@ -42,10 +45,10 @@ public static class CliRunner
 				"  2  Usage error, the command could not run, or it was cancelled (Ctrl+C).\n" +
 				"\n" +
 				"Examples:\n" +
-				"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\song.mp3\"\n" +
-				"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\*.mp3\"\n" +
-				"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run\n" +
-				"  tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run --json";
+				"  PowerShell:  tunetastic playlist add \"My Playlist\" \"C:\\Music\\song.mp3\" | Out-Host\n" +
+				"  cmd.exe:     tunetastic playlist add \"My Playlist\" \"C:\\Music\\song.mp3\" | more\n" +
+				"  Dry run:     tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run | Out-Host\n" +
+				"  JSON:        tunetastic playlist add \"My Playlist\" \"C:\\Music\\Album\" --dry-run --json | Out-Host";
 		}
 
 		return
@@ -60,6 +63,9 @@ public static class CliRunner
 			"\n" +
 			"\x1b[1;33mOutput:\x1b[0m a human-readable report on stdout, with failed inputs also on stderr. Pass \x1b[36m--json\x1b[0m for\n" +
 			"a single machine-readable JSON report on stdout (nothing else is printed).\n" +
+			"Because Tunetastic is packaged as a Windows GUI app, pipe to see console output:\n" +
+			"  \x1b[36mPowerShell:\x1b[0m  tunetastic --help | Out-Host\n" +
+			"  \x1b[36mcmd.exe:\x1b[0m     tunetastic --help | more\n" +
 			"\n" +
 			"\x1b[1;33mOptions:\x1b[0m\n" +
 			"  \x1b[36m--no-create\x1b[0m       Fail when the playlist does not exist instead of creating it.\n" +
@@ -75,10 +81,10 @@ public static class CliRunner
 			"  \x1b[1;31m2\x1b[0m  Usage error, the command could not run, or it was cancelled (Ctrl+C).\n" +
 			"\n" +
 			"\x1b[1;33mExamples:\x1b[0m\n" +
-			"  \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\song.mp3\"\n" +
-			"  \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\*.mp3\"\n" +
-			"  \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\Album\" \x1b[36m--dry-run\x1b[0m\n" +
-			"  \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\Album\" \x1b[36m--dry-run --json\x1b[0m";
+			"  \x1b[36mPowerShell:\x1b[0m  \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\song.mp3\" \x1b[36m| Out-Host\x1b[0m\n" +
+			"  \x1b[36mcmd.exe:\x1b[0m     \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\song.mp3\" \x1b[36m| more\x1b[0m\n" +
+			"  \x1b[36mDry run:\x1b[0m     \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\Album\" \x1b[36m--dry-run | Out-Host\x1b[0m\n" +
+			"  \x1b[36mJSON:\x1b[0m        \x1b[1;32mtunetastic playlist add\x1b[0m \"My Playlist\" \"C:\\Music\\Album\" \x1b[36m--dry-run --json | Out-Host\x1b[0m";
 	}
 
 	[DllImport("kernel32.dll", SetLastError = true)]
