@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Tunetastic.Common.Cli;
@@ -49,6 +49,56 @@ public sealed class PlaylistAddReport
 		return JsonSerializer.Serialize(this, JsonOptions);
 	}
 
+	private static class Ansi
+	{
+		public static readonly bool Enabled = Environment.GetEnvironmentVariable("NO_COLOR") == null;
+
+		public static string Reset => Enabled ? "\x1b[0m" : "";
+		public static string Bold => Enabled ? "\x1b[1m" : "";
+		public static string Dim => Enabled ? "\x1b[90m" : "";
+		public static string Red => Enabled ? "\x1b[31m" : "";
+		public static string BoldRed => Enabled ? "\x1b[1;31m" : "";
+		public static string Green => Enabled ? "\x1b[32m" : "";
+		public static string BoldGreen => Enabled ? "\x1b[1;32m" : "";
+		public static string Yellow => Enabled ? "\x1b[33m" : "";
+		public static string BoldYellow => Enabled ? "\x1b[1;33m" : "";
+		public static string BrightYellow => Enabled ? "\x1b[1;93m" : "";
+		public static string Blue => Enabled ? "\x1b[34m" : "";
+		public static string BoldBlue => Enabled ? "\x1b[1;34m" : "";
+		public static string Cyan => Enabled ? "\x1b[36m" : "";
+		public static string BoldCyan => Enabled ? "\x1b[1;36m" : "";
+		public static string BoldWhite => Enabled ? "\x1b[1;37m" : "";
+		public static string BrightWhite => Enabled ? "\x1b[97m" : "";
+		public static string CodeBg => Enabled ? "\x1b[48;5;236m" : "";
+	}
+
+	/// <summary>
+	/// Formats a tag line so that quoted values ('value') are rendered in a terminal code-block badge
+	/// (dark background + bright text), mimicking inline markdown `code` blocks.
+	/// </summary>
+	private static string FormatTagLine(string line)
+	{
+		if (!Ansi.Enabled)
+			return Clean(line);
+
+		int firstQuote = line.IndexOf('\'');
+		if (firstQuote >= 0)
+		{
+			int lastQuote = line.IndexOf('\'', firstQuote + 1);
+			if (lastQuote > firstQuote)
+			{
+				string prefix = Clean(line.Substring(0, firstQuote));
+				string value = Clean(line.Substring(firstQuote + 1, lastQuote - firstQuote - 1));
+				string suffix = Clean(line.Substring(lastQuote + 1));
+
+				string codeBadge = $"{Ansi.CodeBg}{Ansi.BrightWhite} {value} {Ansi.Reset}";
+				return $"{prefix}{codeBadge}{Ansi.Dim}{suffix}{Ansi.Reset}";
+			}
+		}
+
+		return Clean(line);
+	}
+
 	/// <summary>
 	/// Writes a human-readable rendering of the report: header, tracks, notices and the final tally
 	/// go to <paramref name="standard"/>; failed inputs also go to <paramref name="errors"/>.
@@ -57,43 +107,58 @@ public sealed class PlaylistAddReport
 	public void WriteHuman(TextWriter standard, TextWriter errors)
 	{
 		if (DryRun)
-			standard.WriteLine($"Dry run for playlist '{Clean(Playlist)}'{(PlaylistWouldBeCreated ? " (would be created)" : "")}:");
+		{
+			var wouldCreate = PlaylistWouldBeCreated ? $" {Ansi.Yellow}(would be created){Ansi.Reset}" : "";
+			standard.WriteLine($"{Ansi.Cyan}Dry run for playlist '{Ansi.BoldWhite}{Clean(Playlist)}{Ansi.Reset}{Ansi.Cyan}'{wouldCreate}:{Ansi.Reset}");
+		}
 		else
-			standard.WriteLine($"Playlist '{Clean(Playlist)}':{(PlaylistCreated ? " (created)" : "")}");
+		{
+			var created = PlaylistCreated ? $" {Ansi.Green}(created){Ansi.Reset}" : "";
+			standard.WriteLine($"{Ansi.Cyan}Playlist '{Ansi.BoldWhite}{Clean(Playlist)}{Ansi.Reset}{Ansi.Cyan}':{created}{Ansi.Reset}");
+		}
 
 		foreach (var track in Tracks)
 		{
-			var label = track.Status switch
+			var (label, color) = track.Status switch
 			{
-				TrackStatus.Added => "Added",
-				TrackStatus.WouldAdd => "Would add",
-				TrackStatus.AlreadyPresent => "Already in playlist",
-				_ => "Skipped",
+				TrackStatus.Added => ("Added", Ansi.BoldGreen),
+				TrackStatus.WouldAdd => ("Would add", Ansi.BoldCyan),
+				TrackStatus.AlreadyPresent => ("Already in playlist", Ansi.BoldBlue),
+				_ => ("Skipped", Ansi.BoldYellow),
 			};
-			standard.WriteLine($"  [{label}] {Clean(track.Title)} ({Clean(track.Path)})");
+
+			standard.WriteLine($"  [{color}{label}{Ansi.Reset}] {Ansi.BoldWhite}{Clean(track.Title)}{Ansi.Reset} {Ansi.Dim}({Clean(track.Path)}){Ansi.Reset}");
 			if (!string.IsNullOrWhiteSpace(track.Reason))
-				standard.WriteLine($"    Reason: {Clean(track.Reason)}");
+				standard.WriteLine($"    {Ansi.Yellow}Reason:{Ansi.Reset} {Clean(track.Reason)}");
 			foreach (var line in track.Imported)
-				standard.WriteLine($"    + {Clean(line)}");
+				standard.WriteLine($"    {Ansi.Green}+{Ansi.Reset} {FormatTagLine(line)}");
 			foreach (var line in track.Defaulted)
-				standard.WriteLine($"    ~ {Clean(line)}");
+				standard.WriteLine($"    {Ansi.Dim}~{Ansi.Reset} {FormatTagLine(line)}");
 			foreach (var line in track.Skipped)
-				standard.WriteLine($"    - {Clean(line)}");
+				standard.WriteLine($"    {Ansi.Yellow}-{Ansi.Reset} {FormatTagLine(line)}");
 			foreach (var line in track.Warnings)
-				standard.WriteLine($"    ! {Clean(line)}");
+				standard.WriteLine($"    {Ansi.BrightYellow}! {Clean(line)}{Ansi.Reset}");
 		}
 
 		foreach (var notice in Notices)
-			standard.WriteLine($"  Note: {Clean(notice)}");
+			standard.WriteLine($"  {Ansi.Cyan}Note:{Ansi.Reset} {Clean(notice)}");
 
 		foreach (var failure in Failures)
-			errors.WriteLine($"  [Failed] {Clean(failure.Input)}: {Clean(failure.Reason)}");
+			errors.WriteLine($"  [{Ansi.BoldRed}Failed{Ansi.Reset}] {Clean(failure.Input)}: {Clean(failure.Reason)}");
 
 		int skipped = Tracks.Count(t => t.Status == TrackStatus.Skipped);
 		int present = Tracks.Count(t => t.Status == TrackStatus.AlreadyPresent);
-		standard.WriteLine(DryRun
-			? $"Done: {AddedCount} would be added, {skipped} skipped, {present} already in playlist, {Failures.Count} failed."
-			: $"Done: {AddedCount} added, {skipped} skipped, {present} already in playlist, {Failures.Count} failed.");
+		int failed = Failures.Count;
+
+		var addedText = DryRun
+			? (AddedCount > 0 ? $"{Ansi.BoldCyan}{AddedCount} would be added{Ansi.Reset}" : $"{Ansi.Dim}0 would be added{Ansi.Reset}")
+			: (AddedCount > 0 ? $"{Ansi.BoldGreen}{AddedCount} added{Ansi.Reset}" : $"{Ansi.Dim}0 added{Ansi.Reset}");
+
+		var skippedText = skipped > 0 ? $"{Ansi.Yellow}{skipped} skipped{Ansi.Reset}" : $"{Ansi.Dim}0 skipped{Ansi.Reset}";
+		var presentText = present > 0 ? $"{Ansi.Blue}{present} already in playlist{Ansi.Reset}" : $"{Ansi.Dim}0 already in playlist{Ansi.Reset}";
+		var failedText = failed > 0 ? $"{Ansi.BoldRed}{failed} failed{Ansi.Reset}" : $"{Ansi.Dim}0 failed{Ansi.Reset}";
+
+		standard.WriteLine($"{Ansi.Bold}Done:{Ansi.Reset} {addedText}, {skippedText}, {presentText}, {failedText}.");
 	}
 
 	/// <summary>
