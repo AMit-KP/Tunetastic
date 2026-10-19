@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Fetch the last 14 days of GitHub traffic and merge it into permanent daily history.
 
 Usage:
@@ -13,7 +13,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PATH = ROOT / "data" / "github_traffic.json"
+PATH = ROOT / "Assets" / "data" / "github_traffic.json"
 REPO = os.environ.get("REPO") or sys.exit("REPO is not set")
 TOKEN = os.environ.get("GH_TRAFFIC_TOKEN") or sys.exit("GH_TRAFFIC_TOKEN is not set")
 API = f"https://api.github.com/repos/{REPO}/traffic"

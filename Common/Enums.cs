@@ -294,3 +294,8 @@ public enum LocalSave
 	PostUpdateScanDoneVersion
 }
 
+public enum AddPlaylistResult
+{
+	Cancelled,
+	Created
+}

@@ -24,7 +24,7 @@ public abstract partial class TunetasticPageBase : Page
 	private StackPanel? _pageButtonsPanel;
 	private ToggleButton? _multiSelectToggle;
 	private Grid? _contentAreaGrid;
-	private StackPanel? _alphabetPanel;
+	private AlphabetScrubber? _scrubber;
 
 	private T RequiredControl<T>(string name) where T : FrameworkElement =>
 		(T)(FindName(name) ?? throw new InvalidOperationException($"Control '{name}' was not found on {GetType().Name}."));
@@ -50,8 +50,93 @@ public abstract partial class TunetasticPageBase : Page
 	/// <summary>The root content area used for layout measurements.</summary>
 	protected Grid ContentAreaGrid => _contentAreaGrid ??= RequiredControl<Grid>("ContentGrid");
 
-	/// <summary>The vertical A-Z quick navigation panel. Only present on pages that show it.</summary>
-	protected StackPanel AlphabetPanel => _alphabetPanel ??= RequiredControl<StackPanel>("AlphabetNavigationPanel");
+	/// <summary>The Android-style A–Z scrubber control. Only present on pages that show it.</summary>
+	protected AlphabetScrubber Scrubber => _scrubber ??= RequiredControl<AlphabetScrubber>("AlphabetScrubber");
+
+	/// <summary>
+	/// Returns the uppercase first character of a value as its alphabet-section key ("A"–"Z"), or "#"
+	/// for non-letter, empty or null values — safe against empty strings.
+	/// </summary>
+	protected static string FirstLetter(string? value)
+	{
+		var c = value?.Trim().FirstOrDefault() ?? '\0';
+		return char.IsLetter(c) ? char.ToUpperInvariant(c).ToString() : "#";
+	}
+
+	// ── Scrubber scroll-highlight feed ───────────────────────────
+
+	private readonly HashSet<string> _visibleLetterScratch = new();
+	private readonly HashSet<string> _lastHighlightedLetters = new();
+	private ListViewBase? _resolvedScrubberTarget;
+	private bool _scrubberTargetValid;
+
+	/// <summary>
+	/// The list the scrubber's scroll highlights are computed from. The page bases override this to
+	/// point at their active list (the current song view style, or the tile grid).
+	/// </summary>
+	protected virtual ListViewBase? ScrubberTarget => null;
+
+	/// <summary>
+	/// Maps a displayed item to its alphabet section letter ("A"–"Z" or "#"). The page bases override
+	/// the default to key off their active sort field.
+	/// </summary>
+	/// <param name="item">The item whose section letter is needed.</param>
+	protected virtual string LetterForItem(object item) => "#";
+
+	/// <summary>
+	/// Invalidates the cached scrubber target and highlight set. Call after the rail is rebuilt
+	/// (<c>SetLetters</c>) or re-targeted at a different list (view-style switch), so the next scroll
+	/// frame recomputes and re-publishes the highlights from scratch.
+	/// </summary>
+	protected void InvalidateScrubberHighlightFeed()
+	{
+		_scrubberTargetValid = false;
+		_resolvedScrubberTarget = null;
+		_lastHighlightedLetters.Clear();
+	}
+
+	/// <summary>
+	/// Feeds the scrubber from list scrolling: highlights every letter that currently has items on
+	/// screen. Only realized (on-screen) containers are inspected, so it stays cheap for any list
+	/// length; the scratch buffer and change-detection keep the per-frame cost near zero.
+	/// </summary>
+	/// <param name="offset">The list's current vertical scroll offset.</param>
+	/// <param name="viewport">The list's viewport height.</param>
+	protected void OnScrubberScrollProgress(double offset, double viewport)
+	{
+		if (!_scrubberTargetValid)
+		{
+			_resolvedScrubberTarget = ScrubberTarget;
+			_scrubberTargetValid = true;
+		}
+
+		var view = _resolvedScrubberTarget;
+		_visibleLetterScratch.Clear();
+		if (view != null && viewport > 0)
+		{
+			var panel = view.ItemsPanelRoot;
+			if (panel != null)
+			{
+				foreach (var container in panel.Children)
+				{
+					if (container is not FrameworkElement element) continue;
+					var slot = LayoutInformation.GetLayoutSlot(element);
+					if (slot.Bottom <= offset || slot.Top >= offset + viewport) continue;
+
+					var item = view.ItemFromContainer(element);
+					if (item != null)
+						_visibleLetterScratch.Add(LetterForItem(item));
+				}
+			}
+		}
+
+		if (_visibleLetterScratch.SetEquals(_lastHighlightedLetters))
+			return;
+
+		_lastHighlightedLetters.Clear();
+		_lastHighlightedLetters.UnionWith(_visibleLetterScratch);
+		Scrubber.SetHighlightedLetters(_visibleLetterScratch);
+	}
 
 	/// <summary>
 	/// Runs the shared initialization flow: shows the settings prompt, lets the page collapse its content views,

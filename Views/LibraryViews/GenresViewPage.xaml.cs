@@ -24,6 +24,10 @@ namespace Tunetastic.Views.LibraryViews;
 /// </remarks>
 public sealed partial class GenresViewPage : TileListPageBase
 {
+	private double _lastSizedWidth = -1;
+	private int _lastSizedCount = -1;
+	private double _adjustedTileMargin = 10;
+
 	/// <summary>
 	/// Gets or sets the collection of <c>GenreModel</c> objects, representing groups of songs organized by Genre.
 	/// </summary>
@@ -284,6 +288,26 @@ public sealed partial class GenresViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (GenreTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddGenresSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
+				await AddGenreSongsToPlayList(playlistName, genreModel);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
@@ -299,35 +323,46 @@ public sealed partial class GenresViewPage : TileListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (GenreTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var genreModels = GenreTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-																		 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to {playlist} playlist.");
+			await AddGenresSongsToPlayList(playlist);
 		}
 		else
 		{
 			var genreModel = (sender as MenuFlyoutItem)?.DataContext as GenreModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddGenreSongsToPlayList(playlist, genreModel);
+		}
+	}
 
-			if (playlist != null && genreModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
-																			 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Genre {genreModel.Genre} added to {playlist} playlist.");
-			}
+	private async Task AddGenreSongsToPlayList(string? playlist, GenreModel? genreModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (playlist != null && genreModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
+																		 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																		 whereCondition: $"{SongProperty.Genre.ToString()} = '{(genreModel.Genre == "Unknown" ? "Unknown Genre" : genreModel.Genre).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Genre {genreModel.Genre} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddGenresSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var genreModels = GenreTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.GenreDetailViewSortBy)]?.ToString() ?? "Title"),
+																	 ascending: (localSettings.Values[nameof(LocalSave.GenreDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Genre.ToString()} IN ({string.Join(",", genreModels.Select(y => $"'{((y as GenreModel)?.Genre == "Unknown" ? "Unknown Genre" : (y as GenreModel)?.Genre)?.Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'"))})");
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected genres, added to {playlist} playlist.");
 		}
 	}
 
@@ -704,6 +739,11 @@ public sealed partial class GenresViewPage : TileListPageBase
 		int itemCount = GenreTileView.Items.Count;
 		if (itemCount <= 0) return;
 
+		if (availableWidth == _lastSizedWidth && itemCount == _lastSizedCount)
+			return;
+		_lastSizedWidth = availableWidth;
+		_lastSizedCount = itemCount;
+
 		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
 		int count = Math.Min(itemCount, maxFitCount);
 
@@ -721,6 +761,8 @@ public sealed partial class GenresViewPage : TileListPageBase
 			adjustedItemWidth += extraPerTile;
 			adjustedMargin += extraPerTile * 0.5;
 		}
+
+		_adjustedTileMargin = adjustedMargin;
 
 		for (int i = 0; i < itemCount; i++)
 		{
@@ -743,14 +785,12 @@ public sealed partial class GenresViewPage : TileListPageBase
 	/// <param name="args">
 	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
 	/// </param>
-	/// <remarks>
-	/// This method is invoked whenever a container's UI content is about to change for a specific genre tile in the <c>GenreTileView</c>.
-	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
-	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the genre view.
-	/// </remarks>
 	private void GenreTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		GenreTileView_SizeChanged(null, null);
+
+		if (args.ItemContainer is ListViewItem container)
+			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}
 
 	/// <summary>
@@ -767,8 +807,8 @@ public sealed partial class GenresViewPage : TileListPageBase
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;
-		availableLetters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1).ToUpper()).Distinct().OrderBy(c => c);
-		bool hasSpecialCharacters = GenresGroup.Select(genre => genre.Genre.Substring(0, 1)).Where(c => !char.IsLetter(c[0])).Distinct().OrderBy(c => c).ToList().Any();
+		availableLetters = GenresGroup.Select(genre => FirstLetter(genre.Genre)).Where(c => c != "#").Distinct().OrderBy(c => c);
+		bool hasSpecialCharacters = GenresGroup.Any(genre => FirstLetter(genre.Genre) == "#");
 
 		PopulateAlphabetNavigation(availableLetters, AscOrder, hasSpecialCharacters);
 	}
@@ -786,7 +826,7 @@ public sealed partial class GenresViewPage : TileListPageBase
 	{
 		GenreModel? targetGenre = null;
 
-		targetGenre = letter != "#" ? GenresGroup.FirstOrDefault(genre => genre.Genre.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenresGroup.FirstOrDefault(genre => !char.IsLetter(genre.Genre[0]));
+		targetGenre = letter != "#" ? GenresGroup.FirstOrDefault(genre => genre.Genre.StartsWith(letter, StringComparison.OrdinalIgnoreCase)) : GenresGroup.FirstOrDefault(genre => FirstLetter(genre.Genre) == "#");
 
 		if (targetGenre != null)
 		{
@@ -809,9 +849,13 @@ public sealed partial class GenresViewPage : TileListPageBase
 		}
 	}
 
-	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+	/// <summary>
+	/// Maps a genre tile to its alphabet section letter.
+	/// </summary>
+	protected override string LetterForItem(object item)
+		=> item is GenreModel genre ? FirstLetter(genre.Genre) : "#";
 
-	private void Page_ActualThemeChanged(FrameworkElement sender, object args) => ApplyAlphabetThemeColors(sender, args);
+	private void Page_SizeChanged(object sender, SizeChangedEventArgs e) => _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
 
 	/// <summary>
 	/// Stores a collection of humorous or witty messages displayed when the user's song library is empty or unconfigured.

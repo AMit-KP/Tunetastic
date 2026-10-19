@@ -15,6 +15,10 @@ namespace Tunetastic.Views.LibraryViews;
 /// </remarks>
 public sealed partial class YearsViewPage : TileListPageBase
 {
+	private double _lastSizedWidth = -1;
+	private int _lastSizedCount = -1;
+	private double _adjustedTileMargin = 10;
+
 	/// <summary>
 	/// Gets or sets the collection of <c>YearModel</c> objects, representing groups of songs organized by year.
 	/// </summary>
@@ -271,6 +275,26 @@ public sealed partial class YearsViewPage : TileListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+
+			if (YearTileView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddYearsSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var yearModel = (sender as MenuFlyoutItem)?.DataContext as YearModel;
+				await AddYearSongsToPlayList(playlistName, yearModel);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the addition of songs or tracks from the current library view to a specified playlist.
 	/// </summary>
@@ -286,35 +310,47 @@ public sealed partial class YearsViewPage : TileListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var playlist = (sender as MenuFlyoutItem)?.Text;
 
 		if (YearTileView.IsMultiSelectCheckBoxEnabled)
 		{
-			var yearModels = YearTileView.SelectedItems;
-			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
-																		 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																		 whereCondition: $"{SongProperty.Year.ToString()} IN ({string.Join(",", yearModels.Select(y => $"'{((y as YearModel)?.Year == "Unknown" ? "Unknown Year" : (y as YearModel)?.Year)}'"))})");
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to {playlist} playlist.");
+			await AddYearsSongsToPlayList(playlist);
 		}
 		else
 		{
 			var yearModel = (sender as MenuFlyoutItem)?.DataContext as YearModel;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddYearSongsToPlayList(playlist, yearModel);
+		}
+	}
 
-			if (playlist != null && yearModel != null)
-			{
-				var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
-																			 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
-																			 whereCondition: $"{SongProperty.Year.ToString()} = '{(yearModel.Year == "Unknown" ? "Unknown Year" : yearModel.Year)}'");
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Year {yearModel.Year} added to {playlist} playlist.");
-			}
+	private async Task AddYearSongsToPlayList(string? playlist, YearModel? yearModel)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+
+		if (playlist != null && yearModel != null)
+		{
+			var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
+																		 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																		 whereCondition: $"{SongProperty.Year.ToString()} = '{(yearModel.Year == "Unknown" ? "Unknown Year" : yearModel.Year)}'");
+
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Year {yearModel.Year} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddYearsSongsToPlayList(string? playlist)
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var yearModels = YearTileView.SelectedItems;
+		var songList = await DatabaseHelper.Instance.LoadSongsFromDB(orderBy: Enum.Parse<SongProperty>(localSettings.Values[nameof(LocalSave.YearDetailViewSortBy)]?.ToString() ?? "Title"),
+																	 ascending: (localSettings.Values[nameof(LocalSave.YearDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
+																	 whereCondition: $"{SongProperty.Year.ToString()} IN ({string.Join(",", yearModels.Select(y => $"'{((y as YearModel)?.Year == "Unknown" ? "Unknown Year" : (y as YearModel)?.Year)}'"))})");
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
+
+			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected years, added to {playlist} playlist.");
 		}
 	}
 
@@ -683,6 +719,11 @@ public sealed partial class YearsViewPage : TileListPageBase
 		int itemCount = YearTileView.Items.Count;
 		if (itemCount <= 0) return;
 
+		if (availableWidth == _lastSizedWidth && itemCount == _lastSizedCount)
+			return;
+		_lastSizedWidth = availableWidth;
+		_lastSizedCount = itemCount;
+
 		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
 		int count = Math.Min(itemCount, maxFitCount);
 
@@ -700,6 +741,8 @@ public sealed partial class YearsViewPage : TileListPageBase
 			adjustedItemWidth += extraPerTile;
 			adjustedMargin += extraPerTile * 0.5;
 		}
+
+		_adjustedTileMargin = adjustedMargin;
 
 		for (int i = 0; i < itemCount; i++)
 		{
@@ -722,14 +765,12 @@ public sealed partial class YearsViewPage : TileListPageBase
 	/// <param name="args">
 	/// Provides data for the container content changing event, indicating the specific item and its container that are being updated or visualized.
 	/// </param>
-	/// <remarks>
-	/// This method is invoked whenever a container's UI content is about to change for a specific year tile in the <c>YearTileView</c>.
-	/// It ensures that size adjustments or UI modifications are handled depending on the content visibility. The method contributes
-	/// to maintaining responsive performance by managing how elements are dynamically rendered as the user navigates or scrolls through the year view.
-	/// </remarks>
 	private void YearTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		YearTileView_SizeChanged(null, null);
+
+		if (args.ItemContainer is ListViewItem container)
+			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}
 
 	/// <summary>

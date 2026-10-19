@@ -1,6 +1,4 @@
-﻿using Microsoft.UI.Xaml.Media;
-
-namespace Tunetastic.Views.Common;
+﻿namespace Tunetastic.Views.Common;
 
 /// <summary>
 /// Shared base for library tile-grid pages (albums/artists/genres/years) built on <see cref="TunetasticPageBase"/>:
@@ -14,6 +12,8 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 	/// <summary>The button whose IsEnabled reflects multi-select state.</summary>
 	protected abstract Button MoreButtonControl { get; }
 
+	private bool _scrubberWired;
+
 	/// <summary>
 	/// Handles selection changes in the tile view: updates the multi-select button state.
 	/// </summary>
@@ -26,7 +26,7 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 	}
 
 	/// <summary>
-	/// Populates the alphabet navigation panel with letters and optionally a special character marker
+	/// Populates the alphabet scrubber with letters and optionally a special character marker
 	/// for navigating sections of tiles.
 	/// </summary>
 	/// <param name="availableLetters">
@@ -39,63 +39,46 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 	/// <param name="hasSpecialCharacters">
 	/// A flag specifying whether special characters (e.g., "#") are included in the navigation.
 	/// </param>
-	protected async void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, bool hasSpecialCharacters)
+	protected void PopulateAlphabetNavigation(IOrderedEnumerable<string>? availableLetters, bool order, bool hasSpecialCharacters)
 	{
-		AlphabetPanel.Children.Clear();
-		if (availableLetters == null && !hasSpecialCharacters) return;
+		var letters = new List<string>(Enumerable.Range('A', 26).Select(x => ((char)x).ToString()));
+		if (hasSpecialCharacters) letters.Insert(0, "#");
+		if (!order) letters.Reverse();
 
-		var fullAlphabet = Enumerable.Range('A', 26).Select(x => ((char)x).ToString());
-		if (hasSpecialCharacters) fullAlphabet = fullAlphabet.Reverse().Append("#").Reverse();
-		if (!order) fullAlphabet = fullAlphabet.Reverse();
+		var hasLetters = availableLetters != null || hasSpecialCharacters;
+		var available = new List<string>();
+		if (hasLetters && availableLetters != null)
+			available.AddRange(availableLetters.Where(letters.Contains));
+		if (hasSpecialCharacters)
+			available.Add("#");
 
-		double availableSpace = ContentAreaGrid.ActualHeight - 10;
-		if (availableSpace <= 0) return;
+		Scrubber.SetLetters(letters, available, hasLetters);
+		Scrubber.TargetList = TileView;
+		WireScrubberEvents();
 
-		double autoHeight = availableSpace / fullAlphabet.Count();
-
-		var transparentBrush = new SolidColorBrush(Colors.Transparent);
-
-		foreach (var letter in fullAlphabet)
-		{
-			bool hasSongs = availableLetters == null ? false : (availableLetters.Contains(letter)) || (letter == "#" && hasSpecialCharacters);
-
-			var foreground = new SolidColorBrush(hasSongs ? App.Current.ThemeService.ActualTheme == ElementTheme.Dark ? Colors.White : Colors.Black : Colors.Gray);
-			var Button = new Button
-			{
-				Content = letter,
-				Foreground = foreground,
-				Opacity = hasSongs ? 1 : 0.5,
-				Background = transparentBrush,
-				BorderBrush = transparentBrush,
-				BorderThickness = new Thickness(0),
-				IsHitTestVisible = hasSongs,
-				Margin = new Thickness(0),
-				HorizontalContentAlignment = HorizontalAlignment.Right,
-				VerticalContentAlignment = VerticalAlignment.Stretch,
-				Padding = new Thickness(0),
-				HorizontalAlignment = HorizontalAlignment.Right,
-				VerticalAlignment = VerticalAlignment.Stretch,
-				Height = autoHeight
-			};
-			Button.Resources["ButtonBackgroundPointerOver"] = transparentBrush;
-			Button.Resources["ButtonBackgroundPressed"] = transparentBrush;
-			Button.Resources["ButtonForegroundPointerOver"] = foreground;
-			Button.Resources["ButtonForegroundPressed"] = foreground;
-			Button.Resources["ButtonBorderBrushPointerOver"] = transparentBrush;
-			Button.Resources["ButtonBorderBrushPressed"] = transparentBrush;
-
-			if (hasSongs)
-			{
-				ToolTipService.SetPlacement(Button, Microsoft.UI.Xaml.Controls.Primitives.PlacementMode.Left);
-				ToolTipService.SetToolTip(Button, letter);
-				Button.Tapped += (s, e) => ScrollToSection(letter);
-			}
-
-			AlphabetPanel.Children.Add(Button);
-		}
+		InvalidateScrubberHighlightFeed();
 		_ = AdjustAlphabetSize();
-		availableLetters = null;
 	}
+
+	/// <summary>Wires the scrubber events once: tap → section jump, scroll → highlight updates.</summary>
+	private void WireScrubberEvents()
+	{
+		if (_scrubberWired) return;
+		_scrubberWired = true;
+
+		Scrubber.LetterTapped += (_, letter) => ScrollToSection(letter);
+		Scrubber.ScrollProgress += (_, progress) => OnScrubberScrollProgress(progress.Offset, progress.Viewport);
+	}
+
+	/// <summary>The list the scrubber tracks for scroll highlights — the page's tile grid.</summary>
+	protected override ListViewBase? ScrubberTarget => TileView;
+
+	/// <summary>
+	/// Maps a displayed tile to its alphabet section letter ("A"–"Z" or "#"). Tile pages override this;
+	/// the default only backs derived pages without a rail (e.g. YearsViewPage).
+	/// </summary>
+	/// <param name="item">The tile whose section letter is needed.</param>
+	protected override string LetterForItem(object item) => "#";
 
 	/// <summary>
 	/// Scrolls the view to the first tile of the given alphabet section.
@@ -107,35 +90,15 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 	}
 
 	/// <summary>
-	/// Adjusts the size of the elements in the alphabet navigation panel based on the available vertical space.
+	/// Repositions the scrubber and re-targets it at the tile grid. Called on sort changes and page
+	/// resizes; the control sizes its own letters to the height.
 	/// </summary>
 	/// <returns>A task that represents the asynchronous operation of resizing the elements in the alphabet navigation panel.</returns>
 	protected Task AdjustAlphabetSize()
 	{
-		double availableSpace = ContentAreaGrid.ActualHeight - 20;
-
-		AlphabetPanel.Margin = new Thickness(0, 10, 30, 10);
-
-		if (availableSpace <= 0) return Task.CompletedTask;
-
-		double totalLetters = AlphabetPanel.Children.Count;
-
-		double autoHeight = availableSpace / totalLetters;
-
-		foreach (var button in AlphabetPanel.Children.OfType<Button>())
-		{
-			button.Height = autoHeight;
-		}
+		Scrubber.Margin = new Thickness(0, 10, 0, 10);
+		Scrubber.TargetList = TileView;
 		return Task.CompletedTask;
-	}
-
-	/// <summary>
-	/// Re-colors enabled alphabet navigation buttons when the page theme changes.
-	/// </summary>
-	protected void ApplyAlphabetThemeColors(FrameworkElement sender, object args)
-	{
-		Brush themeBrush = (sender.ActualTheme == ElementTheme.Dark) ? new SolidColorBrush(Colors.White) : new SolidColorBrush(Colors.Black);
-		AlphabetPanel.Children.OfType<Button>().Where(button => button.Opacity == 1).ToList().ForEach(textElement => textElement.Foreground = themeBrush);
 	}
 
 	/// <summary>
@@ -154,22 +117,21 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 
 		List<string> playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
-		if (playLists == null || playLists.Count == 0)
+		var createNewMenu = new MenuFlyoutItem
 		{
-			var menuItem = new MenuFlyoutItem
-			{
-				Text = "No Playlists created",
-				Foreground = new SolidColorBrush(Colors.Red)
-			};
-			addToPlaylist?.Items.Add(menuItem);
-			return;
-		}
+			Text = "Create/Add New playlist",
+			Icon = new FontIcon { Glyph = "\uF8AA" },
+		};
+		ToolTipService.SetToolTip(createNewMenu, "Create/Add a new playlist and add the selected songs/tracks to it.");
+		createNewMenu.Click += NewPlaylist_Click;
+		addToPlaylist?.Items.Add(createNewMenu);
 
 		foreach (var playList in playLists)
 		{
 			var menuItem = new MenuFlyoutItem
 			{
-				Text = playList
+				Text = playList,
+				Icon = new FontIcon { Glyph = "\uE728" }
 			};
 			ToolTipService.SetToolTip(menuItem, BuildAddToPlaylistTooltip(MultiSelectToggle.IsChecked == true, playList));
 			menuItem.Click += AddToPlaylist_Click;
@@ -182,4 +144,7 @@ public abstract partial class TileListPageBase : TunetasticPageBase
 
 	/// <summary>Builds the tooltip text shown on an "Add to playlist" menu entry.</summary>
 	protected abstract string BuildAddToPlaylistTooltip(bool multiSelect, string playList);
+
+	/// <summary>Opens the Add Playlist dialog on MainPage so the user can create/import a playlist.</summary>
+	protected abstract void NewPlaylist_Click(object sender, RoutedEventArgs e);
 }
