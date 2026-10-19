@@ -134,8 +134,10 @@ public static class CliPlaylistAdd
 
 			// Resolve to the stored row (case-insensitive): re-imports keep their history and casing.
 			// The exact match uses the indexed key; the NOCASE fallback only runs for new casings.
-			var stored = await WithBusyRetry(() => DatabaseHelper.Instance.GetSongByPath(file));
-			stored ??= await WithBusyRetry(() => DatabaseHelper.Instance.GetSongByPathNoCase(file));
+			// Both lookups surface their own friendly error paths where possible (see DatabaseHelper);
+			// when the database stays busy the result is null and the caller treats it as "unknown".
+			var stored = await DatabaseHelper.Instance.GetSongByPath(file);
+			stored ??= await DatabaseHelper.Instance.GetSongByPathNoCase(file);
 			string effectivePath = stored?.Path ?? file;
 			if (stored != null)
 			{
@@ -213,8 +215,12 @@ public static class CliPlaylistAdd
 			}
 			catch (Exception ex)
 			{
+				// The three steps are each transactional and idempotent, so a retry completes the
+				// job without duplicating rows or links. A mid-run failure can leave a partial state
+				// (songs already inserted, scan-meta and/or playlist links still pending); the
+				// message must say that honestly rather than claiming a clean failure.
 				foreach (var c in candidates)
-					report.Failures.Add(new InputFailure { Input = c.Song.Path, Reason = $"Database write failed partway: {ex.Message} State is unknown; re-run to complete." });
+					report.Failures.Add(new InputFailure { Input = c.Song.Path, Reason = $"Database write failed partway: {ex.Message} Some files may already be in the library or playlist; the remaining steps were not completed. Re-run the same command to finish." });
 				return FinalReport(report, created, wouldCreate: false);
 			}
 		}
@@ -568,10 +574,15 @@ public static class CliPlaylistAdd
 	}
 
 	/// <summary>
-	/// Retries a database operation when the app process holds the database lock, so CLI runs work
-	/// while Tunetastic is open. Other errors propagate immediately.
+	/// Retries a database operation for transient SQLite lock contention, so CLI runs work while the
+	/// Tunetastic GUI holds the database briefly. The policy is small and bounded: 3 attempts with a
+	/// 40 ms delay, mirroring <see cref="DatabaseHelper.GetSongByPathNoCase"/>. Every wrapped operation
+	/// is read-only, a transactional upsert, or safe to re-run (idempotent, or because a Busy/Locked
+	/// error in the default rollback-journal mode means the failing statement never committed);
+	/// a retry therefore cannot repeat a partial write. When the retries
+	/// run out the failure propagates to the caller and is reported per input.
 	/// </summary>
-	private static async Task<T> WithBusyRetry<T>(Func<Task<T>> operation, int attempts = 15)
+	private static async Task<T> WithBusyRetry<T>(Func<Task<T>> operation, int attempts = 3)
 	{
 		for (int attempt = 1; ; attempt++)
 		{
@@ -581,15 +592,16 @@ public static class CliPlaylistAdd
 			}
 			catch (Exception ex) when (IsLocked(ex) && attempt < attempts)
 			{
-				await Task.Delay(200 * attempt);
+				await Task.Delay(40);
 			}
 		}
 	}
 
 	/// <summary>
-	/// Retries a database operation without a result when the app process holds the database lock.
+	/// Retries a database operation without a result for transient SQLite lock contention.
+	/// Same bounded policy as <see cref="WithBusyRetry{T}(Func{Task{T}}, int)"/>: 3 attempts, 40 ms delay.
 	/// </summary>
-	private static async Task WithBusyRetry(Func<Task> operation, int attempts = 15)
+	private static async Task WithBusyRetry(Func<Task> operation, int attempts = 3)
 	{
 		for (int attempt = 1; ; attempt++)
 		{
@@ -600,7 +612,7 @@ public static class CliPlaylistAdd
 			}
 			catch (Exception ex) when (IsLocked(ex) && attempt < attempts)
 			{
-				await Task.Delay(200 * attempt);
+				await Task.Delay(40);
 			}
 		}
 	}

@@ -871,6 +871,14 @@ public class DatabaseHelper
 	/// database stays busy the caller gets a friendly notification instead of a raw exception and
 	/// the lookup returns null. Other failures return null without noise, as before.
 	/// </summary>
+	/// <remarks>
+	/// A null result after exhausted retries is indistinguishable from "not stored"; a caller that
+	/// then inserts could in theory create a case-variant duplicate while another process holds a
+	/// long write lock. The window is narrow (a lookup that stays busy while a later insert in the
+	/// same run succeeds) and read contention is rare in practice, but callers that rely on this
+	/// lookup for history preservation should treat a null result as "unknown", not as proof that
+	/// the song is new.
+	/// </remarks>
 	/// <param name="path">The file path of the song to retrieve from the database.</param>
 	/// <returns>
 	/// A task that represents the asynchronous operation. The task result contains the matching
