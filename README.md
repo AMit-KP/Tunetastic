@@ -29,28 +29,28 @@
 ## Store stats
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/installs-dark.svg">
-  <img alt="Installs over time" src="charts/installs-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/installs-dark.svg">
+  <img alt="Installs over time" src="Assets/charts/installs-light.svg">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/map-dark.svg">
-  <img alt="Where people install from" src="charts/map-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/map-dark.svg">
+  <img alt="Where people install from" src="Assets/charts/map-light.svg">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/ratings-dark.svg">
-  <img alt="Ratings" src="charts/ratings-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/ratings-dark.svg">
+  <img alt="Ratings" src="Assets/charts/ratings-light.svg">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/github-views-dark.svg">
-  <img alt="Repo views" src="charts/github-views-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/github-views-dark.svg">
+  <img alt="Repo views" src="Assets/charts/github-views-light.svg">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="charts/github-clones-dark.svg">
-  <img alt="Git clones" src="charts/github-clones-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/github-clones-dark.svg">
+  <img alt="Git clones" src="Assets/charts/github-clones-light.svg">
 </picture>
 
 ---

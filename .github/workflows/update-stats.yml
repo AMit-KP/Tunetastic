@@ -1,4 +1,4 @@
-name: Update stats
+﻿name: Update stats
 
 on:
   schedule:
@@ -44,13 +44,11 @@ jobs:
             echo "RELEASE_PAT or SSH_SIGNING_KEY secret is missing"; exit 1
           fi
 
-          git add data charts
+          git add Assets/data Assets/charts
           if git diff --cached --quiet; then
             echo "No changes to commit"; exit 0
           fi
 
-          # Sign commits with the maintainer's SSH signing key (same pattern
-          # as pr-version-sync.yml) so they show as Verified on GitHub.
           mkdir -p ~/.ssh
           trap 'rm -f ~/.ssh/commit_signing_key' EXIT
           printf '%s\n' "$SSH_SIGNING_KEY" > ~/.ssh/commit_signing_key
@@ -67,12 +65,10 @@ jobs:
           REMOTE="https://x-access-token:${RELEASE_PAT}@github.com/${GITHUB_REPOSITORY}.git"
           BASE="${GITHUB_REF_NAME}"
 
-          # 1) Try a direct push (works if the token owner can bypass branch rules)
           if git push "$REMOTE" "HEAD:${BASE}"; then
             echo "Pushed directly to ${BASE}"; exit 0
           fi
 
-          # 2) Fall back to a pull request and merge it
           echo "Direct push blocked by branch rules - using a pull request instead"
           BR="stats-update"
           git push --force "$REMOTE" "HEAD:refs/heads/${BR}"
