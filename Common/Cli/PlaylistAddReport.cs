@@ -49,9 +49,24 @@ public sealed class PlaylistAddReport
 		return JsonSerializer.Serialize(this, JsonOptions);
 	}
 
+	internal static bool IsColorOutputEnabled()
+	{
+		if (Environment.GetEnvironmentVariable("NO_COLOR") != null)
+			return false;
+
+		try
+		{
+			return bool.Parse(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CLIOutputColorEnabled)]?.ToString() ?? "true");
+		}
+		catch
+		{
+			return true;
+		}
+	}
+
 	private static class Ansi
 	{
-		public static readonly bool Enabled = Environment.GetEnvironmentVariable("NO_COLOR") == null;
+		public static bool Enabled => IsColorOutputEnabled();
 
 		public static string Reset => Enabled ? "\x1b[0m" : "";
 		public static string Bold => Enabled ? "\x1b[1m" : "";

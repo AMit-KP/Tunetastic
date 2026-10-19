@@ -12,7 +12,7 @@ public static class CliRunner
 {
 	private static string GetUsage()
 	{
-		bool color = Environment.GetEnvironmentVariable("NO_COLOR") == null;
+		bool color = PlaylistAddReport.IsColorOutputEnabled();
 		if (!color)
 		{
 			return
