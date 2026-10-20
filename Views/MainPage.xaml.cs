@@ -896,14 +896,35 @@ public sealed partial class MainPage : Page
 		AppTitle.Animate = startAnimation;
 	}
 
+	private static FrameworkElement CreateCoverArtPreview(ImageSource imageSource)
+	{
+		return new Border
+		{
+			Width = 64,
+			Height = 64,
+			CornerRadius = new CornerRadius(6),
+			BorderThickness = new Thickness(1),
+			BorderBrush = Application.Current.Resources.TryGetValue("CardStrokeColorDefaultBrush", out var stroke) ? stroke as Brush : null,
+			Background = Application.Current.Resources.TryGetValue("CardBackgroundFillColorDefaultBrush", out var bg) ? bg as Brush : null,
+			HorizontalAlignment = HorizontalAlignment.Left,
+			Child = new Image
+			{
+				Source = imageSource,
+				Stretch = Stretch.UniformToFill,
+				HorizontalAlignment = HorizontalAlignment.Center,
+				VerticalAlignment = VerticalAlignment.Center
+			}
+		};
+	}
+
 	/// <summary>
 	/// Builds a before/after table of the pending tag changes, one row per changed field.
 	/// </summary>
 	/// <param name="changes">The changes to display, as (field name, previous value, new value) tuples.</param>
 	/// <remarks>
-	/// Each cell wraps to at most two lines; longer values are trimmed with an ellipsis so the dialog stays compact.
+	/// Each text cell wraps to at most two lines; longer values are trimmed with an ellipsis so the dialog stays compact.
 	/// </remarks>
-	private static Grid BuildTagChangesTable(List<(string Field, string Before, string After)> changes)
+	private static Grid BuildTagChangesTable(List<(string Field, object Before, object After)> changes)
 	{
 		var table = new Grid { ColumnSpacing = 16, RowSpacing = 8 };
 
@@ -911,18 +932,28 @@ public sealed partial class MainPage : Page
 		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-		void AddCell(int row, int column, string text, bool header = false)
+		void AddCell(int row, int column, object content, bool header = false)
 		{
-			var cell = new TextBlock
+			FrameworkElement cell;
+			if (content is FrameworkElement fe)
 			{
-				Text = string.IsNullOrWhiteSpace(text) ? "" : text,
-				TextWrapping = TextWrapping.Wrap,
-				MaxLines = 2,
-				TextTrimming = TextTrimming.CharacterEllipsis,
-				FontWeight = header ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
-				Opacity = header ? 0.65 : 1.0,
-				VerticalAlignment = VerticalAlignment.Top
-			};
+				cell = fe;
+			}
+			else
+			{
+				string text = content?.ToString() ?? "";
+				cell = new TextBlock
+				{
+					Text = string.IsNullOrWhiteSpace(text) ? "" : text,
+					TextWrapping = TextWrapping.Wrap,
+					MaxLines = 2,
+					TextTrimming = TextTrimming.CharacterEllipsis,
+					FontWeight = header ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
+					Opacity = header ? 0.65 : 1.0,
+					VerticalAlignment = VerticalAlignment.Center
+				};
+			}
+
 			Grid.SetRow(cell, row);
 			Grid.SetColumn(cell, column);
 			table.Children.Add(cell);
@@ -1057,10 +1088,20 @@ public sealed partial class MainPage : Page
 
 					if (editResult == ContentDialogResult.Primary)
 					{
-						var changes = new List<(string Field, string Before, string After)>();
+						var changes = new List<(string Field, object Before, object After)>();
 
 						if (CoverArtChanged.Visibility == Visibility.Visible)
-							changes.Add(("Cover Art", string.IsNullOrEmpty(songData.Cover) ? "No cover art" : "Existing cover art", _frontCoverArtPath is not null ? "New image" : "Removed"));
+						{
+							object before = !string.IsNullOrEmpty(songData.Cover)
+								? CreateCoverArtPreview(bitmapImage)
+								: "No cover art";
+
+							object after = _frontCoverArtPath is not null
+								? CreateCoverArtPreview(CoverArtImage.Source)
+								: "Removed";
+
+							changes.Add(("Cover Art", before, after));
+						}
 						if (TitleChanged.Visibility == Visibility.Visible)
 							changes.Add(("Title", songData.Title, TitleTextBox.Text));
 						if (ArtistChanged.Visibility == Visibility.Visible)

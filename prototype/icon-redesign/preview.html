@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tunetastic — sidebar icon redesign (preview)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+    background: #101018;
+    color: #ececf4;
+    padding: 28px 34px 46px;
+  }
+  h1 { font-size: 21px; font-weight: 600; letter-spacing: .2px; }
+  .sub { color: #9a9ab0; font-size: 13px; margin: 6px 0 24px; }
+  .layout { display: flex; gap: 34px; align-items: flex-start; }
+
+  /* ---------- sidebar replica ---------- */
+  .side {
+    width: 250px; flex: 0 0 250px;
+    border-radius: 12px; overflow: hidden;
+    padding: 14px 10px 18px;
+    background:
+      radial-gradient(120% 90% at 110% 100%, rgba(120,60,190,.55), rgba(120,60,190,0) 60%),
+      linear-gradient(150deg, #06061c 8%, #10103f 55%, #1a1560 100%);
+    box-shadow: 0 12px 40px rgba(0,0,0,.55);
+  }
+  .navrow {
+    display: flex; align-items: center; gap: 13px;
+    padding: 8px 12px; border-radius: 7px;
+    font-size: 13.5px; color: #f2f2fa;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: background .18s ease;
+  }
+  .navrow:hover { background: rgba(255,255,255,.06); }
+  .navrow.selected { background: rgba(255,255,255,.10); }
+  .navrow.selected::before {
+    content: ""; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%); width: 3px; height: 58%;
+    border-radius: 2px; background: var(--bar, #a78bfa);
+  }
+  .navrow.child { margin-left: 14px; padding-left: 16px; font-size: 13px; color: #e4e4f0; }
+  .navrow svg { width: 16px; height: 16px; flex: 0 0 16px; }
+
+  /* ---------- cards ---------- */
+  main { flex: 1; min-width: 0; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .card {
+    display: flex; align-items: center; gap: 14px;
+    background: #181822; border: 1px solid #262633; border-radius: 12px;
+    padding: 13px 16px;
+  }
+  .oldglyph {
+    width: 64px; height: 64px; flex: 0 0 64px;
+    display: flex; align-items: center; justify-content: center;
+    background: #13131c; border-radius: 9px;
+    font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets";
+    font-size: 26px; color: #6d6d84; position: relative;
+  }
+  .oldglyph::after {
+    content: "current"; position: absolute; bottom: 3px; right: 5px;
+    font-family: "Segoe UI", sans-serif; font-size: 8px; color: #55556a; letter-spacing: .4px;
+  }
+  .arrow { color: #4c4c66; font-size: 16px; flex: 0 0 auto; }
+  .newicon {
+    width: 64px; height: 64px; flex: 0 0 64px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(150deg, #101038, #241a55);
+    border-radius: 9px;
+  }
+  .newicon svg { width: 40px; height: 40px; color: #ffffff; }
+  .meta { min-width: 0; }
+  .meta .nm { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .meta .ds { font-size: 12px; color: #9a9ab0; line-height: 1.45; }
+  .meta .mini { display: inline-flex; align-items: center; gap: 7px; margin-top: 7px;
+    background: #232334; border-radius: 6px; padding: 4px 8px; }
+  .meta .mini svg { width: 16px; height: 16px; color: #fff; }
+  .meta .mini span { font-size: 10.5px; color: #8f8fa8; }
+
+  h2 { font-size: 14px; font-weight: 600; color: #c9c9de; margin: 26px 0 12px;
+       text-transform: uppercase; letter-spacing: 1.1px; }
+  .alts .newicon { background: #20202e; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid3 .newicon { width: 52px; height: 52px; flex: 0 0 52px; }
+  .grid3 .newicon svg { width: 32px; height: 32px; }
+  .gtitle { margin: 24px 0 10px; }
+  .sidecol { flex: 0 0 250px; }
+  .ttabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .ttab { flex: 1; font-size: 10.5px; padding: 7px 2px; border-radius: 8px; text-align: center;
+    background: #181822; border: 1px solid #262633; color: #9a9ab0; cursor: pointer;
+    transition: all .15s ease; user-select: none; }
+  .ttab:hover { color: #e4e4f0; border-color: #3d3d5c; }
+  .ttab.on { background: linear-gradient(150deg, #101038, #241a55); color: #fff; border-color: #4d4d75; }
+
+  /* ---- per-icon click animations ---- */
+  @keyframes spin360  { to { transform: rotate(360deg); } }
+  @keyframes spin360ccw { to { transform: rotate(-360deg); } }
+  @keyframes wobble   { 0%,100% { transform: rotate(0); } 30% { transform: rotate(-5deg); } 65% { transform: rotate(3.5deg); } }
+  @keyframes ping     { 0% { opacity: 0; transform: translateY(2px) scale(.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-2.5px) scale(1.1); } }
+  @keyframes pageflip { 0% { transform: scaleY(1); } 40% { transform: scaleY(.06); } 60% { transform: scaleY(.06); } 100% { transform: scaleY(1); } }
+  @keyframes burn     { 0%,100% { transform: scale(1,1) skewX(0); } 15% { transform: scale(.96,1.06) skewX(-2deg); } 32% { transform: scale(1.05,.93) skewX(2.5deg); } 50% { transform: scale(.95,1.08) skewX(-2deg); } 68% { transform: scale(1.04,.95) skewX(2deg); } 85% { transform: scale(.98,1.03) skewX(-1deg); } }
+  @keyframes licked   { 0%,100% { transform: scaleY(1); } 35% { transform: scaleY(1.3); } 70% { transform: scaleY(.85); } }
+  @keyframes hop      { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2.6px); } }
+  @keyframes rewind   { 0%,100% { transform: rotate(0); } 55% { transform: rotate(-75deg); } }
+  @keyframes plusspin { 0%,100% { transform: rotate(0) scale(1); } 50% { transform: rotate(90deg) scale(1.18); } }
+  @keyframes qhop     { 0%,100% { transform: translateX(0); } 45% { transform: translateX(2.4px); } }
+  @keyframes qnudge   { 0%,100% { transform: translateX(0); } 45% { transform: translateX(1.1px); } }
+
+  .side .navrow.clicked .reel-l { animation: spin360 .8s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .reel-r { animation: spin360ccw .8s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .lean  { animation: wobble .6s ease; transform-box: fill-box; transform-origin: 50% 100%; }
+  .side .navrow.clicked .lean.l2 { animation-delay: .05s; }
+  .side .navrow.clicked .rec   { animation: hop .5s ease; }
+  .side .navrow.clicked .rec.r2 { animation-delay: .06s; }
+  .side .navrow.clicked .rec.r3 { animation-delay: .12s; }
+  .side .navrow.clicked .note  { animation: hop .55s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .tile  { animation: hop .45s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .tile.t2 { animation-delay: .06s; }
+  .side .navrow.clicked .tile.t3 { animation-delay: .12s; }
+  .side .navrow.clicked .tile.t4 { animation-delay: .18s; }
+  .side .navrow.clicked .wave  { animation: ping .6s ease-out; transform-box: fill-box; transform-origin: 50% 100%; }
+  .side .navrow.clicked .wave.w2 { animation-delay: .1s; }
+  .side .navrow.clicked .flapp { animation: pageflip .65s ease; transform-box: view-box; transform-origin: 12px 5.3px; }
+  .side .navrow.clicked .spin-c { animation: spin360 .8s ease; transform-box: view-box; transform-origin: 12px 12px; }
+  .side .navrow.clicked .plusg { animation: plusspin .55s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .arcg  { animation: rewind .65s ease; transform-box: view-box; transform-origin: 12px 12px; }
+  .side .navrow.clicked .flame { animation: burn .9s ease; transform-box: fill-box; transform-origin: 50% 100%; }
+  .side .navrow.clicked .tongue { animation: licked .5s ease .05s; transform-box: fill-box; transform-origin: 50% 100%; }
+  .side .navrow.clicked .starp { animation: spin360 .6s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .plusp { animation: hop .5s ease; transform-box: fill-box; transform-origin: center; }
+  .side .navrow.clicked .qtri  { animation: qhop .5s ease; }
+  .side .navrow.clicked .qline { animation: qnudge .5s ease; }
+  .side .navrow.clicked .qline.q2 { animation-delay: .04s; }
+  .side .navrow.clicked .qline.q3 { animation-delay: .08s; }
+
+  /* light theme check */
+  .lightstrip { display: flex; gap: 10px; flex-wrap: wrap;
+    background: #f4f3f8; border-radius: 12px; padding: 13px 16px; }
+  .lt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .lt svg { width: 18px; height: 18px; color: #1a1a1f; }
+  .lt span { font-size: 9.5px; color: #6a6a74; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+
+  <symbol id="i-player" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.2" y="5.9" width="17.6" height="12.2" rx="2.3"/>
+      <g class="reel reel-l" style="stroke:var(--acc,currentColor)">
+        <circle cx="8.1" cy="11.1" r="2.4"/>
+        <path d="M8.1 8.7v4.8"/>
+        <path d="M5.7 11.1h4.8"/>
+      </g>
+      <g class="reel reel-r" style="stroke:var(--acc,currentColor)">
+        <circle cx="15.9" cy="11.1" r="2.4"/>
+        <path d="M15.9 8.7v4.8"/>
+        <path d="M13.5 11.1h4.8"/>
+      </g>
+      <path d="M10.5 11.1h3" style="stroke:var(--acc,currentColor)"/>
+      <path class="wave w1" d="M10.2 4.6a2.6 2.6 0 0 1 3.6 0" style="stroke:var(--acc,currentColor);opacity:0"/>
+      <path class="wave w2" d="M8.9 2.9a4.4 4.4 0 0 1 6.2 0" style="stroke:var(--acc,currentColor);opacity:0"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-library" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.0" y="3.8" width="2.9" height="16.4" rx="1.1"/>
+      <rect x="9.4" y="3.8" width="2.9" height="16.4" rx="1.1"/>
+      <path class="lean l1" d="M14.06 18.87 16.28 6.03A1.1 1.1 0 0 1 17.55 5.14L18.25 5.26A1.1 1.1 0 0 1 19.14 6.53L16.92 19.37A1.1 1.1 0 0 1 15.65 20.26L14.95 20.14A1.1 1.1 0 0 1 14.06 18.87Z" style="stroke:var(--acc,currentColor)"/>
+      <path class="lean l2" d="M18.34 18.89 19.40 12.07A1.1 1.1 0 0 1 20.66 11.15L21.34 11.25A1.1 1.1 0 0 1 22.26 12.51L21.20 19.33A1.1 1.1 0 0 1 19.94 20.25L19.26 20.15A1.1 1.1 0 0 1 18.34 18.89Z" style="stroke:var(--acc,currentColor)"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-all-songs" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect class="rec r1" x="5.9" y="5.8" width="2.7" height="6.8" rx="1.05" style="stroke:var(--acc,currentColor)"/>
+      <rect class="rec r2" x="10.1" y="4.4" width="2.7" height="8.2" rx="1.05" style="stroke:var(--acc,currentColor)"/>
+      <path class="rec r3" d="M15.45 11.33 16.51 6.49A1 1 0 0 1 17.71 5.73L18.39 5.88A1 1 0 0 1 19.15 7.07L18.09 11.91A1 1 0 0 1 16.89 12.67L16.21 12.53A1 1 0 0 1 15.45 11.33Z" style="stroke:var(--acc,currentColor)"/>
+      <rect x="4" y="12.6" width="16" height="7.2" rx="1.6"/>
+      <path d="M5.2 16.3h13.6"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-artists" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.3" cy="7.8" r="3.4"/>
+      <path d="M4.3 19.7a6 6 0 0 1 12 0"/>
+      <g class="note">
+        <path d="M20.1 15.3V9.9" style="stroke:var(--acc,currentColor)"/>
+        <circle cx="18.7" cy="15.3" r="1.4" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-albums" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.8"/>
+      <g class="spin-c">
+        <circle cx="12" cy="12" r="3.2" style="stroke:var(--acc,currentColor)"/>
+        <path d="M12 6.6v1.8" style="stroke:var(--acc,currentColor)"/>
+        <circle cx="12" cy="12" r="0.7" fill="currentColor" stroke="none" style="fill:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-genres" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect class="tile t1" x="4.6" y="4.6" width="6.2" height="6.2" rx="1.7"/>
+      <circle class="tile t2" cx="16.4" cy="7.7" r="3.1" style="stroke:var(--acc,currentColor)"/>
+      <path class="tile t3" d="M7.7 13.7l3.1 5.3H4.6z"/>
+      <path class="tile t4" d="M16.4 13.7l3 3.05-3 3.05-3-3.05z"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-years" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.9" y="5.3" width="16.2" height="14.8" rx="2.6"/>
+      <g class="flapp">
+        <path class="pin" d="M8.3 3.3v3.9" style="stroke:var(--acc,currentColor)"/>
+        <path class="pin" d="M15.7 3.3v3.9" style="stroke:var(--acc,currentColor)"/>
+        <path d="M3.9 10.1h16.2"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-playlists" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.6 6.7h12.6"/>
+      <path d="M4.6 12.1h12.6"/>
+      <path d="M4.6 17.5h8.2"/>
+      <g class="note">
+        <path d="M19.6 17.6V10.9" style="stroke:var(--acc,currentColor)"/>
+        <circle cx="17.3" cy="17.6" r="2.3" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-recently-added" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.7" cy="13.3" r="7.6"/>
+      <path d="M10.7 9.7v3.6l2.6 1.6"/>
+      <g class="plusg">
+        <path d="M18.3 3.4v4.8" style="stroke:var(--acc,currentColor)"/>
+        <path d="M15.9 5.8h4.8" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-recently-played" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <g class="arcg">
+        <path d="M4.2 12a7.8 7.8 0 1 0 7.8-7.8 8.4 8.4 0 0 0-6.1 2.5L4.2 8.6"/>
+        <path d="M4.2 3.9v4.7h4.7"/>
+      </g>
+      <path d="M12 8.3v4.1l2.9 1.7" style="stroke:var(--acc,currentColor)"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-most-played" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <g class="flame">
+        <path d="M13.4 3.2c.5 2.2 1.7 3.6 3 5 1.5 1.6 2.3 3.2 2.3 5.1a6.7 6.7 0 0 1-13.4.2c0-2 .9-3.8 2.2-5.4.8 1 1.7 1.6 2.7 1.9-.5-2.5 1-5 3.2-6.8z"/>
+        <path class="tongue" d="M12 12.1c1 1.2 1.8 2.2 1.8 3.4a1.8 1.8 0 0 1-3.6 0c0-1.2.8-2.2 1.8-3.4z" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-playlist-card" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.6 5.6h14.8"/>
+      <path d="M4.6 10.8h14.8"/>
+      <path d="M4.6 16h6.8"/>
+      <path class="starp" d="M17 12.5 17.9 15 20.5 15.1 18.4 16.7 19.2 19.2 17 17.7 14.8 19.2 15.6 16.7 13.5 15.1 16.1 15z" style="stroke:var(--acc,currentColor)"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-add-playlist" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.1" y="4.1" width="15.8" height="15.8" rx="4.1"/>
+      <g class="plusp">
+        <path d="M12 8.5v7" style="stroke:var(--acc,currentColor)"/>
+        <path d="M8.5 12h7" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-li-1" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.2" y="15.2" width="15.6" height="3.6" rx="1.2"/>
+      <rect x="5.8" y="10.8" width="12.4" height="3.6" rx="1.2"/>
+      <rect x="7.4" y="6.4" width="9.2" height="3.6" rx="1.2"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-li-2" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.4 4.4h5.2a3.4 3.4 0 0 1 3.4 3.4v12.4a2.6 2.6 0 0 0-2.6-2.6H3.4z"/>
+      <path d="M20.6 4.4h-5.2a3.4 3.4 0 0 0-3.4 3.4v12.4a2.6 2.6 0 0 1 2.6-2.6h6z"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-li-3" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5.4" y="3.8" width="13.2" height="16.4" rx="2"/>
+      <path d="M8.4 3.8v16.4"/>
+      <path d="M14.8 3.8v6.2l2.1-1.7 2.1 1.7V3.8"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-li-4" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.8" y="4.4" width="16.4" height="15.2" rx="2"/>
+      <path d="M3.8 12.4h16.4"/>
+      <path d="M7.4 7v4.8"/>
+      <path d="M10 7v4.8"/>
+      <path d="M12.6 7v4.8"/>
+      <path d="M15.2 7v4.8"/>
+      <path d="M7.4 13.4v5.2"/>
+      <path d="M10 13.4v5.2"/>
+      <path d="M12.6 13.4v5.2"/>
+      <path d="M15.1 18.6l1.2-5"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-queue" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path class="qline q1" d="M9.6 6.5h10"/>
+      <path class="qline q2" d="M9.6 12h10"/>
+      <path class="qline q3" d="M9.6 17.5h10"/>
+      <path class="qtri" d="M4.3 8.5l5.3 3.5-5.3 3.5V8.5z" style="stroke:var(--acc,currentColor)"/>
+    </g>
+  </symbol>
+
+</defs></svg>
+
+<h1>Tunetastic — new sidebar icon set</h1>
+<p class="sub">SVG redesigns for all 14 nav entries · use the tabs above the pane to switch color treatment · click any nav item — every icon has its own animation · nothing has been changed in the app yet.</p>
+
+<div class="layout">
+  <div class="sidecol">
+    <div class="ttabs" id="ttabs"></div>
+    <aside class="side" id="side"></aside>
+  </div>
+  <main>
+    <div class="grid" id="grid"></div>
+
+    <div id="alts"></div>
+
+    <h2>Light-theme check (18 px)</h2>
+    <div class="lightstrip" id="light"></div>
+  </main>
+</div>
+
+<script>
+const items = [
+  { id:'player',           name:'Player',            old:'\uE8D6', note:'Cassette — your call: it reads like a little cassette player up top in the pane.' },
+  { id:'library',          name:'Library',           old:'\uE8F1', note:'Slimmer, longer bars — the books stand taller and the leaning ones keep their tilt.' },
+  { id:'all-songs',        name:'All Songs',         old:'\uE71D', note:'Crate of records — your pick: vinyl slabs in a slatted milk crate.' },
+  { id:'artists',          name:'Artists',           old:'\uE716', note:'A single performer with a small note — artists are people; the crowd glyph became a solo artist.' },
+  { id:'albums',           name:'Albums',            old:'\uE93C', note:'Vinyl record with label and spindle — the classic album metaphor, round and recognizable.' },
+  { id:'genres',           name:'Genres',            old:'\uE955', note:'2×2 of different shapes — a compact "assorted categories" grid. More options below.' },
+  { id:'years',            name:'Years',             old:'\uE787', note:'Calendar, redrawn with softer corners, floating pins and a cleaner header bar.' },
+  { id:'playlists',        name:'Playlists',         old:'\uEA41', note:'Track lines plus note — the classic playlist mark, restored to the group header.' },
+  { id:'recently-added',   name:'Recently Added',    old:'\uE823', note:'Clock with a plus — "new stuff landed recently". Plain clock alone said nothing about adding.' },
+  { id:'recently-played',  name:'Recently Played',   old:'\uE81C', note:'History arrow with clock hands — "played before", kept close to the familiar history glyph.' },
+  { id:'most-played',      name:'Most Played',       old:'\uE96A', note:'Flame — "hot tracks", the way streaming apps mark heavy rotation.' },
+  { id:'playlist-card',    name:'A2 / A11 (custom playlists)', old:'\uE728', note:'Track lines plus star — your pick, applied to the playlists you create (A2, A11, …).' },
+  { id:'add-playlist',     name:'Add New Playlist',  old:'\uF8AA', note:'The same card, with a plus — the "create" action mirrors the card motif used for your playlists.' },
+  { id:'queue',            name:'Queue (hidden item)', old:'\uE84F', note:'Play triangle over queue lines — included for completeness since it exists in the nav JSON but is hidden.' },
+];
+const altGroups = [];
+
+const nav = [
+  ['player','Player',1],
+  ['library','Library',1],
+  ['all-songs','All Songs',0],
+  ['artists','Artists',0],
+  ['albums','Albums',0],
+  ['genres','Genres',0],
+  ['years','Years',0],
+  ['playlists','Playlists',1],
+  ['recently-added','Recently Added',0],
+  ['recently-played','Recently Played',0],
+  ['most-played','Most Played',0],
+  ['playlist-card','A2',0],
+  ['playlist-card','A11',0],
+  ['add-playlist','Add New Playlist',0],
+];
+const hueMap = {
+  'player':'#5eead4', 'library':'#fbbf24', 'all-songs':'#f87171', 'artists':'#f472b6',
+  'albums':'#60a5fa', 'genres':'#fde047', 'years':'#a78bfa', 'playlists':'#4ade80',
+  'recently-added':'#fb923c', 'recently-played':'#22d3ee', 'most-played':'#fb7185',
+  'playlist-card':'#e879f9', 'add-playlist':'#a3e635', 'queue':'#94a3b8'
+};
+const treatments = [
+  ['mono', 'Mono'], ['hues', 'Hues'], ['duotone', '2-tone'], ['duo1', '1-accent'],
+];
+let tmode = 'mono';
+let selectedLabel = null;
+
+function rowVars(ic, mode) {
+  if (mode === 'hues')    return `color:${hueMap[ic]};--bar:${hueMap[ic]}`;
+  if (mode === 'duotone') return `--acc:${hueMap[ic]};--bar:${hueMap[ic]}`;
+  if (mode === 'duo1')    return `--acc:#a78bfa;--bar:#a78bfa`;
+  return '--bar:#a78bfa';
+}
+function renderSide() {
+  document.getElementById('side').innerHTML = nav.map(([ic, label, head]) => {
+    const inner = document.getElementById('i-' + ic).innerHTML;
+    return `<div class="navrow${head ? '' : ' child'}${label === selectedLabel ? ' selected' : ''}" style="${rowVars(ic, tmode)}"><svg viewBox="0 0 24 24">${inner}</svg>${label}</div>`;
+  }).join('');
+}
+function renderTabs() {
+  document.getElementById('ttabs').innerHTML = treatments.map(([m, t]) =>
+    `<div class="ttab${m === tmode ? ' on' : ''}" data-mode="${m}">${t}</div>`).join('');
+}
+renderTabs();
+renderSide();
+
+document.getElementById('ttabs').addEventListener('click', e => {
+  const tab = e.target.closest('.ttab');
+  if (!tab) return;
+  tmode = tab.dataset.mode;
+  renderTabs();
+  renderSide();
+});
+
+document.getElementById('side').addEventListener('click', e => {
+  const row = e.target.closest('.navrow');
+  if (!row) return;
+  document.querySelectorAll('#side .navrow.selected').forEach(r => r.classList.remove('selected'));
+  row.classList.add('selected');
+  selectedLabel = row.textContent.trim();
+  row.classList.remove('clicked');
+  void row.getBoundingClientRect();
+  row.classList.add('clicked');
+  clearTimeout(row._animT);
+  row._animT = setTimeout(() => row.classList.remove('clicked'), 900);
+});
+
+const card = (it, withOld) => `
+  <div class="card">
+    ${withOld ? `<div class="oldglyph">${it.old}</div><div class="arrow">&#10142;</div>` : ''}
+    <div class="newicon"><svg><use href="#i-${it.id}"/></svg></div>
+    <div class="meta">
+      <div class="nm">${it.name}</div>
+      <div class="ds">${it.note}</div>
+      <div class="mini"><svg><use href="#i-${it.id}"/></svg><span>16 px actual size</span></div>
+    </div>
+  </div>`;
+
+document.getElementById('grid').innerHTML  = items.map(i => card(i, true)).join('');
+document.getElementById('alts').innerHTML  = altGroups.map(g =>
+  `<h2 class="gtitle">${g.title} — alternates</h2><div class="grid grid3 alts">${g.items.map(i => card(i, false)).join('')}</div>`).join('');
+document.getElementById('light').innerHTML = items.map(i =>
+  `<div class="lt"><svg><use href="#i-${i.id}"/></svg><span>${i.name.split(' ')[0].replace('/','')}</span></div>`).join('');
+</script>
+</body>
+</html>

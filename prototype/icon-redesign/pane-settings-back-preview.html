@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tunetastic — pane / settings / back icons (preview)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+    background: #101018;
+    color: #ececf4;
+    padding: 28px 34px 46px;
+  }
+  h1 { font-size: 21px; font-weight: 600; letter-spacing: .2px; }
+  .sub { color: #9a9ab0; font-size: 13px; margin: 6px 0 22px; max-width: 900px; line-height: 1.5; }
+  .layout { display: flex; gap: 34px; align-items: flex-start; }
+
+  /* ---------- app window mock (titlebar + sidebar) ---------- */
+  .appwin {
+    width: 620px; flex: 0 0 620px;
+    border-radius: 12px; overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 110% 100%, rgba(120,60,190,.55), rgba(120,60,190,0) 60%),
+      linear-gradient(150deg, #06061c 8%, #10103f 55%, #1a1560 100%);
+    box-shadow: 0 12px 40px rgba(0,0,0,.55);
+  }
+  .tb {
+    display: flex; align-items: center; gap: 2px;
+    padding: 6px 10px 8px;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .tbtn {
+    width: 40px; height: 32px; flex: 0 0 40px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; cursor: pointer;
+    transition: background .15s ease;
+    font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets";
+    font-size: 15px; color: #e8e8f4;
+  }
+  .tbtn:hover { background: rgba(255,255,255,.07); }
+  .tbtn svg { width: 18px; height: 18px; display: block; }
+  .appicon {
+    width: 26px; height: 26px; margin: 0 9px 0 2px; border-radius: 6px;
+    background: linear-gradient(140deg, #7c3aed, #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .apptitle { font-weight: 700; font-size: 15px; margin-right: 6px; }
+  .appver { font-size: 11px; color: #8a8aa4; margin-right: auto; }
+  .search {
+    width: 200px; height: 30px; border-radius: 15px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.10);
+    color: #9a9ab4; font-size: 12px;
+    display: flex; align-items: center; padding: 0 12px; gap: 8px;
+  }
+  .search .mag { font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets"; font-size: 12px; }
+
+  .body-row { display: flex; align-items: stretch; height: 340px; }
+  .side-wrap { width: 236px; flex: 0 0 auto; overflow: hidden; transition: width .3s ease; }
+  .side-wrap.closed { width: 0; }
+  .side { width: 236px; padding: 12px 10px 14px; height: 100%;
+          display: flex; flex-direction: column; }
+  .side .spacer { flex: 1; }
+  .navrow {
+    display: flex; align-items: center; gap: 13px;
+    padding: 7px 12px; border-radius: 7px;
+    font-size: 13px; color: #f2f2fa; white-space: nowrap;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: background .18s ease;
+  }
+  .navrow:hover { background: rgba(255,255,255,.06); }
+  .navrow.selected { background: rgba(255,255,255,.10); }
+  .navrow.selected::before {
+    content: ""; position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%); width: 3px; height: 58%;
+    border-radius: 2px; background: var(--bar, #a78bfa);
+  }
+  .navrow svg { width: 16px; height: 16px; flex: 0 0 16px; }
+  .footline {
+    display: flex; align-items: center; gap: 13px;
+    padding: 9px 12px 2px; margin-top: 4px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    font-size: 13px; color: #f2f2fa; cursor: pointer;
+  }
+  .footline svg { width: 16px; height: 16px; flex: 0 0 16px; }
+  .content {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    color: #565672; font-size: 13px; letter-spacing: .5px;
+    border-left: 1px solid rgba(255,255,255,.05);
+  }
+  .leftcol { width: 620px; flex: 0 0 620px; min-width: 0; }
+  .hint { font-size: 11.5px; color: #8a8aa4; margin-top: 8px; line-height: 1.55; }
+
+  /* ---------- treatment tabs ---------- */
+  .ttabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .ttab { flex: 1; font-size: 10.5px; padding: 7px 2px; border-radius: 8px; text-align: center;
+    background: #181822; border: 1px solid #262633; color: #9a9ab0; cursor: pointer;
+    transition: all .15s ease; user-select: none; }
+  .ttab:hover { color: #e4e4f0; border-color: #3d3d5c; }
+  .ttab.on { background: linear-gradient(150deg, #101038, #241a55); color: #fff; border-color: #4d4d75; }
+
+  /* ---------- cards ---------- */
+  main { flex: 1; min-width: 0; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .card {
+    display: flex; align-items: center; gap: 14px;
+    background: #181822; border: 1px solid #262633; border-radius: 12px;
+    padding: 13px 16px;
+  }
+  .card .newicon { cursor: pointer; }
+  .oldglyph {
+    width: 64px; height: 64px; flex: 0 0 64px;
+    display: flex; align-items: center; justify-content: center;
+    background: #13131c; border-radius: 9px;
+    font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets";
+    font-size: 26px; color: #6d6d84; position: relative;
+  }
+  .oldglyph::after {
+    content: "current"; position: absolute; bottom: 3px; right: 5px;
+    font-family: "Segoe UI", sans-serif; font-size: 8px; color: #55556a; letter-spacing: .4px;
+  }
+  .arrow { color: #4c4c66; font-size: 16px; flex: 0 0 auto; }
+  .newicon {
+    width: 64px; height: 64px; flex: 0 0 64px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(150deg, #101038, #241a55);
+    border-radius: 9px;
+  }
+  .newicon svg { width: 40px; height: 40px; color: #ffffff; display: block; }
+  .meta { min-width: 0; }
+  .meta .nm { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .meta .ds { font-size: 12px; color: #9a9ab0; line-height: 1.45; }
+  .meta .mini { display: inline-flex; align-items: center; gap: 7px; margin-top: 7px;
+    background: #232334; border-radius: 6px; padding: 4px 8px; }
+  .meta .mini svg { width: 16px; height: 16px; color: #fff; }
+  .meta .mini span { font-size: 10.5px; color: #8f8fa8; }
+
+  h2 { font-size: 14px; font-weight: 600; color: #c9c9de; margin: 26px 0 12px;
+       text-transform: uppercase; letter-spacing: 1.1px; }
+  .grid3 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .grid3 .newicon { width: 52px; height: 52px; flex: 0 0 52px; background: #20202e; }
+  .grid3 .newicon svg { width: 32px; height: 32px; }
+  .grid3 .card { padding: 11px 13px; }
+  .grid3 .meta .nm { font-size: 12.5px; }
+  .grid3 .meta .ds { font-size: 11px; }
+
+  .lightstrip { display: flex; gap: 10px; flex-wrap: wrap;
+    background: #f4f3f8; border-radius: 12px; padding: 13px 16px; }
+  .lt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .lt svg { width: 18px; height: 18px; color: #1a1a1f; }
+  .lt span { font-size: 9.5px; color: #6a6a74; }
+
+  /* ---------- click animations (shared vocabulary) ---------- */
+  @keyframes spin360 { to { transform: rotate(360deg); } }
+  @keyframes spin360ccw { to { transform: rotate(-360deg); } }
+  @keyframes wobble { 0%,100% { transform: rotate(0); } 30% { transform: rotate(-5deg); } 65% { transform: rotate(3.5deg); } }
+  @keyframes ping   { 0% { opacity: 0; transform: translateY(2px) scale(.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(-2.5px) scale(1.1); } }
+  @keyframes hop    { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2.6px); } }
+  @keyframes chevnudge  { 0%,100% { transform: translateX(0); } 45% { transform: translateX(-2.4px); } }
+  @keyframes chevnudgeR { 0%,100% { transform: translateX(0); } 45% { transform: translateX(2.4px); } }
+  @keyframes linenudge  { 0%,100% { transform: translateX(0); } 45% { transform: translateX(1.3px); } }
+  @keyframes knobslideL { 0%,100% { transform: translateX(0); } 45% { transform: translateX(-7.2px); } }
+  @keyframes knobslideR { 0%,100% { transform: translateX(0); } 45% { transform: translateX(7.2px); } }
+  @keyframes backnudge  { 0%,100% { transform: translateX(0); } 45% { transform: translateX(-2.6px); } }
+
+  .clicked .reel-l { animation: spin360 .8s ease; transform-box: fill-box; transform-origin: center; }
+  .clicked .reel-r { animation: spin360ccw .8s ease; transform-box: fill-box; transform-origin: center; }
+  .clicked .wave   { animation: ping .6s ease-out; transform-box: fill-box; transform-origin: 50% 100%; }
+  .clicked .wave.w2 { animation-delay: .1s; }
+  .clicked .lean   { animation: wobble .6s ease; transform-box: fill-box; transform-origin: 50% 100%; }
+  .clicked .lean.l2 { animation-delay: .05s; }
+  .clicked .rec    { animation: hop .5s ease; }
+  .clicked .rec.r2 { animation-delay: .06s; }
+  .clicked .rec.r3 { animation-delay: .12s; }
+  .clicked .note   { animation: hop .55s ease; transform-box: fill-box; transform-origin: center; }
+  .clicked .spin-c { animation: spin360 .8s ease; transform-box: view-box; transform-origin: 12px 12px; }
+
+  /* pane: lines nudge right, chevron slides left toward the lines */
+  .clicked .pline { animation: linenudge .5s ease; transform-box: fill-box; }
+  .clicked .pline.p2 { animation-delay: .04s; }
+  .clicked .pline.p3 { animation-delay: .08s; }
+  .clicked .chev  { animation: chevnudge .5s ease; transform-box: fill-box; }
+  .clicked.pane-closed .chev { animation: chevnudgeR .5s ease; transform-box: fill-box; }
+  /* state flip on the wrapper group so the click animation never fights it */
+  .chevflip { transform-box: fill-box; transform-origin: center; transition: transform .28s ease; }
+  .pane-closed .chevflip { transform: scaleX(-1); }
+
+  /* settings: the ORIGINAL Segoe Fluent gear glyph, only recolored; same spin.
+     Two-tone: gear body stays foreground, an accent dot sits in the glyph's
+     transparent center hole (in the app: a small ellipse over the FontIcon). */
+  .fglyph {
+    font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets";
+    font-weight: 400; line-height: 1; display: inline-block;
+    position: relative;
+  }
+  .fglyph .cring {
+    position: absolute; left: 50%; top: 52%;
+    width: .40em; height: .40em; transform: translate(-50%, -50%);
+    border: .09em solid var(--acc, transparent);
+    border-radius: 50%; box-sizing: border-box;
+    display: none;
+  }
+  .fglyph.twotone .cring { display: block; }
+  .clicked .fglyph { animation: spin360 .8s ease; }
+  .navrow .fglyph, .footline .fglyph { font-size: 15px; }
+  .newicon .fglyph { font-size: 30px; color: #fff; }
+  .meta .mini .fglyph { font-size: 12px; color: #fff; }
+  .lt .fglyph { font-size: 14px; color: #1a1a1f; }
+
+  /* sliders alternate: knobs slide along the tracks and settle back */
+  .clicked .knob { transform-box: fill-box; transform-origin: center; }
+  .clicked .knob.ka { animation: knobslideL .65s ease; }
+  .clicked .knob.kb { animation: knobslideR .65s ease; }
+
+  /* back: whole arrow nudges left and settles */
+  .clicked .bwhole { animation: backnudge .5s ease; transform-box: fill-box; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+
+  <!-- ===== the three new icons ===== -->
+
+  <symbol id="i-pane" viewBox="0 0 32 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <g class="pline p1"><path d="M6.6 6.9H24"/></g>
+      <g class="pline p2"><path d="M6.6 12H24"/></g>
+      <g class="pline p3"><path d="M6.6 17.1H24"/></g>
+      <g class="chevflip"><g class="chev"><path d="M27.6 8.9 24.1 12l3.5 3.1" style="stroke:var(--acc,currentColor)"/></g></g>
+    </g>
+  </symbol>
+
+  <!-- settings uses the original Segoe Fluent glyph E713 directly (see .fglyph) -->
+
+  <symbol id="i-back" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <g class="bwhole">
+        <path d="M19.4 12H5.2"/>
+        <path class="ahead" d="M11 5.9 4.9 12l6.1 6.1" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <!-- ===== alternates ===== -->
+
+  <symbol id="i-pane-alt-equal" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <g class="pline p1"><path d="M4.6 6.9h14.8"/></g>
+      <g class="pline p2"><path d="M4.6 12h14.8"/></g>
+      <g class="pline p3"><path d="M4.6 17.1h14.8"/></g>
+    </g>
+  </symbol>
+
+  <symbol id="i-pane-alt-box" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.8" y="5.2" width="16.4" height="13.6" rx="2.1"/>
+      <path d="M8.3 9.3v5.4"/>
+      <g class="chevflip"><g class="chev"><path d="M14.9 9.3 12.2 12l2.7 2.7" style="stroke:var(--acc,currentColor)"/></g></g>
+    </g>
+  </symbol>
+
+  <symbol id="i-settings-alt-sliders" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.2 7.8h15.6"/>
+      <path d="M4.2 16.2h15.6"/>
+      <circle class="knob ka" cx="15.6" cy="7.8" r="2.1" style="stroke:var(--acc,currentColor)"/>
+      <circle class="knob kb" cx="8.4" cy="16.2" r="2.1" style="stroke:var(--acc,currentColor)"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-back-alt-chev" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <g class="bwhole"><path d="M15.6 4.9 8.5 12l7.1 7.1"/></g>
+    </g>
+  </symbol>
+
+  <!-- ===== existing nav icons (for the sidebar mock) ===== -->
+
+  <symbol id="i-player" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.2" y="5.9" width="17.6" height="12.2" rx="2.3"/>
+      <g class="reel reel-l" style="stroke:var(--acc,currentColor)">
+        <circle cx="8.1" cy="11.1" r="2.4"/><path d="M8.1 8.7v4.8"/><path d="M5.7 11.1h4.8"/>
+      </g>
+      <g class="reel reel-r" style="stroke:var(--acc,currentColor)">
+        <circle cx="15.9" cy="11.1" r="2.4"/><path d="M15.9 8.7v4.8"/><path d="M13.5 11.1h4.8"/>
+      </g>
+      <path d="M10.5 11.1h3" style="stroke:var(--acc,currentColor)"/>
+      <path class="wave w1" d="M10.2 4.6a2.6 2.6 0 0 1 3.6 0" style="stroke:var(--acc,currentColor);opacity:0"/>
+      <path class="wave w2" d="M8.9 2.9a4.4 4.4 0 0 1 6.2 0" style="stroke:var(--acc,currentColor);opacity:0"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-library" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4.0" y="3.8" width="2.9" height="16.4" rx="1.1"/>
+      <rect x="9.4" y="3.8" width="2.9" height="16.4" rx="1.1"/>
+      <path class="lean l1" d="M14.06 18.87 16.28 6.03A1.1 1.1 0 0 1 17.55 5.14L18.25 5.26A1.1 1.1 0 0 1 19.14 6.53L16.92 19.37A1.1 1.1 0 0 1 15.65 20.26L14.95 20.14A1.1 1.1 0 0 1 14.06 18.87Z" style="stroke:var(--acc,currentColor)"/>
+      <path class="lean l2" d="M18.34 18.89 19.40 12.07A1.1 1.1 0 0 1 20.66 11.15L21.34 11.25A1.1 1.1 0 0 1 22.26 12.51L21.20 19.33A1.1 1.1 0 0 1 19.94 20.25L19.26 20.15A1.1 1.1 0 0 1 18.34 18.89Z" style="stroke:var(--acc,currentColor)"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-all-songs" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect class="rec r1" x="5.9" y="5.8" width="2.7" height="6.8" rx="1.05" style="stroke:var(--acc,currentColor)"/>
+      <rect class="rec r2" x="10.1" y="4.4" width="2.7" height="8.2" rx="1.05" style="stroke:var(--acc,currentColor)"/>
+      <path class="rec r3" d="M15.45 11.33 16.51 6.49A1 1 0 0 1 17.71 5.73L18.39 5.88A1 1 0 0 1 19.15 7.07L18.09 11.91A1 1 0 0 1 16.89 12.67L16.21 12.53A1 1 0 0 1 15.45 11.33Z" style="stroke:var(--acc,currentColor)"/>
+      <rect x="4" y="12.6" width="16" height="7.2" rx="1.6"/>
+      <path d="M5.2 16.3h13.6"/>
+    </g>
+  </symbol>
+
+  <symbol id="i-artists" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="10.3" cy="7.8" r="3.4"/>
+      <path d="M4.3 19.7a6 6 0 0 1 12 0"/>
+      <g class="note">
+        <path d="M20.1 15.3V9.9" style="stroke:var(--acc,currentColor)"/>
+        <circle cx="18.7" cy="15.3" r="1.4" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-albums" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="8.8"/>
+      <g class="spin-c">
+        <circle cx="12" cy="12" r="3.2" style="stroke:var(--acc,currentColor)"/>
+        <path d="M12 6.6v1.8" style="stroke:var(--acc,currentColor)"/>
+        <circle cx="12" cy="12" r="0.7" fill="currentColor" stroke="none" style="fill:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+  <symbol id="i-playlists" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4.6 6.7h12.6"/><path d="M4.6 12.1h12.6"/><path d="M4.6 17.5h8.2"/>
+      <g class="note">
+        <path d="M19.6 17.6V10.9" style="stroke:var(--acc,currentColor)"/>
+        <circle cx="17.3" cy="17.6" r="2.3" style="stroke:var(--acc,currentColor)"/>
+      </g>
+    </g>
+  </symbol>
+
+</defs></svg>
+
+<h1>Tunetastic — pane / settings / back button icons</h1>
+<p class="sub">
+  Three additions to the bespoke icon family, in the same 24×24 stroked style (1.6 round caps) as the 14 nav icons:
+  the pane toggle, the Settings entry, and the title-bar back button — each with its own click animation.
+  Use the tabs to check the four color treatments · <b>click the title-bar buttons and the sidebar rows</b> — the
+  pane toggle actually collapses the pane and its chevron flips direction. Hues for the new three are placeholders
+  pending your call. Nothing has been changed in the app.
+</p>
+
+<div class="layout">
+  <div class="leftcol">
+    <div class="ttabs" id="ttabs"></div>
+
+    <div class="appwin" id="appwin">
+      <div class="tb">
+        <div class="tbtn" id="backBtn" title="Back"></div>
+        <div class="tbtn" id="paneBtn" title="Toggle navigation pane"></div>
+        <div class="appicon">♪</div>
+        <span class="apptitle">Tunetastic</span>
+        <span class="appver">1.2.3.0</span>
+        <div class="search"><span class="mag">&#xE721;</span>Quick Search</div>
+        <div class="tbtn" title="Toggle Theme">&#xE793;</div>
+        <div class="tbtn" title="Mute">&#xE767;</div>
+      </div>
+      <div class="body-row">
+        <div class="side-wrap" id="sideWrap">
+          <aside class="side" id="side"></aside>
+        </div>
+        <div class="content">content area</div>
+      </div>
+    </div>
+    <p class="hint">
+      Pane toggle click: the three lines nudge right while the chevron slides toward them, then the pane
+      collapses and the chevron flips to point outward. Clicking again re-opens it. Back click: the whole
+      arrow nudges left and settles. Settings click: the gear spins a full turn, just recolored.
+    </p>
+  </div>
+
+  <main>
+    <div class="grid" id="grid"></div>
+
+    <h2>Alternates</h2>
+    <div class="grid3" id="alts"></div>
+
+    <h2>Light-theme check (18 px)</h2>
+    <div class="lightstrip" id="light"></div>
+  </main>
+</div>
+
+<script>
+const HUES = {
+  'player':'#5eead4', 'library':'#fbbf24', 'all-songs':'#f87171', 'artists':'#f472b6',
+  'albums':'#60a5fa', 'playlists':'#4ade80',
+  'pane':'#38bdf8', 'settings':'#fb923c', 'back':'#94a3b8',
+  'pane-alt-equal':'#38bdf8', 'pane-alt-box':'#38bdf8',
+  'settings-alt-sliders':'#fb923c', 'back-alt-chev':'#94a3b8'
+};
+const treatments = [ ['mono','Mono'], ['hues','Hues'], ['duotone','2-tone'], ['duo1','1-accent'] ];
+let tmode = 'mono';
+
+function varsFor(id) {
+  const hue = HUES[id] || '#a78bfa';
+  if (tmode === 'hues')    return `color:${hue};--bar:${hue}`;
+  if (tmode === 'duotone') return `--acc:${hue};--bar:${hue}`;
+  if (tmode === 'duo1')    return `--acc:#a78bfa;--bar:#a78bfa`;
+  return '--bar:#a78bfa';
+}
+function svgIcon(id) {
+  return `<svg viewBox="0 0 24 24">${document.getElementById('i-' + id).innerHTML}</svg>`;
+}
+
+/* settings keeps its ORIGINAL Segoe Fluent glyph.
+   Mono: foreground. Hues: whole glyph in its hue (one color by definition).
+   2-tone / 1-accent: gear body stays foreground, an accent dot fills the
+   glyph's transparent center hole (accent = hue / Windows accent). */
+function iconMarkup(id) {
+  if (id === 'settings') {
+    const twotone = (tmode === 'duotone' || tmode === 'duo1') ? ' twotone' : '';
+    const c = tmode === 'hues' ? ` style="color:${HUES['settings']}"` : '';
+    return `<span class="fglyph${twotone}"${c}>&#xE713;<span class="cring"></span></span>`;
+  }
+  return svgIcon(id);
+}
+
+/* ---- sidebar mock ---- */
+const nav = [
+  ['player','Player'], ['library','Library'], ['all-songs','All Songs'],
+  ['artists','Artists'], ['albums','Albums'], ['playlists','Playlists'],
+];
+let selected = 'Player';
+let paneClosed = false;
+
+function renderSide() {
+  const rows = nav.map(([ic, label]) => `
+    <div class="navrow${label === selected ? ' selected' : ''}" data-icon="${ic}" data-label="${label}" style="${varsFor(ic)}">
+      ${svgIcon(ic)}<span class="lbl">${label}</span>
+    </div>`).join('');
+  document.getElementById('side').innerHTML = rows + `
+    <div class="spacer"></div>
+    <div class="footline" data-icon="settings" data-label="Settings" style="${varsFor('settings')}">
+      ${iconMarkup('settings')}<span class="lbl">Settings</span>
+    </div>`;
+}
+
+/* ---- titlebar buttons (back + pane, with the pane's open/closed flip state) ---- */
+function renderTitlebar() {
+  const back = document.getElementById('backBtn');
+  back.setAttribute('data-icon', 'back');
+  back.innerHTML = `<span style="${varsFor('back')}">${svgIcon('back')}</span>`;
+  const pane = document.getElementById('paneBtn');
+  pane.setAttribute('data-icon', 'pane');
+  pane.classList.toggle('pane-closed', paneClosed);
+  pane.innerHTML = `<span style="${varsFor('pane')}">${svgIcon('pane')}</span>`;
+}
+
+/* ---- tabs ---- */
+function renderTabs() {
+  document.getElementById('ttabs').innerHTML = treatments.map(([m, t]) =>
+    `<div class="ttab${m === tmode ? ' on' : ''}" data-mode="${m}">${t}</div>`).join('');
+}
+
+/* ---- cards ---- */
+const items = [
+  { id:'pane', name:'Pane toggle (hamburger)', old:'\uE700',
+    note:'Three list lines with a collapse chevron riding at the right. Click: the lines nudge right while the chevron slides toward them — and when the pane closes, the chevron flips to point outward (expand).' },
+  { id:'settings', name:'Settings', old:'\uE713',
+    note:'The original Segoe Fluent gear glyph, exactly as it is today. Mono keeps it foreground and Hues tints the whole glyph its hue. For 2-tone and 1-accent the gear body stays white while the inner ring takes the accent color — an unfilled ring overlay (slightly thicker, so it covers the glyph\u2019s own white ring; in the app, a stroked Ellipse over the FontIcon). Click keeps the same full-turn spin.' },
+  { id:'back', name:'Back button (title bar)', old:'\uE72B',
+    note:'A left arrow with an accent head, drawn in the same stroke weight as the family. Click: the whole arrow nudges left and settles, echoing the queue animation.' },
+];
+const alts = [
+  { id:'pane-alt-equal', name:'Pane — equal lines', note:'Classic full-width hamburger; same line-nudge animation, no chevron (pane state shown by motion alone).' },
+  { id:'pane-alt-box',   name:'Pane — boxed',      note:'Pane rectangle with a divider and chevron — closest to WinUI\u2019s own Open/ClosePane glyphs.' },
+  { id:'settings-alt-sliders', name:'Settings — sliders', note:'The mixer alternative, kept around in case you change your mind — two tracks with knobs that slide and settle back.' },
+  { id:'back-alt-chev',  name:'Back — chevron only', note:'Just the angle, no shaft; same left nudge.' },
+];
+
+function card(it) {
+  const before = it.old ? `<div class="oldglyph">${it.old}</div><div class="arrow">&#10142;</div>` : '';
+  return `<div class="card">
+    ${before}
+    <div class="newicon" data-icon="${it.id}" style="${varsFor(it.id)}">${iconMarkup(it.id)}</div>
+    <div class="meta">
+      <div class="nm">${it.name}</div>
+      <div class="ds">${it.note}</div>
+      <div class="mini" style="${varsFor(it.id)}">${iconMarkup(it.id)}<span>16 px actual size</span></div>
+    </div>
+  </div>`;
+}
+function renderCards() {
+  document.getElementById('grid').innerHTML = items.map(card).join('');
+  document.getElementById('alts').innerHTML = alts.map(card).join('');
+  document.getElementById('light').innerHTML =
+    [...items, ...alts].map(i =>
+      `<div class="lt" style="${varsFor(i.id)}">${iconMarkup(i.id)}<span>${i.name.split('—')[0].trim()}</span></div>`).join('');
+}
+
+/* ---- interaction ---- */
+function animate(el) {
+  el.classList.remove('clicked');
+  void el.getBoundingClientRect();
+  el.classList.add('clicked');
+  clearTimeout(el._animT);
+  el._animT = setTimeout(() => el.classList.remove('clicked'), 1000);
+}
+
+document.addEventListener('click', e => {
+  const tab = e.target.closest('.ttab');
+  if (tab) {
+    tmode = tab.dataset.mode;
+    renderTabs(); renderSide(); renderTitlebar(); renderCards();
+    document.querySelectorAll('[data-icon]').forEach(el => {
+      const id = el.dataset.icon;
+      if (HUES[id] && !el.closest('#paneBtn')) el.setAttribute('style', varsFor(id));
+    });
+    return;
+  }
+
+  const icn = e.target.closest('[data-icon]');
+  if (!icn) return;
+  animate(icn);
+
+  if (icn.closest('#paneBtn')) {
+    paneClosed = !paneClosed;
+    document.getElementById('sideWrap').classList.toggle('closed', paneClosed);
+    renderTitlebar();
+  }
+  const row = icn.closest('.navrow, .footline');
+  if (row) {
+    document.querySelectorAll('#side .selected').forEach(r => r.classList.remove('selected'));
+    row.classList.add('selected');
+    selected = row.dataset.label;
+  }
+});
+
+renderTabs();
+renderSide();
+renderTitlebar();
+renderCards();
+</script>
+</body>
+</html>

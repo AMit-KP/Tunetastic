@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tunetastic · WaveProgressBar style preview</title>
+<style>
+	:root { --accent: #7C6CFF; }
+	* { box-sizing: border-box; }
+	body {
+		margin: 0; padding: 28px 32px 48px;
+		background: #0e0e13;
+		color: #e8e8ee;
+		font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+	}
+	h1 { font-size: 22px; margin: 0 0 4px; font-weight: 700; }
+	h1 span { color: #8b8b98; font-weight: 400; font-size: 16px; }
+	.sub { color: #9a9aa8; font-size: 13px; margin: 0 0 18px; max-width: 760px; line-height: 1.5; }
+	.bar { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 22px; }
+	.bar button#toggleAll {
+		background: var(--accent); color: #fff; border: 0; border-radius: 18px;
+		padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+	}
+	.bar label { font-size: 13px; color: #b8b8c4; display: flex; align-items: center; gap: 8px; }
+	.swatches { display: flex; gap: 8px; margin-left: auto; }
+	.sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+	.sw.sel { border-color: #fff; }
+	#grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+	.card {
+		background: #17171d; border: 1px solid rgba(255,255,255,.06); border-radius: 14px;
+		padding: 16px 16px 12px; cursor: pointer; transition: opacity .25s, transform .15s;
+	}
+	.card:hover { transform: translateY(-1px); border-color: rgba(255,255,255,.14); }
+	.card.paused { opacity: .7; }
+	.card canvas { width: 100%; height: 56px; display: block; }
+	.meta { display: flex; align-items: baseline; gap: 8px; margin-top: 10px; }
+	.name { font-size: 14px; font-weight: 700; }
+	.badge { font-size: 10px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase;
+		padding: 2px 7px; border-radius: 8px; }
+	.badge.det  { background: rgba(255,255,255,.08); color: #a8a8b6; }
+	.badge.pause{ background: rgba(240,80,80,.16); color: #f08a8a; display: none; }
+	.card.paused .badge.pause { display: inline-block; }
+	.desc { font-size: 12px; color: #8f8f9c; margin-top: 3px; line-height: 1.45; }
+	footer { margin-top: 26px; color: #6e6e7a; font-size: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<h1>WaveProgressBar <span>· style preview for Tunetastic</span></h1>
+<p class="sub">
+	Each card is one candidate <b>WaveStyle</b>, drawn with the exact math the real control will use.
+	Progress loops every 24&nbsp;s. <b>Click a card</b> to pause / resume it — on pause each style
+	collapses into a simple line/bar (dotted for the Equalizer; Comet keeps its look),
+	and expands back into the wave on resume.
+</p>
+<div class="bar">
+	<button id="toggleAll">Pause all</button>
+	<label>pressure (Sea) <input type="range" id="pressure" min="0" max="100" value="70"></label>
+	<div class="swatches" id="swatches"></div>
+</div>
+<main id="grid"></main>
+<footer>
+	Throwaway prototype — only for choosing styles. In the real control this renders through
+	<code>CompositionTarget.Rendering</code>, full scrubbing, and the same
+	<code>NotifyPlaying / NotifyPaused / Seeked</code> API as the current SmoothProgressBar.
+</footer>
+
+<script>
+"use strict";
+
+// ── shared constants (mirror the WinUI design) ────────────────────────────
+const LOOP = 24;            // seconds for progress 0→1
+const LW = 3, AMP = 3.4, LAM = 36, SPEED = 46;
+const TRACK = "rgba(255,255,255,0.15)";
+let accent = "#7C6CFF";
+
+const TAU = Math.PI * 2;
+const sm = v => { v = Math.min(Math.max(v, 0), 1); return v * v * (3 - 2 * v); };
+function hexRgb(h) {
+	const n = parseInt(h.slice(1), 16);
+	return [n >> 16 & 255, n >> 8 & 255, n & 255];
+}
+function rgba(h, a) { const [r, g, b] = hexRgb(h); return `rgba(${r},${g},${b},${a})`; }
+function rr(ctx, x, y, w, h, r) {
+	ctx.beginPath();
+	ctx.moveTo(x + r, y);
+	ctx.arcTo(x + w, y, x + w, y + h, r);
+	ctx.arcTo(x + w, y + h, x, y + h, r);
+	ctx.arcTo(x, y + h, x, y, r);
+	ctx.arcTo(x, y, x + w, y, r);
+	ctx.closePath();
+}
+
+// full-width smoothstepped sine path (amplitude 0 at both ends, M3-like)
+function wavePath(ctx, W, mid, t, amp, lam = LAM, speed = SPEED) {
+	ctx.beginPath();
+	for (let x = 0; x <= W + 2; x += 2) {
+		const env = sm(x / lam) * sm((W - x) / lam);
+		const y = mid + env * amp * Math.sin(TAU * (x - t * speed) / lam);
+		x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+	}
+}
+
+// ── the 8 styles ──────────────────────────────────────────────────────────
+function drawSine(ctx, W, H, t, p, flat, hover) {
+	const mid = H / 2;
+	const amp = AMP * (0.68 + 0.32 * Math.sin(t * 1.5)) * (hover ? 1.45 : 1) * (1 - flat);
+	ctx.lineCap = "round"; ctx.lineWidth = LW;
+	ctx.strokeStyle = TRACK; wavePath(ctx, W, mid, t, amp); ctx.stroke();
+	ctx.save(); ctx.beginPath(); ctx.rect(0, 0, p * W, H); ctx.clip();
+	ctx.strokeStyle = accent; wavePath(ctx, W, mid, t, amp); ctx.stroke(); ctx.restore();
+}
+
+function drawWater(ctx, W, H, t, p, flat) {
+	const mid = H / 2, half = 6, pw = Math.max(p * W, 4), k = 1 - flat;
+	const top = x => mid - half + k * (2.4 * Math.sin(TAU * x / 26 + t * 2.1) + 1.5 * Math.sin(TAU * x / 17 - t * 2.9 + 1.3));
+	const bot = x => mid + half + k * (2.4 * Math.sin(TAU * (x + 38) / 26 + t * 2.1) + 1.5 * Math.sin(TAU * (x + 17) / 17 - t * 2.9 + 1.3));
+	// dim container
+	ctx.fillStyle = TRACK; rr(ctx, 2, mid - half - 4, W - 4, 2 * (half + 4), half + 4); ctx.fill();
+	// ribbon(xOffset, spillAhead, alpha)
+	function ribbon(off, spill, alpha, cap) {
+		const xe = Math.min(W, pw + spill), step = 2;
+		ctx.beginPath(); ctx.moveTo(0, top(off));
+		for (let x = step; x <= xe; x += step) ctx.lineTo(x, top(x + off));
+		// rounded liquid cap on the leading edge
+		if (cap) ctx.quadraticCurveTo(xe + cap, mid, xe, bot(xe + off));
+		else ctx.lineTo(xe, bot(xe + off));
+		for (let x = xe - step; x >= 0; x -= step) ctx.lineTo(x, bot(x + off));
+		ctx.closePath();
+		ctx.fillStyle = rgba(accent, alpha); ctx.fill();
+	}
+	// back slosh layer TRAILS BEHIND the progress edge so the solid front edge
+	// is unambiguously the current position (fades out on pause)
+	if (pw > 16) ribbon(-14, -12, 0.30 * k, 0);
+	ribbon(0, 0, 0.90, 4);      // front layer — rounded edge = current time
+}
+
+function drawSea(ctx, W, H, t, p, flat, hover, paused, pt, pr = 0) {
+	const mid = H / 2, body = 3;             // half-height of the still water body
+	const pw = Math.max(p * W, 4), k = 1 - flat;
+	// the still line — dim track across the whole width, never moves
+	ctx.fillStyle = TRACK; rr(ctx, 2, mid - body - 2, W - 4, 2 * (body + 2), body + 2); ctx.fill();
+	// still water body up to the seeker
+	ctx.fillStyle = accent; rr(ctx, 2, mid - body, Math.min(pw, W - 2) - 2, 2 * body, body); ctx.fill();
+	// pressurized waves riding ABOVE the still body, surging toward the seeker:
+	// pressure cranks the flow speed and piles the crests up near the edge
+	if (k > 0.03 && pw > 10) {
+		const top = mid - body;
+		const w1 = 2.6 + 16 * pr, w2 = 3.4 + 20 * pr;   // pressure → flow speed
+		ctx.beginPath(); ctx.moveTo(2, top);
+		for (let x = 2; x <= pw; x += 2) {
+			const near = Math.max(0, 1 - (pw - x) / (W * 0.35));   // 0..1 approaching the seeker
+			const wave = Math.max(0.2,
+				(1.8 + 1.2 * Math.sin(TAU * x / 22 - t * w1) + 0.7 * Math.sin(TAU * x / 13 - t * w2 + 1.1))
+				* (1 + pr * 1.3 * Math.pow(near, 1.5)));            // pressure head at the edge
+			ctx.lineTo(x, top - k * wave);
+		}
+		ctx.lineTo(pw, top);
+		ctx.closePath();
+		ctx.fillStyle = rgba(accent, 0.55);
+		ctx.fill();
+	}
+}
+
+function drawPulse(ctx, W, H, t, p, flat, hover) {
+	const mid = H / 2;
+	const pump = 0.25 + 0.75 * Math.abs(Math.sin(t * 2.1));
+	const amp = AMP * pump * (hover ? 1.3 : 1) * (1 - flat);
+	ctx.lineCap = "round"; ctx.lineWidth = LW;
+	ctx.strokeStyle = TRACK; wavePath(ctx, W, mid, t, amp); ctx.stroke();
+	ctx.save(); ctx.beginPath(); ctx.rect(0, 0, p * W, H); ctx.clip();
+	ctx.strokeStyle = accent; wavePath(ctx, W, mid, t, amp); ctx.stroke(); ctx.restore();
+}
+
+const BARS = [];
+function drawEqualizer(ctx, W, H, t, p, flat) {
+	const pitch = 7, bw = 4;
+	const n = Math.max(12, Math.floor((W + 3) / pitch));
+	while (BARS.length < n) BARS.push({
+		f1: 1.2 + Math.random() * 2.2, f2: .6 + Math.random() * 1.2,
+		p1: Math.random() * TAU, p2: Math.random() * TAU
+	});
+	const total = n * pitch - 3, off = (W - total) / 2, pw = p * W;
+	for (let i = 0; i < n; i++) {
+		const b = BARS[i];
+		const v = (0.5 + 0.5 * Math.sin(t * b.f1 + b.p1)) * (0.55 + 0.45 * Math.sin(t * b.f2 + b.p2));
+		const h = (5 + v * (H - 12)) * (1 - flat) + 4 * flat;   // collapse to a dotted line
+		const x = off + i * pitch;
+		ctx.fillStyle = x <= pw ? accent : rgba(accent, 0.20);
+		rr(ctx, x, (H - h) / 2, bw, h, 2); ctx.fill();
+	}
+}
+
+function drawComet(ctx, W, H, t, p, flat, hover, paused) {
+	const mid = H / 2;
+	ctx.lineCap = "round"; ctx.lineWidth = LW; ctx.strokeStyle = TRACK;
+	ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(W, mid); ctx.stroke();
+	const head = Math.max(6, p * W), tl = 46;
+	const g = ctx.createLinearGradient(head - tl, 0, head, 0);
+	g.addColorStop(0, rgba(accent, 0)); g.addColorStop(1, rgba(accent, .85));
+	ctx.strokeStyle = g;
+	ctx.beginPath(); ctx.moveTo(Math.max(0, head - tl), mid); ctx.lineTo(head, mid); ctx.stroke();
+	const pulse = paused ? 1 + .25 * Math.sin(t * 2.4) : 1;
+	const rg = ctx.createRadialGradient(head, mid, 0, head, mid, 11 * pulse);
+	rg.addColorStop(0, rgba(accent, .35)); rg.addColorStop(1, rgba(accent, 0));
+	ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(head, mid, 11 * pulse, 0, 7); ctx.fill();
+	ctx.fillStyle = accent; ctx.shadowColor = accent; ctx.shadowBlur = 10 * pulse;
+	ctx.beginPath(); ctx.arc(head, mid, 4.2, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+}
+
+function drawBlocks(ctx, W, H, t, p, flat) {
+	const mid = H / 2;
+	const n = Math.max(6, Math.floor((W + 3) / 12));
+	const bw = 8, gap = 4 * (1 - flat);          // gaps close when paused → one flat bar
+	const pitch = bw + gap;
+	const total = n * pitch - gap;
+	const off = (W - total) / 2;
+	const filled = p * n;
+	const pulseAmt = (1 - flat) * Math.abs(Math.sin(t * 6));
+	for (let i = 0; i < n; i++) {
+		const x = off + i * pitch;
+		const amt = Math.min(Math.max(filled - i, 0), 1);
+		if (amt <= 0) {
+			ctx.fillStyle = rgba(accent, 0.18);
+			rr(ctx, x, mid - 2.5, bw, 5, 2.5); ctx.fill();
+			continue;
+		}
+		const w = Math.max(bw * amt, 2.5);
+		const h = amt < 1 ? 5 + 3 * pulseAmt : 5;   // the edge segment pulses while playing
+		ctx.fillStyle = accent;
+		rr(ctx, x, mid - h / 2, w, h, 2.5); ctx.fill();
+		if (w < bw) {
+			ctx.fillStyle = rgba(accent, 0.18);
+			rr(ctx, x + w, mid - 2.5, bw - w, 5, 2.5); ctx.fill();
+		}
+	}
+}
+
+function drawBounce(ctx, W, H, t, p, flat, hover, paused) {
+	const mid = H / 2, r = 4.5;
+	const head = Math.max(r + 2, p * W);
+	// covered track as a fading trail
+	ctx.fillStyle = TRACK; rr(ctx, 2, mid - 1.5, W - 4, 3, 1.5); ctx.fill();
+	ctx.fillStyle = rgba(accent, 0.55); rr(ctx, 2, mid - 1.5, Math.min(head, W - 2) - 2, 3, 1.5); ctx.fill();
+	// ball with squash & stretch; settles into a dot when paused
+	const bounceAmp = (1 - flat) * 11;
+	let cy = mid, sx = 1, sy = 1, shA = 0.22, shR = 6;
+	if (bounceAmp > 0.5) {
+		const ph = Math.abs(Math.sin(t * 4.5));       // 0 at ground, 1 at apex
+		cy = mid - ph * bounceAmp;
+		const near = 1 - ph;
+		sx = 1 + 0.35 * near * near;
+		sy = 1 - 0.3 * near * near;
+		shA = 0.22 * (1 - 0.55 * ph);
+		shR = 6 + 2 * near;
+	}
+	ctx.fillStyle = rgba(accent, shA);
+	ctx.beginPath(); ctx.ellipse(head, mid, shR, 1.8, 0, 0, 7); ctx.fill();
+	ctx.fillStyle = accent; ctx.shadowColor = accent; ctx.shadowBlur = 6;
+	ctx.beginPath(); ctx.ellipse(head, cy, r * sx, r * sy, 0, 0, 7); ctx.fill();
+	ctx.shadowBlur = 0;
+}
+
+function drawRainbow(ctx, W, H, t, p, flat, hover, paused, pt) {
+	const mid = H / 2;
+	ctx.fillStyle = TRACK; rr(ctx, 2, mid - 1.5, W - 4, 3, 1.5); ctx.fill();
+	const pw = Math.max(p * W, 4);
+	if (pw > 5) {
+		// hues drift along the fill while playing (pt only advances while playing)
+		const g = ctx.createLinearGradient(2, 0, pw, 0);
+		const N = 6, hue0 = (pt * 40) % 360;
+		for (let i = 0; i <= N; i++) {
+			const h = (hue0 + (pw - 2) * (i / N) * 0.35) % 360;
+			g.addColorStop(i / N, `hsl(${h} 85% 60%)`);
+		}
+		ctx.fillStyle = g; rr(ctx, 2, mid - 1.5, Math.min(pw, W - 2) - 2, 3, 1.5); ctx.fill();
+	}
+}
+
+// ── card catalogue ────────────────────────────────────────────────────────
+const STYLES = [
+	{ name: "Sine",           draw: drawSine,      desc: "Material 3 wavy line (Android 14+), breathing amplitude. Paused → collapses to a flat line." },
+	{ name: "Water",          draw: drawWater,     desc: "Liquid ribbon — two sloshing layers, rounded leading edge. The solid edge is the current position; the translucent layer trails behind. Paused → flat rounded bar." },
+	{ name: "Sea",            draw: drawSea,       desc: "The bar stays a still line; pressurized water surges above it toward the seeker — dial the pressure slider. Paused → plain flat bar." },
+	{ name: "Pulse",          draw: drawPulse,     desc: "Same flowing wave, amplitude pumping like a heartbeat. Paused → flat line." },
+	{ name: "Equalizer bars", draw: drawEqualizer, desc: "Spotify-style dancing bars, accent up to progress. Paused → dotted line." },
+	{ name: "Comet",          draw: drawComet,     desc: "Glowing head with a fading tail rides the progress edge. Paused → unchanged (gentle glow pulse)." },
+	{ name: "Blocks",         draw: drawBlocks,    desc: "Segmented blocks cascade in as progress advances; the edge segment pulses to the beat. Paused → segments merge into one flat bar." },
+	{ name: "Bounce",         draw: drawBounce,    desc: "A ball bounces at the progress edge with squash & stretch, leaving a trail. Paused → settles into a dot." },
+	{ name: "Rainbow",        draw: drawRainbow,   desc: "Hues drift through the fill like a color wave — matches the app's rainbow setting. Paused → static colored bar." },
+];
+
+// ── UI build ──────────────────────────────────────────────────────────────
+const grid = document.getElementById("grid");
+const cards = STYLES.map(s => {
+	const el = document.createElement("div");
+	el.className = "card";
+	el.innerHTML = `<canvas></canvas>
+		<div class="meta"><span class="name">${s.name}</span>
+			<span class="badge det">determinate</span>
+			<span class="badge pause">paused</span></div>
+		<div class="desc">${s.desc}</div>`;
+	grid.appendChild(el);
+	const cv = el.querySelector("canvas");
+	const card = { el, cv, ctx: cv.getContext("2d"), style: s, p: Math.random(), paused: false, flat: 0, hover: false, w: 0, h: 0 };
+	el.addEventListener("click", () => {
+		card.paused = !card.paused;
+		el.classList.toggle("paused", card.paused);
+	});
+	el.addEventListener("pointerenter", () => card.hover = true);
+	el.addEventListener("pointerleave", () => card.hover = false);
+	return card;
+});
+
+const sw = document.getElementById("swatches");
+["#7C6CFF", "#4C8DFF", "#2DD4BF", "#4ADE80", "#F472B6"].forEach((c, i) => {
+	const b = document.createElement("button");
+	b.className = "sw" + (i === 0 ? " sel" : "");
+	b.style.background = c;
+	b.onclick = () => {
+		accent = c;
+		document.documentElement.style.setProperty("--accent", c);
+		document.querySelectorAll(".sw").forEach(x => x.classList.remove("sel"));
+		b.classList.add("sel");
+	};
+	sw.appendChild(b);
+});
+
+const allBtn = document.getElementById("toggleAll");
+const pressureEl = document.getElementById("pressure");
+const PR = () => +pressureEl.value / 100;
+allBtn.onclick = () => {
+	const pause = allBtn.textContent === "Pause all";
+	cards.forEach(c => { c.paused = pause; c.el.classList.toggle("paused", pause); });
+	allBtn.textContent = pause ? "Play all" : "Pause all";
+};
+
+// ── render loop ───────────────────────────────────────────────────────────
+let tNow = 0, last = performance.now();
+
+function frame(now) {
+	const dt = Math.min((now - last) / 1000, 0.05);
+	last = now; tNow += dt;
+
+	for (const c of cards) {
+		if (!c.paused) { c.p += dt / LOOP; if (c.p >= 1) c.p -= 1; c.pt = (c.pt || 0) + dt; }
+		// ease the collapse: 0 = full wave, 1 = flat line/bar
+		c.flat += ((c.paused ? 1 : 0) - c.flat) * Math.min(1, dt * 8);
+
+		const cw = c.cv.clientWidth, ch = c.cv.clientHeight;
+		const dpr = window.devicePixelRatio || 1;
+		if (c.w !== cw || c.h !== ch || c.dpr !== dpr) {
+			c.w = cw; c.h = ch; c.dpr = dpr;
+			c.cv.width = Math.round(cw * dpr); c.cv.height = Math.round(ch * dpr);
+		}
+		const ctx = c.ctx;
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		ctx.clearRect(0, 0, cw, ch);
+		c.style.draw(ctx, cw, ch, tNow, c.p, c.flat, c.hover, c.paused, c.pt || 0, PR());
+	}
+	requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
