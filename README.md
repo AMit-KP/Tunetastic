@@ -181,8 +181,9 @@ tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --js
 ```
 
 > [!NOTE]
-> **Terminal Output Piping**: Because Tunetastic is packaged as a Windows GUI application, Windows terminals do not attach console output handles unless the command is piped. Append `| Out-Host` in PowerShell or `| more` in Command Prompt to view output in your terminal.
+> - **Terminal Output Piping**: Because Tunetastic is packaged as a Windows GUI application, Windows terminals do not attach console output handles unless the command is piped. Append `| Out-Host` in PowerShell or `| more` in Command Prompt to view output in your terminal.
 > *(Tip: In PowerShell, you can add `function tunetastic { Tunetastic.exe @args | Out-Host }` to your `$PROFILE` to run commands without having to append `| Out-Host` every time).*
+> - The command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Files outside your configured libraries are skipped unless `--add-external` is passed; see the flag description below for the rescan limitation.
 
 - The playlist is created when the first track is added and it does not exist yet (pass `--no-create` to fail instead).
 - Folders are scanned recursively (unreadable subfolders are skipped); wildcards are supported in the file name (`C:\Music\*.mp3`) in any shell. Multiple files, patterns and folders can be mixed in one call. Inputs are added in the order given; within one folder or pattern, files are added sorted by path.
@@ -191,7 +192,7 @@ tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --js
 - Output: `--json` prints one machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`), and nothing else. Without it, the human-readable report goes to stdout and failed inputs also go to stderr (pipe to `| Out-Host` in PowerShell or `| more` in cmd.exe). Visual formatting (ANSI color badges vs. plain text) can be switched in **Settings > Library & PlayLists > CLI Output Style** or via the `NO_COLOR` environment variable. Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
 - `--dry-run` reports what would happen without changing your library or playlists. It still ensures the database schema and writes cover-thumbnail files (cleaned up by the next full library scan).
 - Files outside your configured library folders are skipped unless you pass `--add-external`. Even with `--add-external`, external tracks are excluded from auto-scan tracking and removed again by the next full library re-scan, which only keeps tracks inside library folders — the flag only lets the import through, it does not protect the track from later rescans.
-- Testing without the installed app: set `TUNETASTIC_DB_PATH` to a database file to run the CLI unpackaged against an isolated database (app settings fall back to defaults there).
+
 
 Example JSON report (stdout):
 
@@ -217,8 +218,6 @@ Example JSON report (stdout):
   "Notices": []
 }
 ```
-
-> Notes: the command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Files outside your configured libraries are skipped unless `--add-external` is passed; see the flag description above for the rescan limitation.
 
 ---
 
