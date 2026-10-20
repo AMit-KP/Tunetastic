@@ -915,7 +915,7 @@ public sealed partial class MainPage : Page
 		{
 			var cell = new TextBlock
 			{
-				Text = string.IsNullOrWhiteSpace(text) ? "—" : text,
+				Text = string.IsNullOrWhiteSpace(text) ? "" : text,
 				TextWrapping = TextWrapping.Wrap,
 				MaxLines = 2,
 				TextTrimming = TextTrimming.CharacterEllipsis,
@@ -1050,6 +1050,7 @@ public sealed partial class MainPage : Page
 
 				PopulateArtistTeachingTip(ArtistSplitRules);
 
+			ShowEditSongInfo:
 				MainWindow._instance.WindowResizePermission(false);
 				var editResult = await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
@@ -1111,7 +1112,12 @@ public sealed partial class MainPage : Page
 					ContentDialogResult confirmationResult = await confirmationDialog.ShowAsync();
 					MainWindow._instance.WindowResizePermission(true);
 
-					if (confirmationResult == ContentDialogResult.Primary)
+					if (confirmationResult != ContentDialogResult.Primary)
+					{
+						await Task.Delay(100);
+						goto ShowEditSongInfo;
+					}
+					else
 					{
 						using var audioModel = TagLib.File.Create(songData.Path);
 
