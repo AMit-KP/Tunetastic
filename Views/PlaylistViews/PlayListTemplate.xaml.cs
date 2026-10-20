@@ -166,7 +166,50 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
 		$"Add {(multiSelect ? "selected songs/tracks" : "this song/track")} to {playList} playlist";
 
-	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
+	private void MenuFlyout_Opened(object sender, object e)
+	{
+		MenuFlyoutOpened(sender, e);
+
+		if (sender is MenuFlyout menu)
+		{
+			var moveSubItem = menu.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault(item => item.Text == "Move");
+			if (moveSubItem != null && moveSubItem.Items.Count >= 4)
+			{
+				if ((menu.Target as FrameworkElement)?.DataContext is Song song)
+				{
+					// Single-track context menu
+					int index = PlayListSongs.IndexOf(song);
+					moveSubItem.Items[0].IsEnabled = index > 0;
+					moveSubItem.Items[1].IsEnabled = index > 0;
+					moveSubItem.Items[2].IsEnabled = index >= 0 && index < PlayListSongs.Count - 1;
+					moveSubItem.Items[3].IsEnabled = index >= 0 && index < PlayListSongs.Count - 1;
+				}
+				else
+				{
+					// Multi-select corner menu (MoreButton)
+					var selectedSongs = GetCurrentViewStyle().SelectedItems.OfType<Song>().ToList();
+					if (selectedSongs.Count == 0)
+					{
+						moveSubItem.IsEnabled = false;
+					}
+					else
+					{
+						moveSubItem.IsEnabled = true;
+						var selectedIndices = selectedSongs.Select(s => PlayListSongs.IndexOf(s)).Where(idx => idx >= 0).OrderBy(idx => idx).ToList();
+						bool canMoveUp = selectedIndices.Count > 0 && selectedIndices.Any(idx => idx > 0 && !selectedIndices.Contains(idx - 1));
+						bool canMoveDown = selectedIndices.Count > 0 && selectedIndices.Any(idx => idx < PlayListSongs.Count - 1 && !selectedIndices.Contains(idx + 1));
+						bool canMoveToTop = selectedIndices.Count > 0 && !selectedIndices.SequenceEqual(Enumerable.Range(0, selectedIndices.Count));
+						bool canMoveToBottom = selectedIndices.Count > 0 && !selectedIndices.SequenceEqual(Enumerable.Range(PlayListSongs.Count - selectedIndices.Count, selectedIndices.Count));
+
+						moveSubItem.Items[0].IsEnabled = canMoveToTop;
+						moveSubItem.Items[1].IsEnabled = canMoveUp;
+						moveSubItem.Items[2].IsEnabled = canMoveDown;
+						moveSubItem.Items[3].IsEnabled = canMoveToBottom;
+					}
+				}
+			}
+		}
+	}
 
 	private async void LoadPlayListSongs()
 	{
@@ -875,6 +918,204 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// </summary>
 	private async void ListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
 	{
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song to the top (first position) of the playlist.
+	/// </summary>
+	private async void MoveToTop_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index <= 0) return;
+		PlayListSongs.Move(index, 0);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song up by one position in the playlist.
+	/// </summary>
+	private async void MoveUp_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index <= 0) return;
+		PlayListSongs.Move(index, index - 1);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song down by one position in the playlist.
+	/// </summary>
+	private async void MoveDown_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index < 0 || index >= PlayListSongs.Count - 1) return;
+		PlayListSongs.Move(index, index + 1);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song to the bottom (last position) of the playlist.
+	/// </summary>
+	private async void MoveToBottom_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index < 0 || index >= PlayListSongs.Count - 1) return;
+		PlayListSongs.Move(index, PlayListSongs.Count - 1);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs to the top of the playlist, preserving their relative order.
+	/// </summary>
+	private async void MoveMultiToTop_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		for (int i = 0; i < orderedSelected.Count; i++)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			if (currentIndex != i)
+			{
+				PlayListSongs.Move(currentIndex, i);
+			}
+		}
+
+		foreach (var song in orderedSelected)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (orderedSelected.Count > 0)
+		{
+			view.ScrollIntoView(orderedSelected[0]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs up by one position in the playlist.
+	/// </summary>
+	private async void MoveMultiUp_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		for (int i = 0; i < orderedSelected.Count; i++)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			if (currentIndex > 0 && !selectedSet.Contains(PlayListSongs[currentIndex - 1]))
+			{
+				PlayListSongs.Move(currentIndex, currentIndex - 1);
+			}
+		}
+
+		foreach (var song in orderedSelected)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (orderedSelected.Count > 0)
+		{
+			view.ScrollIntoView(orderedSelected[0]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs down by one position in the playlist.
+	/// </summary>
+	private async void MoveMultiDown_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).Reverse().ToList();
+		for (int i = 0; i < orderedSelected.Count; i++)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			if (currentIndex < PlayListSongs.Count - 1 && !selectedSet.Contains(PlayListSongs[currentIndex + 1]))
+			{
+				PlayListSongs.Move(currentIndex, currentIndex + 1);
+			}
+		}
+
+		var normalOrdered = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		foreach (var song in normalOrdered)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (normalOrdered.Count > 0)
+		{
+			view.ScrollIntoView(normalOrdered[^1]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs to the bottom of the playlist, preserving their relative order.
+	/// </summary>
+	private async void MoveMultiToBottom_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		for (int i = orderedSelected.Count - 1; i >= 0; i--)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			int targetIndex = PlayListSongs.Count - 1 - (orderedSelected.Count - 1 - i);
+			if (currentIndex != targetIndex)
+			{
+				PlayListSongs.Move(currentIndex, targetIndex);
+			}
+		}
+
+		foreach (var song in orderedSelected)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (orderedSelected.Count > 0)
+		{
+			view.ScrollIntoView(orderedSelected[^1]);
+		}
+
 		await PersistPlaylistOrderAsync();
 	}
 
