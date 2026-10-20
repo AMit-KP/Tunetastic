@@ -493,13 +493,15 @@
 									<ColumnDefinition Width="Auto" />
 									<ColumnDefinition Width="*" />
 								</Grid.ColumnDefinitions>
-								<FontIcon Grid.Column="0"
-								          Margin="0,0,10,0"
-								          VerticalAlignment="Center"
-								          FontSize="16"
-								          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-								          Glyph="&#xE76F;"
-								          Visibility="{Binding IsReorderMode, ElementName=PlayListTemplatePage, Converter={StaticResource BoolToVisibility}}" />
+								<Path Grid.Column="0"
+								      Margin="0,0,10,0"
+								      VerticalAlignment="Center"
+								      Width="14"
+								      Height="16"
+								      Stretch="Uniform"
+								      Fill="{ThemeResource TextFillColorSecondaryBrush}"
+								      Data="M 48,2.5 Q 50,0 52,2.5 L 71.5,26 Q 73.5,28 70.5,28 L 29.5,28 Q 26.5,28 28.5,26 Z M 3,37 L 97,37 A 3,3 0 0 1 97,43 L 3,43 A 3,3 0 0 1 3,37 Z M 3,56 L 97,56 A 3,3 0 0 1 97,62 L 3,62 A 3,3 0 0 1 3,56 Z M 3,75 L 97,75 A 3,3 0 0 1 97,81 L 3,81 A 3,3 0 0 1 3,75 Z M 29.5,90 L 70.5,90 Q 73.5,90 71.5,92 L 52,115.5 Q 50,118 48,115.5 L 28.5,92 Q 26.5,90 29.5,90 Z"
+								      Visibility="{Binding IsReorderMode, ElementName=PlayListTemplatePage, Converter={StaticResource BoolToVisibility}}" />
 								<controls:DataRow Grid.Column="1"
 								                  HorizontalAlignment="Left"
 							                  Background="Transparent"
@@ -616,13 +618,15 @@
 									<ColumnDefinition Width="*" />
 									<ColumnDefinition Width="Auto" />
 								</Grid.ColumnDefinitions>
-								<FontIcon Grid.Column="0"
-								          Margin="0,0,15,0"
-								          VerticalAlignment="Center"
-								          FontSize="18"
-								          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-								          Glyph="&#xE76F;"
-								          Visibility="{Binding IsReorderMode, ElementName=PlayListTemplatePage, Converter={StaticResource BoolToVisibility}}" />
+								<Path Grid.Column="0"
+								      Margin="0,0,15,0"
+								      VerticalAlignment="Center"
+								      Width="15"
+								      Height="18"
+								      Stretch="Uniform"
+								      Fill="{ThemeResource TextFillColorSecondaryBrush}"
+								      Data="M 48,2.5 Q 50,0 52,2.5 L 71.5,26 Q 73.5,28 70.5,28 L 29.5,28 Q 26.5,28 28.5,26 Z M 3,37 L 97,37 A 3,3 0 0 1 97,43 L 3,43 A 3,3 0 0 1 3,37 Z M 3,56 L 97,56 A 3,3 0 0 1 97,62 L 3,62 A 3,3 0 0 1 3,56 Z M 3,75 L 97,75 A 3,3 0 0 1 97,81 L 3,81 A 3,3 0 0 1 3,75 Z M 29.5,90 L 70.5,90 Q 73.5,90 71.5,92 L 52,115.5 Q 50,118 48,115.5 L 28.5,92 Q 26.5,90 29.5,90 Z"
+								      Visibility="{Binding IsReorderMode, ElementName=PlayListTemplatePage, Converter={StaticResource BoolToVisibility}}" />
 								<Grid Grid.Column="1"
 								      HorizontalAlignment="Left"
 								      VerticalAlignment="Center">
