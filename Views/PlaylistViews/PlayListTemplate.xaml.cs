@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Text;
@@ -19,6 +19,22 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// Gets or sets the collection of songs that are added to the respective playlist.
 	/// </summary>
 	public ObservableCollection<Song> PlayListSongs => ViewModel.Songs;
+
+	public static readonly DependencyProperty IsReorderModeProperty =
+		DependencyProperty.Register(
+			nameof(IsReorderMode),
+			typeof(bool),
+			typeof(PlayListTemplate),
+			new PropertyMetadata(false));
+
+	/// <summary>
+	/// Gets or sets a value indicating whether track reordering mode is currently active.
+	/// </summary>
+	public bool IsReorderMode
+	{
+		get => (bool)GetValue(IsReorderModeProperty);
+		set => SetValue(IsReorderModeProperty, value);
+	}
 
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "CustomPlaylist__" + PlaylistHeader.Text;
@@ -169,6 +185,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		if (PlayListSongs.Count > 0)
 		{
 			NoResultsGrid.Visibility = Visibility.Collapsed;
+			ReorderButton.Visibility = Visibility.Visible;
 			MultiSelectButton.Visibility = Visibility.Visible;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
@@ -189,6 +206,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		{
 			NoResultsGrid.Visibility = Visibility.Visible;
 			AddNoResultsMessage();
+			ReorderButton.Visibility = Visibility.Collapsed;
+			ReorderButton.IsChecked = false;
+			IsReorderMode = false;
 			MultiSelectButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
@@ -244,6 +264,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 				PlayListSongsListViewGrid.Visibility = Visibility.Visible;
 				PlayListSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
+				if (MultiSelectButton.IsChecked == true) Header.Margin = new Thickness(40, 0, 0, 0);
+				else if (IsReorderMode) Header.Margin = new Thickness(38, 0, 0, 0);
+				else Header.Margin = new Thickness(12, 0, 0, 0);
 				break;
 
 			case "Compact View":
@@ -528,6 +551,45 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// This method also adjusts the visibility and interactivity of related UI components (e.g., MoreButton,
 	/// PlayAllButtonStackPanel) based on the current mode.
 	/// </remarks>
+	/// <summary>
+	/// Handles the click event for the ReorderButton to toggle playlist track reorder mode.
+	/// When enabled, drag-and-drop is allowed and reorder handle icons appear on each tile.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the ReorderButton.</param>
+	/// <param name="e">The event data associated with the click action.</param>
+	private void ReorderButton_Click(object sender, RoutedEventArgs e)
+	{
+		bool isReordering = ReorderButton.IsChecked == true;
+		IsReorderMode = isReordering;
+
+		PlayListSongsListView.CanReorderItems = isReordering;
+		PlayListSongsListView.CanDragItems = isReordering;
+		PlayListSongsListView.AllowDrop = isReordering;
+
+		PlayListSongsCompactView.CanReorderItems = isReordering;
+		PlayListSongsCompactView.CanDragItems = isReordering;
+		PlayListSongsCompactView.AllowDrop = isReordering;
+
+		if (isReordering)
+		{
+			ToolTipService.SetToolTip(ReorderButton, "Done reordering");
+			MultiSelectButton.Visibility = Visibility.Collapsed;
+			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
+			ViewButton.Visibility = Visibility.Collapsed;
+			SettingsButton.Visibility = Visibility.Collapsed;
+			if (GetCurrentViewStyle().Name == "PlayListSongsListView") Header.Margin = new Thickness(38, 0, 0, 0);
+		}
+		else
+		{
+			ToolTipService.SetToolTip(ReorderButton, "Reorder playlist tracks");
+			MultiSelectButton.Visibility = Visibility.Visible;
+			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
+			ViewButton.Visibility = Visibility.Visible;
+			SettingsButton.Visibility = Visibility.Visible;
+			if (GetCurrentViewStyle().Name == "PlayListSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
+		}
+	}
+
 	private void MultiSelectButton_Click(object sender, RoutedEventArgs e)
 	{
 		var view = GetCurrentViewStyle();
@@ -535,6 +597,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		{
 			MoreButton.Visibility = Visibility.Visible;
 			MoreButton.IsEnabled = false;
+			ReorderButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
 			SettingsButton.Visibility = Visibility.Collapsed;
@@ -543,6 +606,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
+			view.CanReorderItems = false;
+			view.CanDragItems = false;
+			view.AllowDrop = false;
 			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
@@ -557,6 +623,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		else
 		{
 			MoreButton.Visibility = Visibility.Collapsed;
+			ReorderButton.Visibility = Visibility.Visible;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
 			SettingsButton.Visibility = Visibility.Visible;
@@ -565,6 +632,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
+			view.CanReorderItems = IsReorderMode;
+			view.CanDragItems = IsReorderMode;
+			view.AllowDrop = IsReorderMode;
 			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
@@ -574,7 +644,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
-			if (view.Name == "PlayListSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
+			if (view.Name == "PlayListSongsListView") Header.Margin = new Thickness(IsReorderMode ? 38 : 12, 0, 0, 0);
 		}
 	}
 
@@ -782,6 +852,32 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted.");
 	}
+
+	/// <summary>
+	/// Persists the current order of <see cref="PlayListSongs"/> to the database
+	/// and updates the active MusicPlayer playlist order if this is the currently playing playlist.
+	/// </summary>
+	private async Task PersistPlaylistOrderAsync()
+	{
+		List<string> orderedPaths = PlayListSongs.Select(s => s.Path).ToList();
+		await DatabaseHelper.Instance.ReorderPlaylistSongs(PlaylistHeader.Text, orderedPaths);
+
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
+		{
+			MusicPlayer.Instance.LoadPlaylist(orderedPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
+		}
+	}
+
+	/// <summary>
+	/// Handles completion of a drag-reorder operation on the playlist ListView.
+	/// Persists the new track order to the database.
+	/// </summary>
+	private async void ListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+	{
+		await PersistPlaylistOrderAsync();
+	}
+
 
 	/// <summary>
 	/// Represents a collection of playlist names retrieved from the data source.
