@@ -1,7 +1,7 @@
 name: Set PR Base Branch
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, reopened, edited]
 
 permissions:
@@ -20,19 +20,25 @@ jobs:
             const headRef = pr.head.ref;
             const currentBase = pr.base.ref;
 
-            // If PR is FROM Development, target master. Otherwise target Development.
-            const desiredBase = headRef === 'Development' ? 'master' : 'Development';
+            // Only internal PRs from the repo's own Development branch target master.
+            // All fork PRs and other branches must target Development.
+            const isInternal = pr.head.repo && pr.head.repo.full_name === context.payload.repository.full_name;
+            const desiredBase = (isInternal && headRef === 'Development') ? 'master' : 'Development';
 
             if (currentBase === desiredBase) {
               core.info(`Base branch already correct (${currentBase}). No change needed.`);
               return;
             }
 
-            await github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: pr.number,
-              base: desiredBase,
-            });
+            try {
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                base: desiredBase,
+              });
 
-            core.info(`Changed base branch from "${currentBase}" to "${desiredBase}" for PR #${pr.number}`);
+              core.info(`Changed base branch from "${currentBase}" to "${desiredBase}" for PR #${pr.number}`);
+            } catch (error) {
+              core.setFailed(`Failed to change base branch: ${error.message}`);
+            }
