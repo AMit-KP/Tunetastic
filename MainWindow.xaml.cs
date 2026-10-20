@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Graphics;

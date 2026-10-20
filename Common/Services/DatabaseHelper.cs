@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using SQLite;
 
 namespace Tunetastic.Common.Services;
@@ -1257,6 +1257,31 @@ public class DatabaseHelper
 		{
 			int position = 0;
 			foreach (var path in songPaths)
+			{
+				conn.Execute(@"UPDATE PlaylistSongs
+							   SET Position = ?
+							   WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+							   AND SongPath = ?", position++, playlistName, path);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Reorders the songs in a specified playlist by updating their Position values
+	/// to match the provided ordered list of song paths.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist whose songs need to be reordered.</param>
+	/// <param name="orderedSongPaths">
+	/// A list of song file paths in the desired order. Each song's Position will be set
+	/// to its index in this list.
+	/// </param>
+	/// <returns>A task that represents the asynchronous operation of reordering songs in the playlist.</returns>
+	public async Task ReorderPlaylistSongs(string playlistName, List<string> orderedSongPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			int position = 0;
+			foreach (var path in orderedSongPaths)
 			{
 				conn.Execute(@"UPDATE PlaylistSongs
 							   SET Position = ?

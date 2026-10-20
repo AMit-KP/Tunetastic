@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -182,7 +182,7 @@
 			<dev:SettingsCard Description="Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details."
 			                  Header="CLI Output Style">
 				<ComboBox x:Name="CLIOutputColor">
-					<ComboBoxItem Content="Colorful (Default)"
+					<ComboBoxItem Content="Colorful"
 					              Tag="True"
 					              ToolTipService.ToolTip="Enables rich ANSI colors, status badges, and inline code formatting for terminal output." />
 					<ComboBoxItem Content="Plain Text"
