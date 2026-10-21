@@ -1,7 +1,7 @@
-bug:
+bug fix:
   - head-branch: ["^bug", "^fix", "^hotfix"]
 
-feature:
+enhancement:
   - head-branch: ["^feature", "^feat"]
 
 documentation:
