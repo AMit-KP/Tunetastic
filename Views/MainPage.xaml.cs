@@ -35,6 +35,7 @@ public sealed partial class MainPage : Page
 	private bool _pausedByVolume0 = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
+	private bool _hasOriginalCover = false;
 
 	private List<string> ArtistSuggestions { get; } = new();
 	private List<ArtistSplitRule> ArtistSplitRules { get; } = new();
@@ -896,6 +897,106 @@ public sealed partial class MainPage : Page
 		AppTitle.Animate = startAnimation;
 	}
 
+	private static FrameworkElement CreateCoverArtPreview(ImageSource? imageSource)
+	{
+		return new Border
+		{
+			Width = 64,
+			Height = 64,
+			CornerRadius = new CornerRadius(6),
+			BorderThickness = new Thickness(1),
+			BorderBrush = Application.Current.Resources.TryGetValue("CardStrokeColorDefaultBrush", out var stroke) ? stroke as Brush : null,
+			Background = Application.Current.Resources.TryGetValue("CardBackgroundFillColorDefaultBrush", out var bg) ? bg as Brush : null,
+			HorizontalAlignment = HorizontalAlignment.Left,
+			Child = new Image
+			{
+				Source = imageSource,
+				Stretch = Stretch.UniformToFill,
+				HorizontalAlignment = HorizontalAlignment.Center,
+				VerticalAlignment = VerticalAlignment.Center
+			}
+		};
+	}
+
+	/// <summary>
+	/// Builds a before/after table of the pending tag changes, one row per changed field.
+	/// </summary>
+	/// <param name="changes">The changes to display, as (field name, previous value, new value) tuples.</param>
+	/// <remarks>
+	/// Each text cell wraps to at most two lines; longer values are trimmed with an ellipsis so the dialog stays compact.
+	/// </remarks>
+	private static Grid BuildTagChangesTable(List<(string Field, object Before, object After)> changes)
+	{
+		var table = new Grid
+		{
+			ColumnSpacing = 16,
+			RowSpacing = 8,
+			Margin = new Thickness(0, 2, 16, 2)
+		};
+
+		table.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+		void AddCell(int row, int column, object content, bool header = false, string field = "", bool isAfter = false)
+		{
+			FrameworkElement cell;
+			if (content is FrameworkElement fe)
+			{
+				cell = fe;
+			}
+			else
+			{
+				string text = content?.ToString() ?? "";
+				bool isPlaceholder = false;
+
+				if (string.IsNullOrWhiteSpace(text))
+				{
+					isPlaceholder = true;
+					text = isAfter ? "Removed" : (field == "Cover Art" ? "No cover art" : $"No {field.ToLower()}");
+				}
+				else if (text.Equals("No cover art", StringComparison.OrdinalIgnoreCase) ||
+				         text.Equals("No cover", StringComparison.OrdinalIgnoreCase) ||
+				         text.Equals("Removed", StringComparison.OrdinalIgnoreCase))
+				{
+					isPlaceholder = true;
+				}
+
+				cell = new TextBlock
+				{
+					Text = text,
+					TextWrapping = TextWrapping.Wrap,
+					MaxLines = 2,
+					TextTrimming = TextTrimming.CharacterEllipsis,
+					FontWeight = header ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
+					FontStyle = isPlaceholder ? Windows.UI.Text.FontStyle.Italic : Windows.UI.Text.FontStyle.Normal,
+					Opacity = header ? 0.65 : (isPlaceholder ? 0.75 : 1.0),
+					VerticalAlignment = VerticalAlignment.Center,
+					Padding = new Thickness(0, 0, 6, 0)
+				};
+			}
+
+			Grid.SetRow(cell, row);
+			Grid.SetColumn(cell, column);
+			table.Children.Add(cell);
+		}
+
+		table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+		AddCell(0, 0, "Field", header: true);
+		AddCell(0, 1, "Before", header: true);
+		AddCell(0, 2, "After", header: true);
+
+		for (int i = 0; i < changes.Count; i++)
+		{
+			table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+			AddCell(i + 1, 0, changes[i].Field);
+			AddCell(i + 1, 1, changes[i].Before, field: changes[i].Field, isAfter: false);
+			AddCell(i + 1, 2, changes[i].After, field: changes[i].Field, isAfter: true);
+		}
+
+		return table;
+	}
+
 	public async void ShowSongInfo(Song? songData)
 	{
 		if (songData != null)
@@ -903,6 +1004,17 @@ public sealed partial class MainPage : Page
 			SongTitle.Text = songData.Title;
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
+
+			_hasOriginalCover = false;
+			try
+			{
+				using var audioCheck = TagLib.File.Create(songData.Path);
+				_hasOriginalCover = audioCheck.Tag.Pictures?.Length > 0;
+			}
+			catch
+			{
+				_hasOriginalCover = false;
+			}
 
 			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
 			if (!File.Exists(thumbnailFilePath))
@@ -957,17 +1069,27 @@ public sealed partial class MainPage : Page
 				_songData = songData;
 				_frontCoverArtPath = null;
 
-				var coverArtImagePixelWidth = bitmapImage.PixelWidth;
-				var coverArtImagePixelHeight = bitmapImage.PixelHeight;
-				var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
-				double targetHeight = 250;
-				double targetWidth = coverArtAspectRatio * targetHeight;
+				if (_hasOriginalCover)
+				{
+					var coverArtImagePixelWidth = bitmapImage.PixelWidth;
+					var coverArtImagePixelHeight = bitmapImage.PixelHeight;
+					var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
+					double targetHeight = 250;
+					double targetWidth = coverArtAspectRatio * targetHeight;
 
-				CoverArtImage.Height = targetHeight;
-				CoverArtImage.Width = targetWidth;
-				CoverArtImage.Source = bitmapImage;
-				CoverArtImage.Visibility = Visibility.Visible;
-				CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+					CoverArtImage.Height = targetHeight;
+					CoverArtImage.Width = targetWidth;
+					CoverArtImage.Source = bitmapImage;
+					CoverArtImage.Visibility = Visibility.Visible;
+					CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+				}
+				else
+				{
+					CoverArtImage.Visibility = Visibility.Collapsed;
+					CoverArtImage.Source = null;
+					CoverArtPlaceholder.Visibility = Visibility.Visible;
+				}
+
 				CoverArtChanged.Visibility = Visibility.Collapsed;
 
 				TitleTextBox.Text = songData.Title;
@@ -1002,33 +1124,86 @@ public sealed partial class MainPage : Page
 
 				PopulateArtistTeachingTip(ArtistSplitRules);
 
+			ShowEditSongInfo:
 				MainWindow._instance.WindowResizePermission(false);
 				var editResult = await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
 
-				if (editResult == ContentDialogResult.Primary)
-				{
-					ContentDialog confirmationDialog = new ContentDialog()
+					if (editResult == ContentDialogResult.Primary)
 					{
-						Title = "Confirm Changes",
-						CloseButtonText = "No",
-						PrimaryButtonText = "Yes",
+						var changes = new List<(string Field, object Before, object After)>();
 
-						Content = new TextBlock
+						if (CoverArtChanged.Visibility == Visibility.Visible)
 						{
-							Text = "Are you sure you want to make these changes?",
-						},
+							object before = _hasOriginalCover
+								? CreateCoverArtPreview(bitmapImage)
+								: "No cover art";
 
-						DefaultButton = ContentDialogButton.Primary,
-						RequestedTheme = App.Current.ThemeService.ActualTheme,
-						XamlRoot = App.MainWindow.Content.XamlRoot
-					};
+							object after = _frontCoverArtPath is not null
+								? CreateCoverArtPreview(CoverArtImage.Source)
+								: "Removed";
+
+							changes.Add(("Cover Art", before, after));
+						}
+						if (TitleChanged.Visibility == Visibility.Visible)
+							changes.Add(("Title", songData.Title, TitleTextBox.Text));
+						if (ArtistChanged.Visibility == Visibility.Visible)
+							changes.Add(("Artist", songData.Artists, ArtistTextBox.Text));
+						if (AlbumChanged.Visibility == Visibility.Visible)
+							changes.Add(("Album", songData.Album, AlbumTextBox.Text));
+						if (GenreChanged.Visibility == Visibility.Visible)
+							changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
+						if (YearChanged.Visibility == Visibility.Visible)
+							changes.Add(("Year", songData.Year, YearNumberBox.Text));
+						if (LyricsChanged.Visibility == Visibility.Visible)
+							changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
+
+						var content = changes.Count > 0
+							? new StackPanel
+							{
+								Spacing = 12,
+								MinWidth = 420,
+								Children =
+								{
+									new TextBlock
+									{
+										Text = $"The following change{(changes.Count > 1 ? "s" : "")} will be written to the file:",
+										TextWrapping = TextWrapping.WrapWholeWords
+									},
+									new ScrollViewer
+									{
+										MaxHeight = 340,
+										VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+										Padding = new Thickness(0, 0, 16, 0),
+										Content = BuildTagChangesTable(changes)
+									}
+								}
+							}
+							: (object)new TextBlock { Text = "Are you sure you want to make these changes?" };
+
+						ContentDialog confirmationDialog = new ContentDialog()
+						{
+							Title = "Confirm Changes",
+							CloseButtonText = "No",
+							PrimaryButtonText = "Yes",
+
+							Content = content,
+
+							DefaultButton = ContentDialogButton.Primary,
+							RequestedTheme = App.Current.ThemeService.ActualTheme,
+							XamlRoot = App.MainWindow.Content.XamlRoot
+						};
 
 					MainWindow._instance.WindowResizePermission(false);
 					ContentDialogResult confirmationResult = await confirmationDialog.ShowAsync();
 					MainWindow._instance.WindowResizePermission(true);
 
-					if (confirmationResult == ContentDialogResult.Primary)
+					if (confirmationResult != ContentDialogResult.Primary)
+					{
+						await Task.Delay(100);
+						goto ShowEditSongInfo;
+					}
+					else
 					{
 						using var audioModel = TagLib.File.Create(songData.Path);
 
@@ -1135,6 +1310,7 @@ public sealed partial class MainPage : Page
 
 				_songData = null;
 				_frontCoverArtPath = null;
+				_hasOriginalCover = false;
 			}
 		}
 	}
@@ -1394,6 +1570,8 @@ public sealed partial class MainPage : Page
 			CoverArtImage.Height = targetHeight;
 			CoverArtImage.Width = targetWidth;
 			CoverArtImage.Source = bitmapImage;
+			CoverArtImage.Visibility = Visibility.Visible;
+			CoverArtPlaceholder.Visibility = Visibility.Collapsed;
 			CoverArtChanged.Visibility = Visibility.Visible;
 
 			_frontCoverArtPath = imageFile.Path;
@@ -1404,12 +1582,11 @@ public sealed partial class MainPage : Page
 
 	private void RemoveCoverArtButton_Click(object sender, RoutedEventArgs e)
 	{
-		CoverArtImage.Height = 250;
-		CoverArtImage.Width = 250;
-		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
-		CoverArtChanged.Visibility = Visibility.Visible;
-		EditSongInfo.IsPrimaryButtonEnabled = true;
+		CoverArtImage.Visibility = Visibility.Collapsed;
+		CoverArtImage.Source = null;
+		CoverArtPlaceholder.Visibility = Visibility.Visible;
 		_frontCoverArtPath = null;
+		CoverArtChanged.Visibility = _hasOriginalCover ? Visibility.Visible : Visibility.Collapsed;
 		EditInfoSaveButtonEnableUpdate();
 	}
 
