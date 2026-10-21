@@ -926,13 +926,18 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private static Grid BuildTagChangesTable(List<(string Field, object Before, object After)> changes)
 	{
-		var table = new Grid { ColumnSpacing = 16, RowSpacing = 8 };
+		var table = new Grid
+		{
+			ColumnSpacing = 16,
+			RowSpacing = 8,
+			Margin = new Thickness(0, 2, 16, 2)
+		};
 
 		table.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 		table.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-		void AddCell(int row, int column, object content, bool header = false)
+		void AddCell(int row, int column, object content, bool header = false, string field = "", bool isAfter = false)
 		{
 			FrameworkElement cell;
 			if (content is FrameworkElement fe)
@@ -942,15 +947,31 @@ public sealed partial class MainPage : Page
 			else
 			{
 				string text = content?.ToString() ?? "";
+				bool isPlaceholder = false;
+
+				if (string.IsNullOrWhiteSpace(text))
+				{
+					isPlaceholder = true;
+					text = isAfter ? "Removed" : (field == "Cover Art" ? "No cover art" : $"No {field.ToLower()}");
+				}
+				else if (text.Equals("No cover art", StringComparison.OrdinalIgnoreCase) ||
+				         text.Equals("No cover", StringComparison.OrdinalIgnoreCase) ||
+				         text.Equals("Removed", StringComparison.OrdinalIgnoreCase))
+				{
+					isPlaceholder = true;
+				}
+
 				cell = new TextBlock
 				{
-					Text = string.IsNullOrWhiteSpace(text) ? "" : text,
+					Text = text,
 					TextWrapping = TextWrapping.Wrap,
 					MaxLines = 2,
 					TextTrimming = TextTrimming.CharacterEllipsis,
 					FontWeight = header ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
-					Opacity = header ? 0.65 : 1.0,
-					VerticalAlignment = VerticalAlignment.Center
+					FontStyle = isPlaceholder ? Windows.UI.Text.FontStyle.Italic : Windows.UI.Text.FontStyle.Normal,
+					Opacity = header ? 0.65 : (isPlaceholder ? 0.75 : 1.0),
+					VerticalAlignment = VerticalAlignment.Center,
+					Padding = new Thickness(0, 0, 6, 0)
 				};
 			}
 
@@ -968,8 +989,8 @@ public sealed partial class MainPage : Page
 		{
 			table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 			AddCell(i + 1, 0, changes[i].Field);
-			AddCell(i + 1, 1, changes[i].Before);
-			AddCell(i + 1, 2, changes[i].After);
+			AddCell(i + 1, 1, changes[i].Before, field: changes[i].Field, isAfter: false);
+			AddCell(i + 1, 2, changes[i].After, field: changes[i].Field, isAfter: true);
 		}
 
 		return table;
@@ -1119,6 +1140,7 @@ public sealed partial class MainPage : Page
 							? new StackPanel
 							{
 								Spacing = 12,
+								MinWidth = 420,
 								Children =
 								{
 									new TextBlock
@@ -1130,6 +1152,7 @@ public sealed partial class MainPage : Page
 									{
 										MaxHeight = 340,
 										VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+										Padding = new Thickness(0, 0, 16, 0),
 										Content = BuildTagChangesTable(changes)
 									}
 								}
