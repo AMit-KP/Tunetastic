@@ -35,6 +35,7 @@ public sealed partial class MainPage : Page
 	private bool _pausedByVolume0 = false;
 	private Song? _songData = null;
 	private string? _frontCoverArtPath = null;
+	private bool _hasOriginalCover = false;
 
 	private List<string> ArtistSuggestions { get; } = new();
 	private List<ArtistSplitRule> ArtistSplitRules { get; } = new();
@@ -896,7 +897,7 @@ public sealed partial class MainPage : Page
 		AppTitle.Animate = startAnimation;
 	}
 
-	private static FrameworkElement CreateCoverArtPreview(ImageSource imageSource)
+	private static FrameworkElement CreateCoverArtPreview(ImageSource? imageSource)
 	{
 		return new Border
 		{
@@ -1004,6 +1005,17 @@ public sealed partial class MainPage : Page
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
 
+			_hasOriginalCover = false;
+			try
+			{
+				using var audioCheck = TagLib.File.Create(songData.Path);
+				_hasOriginalCover = audioCheck.Tag.Pictures?.Length > 0;
+			}
+			catch
+			{
+				_hasOriginalCover = false;
+			}
+
 			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
 			if (!File.Exists(thumbnailFilePath))
 			{
@@ -1057,17 +1069,27 @@ public sealed partial class MainPage : Page
 				_songData = songData;
 				_frontCoverArtPath = null;
 
-				var coverArtImagePixelWidth = bitmapImage.PixelWidth;
-				var coverArtImagePixelHeight = bitmapImage.PixelHeight;
-				var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
-				double targetHeight = 250;
-				double targetWidth = coverArtAspectRatio * targetHeight;
+				if (_hasOriginalCover)
+				{
+					var coverArtImagePixelWidth = bitmapImage.PixelWidth;
+					var coverArtImagePixelHeight = bitmapImage.PixelHeight;
+					var coverArtAspectRatio = coverArtImagePixelWidth > 0 && coverArtImagePixelHeight > 0 ? (double)coverArtImagePixelWidth / coverArtImagePixelHeight : 1.0;
+					double targetHeight = 250;
+					double targetWidth = coverArtAspectRatio * targetHeight;
 
-				CoverArtImage.Height = targetHeight;
-				CoverArtImage.Width = targetWidth;
-				CoverArtImage.Source = bitmapImage;
-				CoverArtImage.Visibility = Visibility.Visible;
-				CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+					CoverArtImage.Height = targetHeight;
+					CoverArtImage.Width = targetWidth;
+					CoverArtImage.Source = bitmapImage;
+					CoverArtImage.Visibility = Visibility.Visible;
+					CoverArtPlaceholder.Visibility = Visibility.Collapsed;
+				}
+				else
+				{
+					CoverArtImage.Visibility = Visibility.Collapsed;
+					CoverArtImage.Source = null;
+					CoverArtPlaceholder.Visibility = Visibility.Visible;
+				}
+
 				CoverArtChanged.Visibility = Visibility.Collapsed;
 
 				TitleTextBox.Text = songData.Title;
@@ -1113,7 +1135,7 @@ public sealed partial class MainPage : Page
 
 						if (CoverArtChanged.Visibility == Visibility.Visible)
 						{
-							object before = !string.IsNullOrEmpty(songData.Cover)
+							object before = _hasOriginalCover
 								? CreateCoverArtPreview(bitmapImage)
 								: "No cover art";
 
@@ -1288,6 +1310,7 @@ public sealed partial class MainPage : Page
 
 				_songData = null;
 				_frontCoverArtPath = null;
+				_hasOriginalCover = false;
 			}
 		}
 	}
@@ -1547,6 +1570,8 @@ public sealed partial class MainPage : Page
 			CoverArtImage.Height = targetHeight;
 			CoverArtImage.Width = targetWidth;
 			CoverArtImage.Source = bitmapImage;
+			CoverArtImage.Visibility = Visibility.Visible;
+			CoverArtPlaceholder.Visibility = Visibility.Collapsed;
 			CoverArtChanged.Visibility = Visibility.Visible;
 
 			_frontCoverArtPath = imageFile.Path;
@@ -1557,12 +1582,11 @@ public sealed partial class MainPage : Page
 
 	private void RemoveCoverArtButton_Click(object sender, RoutedEventArgs e)
 	{
-		CoverArtImage.Height = 250;
-		CoverArtImage.Width = 250;
-		CoverArtImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/AppIcon.png"));
-		CoverArtChanged.Visibility = Visibility.Visible;
-		EditSongInfo.IsPrimaryButtonEnabled = true;
+		CoverArtImage.Visibility = Visibility.Collapsed;
+		CoverArtImage.Source = null;
+		CoverArtPlaceholder.Visibility = Visibility.Visible;
 		_frontCoverArtPath = null;
+		CoverArtChanged.Visibility = _hasOriginalCover ? Visibility.Visible : Visibility.Collapsed;
 		EditInfoSaveButtonEnableUpdate();
 	}
 
