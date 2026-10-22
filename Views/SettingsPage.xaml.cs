@@ -1532,4 +1532,9 @@ public sealed partial class SettingsPage : Page
 		else
 			ToolTipService.SetToolTip(MusicDownloader_Panel, $"Click {clickCounter} times to reveal");
 	}
+
+	private void ResetHistoryConfirm_Click(object sender, RoutedEventArgs e)
+	{
+		ResetHistoryFlyout.Hide();
+	}
 }

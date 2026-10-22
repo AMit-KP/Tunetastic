@@ -657,6 +657,27 @@
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Data Management" />
 			</StackPanel>
+			<dev:SettingsCard Description="Resets the play count to zero and clears the last played time for all songs."
+			                  Header="Reset History">
+				<Button Content="Reset">
+					<Button.Flyout>
+						<Flyout x:Name="ResetHistoryFlyout">
+							<Flyout.FlyoutPresenterStyle>
+								<Style TargetType="FlyoutPresenter">
+									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
+								</Style>
+							</Flyout.FlyoutPresenterStyle>
+							<StackPanel Spacing="5">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Are you sure?" />
+								<Button Click="ResetHistoryConfirm_Click"
+								        Command="{x:Bind ViewModel.ResetHistoryCommand}"
+								        Content="Yes" />
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+			</dev:SettingsCard>
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
 				<Button Content="Reset">

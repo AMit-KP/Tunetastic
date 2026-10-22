@@ -1022,6 +1022,18 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Resets the playback history for all songs in the database.
+	/// Sets <c>PlayCount</c> to 0 and <c>DateLastPlayed</c> to NULL for all songs.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation.</returns>
+	public async Task ResetAllPlaybackHistory()
+	{
+		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = 0, DateLastPlayed = NULL");
+		OnPlayCountUpdated?.Invoke();
+		OnDateLastPlayedUpdated?.Invoke();
+	}
+
+	/// <summary>
 	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
 	/// </summary>
 	/// <param name="path">The file path of the song whose tag write is pending.</param>
