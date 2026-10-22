@@ -1,12 +1,17 @@
+﻿using System.Text.RegularExpressions;
+using Microsoft.UI.Xaml.Documents;
+
 namespace Tunetastic.Common.Services;
 
 /// <summary>
 /// Service responsible for displaying the What's New dialog to highlight updates.
 /// Automatically triggers once after an update and seals fresh installs.
+/// Supports markdown links [text](url) and collapsible previous releases.
 /// </summary>
 public static class WhatsNewService
 {
 	private static readonly SemaphoreSlim _dialogLock = new(1, 1);
+	private static readonly Regex MarkdownLinkRegex = new(@"\[(?<text>[^\]]+)\]\((?<url>https?://[^\)]+)\)", RegexOptions.Compiled);
 
 	/// <summary>
 	/// Checks if the app was updated to a newer version and displays the What's New dialog once.
@@ -30,8 +35,6 @@ public static class WhatsNewService
 			var lastDoneVersion = ParseVersion(lastDoneVersionText);
 
 			// Fresh install vs existing user check:
-			// If WhatsNewDoneVersion has never been recorded, check whether existing user data exists
-			// (such as songs in the database or saved user preferences).
 			if (lastDoneVersionText is null)
 			{
 				var songsCount = await DatabaseHelper.Instance.TryGetSongsCount();
@@ -56,11 +59,11 @@ public static class WhatsNewService
 				return;
 			}
 
-			var changelog = await LoadMarkdownChangelogAsync();
-			var match = GetNotesForVersion(changelog, currentVersion, lastDoneVersion);
+			var releases = await LoadMarkdownReleasesAsync();
+			var match = GetNotesForVersion(releases, currentVersion, lastDoneVersion);
 			if (match is not null && match.Value.Notes.Count > 0)
 			{
-				bool shown = await ShowDialogAsync(match.Value.Version, match.Value.Notes);
+				bool shown = await ShowDialogAsync(match.Value.Version, match.Value.Notes, releases);
 				if (shown)
 				{
 					localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
@@ -79,52 +82,52 @@ public static class WhatsNewService
 	public static async Task ShowManualAsync()
 	{
 		var currentVersion = ParseVersion(ProcessInfoHelper.GetFileVersionInfo().FileVersion);
-		var changelog = await LoadMarkdownChangelogAsync();
-		if (changelog.Count == 0)
+		var releases = await LoadMarkdownReleasesAsync();
+		if (releases.Count == 0)
 			return;
 
-		var match = currentVersion is not null ? GetNotesForVersion(changelog, currentVersion) : null;
-		var versionStr = match?.Version ?? currentVersion?.ToString(3) ?? changelog.Keys.FirstOrDefault() ?? string.Empty;
-		var notes = match?.Notes ?? changelog.Values.FirstOrDefault();
+		var match = currentVersion is not null ? GetNotesForVersion(releases, currentVersion) : null;
+		var versionStr = match?.Version ?? currentVersion?.ToString(3) ?? releases[0].Version;
+		var notes = match?.Notes ?? releases[0].Notes;
 
 		if (notes is not null && notes.Count > 0)
 		{
-			await ShowDialogAsync(versionStr, notes);
+			await ShowDialogAsync(versionStr, notes, releases);
 		}
 	}
 
 	/// <summary>
 	/// Finds the release notes corresponding to the target version, or the newest applicable version <= currentVersion.
 	/// </summary>
-	private static (string Version, List<string> Notes)? GetNotesForVersion(Dictionary<string, List<string>> changelog, Version currentVersion, Version? lastDoneVersion = null)
+	private static (string Version, List<string> Notes)? GetNotesForVersion(List<(string Version, List<string> Notes)> releases, Version currentVersion, Version? lastDoneVersion = null)
 	{
 		// Exact version match
-		foreach (var (key, list) in changelog)
+		foreach (var (ver, list) in releases)
 		{
-			var parsed = ParseVersion(key);
+			var parsed = ParseVersion(ver);
 			if (parsed is not null && parsed.CompareTo(currentVersion) == 0 && list.Count > 0)
-				return (key.TrimStart('v', 'V'), list);
+				return (ver.TrimStart('v', 'V'), list);
 		}
 
 		// Skipped releases / patch releases: find newest version in changelog <= currentVersion (and > lastDoneVersion if set)
-		var candidate = changelog
-			.Select(kvp => (Parsed: ParseVersion(kvp.Key), Key: kvp.Key, Notes: kvp.Value))
+		var candidate = releases
+			.Select(r => (Parsed: ParseVersion(r.Version), r.Version, r.Notes))
 			.Where(x => x.Parsed is not null && x.Parsed.CompareTo(currentVersion) <= 0 && (lastDoneVersion is null || x.Parsed.CompareTo(lastDoneVersion) > 0) && x.Notes.Count > 0)
 			.OrderByDescending(x => x.Parsed)
 			.FirstOrDefault();
 
 		if (candidate.Parsed is not null)
-			return (candidate.Key.TrimStart('v', 'V'), candidate.Notes);
+			return (candidate.Version.TrimStart('v', 'V'), candidate.Notes);
 
 		return null;
 	}
 
 	/// <summary>
-	/// Loads and parses the release notes from the packaged markdown asset.
+	/// Loads and parses the release notes from the packaged markdown asset, preserving release order.
 	/// </summary>
-	private static async Task<Dictionary<string, List<string>>> LoadMarkdownChangelogAsync()
+	private static async Task<List<(string Version, List<string> Notes)>> LoadMarkdownReleasesAsync()
 	{
-		var dict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+		var list = new List<(string Version, List<string> Notes)>();
 		try
 		{
 			string filePath = Path.Combine(AppContext.BaseDirectory, "Assets", "WhatsNew", "whatsnew.md");
@@ -141,22 +144,32 @@ public static class WhatsNewService
 
 			var lines = markdown.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 			string? currentVersion = null;
+			List<string>? currentNotes = null;
 
 			foreach (var rawLine in lines)
 			{
 				var line = rawLine.Trim();
 				if (line.StartsWith("## "))
 				{
+					if (currentVersion is not null && currentNotes is not null)
+					{
+						list.Add((currentVersion, currentNotes));
+					}
+
 					currentVersion = line.Substring(3).Trim();
-					if (!dict.ContainsKey(currentVersion))
-						dict[currentVersion] = [];
+					currentNotes = [];
 				}
-				else if (currentVersion is not null && (line.StartsWith("- ") || line.StartsWith("* ")))
+				else if (currentNotes is not null && (line.StartsWith("- ") || line.StartsWith("* ")))
 				{
 					var content = line.Substring(2).Trim();
 					if (!string.IsNullOrEmpty(content))
-						dict[currentVersion].Add(content);
+						currentNotes.Add(content);
 				}
+			}
+
+			if (currentVersion is not null && currentNotes is not null)
+			{
+				list.Add((currentVersion, currentNotes));
 			}
 		}
 		catch
@@ -164,48 +177,57 @@ public static class WhatsNewService
 			// Fall back gracefully if the asset cannot be read
 		}
 
-		return dict;
+		return list;
 	}
 
 	/// <summary>
-	/// Builds and displays the ContentDialog modal on the UI thread.
+	/// Builds and displays the ContentDialog modal on the UI thread with links and collapsible previous releases.
 	/// </summary>
-	private static async Task<bool> ShowDialogAsync(string version, List<string> notes)
+	private static async Task<bool> ShowDialogAsync(string targetVersion, List<string> targetNotes, List<(string Version, List<string> Notes)> allReleases)
 	{
 		if (!await _dialogLock.WaitAsync(0))
 			return false;
 
 		try
 		{
-			var contentStack = new StackPanel { Spacing = 10, Margin = new Thickness(0, 8, 0, 0), Width = 460 };
-			foreach (var note in notes)
+			var mainStack = new StackPanel { Spacing = 14, Margin = new Thickness(8, 8, 8, 8), Width = 480 };
+
+			// 1. Current / Target Release Notes
+			var currentNotesStack = BuildNotesList(targetNotes);
+			mainStack.Children.Add(currentNotesStack);
+
+			// 2. Previous Releases (if any)
+			var olderReleases = allReleases
+				.Where(r => !string.Equals(r.Version.TrimStart('v', 'V'), targetVersion.TrimStart('v', 'V'), StringComparison.OrdinalIgnoreCase))
+				.ToList();
+
+			if (olderReleases.Count > 0)
 			{
-				var itemGrid = new Grid { ColumnSpacing = 10 };
-				itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-				itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+				var olderStack = new StackPanel { Spacing = 14, Margin = new Thickness(4) };
 
-				var bullet = new TextBlock
+				foreach (var (ver, notes) in olderReleases)
 				{
-					Text = "•",
-					FontSize = 16,
-					FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-					Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"],
-					VerticalAlignment = VerticalAlignment.Top
-				};
-				Grid.SetColumn(bullet, 0);
+					var releaseBlock = new StackPanel { Spacing = 6 };
+					releaseBlock.Children.Add(new TextBlock
+					{
+						Text = $"v{ver.TrimStart('v', 'V')}",
+						Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+						Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"]
+					});
+					releaseBlock.Children.Add(BuildNotesList(notes));
+					olderStack.Children.Add(releaseBlock);
+				}
 
-				var text = new TextBlock
+				var expander = new Expander
 				{
-					Text = note,
-					TextWrapping = TextWrapping.WrapWholeWords,
-					VerticalAlignment = VerticalAlignment.Center,
-					Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+					Header = "Previous Releases",
+					HorizontalAlignment = HorizontalAlignment.Stretch,
+					HorizontalContentAlignment = HorizontalAlignment.Stretch,
+					IsExpanded = false,
+					Content = olderStack
 				};
-				Grid.SetColumn(text, 1);
 
-				itemGrid.Children.Add(bullet);
-				itemGrid.Children.Add(text);
-				contentStack.Children.Add(itemGrid);
+				mainStack.Children.Add(expander);
 			}
 
 			var titlePanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, VerticalAlignment = VerticalAlignment.Center };
@@ -217,7 +239,7 @@ public static class WhatsNewService
 			});
 			titlePanel.Children.Add(new TextBlock
 			{
-				Text = $"What's New in v{version}",
+				Text = $"What's New in v{targetVersion.TrimStart('v', 'V')}",
 				Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"],
 				VerticalAlignment = VerticalAlignment.Center
 			});
@@ -231,8 +253,8 @@ public static class WhatsNewService
 				Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
 				Content = new ScrollViewer
 				{
-					MaxHeight = 350,
-					Content = contentStack
+					MaxHeight = 420,
+					Content = mainStack
 				},
 				XamlRoot = App.MainWindow.Content.XamlRoot
 			};
@@ -250,6 +272,95 @@ public static class WhatsNewService
 		{
 			_dialogLock.Release();
 		}
+	}
+
+	/// <summary>
+	/// Builds a StackPanel of bulleted items with support for markdown links [text](url).
+	/// </summary>
+	private static StackPanel BuildNotesList(List<string> notes)
+	{
+		var stack = new StackPanel { Spacing = 8 };
+		foreach (var note in notes)
+		{
+			var itemGrid = new Grid { ColumnSpacing = 10 };
+			itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+			itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+			var bullet = new TextBlock
+			{
+				Text = "•",
+				FontSize = 16,
+				FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+				Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"],
+				VerticalAlignment = VerticalAlignment.Top
+			};
+			Grid.SetColumn(bullet, 0);
+
+			var text = CreateFormattedTextBlock(note);
+			Grid.SetColumn(text, 1);
+
+			itemGrid.Children.Add(bullet);
+			itemGrid.Children.Add(text);
+			stack.Children.Add(itemGrid);
+		}
+
+		return stack;
+	}
+
+	/// <summary>
+	/// Parses inline markdown links [text](url) into clickable Hyperlink elements.
+	/// </summary>
+	private static TextBlock CreateFormattedTextBlock(string rawText)
+	{
+		var textBlock = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			VerticalAlignment = VerticalAlignment.Center,
+			Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+		};
+
+		var matches = MarkdownLinkRegex.Matches(rawText);
+		if (matches.Count == 0)
+		{
+			textBlock.Text = rawText;
+			return textBlock;
+		}
+
+		int lastIndex = 0;
+		foreach (Match match in matches)
+		{
+			if (match.Index > lastIndex)
+			{
+				textBlock.Inlines.Add(new Run { Text = rawText.Substring(lastIndex, match.Index - lastIndex) });
+			}
+
+			var linkText = match.Groups["text"].Value;
+			var url = match.Groups["url"].Value;
+
+			if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+			{
+				var hyperlink = new Hyperlink { NavigateUri = uri };
+				hyperlink.Inlines.Add(new Run { Text = linkText });
+				hyperlink.Click += async (s, e) =>
+				{
+					await Windows.System.Launcher.LaunchUriAsync(uri);
+				};
+				textBlock.Inlines.Add(hyperlink);
+			}
+			else
+			{
+				textBlock.Inlines.Add(new Run { Text = linkText });
+			}
+
+			lastIndex = match.Index + match.Length;
+		}
+
+		if (lastIndex < rawText.Length)
+		{
+			textBlock.Inlines.Add(new Run { Text = rawText.Substring(lastIndex) });
+		}
+
+		return textBlock;
 	}
 
 	/// <summary>
