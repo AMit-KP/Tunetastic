@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using Windows.Storage;
 
 namespace Tunetastic.Common.Operations;
@@ -260,7 +260,9 @@ public class LibraryScanner
 				Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 				Genre = audioModel.Tag.Genres?.FirstOrDefault(g => !string.IsNullOrEmpty(g)) ?? "Unknown Genre",
 				Track = (int)audioModel.Tag.Track,
-				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
+				Cover = audioModel.Tag.Pictures?.Length > 0
+					? ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
+					: ImageResizer.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				Lyrics = audioModel.Tag.Lyrics,
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension,
@@ -324,7 +326,7 @@ public class LibraryScanner
 				Path = filePath,
 				Year = "Unknown Year",
 				Genre = "Unknown Genre",
-				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
+				Cover = ImageResizer.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension
 			};
