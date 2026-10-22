@@ -1005,7 +1005,7 @@ public sealed partial class MainPage : Page
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
 
-			_hasOriginalCover = false;
+			_hasOriginalCover = ImageResizer.HasRealCover(songData.Cover);
 			try
 			{
 				using var audioCheck = TagLib.File.Create(songData.Path);
@@ -1013,7 +1013,7 @@ public sealed partial class MainPage : Page
 			}
 			catch
 			{
-				_hasOriginalCover = false;
+				_hasOriginalCover = ImageResizer.HasRealCover(songData.Cover);
 			}
 
 			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
@@ -1324,7 +1324,7 @@ public sealed partial class MainPage : Page
 
 				_songData = null;
 				_frontCoverArtPath = null;
-				_hasOriginalCover = false;
+				_hasOriginalCover = ImageResizer.HasRealCover(songData.Cover);
 			}
 		}
 	}
