@@ -261,8 +261,8 @@ public class LibraryScanner
 				Genre = audioModel.Tag.Genres?.FirstOrDefault(g => !string.IsNullOrEmpty(g)) ?? "Unknown Genre",
 				Track = (int)audioModel.Tag.Track,
 				Cover = audioModel.Tag.Pictures?.Length > 0
-					? ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
-					: ImageResizer.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
+					? CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
+					: CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				Lyrics = audioModel.Tag.Lyrics,
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension,
@@ -326,7 +326,7 @@ public class LibraryScanner
 				Path = filePath,
 				Year = "Unknown Year",
 				Genre = "Unknown Genre",
-				Cover = ImageResizer.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
+				Cover = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension
 			};

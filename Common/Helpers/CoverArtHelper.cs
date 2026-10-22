@@ -8,9 +8,9 @@ using Image = SixLabors.ImageSharp.Image;
 namespace Tunetastic.Common.Helpers;
 
 /// <summary>
-/// Provides utilities for resizing and creating image thumbnails.
+/// Provides utilities for managing, resizing, and caching cover art thumbnails.
 /// </summary>
-public static class ImageResizer
+public static class CoverArtHelper
 {
 	private static readonly object _defaultCoverLock = new();
 

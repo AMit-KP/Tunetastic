@@ -1005,22 +1005,27 @@ public sealed partial class MainPage : Page
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
 
-			_hasOriginalCover = ImageResizer.HasRealCover(songData.Cover);
-			try
-			{
-				using var audioCheck = TagLib.File.Create(songData.Path);
-				_hasOriginalCover = audioCheck.Tag.Pictures?.Length > 0;
-			}
-			catch
-			{
-				_hasOriginalCover = ImageResizer.HasRealCover(songData.Cover);
-			}
+			_hasOriginalCover = CoverArtHelper.HasRealCover(songData.Cover);
 
 			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
 			if (!File.Exists(thumbnailFilePath))
 			{
-				using var audioModel = TagLib.File.Create(songData.Path);
-				ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(songData.Cover));
+				if (_hasOriginalCover)
+				{
+					try
+					{
+						using var audioModel = TagLib.File.Create(songData.Path);
+						CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(songData.Cover));
+					}
+					catch
+					{
+						thumbnailFilePath = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.MainPlayer);
+					}
+				}
+				else
+				{
+					thumbnailFilePath = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.MainPlayer);
+				}
 			}
 
 			StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
@@ -1224,6 +1229,7 @@ public sealed partial class MainPage : Page
 
 						if (CoverArtChanged.Visibility == Visibility.Visible)
 						{
+							var oldCover = songData.Cover;
 							if (_frontCoverArtPath is not null)
 							{
 								if (!File.Exists(_frontCoverArtPath))
@@ -1236,13 +1242,15 @@ public sealed partial class MainPage : Page
 
 								audioModel.Tag.Pictures = new IPicture[] { picture };
 								PendingCover = 1;
+								songData.Cover = CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
 							}
 							else
 							{
 								audioModel.Tag.Pictures = Array.Empty<IPicture>();
 								PendingCover = 2;
+								songData.Cover = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300);
 							}
-							songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
+							CoverArtHelper.DeleteThumbnailFiles(oldCover);
 						}
 						if (TitleChanged.Visibility == Visibility.Visible)
 						{
@@ -1324,7 +1332,7 @@ public sealed partial class MainPage : Page
 
 				_songData = null;
 				_frontCoverArtPath = null;
-				_hasOriginalCover = ImageResizer.HasRealCover(songData.Cover);
+				_hasOriginalCover = false;
 			}
 		}
 	}
