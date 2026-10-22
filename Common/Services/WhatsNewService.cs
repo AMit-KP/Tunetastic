@@ -11,37 +11,65 @@ public static class WhatsNewService
 	/// <summary>
 	/// Checks if the app was updated to a newer version and displays the What's New dialog once.
 	/// On a fresh install, the current version is sealed without displaying the dialog.
+	/// Existing installs updating from older versions (e.g. v1.66 -> v1.80) are recognized
+	/// and presented with the What's New dialog.
 	/// </summary>
 	public static void ShowIfEligible()
 	{
 		App.MainWindow.DispatcherQueue.TryEnqueue(async () =>
 		{
+			// Give MainPage layout a brief moment to finish loading and rendering
+			await Task.Delay(500);
+
 			var currentVersion = ParseVersion(ProcessInfoHelper.GetFileVersionInfo().FileVersion);
 			if (currentVersion is null)
 				return;
 
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			var lastDoneVersionText = localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)]?.ToString();
+			var lastDoneVersion = ParseVersion(lastDoneVersionText);
 
-			// Fresh install handling: seal current version immediately so dialog only shows on subsequent updates
+			// Fresh install vs existing user check:
+			// If WhatsNewDoneVersion has never been recorded, check whether existing user data exists
+			// (such as songs in the database or saved user preferences).
 			if (lastDoneVersionText is null)
 			{
-				localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
+				var songsCount = await DatabaseHelper.Instance.TryGetSongsCount();
+				bool hasExistingData = (songsCount is not null && songsCount.Value > 0)
+					|| localSettings.Values.ContainsKey(nameof(LocalSave.Theme))
+					|| localSettings.Values.ContainsKey(nameof(LocalSave.Backdrop))
+					|| localSettings.Values.ContainsKey(nameof(LocalSave.AutoScanEnabled));
+
+				if (!hasExistingData)
+				{
+					// True fresh install: seal current version immediately so dialog only shows on subsequent updates
+					localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
+					return;
+				}
+
+				// Otherwise, user is updating from an older version (e.g. v1.66) where WhatsNew was not yet present.
+				// Treat them as updating to currentVersion so they get to see the What's New dialog!
+			}
+			else if (lastDoneVersion is not null && currentVersion.CompareTo(lastDoneVersion) <= 0)
+			{
+				// Already shown for this version or a newer one
 				return;
 			}
-
-			var lastDoneVersion = ParseVersion(lastDoneVersionText);
-			if (lastDoneVersion is not null && currentVersion.CompareTo(lastDoneVersion) <= 0)
-				return;
 
 			var changelog = await LoadMarkdownChangelogAsync();
-			var notes = GetNotesForVersion(changelog, currentVersion);
-			if (notes is not null && notes.Count > 0)
+			var match = GetNotesForVersion(changelog, currentVersion, lastDoneVersion);
+			if (match is not null && match.Value.Notes.Count > 0)
 			{
-				await ShowDialogAsync(currentVersion.ToString(3), notes);
+				bool shown = await ShowDialogAsync(match.Value.Version, match.Value.Notes);
+				if (shown)
+				{
+					localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
+				}
 			}
-
-			localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
+			else
+			{
+				localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
+			}
 		});
 	}
 
@@ -55,9 +83,9 @@ public static class WhatsNewService
 		if (changelog.Count == 0)
 			return;
 
-		var versionStr = currentVersion?.ToString(3) ?? changelog.Keys.FirstOrDefault() ?? string.Empty;
-		var notes = currentVersion is not null ? GetNotesForVersion(changelog, currentVersion) : null;
-		notes ??= changelog.Values.FirstOrDefault();
+		var match = currentVersion is not null ? GetNotesForVersion(changelog, currentVersion) : null;
+		var versionStr = match?.Version ?? currentVersion?.ToString(3) ?? changelog.Keys.FirstOrDefault() ?? string.Empty;
+		var notes = match?.Notes ?? changelog.Values.FirstOrDefault();
 
 		if (notes is not null && notes.Count > 0)
 		{
@@ -66,18 +94,29 @@ public static class WhatsNewService
 	}
 
 	/// <summary>
-	/// Finds the release notes corresponding to the specified version.
+	/// Finds the release notes corresponding to the target version, or the newest applicable version <= currentVersion.
 	/// </summary>
-	private static List<string>? GetNotesForVersion(Dictionary<string, List<string>> changelog, Version currentVersion)
+	private static (string Version, List<string> Notes)? GetNotesForVersion(Dictionary<string, List<string>> changelog, Version currentVersion, Version? lastDoneVersion = null)
 	{
+		// Exact version match
 		foreach (var (key, list) in changelog)
 		{
 			var parsed = ParseVersion(key);
-			if (parsed is not null && parsed.CompareTo(currentVersion) == 0)
-				return list;
+			if (parsed is not null && parsed.CompareTo(currentVersion) == 0 && list.Count > 0)
+				return (key.TrimStart('v', 'V'), list);
 		}
 
-		return changelog.TryGetValue(currentVersion.ToString(3), out var notes) ? notes : null;
+		// Skipped releases / patch releases: find newest version in changelog <= currentVersion (and > lastDoneVersion if set)
+		var candidate = changelog
+			.Select(kvp => (Parsed: ParseVersion(kvp.Key), Key: kvp.Key, Notes: kvp.Value))
+			.Where(x => x.Parsed is not null && x.Parsed.CompareTo(currentVersion) <= 0 && (lastDoneVersion is null || x.Parsed.CompareTo(lastDoneVersion) > 0) && x.Notes.Count > 0)
+			.OrderByDescending(x => x.Parsed)
+			.FirstOrDefault();
+
+		if (candidate.Parsed is not null)
+			return (candidate.Key.TrimStart('v', 'V'), candidate.Notes);
+
+		return null;
 	}
 
 	/// <summary>
@@ -131,14 +170,14 @@ public static class WhatsNewService
 	/// <summary>
 	/// Builds and displays the ContentDialog modal on the UI thread.
 	/// </summary>
-	private static async Task ShowDialogAsync(string version, List<string> notes)
+	private static async Task<bool> ShowDialogAsync(string version, List<string> notes)
 	{
 		if (!await _dialogLock.WaitAsync(0))
-			return;
+			return false;
 
 		try
 		{
-			var contentStack = new StackPanel { Spacing = 10, Margin = new Thickness(0, 8, 0, 0) };
+			var contentStack = new StackPanel { Spacing = 10, Margin = new Thickness(0, 8, 0, 0), Width = 460 };
 			foreach (var note in notes)
 			{
 				var itemGrid = new Grid { ColumnSpacing = 10 };
@@ -201,10 +240,11 @@ public static class WhatsNewService
 			MainWindow._instance.WindowResizePermission(false);
 			await dialog.ShowAsync();
 			MainWindow._instance.WindowResizePermission(true);
+			return true;
 		}
 		catch
 		{
-			// Silently handle any window/dialog collision exceptions
+			return false;
 		}
 		finally
 		{
@@ -220,6 +260,7 @@ public static class WhatsNewService
 		if (string.IsNullOrWhiteSpace(text))
 			return null;
 
+		text = text.Trim().TrimStart('v', 'V');
 		var numbers = text.Split('.').Take(3).ToList();
 		while (numbers.Count < 3)
 			numbers.Add("0");
