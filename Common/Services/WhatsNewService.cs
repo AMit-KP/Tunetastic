@@ -4,9 +4,14 @@ using Microsoft.UI.Xaml.Documents;
 namespace Tunetastic.Common.Services;
 
 /// <summary>
+/// Represents a single bullet note in the release notes with an indentation level.
+/// </summary>
+public sealed record WhatsNewNote(string Text, int IndentLevel = 0);
+
+/// <summary>
 /// Service responsible for displaying the What's New dialog to highlight updates.
 /// Automatically triggers once after an update and seals fresh installs.
-/// Supports markdown links [text](url) and collapsible previous releases.
+/// Supports markdown links [text](url), nested bullet indentation, and collapsible previous releases.
 /// </summary>
 public static class WhatsNewService
 {
@@ -99,7 +104,7 @@ public static class WhatsNewService
 	/// <summary>
 	/// Finds the release notes corresponding to the target version, or the newest applicable version <= currentVersion.
 	/// </summary>
-	private static (string Version, List<string> Notes)? GetNotesForVersion(List<(string Version, List<string> Notes)> releases, Version currentVersion, Version? lastDoneVersion = null)
+	private static (string Version, List<WhatsNewNote> Notes)? GetNotesForVersion(List<(string Version, List<WhatsNewNote> Notes)> releases, Version currentVersion, Version? lastDoneVersion = null)
 	{
 		// Exact version match
 		foreach (var (ver, list) in releases)
@@ -123,11 +128,11 @@ public static class WhatsNewService
 	}
 
 	/// <summary>
-	/// Loads and parses the release notes from the packaged markdown asset, preserving release order.
+	/// Loads and parses the release notes from the packaged markdown asset, preserving release order and indentation levels.
 	/// </summary>
-	private static async Task<List<(string Version, List<string> Notes)>> LoadMarkdownReleasesAsync()
+	private static async Task<List<(string Version, List<WhatsNewNote> Notes)>> LoadMarkdownReleasesAsync()
 	{
-		var list = new List<(string Version, List<string> Notes)>();
+		var list = new List<(string Version, List<WhatsNewNote> Notes)>();
 		try
 		{
 			string filePath = Path.Combine(AppContext.BaseDirectory, "Assets", "WhatsNew", "whatsnew.md");
@@ -144,26 +149,47 @@ public static class WhatsNewService
 
 			var lines = markdown.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
 			string? currentVersion = null;
-			List<string>? currentNotes = null;
+			List<WhatsNewNote>? currentNotes = null;
 
 			foreach (var rawLine in lines)
 			{
-				var line = rawLine.Trim();
-				if (line.StartsWith("## "))
+				if (string.IsNullOrWhiteSpace(rawLine))
+					continue;
+
+				var trimmedStart = rawLine.TrimStart();
+				if (trimmedStart.StartsWith("## "))
 				{
 					if (currentVersion is not null && currentNotes is not null)
 					{
 						list.Add((currentVersion, currentNotes));
 					}
 
-					currentVersion = line.Substring(3).Trim();
+					currentVersion = trimmedStart.Substring(3).Trim();
 					currentNotes = [];
 				}
-				else if (currentNotes is not null && (line.StartsWith("- ") || line.StartsWith("* ")))
+				else if (currentNotes is not null && (trimmedStart.StartsWith("- ") || trimmedStart.StartsWith("* ")))
 				{
-					var content = line.Substring(2).Trim();
+					int spaces = 0;
+					foreach (char c in rawLine)
+					{
+						if (c == ' ') spaces++;
+						else if (c == '\t') spaces += 4;
+						else break;
+					}
+
+					int indentLevel = spaces switch
+					{
+						<= 1 => 0,
+						<= 5 => 1,
+						<= 9 => 2,
+						_ => 3
+					};
+
+					var content = trimmedStart.Substring(2).Trim();
 					if (!string.IsNullOrEmpty(content))
-						currentNotes.Add(content);
+					{
+						currentNotes.Add(new WhatsNewNote(content, indentLevel));
+					}
 				}
 			}
 
@@ -183,14 +209,14 @@ public static class WhatsNewService
 	/// <summary>
 	/// Builds and displays the ContentDialog modal on the UI thread with links and collapsible previous releases.
 	/// </summary>
-	private static async Task<bool> ShowDialogAsync(string targetVersion, List<string> targetNotes, List<(string Version, List<string> Notes)> allReleases)
+	private static async Task<bool> ShowDialogAsync(string targetVersion, List<WhatsNewNote> targetNotes, List<(string Version, List<WhatsNewNote> Notes)> allReleases)
 	{
 		if (!await _dialogLock.WaitAsync(0))
 			return false;
 
 		try
 		{
-			var mainStack = new StackPanel { Spacing = 14, Margin = new Thickness(8, 8, 8, 8), Width = 480 };
+			var mainStack = new StackPanel { Spacing = 14, Margin = new Thickness(8, 8, 8, 8) };
 
 			// 1. Current / Target Release Notes
 			var currentNotesStack = BuildNotesList(targetNotes);
@@ -275,28 +301,55 @@ public static class WhatsNewService
 	}
 
 	/// <summary>
-	/// Builds a StackPanel of bulleted items with support for markdown links [text](url).
+	/// Builds a StackPanel of bulleted items with support for markdown links [text](url) and nested indentation levels.
 	/// </summary>
-	private static StackPanel BuildNotesList(List<string> notes)
+	private static StackPanel BuildNotesList(List<WhatsNewNote> notes)
 	{
-		var stack = new StackPanel { Spacing = 8 };
+		var stack = new StackPanel { Spacing = 6 };
 		foreach (var note in notes)
 		{
-			var itemGrid = new Grid { ColumnSpacing = 10 };
+			var itemGrid = new Grid { ColumnSpacing = 8 };
+			itemGrid.Margin = new Thickness(note.IndentLevel * 20, 0, 0, 0);
 			itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 			itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
+			string bulletChar;
+			double bulletSize;
+			Microsoft.UI.Xaml.Media.Brush bulletBrush;
+			var fontWeight = Microsoft.UI.Text.FontWeights.Normal;
+
+			if (note.IndentLevel == 0)
+			{
+				bulletChar = "•";
+				bulletSize = 16;
+				bulletBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+				fontWeight = Microsoft.UI.Text.FontWeights.Bold;
+			}
+			else if (note.IndentLevel == 1)
+			{
+				bulletChar = "•";
+				bulletSize = 14;
+				bulletBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+			}
+			else
+			{
+				bulletChar = "•";
+				bulletSize = 11;
+				bulletBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+			}
+
 			var bullet = new TextBlock
 			{
-				Text = "•",
-				FontSize = 16,
-				FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-				Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"],
-				VerticalAlignment = VerticalAlignment.Top
+				Text = bulletChar,
+				FontSize = bulletSize,
+				FontWeight = fontWeight,
+				Foreground = bulletBrush,
+				VerticalAlignment = VerticalAlignment.Top,
+				Margin = new Thickness(0, note.IndentLevel == 1 ? -1 : 0, 0, 0)
 			};
 			Grid.SetColumn(bullet, 0);
 
-			var text = CreateFormattedTextBlock(note);
+			var text = CreateFormattedTextBlock(note.Text);
 			Grid.SetColumn(text, 1);
 
 			itemGrid.Children.Add(bullet);
@@ -341,10 +394,6 @@ public static class WhatsNewService
 			{
 				var hyperlink = new Hyperlink { NavigateUri = uri };
 				hyperlink.Inlines.Add(new Run { Text = linkText });
-				hyperlink.Click += async (s, e) =>
-				{
-					await Windows.System.Launcher.LaunchUriAsync(uri);
-				};
 				textBlock.Inlines.Add(hyperlink);
 			}
 			else
