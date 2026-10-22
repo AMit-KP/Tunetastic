@@ -647,15 +647,15 @@
 				                 Visibility="Collapsed" />
 			</dev:SettingsCard>
 
-			<!--  Reset  -->
+			<!--  Data Management  -->
 
 			<StackPanel Orientation="Horizontal"
 			            Spacing="10">
-				<FontIcon FontSize="{Binding ElementName=ResetTextBlock, Path=FontSize}"
-				          Glyph="&#xE777;" />
-				<TextBlock x:Name="ResetTextBlock"
+				<FontIcon FontSize="{Binding ElementName=DataManagementTextBlock, Path=FontSize}"
+				          Glyph="&#xE912;" />
+				<TextBlock x:Name="DataManagementTextBlock"
 				           Style="{ThemeResource TitleTextBlockStyle}"
-				           Text="Reset" />
+				           Text="Data Management" />
 			</StackPanel>
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
