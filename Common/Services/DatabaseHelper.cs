@@ -1568,7 +1568,8 @@ public class DatabaseHelper
 	/// <see cref="AlbumModel"/> objects.</returns>
 	public async Task<List<AlbumModel>> GetSongsGroupedByAlbum(bool ascending = true)
 	{
-		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, Cover
+		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration,
+															   COALESCE(NULLIF(MAX(CASE WHEN Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN Cover END), ''), MAX(Cover), '') AS Cover
 															   FROM Songs
 															   WHERE Album IS NOT NULL AND TRIM(Album) != ''
 															   GROUP BY Album
@@ -2898,7 +2899,7 @@ public class DatabaseHelper
 										CASE WHEN TRIM(S.Album) = 'Unknown Album' THEN 'Unknown' ELSE S.Album END AS Album,
 										COUNT(*) AS Count,
 										SUM(S.Duration) AS TotalDuration,
-										COALESCE(MAX(S.Cover), '') AS Cover
+										COALESCE(NULLIF(MAX(CASE WHEN S.Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN S.Cover END), ''), MAX(S.Cover), '') AS Cover
 										FROM Songs S
 										JOIN ranks R ON R.Name = S.Album
 										GROUP BY S.Album
@@ -2917,7 +2918,8 @@ public class DatabaseHelper
 
 			results.Titles = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Year = ? ORDER BY Title COLLATE NOCASE ASC LIMIT ?", y, limitPerCategory);
 
-			results.Albums = await _database.QueryAsync<AlbumModel>(@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, COALESCE(MAX(Cover), '') AS Cover
+			results.Albums = await _database.QueryAsync<AlbumModel>($@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration,
+																	  COALESCE(NULLIF(MAX(CASE WHEN Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN Cover END), ''), MAX(Cover), '') AS Cover
 																	  FROM Songs
 																	  WHERE Year = ? AND TRIM(Album) != ''
 																	  GROUP BY Album
