@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
@@ -1432,6 +1432,11 @@ public sealed partial class SettingsPage : Page
 	private async void BuyMeACoffee_Click(object sender, RoutedEventArgs e)
 	{
 		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://ko-fi.com/tunetastic"));
+	}
+
+	private async void WhatsNewButton_Click(object sender, RoutedEventArgs e)
+	{
+		await WhatsNewService.ShowManualAsync();
 	}
 
 	private void TaskBarOverlay_Toggled(object sender, RoutedEventArgs e)
