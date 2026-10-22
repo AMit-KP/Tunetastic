@@ -355,31 +355,31 @@
 							<RowDefinition Height="Auto" />
 						</Grid.RowDefinitions>
 						<Grid Grid.Row="0"
-						      RowSpacing="5">
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto" />
-								<RowDefinition Height="Auto" />
-							</Grid.RowDefinitions>
-							<TextBlock Grid.Row="0"
-							           FontWeight="ExtraBold"
-							           Style="{ThemeResource BodyTextBlockStyle}"
-							           Text="Genre:" />
-							<TextBlock x:Name="SongGenre"
-							           Grid.Row="1"
-							           IsTextSelectionEnabled="True"
-							           MaxLines="1"
-							           Style="{ThemeResource BodyTextBlockStyle}"
-							           TextTrimming="CharacterEllipsis" />
-						</Grid>
-						<Grid x:Name="OtherDetailsGrid"
-						      Grid.Row="1"
 						      ColumnSpacing="10">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="Auto" />
-								<ColumnDefinition Width="Auto" />
-								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="120" />
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="70" />
 								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
+							<Grid Grid.Column="2"
+							      RowSpacing="5">
+								<Grid.RowDefinitions>
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+								</Grid.RowDefinitions>
+								<TextBlock Grid.Row="0"
+								           FontWeight="ExtraBold"
+								           Style="{ThemeResource BodyTextBlockStyle}"
+								           Text="Genre:" />
+								<TextBlock x:Name="SongGenre"
+								           Grid.Row="1"
+								           IsTextSelectionEnabled="True"
+								           MaxLines="1"
+								           Style="{ThemeResource BodyTextBlockStyle}"
+								           TextTrimming="CharacterEllipsis" />
+							</Grid>
 							<Grid Grid.Column="0"
 							      RowSpacing="5">
 								<Grid.RowDefinitions>
@@ -404,13 +404,39 @@
 								<TextBlock Grid.Row="0"
 								           FontWeight="ExtraBold"
 								           Style="{ThemeResource BodyTextBlockStyle}"
+								           Text="Track:" />
+								<TextBlock x:Name="SongTrack"
+								           Grid.Row="1"
+								           Style="{ThemeResource BodyTextBlockStyle}"
+								           TextWrapping="WrapWholeWords" />
+							</Grid>
+						</Grid>
+						<Grid x:Name="OtherDetailsGrid"
+						      Grid.Row="1"
+						      ColumnSpacing="10">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="120" />
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="70" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<Grid Grid.Column="0"
+							      RowSpacing="5">
+								<Grid.RowDefinitions>
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+								</Grid.RowDefinitions>
+								<TextBlock Grid.Row="0"
+								           FontWeight="ExtraBold"
+								           Style="{ThemeResource BodyTextBlockStyle}"
 								           Text="Duration:" />
 								<TextBlock x:Name="SongDuration"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
-							<Grid Grid.Column="2"
+							<Grid Grid.Column="1"
 							      RowSpacing="5">
 								<Grid.RowDefinitions>
 									<RowDefinition Height="Auto" />
@@ -425,7 +451,7 @@
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
-							<Grid Grid.Column="3"
+							<Grid Grid.Column="2"
 							      RowSpacing="5">
 								<Grid.RowDefinitions>
 									<RowDefinition Height="Auto" />

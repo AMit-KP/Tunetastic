@@ -1033,6 +1033,7 @@ public sealed partial class MainPage : Page
 			}
 			SongGenre.Text = songData.Genre;
 			SongYear.Text = songData.Year;
+			SongTrack.Text = songData.Track is > 0 ? songData.Track.Value.ToString() : "-";
 			SongDuration.Text = new DurationToFullTimeConverter().Convert(songData.Duration, null, null, null).ToString();
 			SongSize.Text = songData.FileSize;
 			SongAdded.Text = new DateFormatConverter().Convert(songData.DateAdded, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateAdded, null, "T", null).ToString();
