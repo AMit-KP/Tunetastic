@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Graphics;
@@ -22,6 +22,7 @@ public sealed partial class MainWindow : WindowEx
 	{
 		InitializeComponent();
 		_instance = this;
+		CaptionToolTip.Window = this;
 
 		CurrentAppWindow = this.AppWindow;
 		ExtendsContentIntoTitleBar = true;
