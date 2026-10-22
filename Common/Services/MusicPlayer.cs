@@ -974,6 +974,9 @@ public class MusicPlayer
 		if (await DB.PendingTagWritesExist(path, "Year") is int pendingYear && pendingYear > 0)
 			audioModel.Tag.Year = pendingYear == 1 ? uint.Parse(track.Year) : 0;
 
+		if (await DB.PendingTagWritesExist(path, "Track") is int pendingTrackTag && pendingTrackTag > 0)
+			audioModel.Tag.Track = pendingTrackTag == 1 ? (uint)(track.Track ?? 0) : 0;
+
 		if (await DB.PendingTagWritesExist(path, "Lyrics") > 0)
 			audioModel.Tag.Lyrics = track.Lyrics;
 

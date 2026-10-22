@@ -1108,6 +1108,9 @@ public sealed partial class MainPage : Page
 				YearNumberBox.Text = _songData.Year;
 				YearChanged.Visibility = Visibility.Collapsed;
 
+				TrackNumberBox.Text = _songData.Track > 0 ? _songData.Track.Value.ToString() : string.Empty;
+				TrackChanged.Visibility = Visibility.Collapsed;
+
 				LyricsTextBox.Text = songData.Lyrics;
 				LyricsChanged.Visibility = Visibility.Collapsed;
 
@@ -1156,6 +1159,8 @@ public sealed partial class MainPage : Page
 							changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
 						if (YearChanged.Visibility == Visibility.Visible)
 							changes.Add(("Year", songData.Year, YearNumberBox.Text));
+						if (TrackChanged.Visibility == Visibility.Visible)
+							changes.Add(("Track", songData.Track > 0 ? songData.Track.Value.ToString() : "", TrackNumberBox.Text));
 						if (LyricsChanged.Visibility == Visibility.Visible)
 							changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
 
@@ -1215,6 +1220,7 @@ public sealed partial class MainPage : Page
 						int PendingGenre = 0;
 						int PendingYear = 0;
 						int PendingLyrics = 0;
+						int PendingTrack = 0;
 
 						if (CoverArtChanged.Visibility == Visibility.Visible)
 						{
@@ -1273,6 +1279,13 @@ public sealed partial class MainPage : Page
 							songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
 							PendingYear = year > 0 ? 1 : 2;
 						}
+						if (TrackChanged.Visibility == Visibility.Visible)
+						{
+							var track = string.IsNullOrEmpty(TrackNumberBox.Text) ? 0 : uint.Parse(TrackNumberBox.Text);
+							audioModel.Tag.Track = track;
+							songData.Track = (int)track;
+							PendingTrack = track > 0 ? 1 : 2;
+						}
 						if (LyricsChanged.Visibility == Visibility.Visible)
 						{
 							var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
@@ -1288,7 +1301,7 @@ public sealed partial class MainPage : Page
 						}
 						catch (IOException)
 						{
-							await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics);
+							await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics, PendingTrack);
 
 							if (_frontCoverArtPath is not null)
 							{
@@ -1537,6 +1550,7 @@ public sealed partial class MainPage : Page
 											  AlbumChanged.Visibility == Visibility.Visible ||
 											  GenreChanged.Visibility == Visibility.Visible ||
 											  YearChanged.Visibility == Visibility.Visible ||
+											  TrackChanged.Visibility == Visibility.Visible ||
 											  LyricsChanged.Visibility == Visibility.Visible;
 	}
 
@@ -1658,6 +1672,34 @@ public sealed partial class MainPage : Page
 			if (_songData is not null)
 			{
 				YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+				EditInfoSaveButtonEnableUpdate();
+			}
+		}
+	}
+
+	private void TrackNumberBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (sender is TextBox textBox)
+		{
+			string newText = textBox.Text;
+
+			string filtered = new string(newText.Where(char.IsDigit).ToArray());
+
+			if (filtered.Length > 4)
+				filtered = filtered.Substring(0, 4);
+
+			if (newText != filtered)
+			{
+				int caretPos = textBox.SelectionStart;
+				textBox.Text = filtered;
+
+				textBox.SelectionStart = Math.Min(caretPos, filtered.Length);
+			}
+
+			if (_songData is not null)
+			{
+				var originalTrack = _songData.Track > 0 ? _songData.Track.Value.ToString() : string.Empty;
+				TrackChanged.Visibility = TrackNumberBox.Text != originalTrack ? Visibility.Visible : Visibility.Collapsed;
 				EditInfoSaveButtonEnableUpdate();
 			}
 		}

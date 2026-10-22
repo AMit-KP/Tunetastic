@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using SQLite;
 
 namespace Tunetastic.Common.Services;
@@ -145,6 +145,7 @@ public class DatabaseHelper
 	/// <item><description><c>Genre</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for genre.</description></item>
 	/// <item><description><c>Year</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for year.</description></item>
 	/// <item><description><c>Lyrics</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for lyrics.</description></item>
+	/// <item><description><c>Track</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for track number.</description></item>
 	/// </list>
 	/// </description>
 	/// </item>
@@ -300,7 +301,7 @@ public class DatabaseHelper
 									   Path TEXT PRIMARY KEY,
 									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
-		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics" })
+		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics", "Track" })
 		{
 			await AddColumnIfMissing("PendingTagWrites", col, "INTEGER NOT NULL DEFAULT 0");
 		}
@@ -1031,11 +1032,12 @@ public class DatabaseHelper
 	/// <param name="pendingGenre">1 when the genre still has to be written into the file; otherwise 0.</param>
 	/// <param name="pendingYear">1 when the year still has to be written into the file; otherwise 0.</param>
 	/// <param name="pendingLyrics">1 when the lyrics still have to be written into the file; otherwise 0.</param>
+	/// <param name="pendingTrack">1 when the track still has to be written into the file; otherwise 0.</param>
 	/// <returns>A task that represents the asynchronous operation of storing the pending write.</returns>
-	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0)
+	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0, int pendingTrack = 0)
 	{
-		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics);
+		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics, Track) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics, pendingTrack);
 	}
 
 	/// <summary>
