@@ -127,8 +127,22 @@ public sealed partial class MainPlayerPage : Page
 						var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(track?.Cover ?? ""));
 						if (!string.IsNullOrEmpty(track?.Cover) && !File.Exists(thumbnailFilePath))
 						{
-							using var audioModel = TagLib.File.Create(track?.Path);
-							ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(track?.Cover ?? ""));
+							if (ImageResizer.IsDefaultCover(track.Cover))
+							{
+								thumbnailFilePath = ImageResizer.GetOrCreateDefaultCover(ThumbnailFolder.MainPlayer);
+							}
+							else
+							{
+								try
+								{
+									using var audioModel = TagLib.File.Create(track.Path);
+									ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(track.Cover));
+								}
+								catch
+								{
+									thumbnailFilePath = ImageResizer.GetOrCreateDefaultCover(ThumbnailFolder.MainPlayer);
+								}
+							}
 						}
 
 						if (File.Exists(thumbnailFilePath))
