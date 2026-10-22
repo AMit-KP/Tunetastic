@@ -118,6 +118,8 @@ public sealed partial class MainPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
 
+		WhatsNewService.ShowIfEligible();
+
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
 
