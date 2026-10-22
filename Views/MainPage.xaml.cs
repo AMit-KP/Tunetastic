@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
@@ -111,6 +111,7 @@ public sealed partial class MainPage : Page
 				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
 				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
+		NavFrame.Navigated += NavFrame_Navigated;
 
 		InitializeVolumeSliderAndService();
 
@@ -292,6 +293,31 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
+	/// Handles the Navigated event of the navigation frame to keep the NavigationView selected item in sync,
+	/// particularly after backward navigation across custom playlists or library views.
+	/// </summary>
+	private void NavFrame_Navigated(object sender, NavigationEventArgs e)
+	{
+		if (e.NavigationMode == NavigationMode.Back)
+		{
+			if (e.SourcePageType == typeof(PlayListTemplate) && e.Parameter is string playlistTitle)
+			{
+				var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
+				var matchingItem = playlistsGroup?.MenuItems.OfType<NavigationViewItem>()
+					.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == playlistTitle);
+				if (matchingItem != null && !ReferenceEquals(NavView.SelectedItem, matchingItem))
+				{
+					NavView.SelectedItem = matchingItem;
+				}
+			}
+			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
+			{
+				App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Handles the selection changed event of the NavigationView component.
 	/// </summary>
 	/// <param name="sender">The NavigationView that raised the event.</param>
@@ -307,9 +333,18 @@ public sealed partial class MainPage : Page
 			string? selectedTag = selectedItem.Tag?.ToString();
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
-		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString()!, @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
+		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem &&
+			navigationViewItem.Tag?.ToString() is string tag &&
+			Regex.IsMatch(tag, @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
 		{
-			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup)!.Title);
+			if (navigationViewItem.DataContext is DataGroup dataGroup)
+			{
+				if (NavFrame.Content is PlayListTemplate currentTemplate && currentTemplate.PlaylistName == dataGroup.Title)
+				{
+					return;
+				}
+				App.Current.NavService.NavigateTo(typeof(PlayListTemplate), dataGroup.Title);
+			}
 		}
 	}
 
@@ -527,7 +562,6 @@ public sealed partial class MainPage : Page
 			playlistsGroup.MenuItems.Add(newItem);
 			playlistsGroup.MenuItems.Add(lastItem);
 
-			NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
 			return true;
 		}
 		return false;
@@ -575,7 +609,6 @@ public sealed partial class MainPage : Page
 					};
 					ToolTipService.SetToolTip(newItem, playlistName);
 					playlistsGroup.MenuItems.Add(newItem);
-					NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
 				}
 				playlistsGroup.MenuItems.Add(lastItem);
 			}
@@ -693,23 +726,80 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
-	/// Removes a specified page from the navigation history.
+	/// Removes a specified page from the navigation history (both backstack and forwardstack).
 	/// </summary>
 	/// <param name="pageName">
 	/// The name of the page to be removed from the navigation backstack. This should match the parameter used when the page was originally navigated to.
 	/// </param>
 	/// <remarks>
-	/// This method iterates through the navigation backstack and removes any e Imntry that matches the provided page name.
-	/// This is typically used to ensure that certain pages are not accessible via the back navigation once they are hidden or disabled in the UI.
+	/// This method iterates through the navigation backstack and forwardstack and removes any entry that matches the provided page name.
+	/// This is typically used to ensure that certain pages are not accessible via navigation once they are hidden or disabled in the UI.
 	/// </remarks>
-	public async void RemovePageFromHistory(string pageName)
+	public void RemovePageFromHistory(string pageName)
 	{
 		var history = NavFrame.BackStack;
 		for (int i = history.Count - 1; i >= 0; i--)
 		{
-			if (history[i].Parameter.ToString() == pageName || history[i].SourcePageType.FullName == pageName)
+			var entry = history[i];
+			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
+			bool matchesParam = entry.Parameter?.ToString() == pageName;
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+
+			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
 				history.RemoveAt(i);
+			}
+		}
+
+		var forward = NavFrame.ForwardStack;
+		for (int i = forward.Count - 1; i >= 0; i--)
+		{
+			var entry = forward[i];
+			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
+			bool matchesParam = entry.Parameter?.ToString() == pageName;
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+
+			if (isNullParamPlaylist || matchesParam || matchesPageType)
+			{
+				forward.RemoveAt(i);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Selects the specified navigation item in the navigation view.
+	/// </summary>
+	/// <param name="item">The navigation view item to select.</param>
+	public void SelectNavigationItem(NavigationViewItem item)
+	{
+		if (!ReferenceEquals(NavView.SelectedItem, item))
+		{
+			NavView.SelectedItem = item;
+		}
+	}
+
+	/// <summary>
+	/// Updates the parameter of pages in navigation history when a playlist or entity is renamed.
+	/// </summary>
+	/// <param name="oldParameter">The old parameter value to search for.</param>
+	/// <param name="newParameter">The new parameter value to replace it with.</param>
+	public void UpdatePageParameterInHistory(string oldParameter, string newParameter)
+	{
+		var history = NavFrame.BackStack;
+		for (int i = 0; i < history.Count; i++)
+		{
+			if (history[i].Parameter?.ToString() == oldParameter)
+			{
+				history[i] = new PageStackEntry(history[i].SourcePageType, newParameter, history[i].NavigationTransitionInfo);
+			}
+		}
+
+		var forward = NavFrame.ForwardStack;
+		for (int i = 0; i < forward.Count; i++)
+		{
+			if (forward[i].Parameter?.ToString() == oldParameter)
+			{
+				forward[i] = new PageStackEntry(forward[i].SourcePageType, newParameter, forward[i].NavigationTransitionInfo);
 			}
 		}
 	}

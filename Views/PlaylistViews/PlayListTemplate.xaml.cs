@@ -39,6 +39,11 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "CustomPlaylist__" + PlaylistHeader.Text;
 
+	/// <summary>
+	/// Gets the current playlist name displayed in the header.
+	/// </summary>
+	public string PlaylistName => PlaylistHeader.Text;
+
 	/// <inheritdoc/>
 	protected override Button ShuffleAndPlayControl => ShuffleAndPlay;
 
@@ -110,7 +115,6 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		if (result == ContentDialogResult.Primary)
 		{
-			App.Current.NavService.GoBack();
 			var playListTag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(playListName, @"\s+", "_") + "CustomPlaylist";
 
 			await DatabaseHelper.Instance.RemovePlaylist(playListName);
@@ -135,6 +139,53 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			{
 				MusicPlayer.Instance.CurrentSong = "";
 				MusicPlayer.Instance.ResetOrReloadPlayer();
+			}
+
+			// Purge all entries for this playlist (and any orphaned/null-parameter entries) from history FIRST
+			MainPage._instance?.RemovePageFromHistory(playListName);
+
+			// Ensure the top of BackStack does not point to a deleted/non-existent playlist
+			while (Frame?.BackStack.Count > 0)
+			{
+				var topEntry = Frame.BackStack[Frame.BackStack.Count - 1];
+				if (topEntry.SourcePageType == typeof(PlayListTemplate))
+				{
+					var topPlaylistName = topEntry.Parameter?.ToString();
+					bool playlistExists = !string.IsNullOrEmpty(topPlaylistName) &&
+						playlistsGroup?.MenuItems.OfType<NavigationViewItem>().Any(item => (item.DataContext as DataGroup)?.Title == topPlaylistName) == true;
+
+					if (!playlistExists)
+					{
+						Frame.BackStack.RemoveAt(Frame.BackStack.Count - 1);
+						continue;
+					}
+				}
+				break;
+			}
+
+			if (Frame?.CanGoBack == true)
+			{
+				var targetEntry = Frame.BackStack[Frame.BackStack.Count - 1];
+				App.Current.NavService.GoBack();
+
+				if (targetEntry.SourcePageType == typeof(PlayListTemplate) && targetEntry.Parameter is string targetPlaylistTitle)
+				{
+					var matchingItem = playlistsGroup?.MenuItems.OfType<NavigationViewItem>()
+						.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == targetPlaylistTitle);
+					if (matchingItem != null)
+					{
+						MainPage._instance?.SelectNavigationItem(matchingItem);
+					}
+				}
+				else
+				{
+					App.Current.NavService.EnsureNavigationSelection(targetEntry.SourcePageType.FullName);
+				}
+			}
+			else
+			{
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
+				App.Current.NavService.NavigateTo("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 			}
 		}
 	}
@@ -1168,12 +1219,21 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					playListNavigationItem.Tag = tag;
 					playListNavigationItem.DataContext = dataGroup;
 					ToolTipService.SetToolTip(playListNavigationItem, dataGroup.Title);
-
-					NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
 				}
 			}
-			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
-			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
+			var oldPlaylistName = PlaylistHeader.Text;
+			var newPlaylistName = PlaylistNameBox.Text.Trim();
+			await DatabaseHelper.Instance.RenamePlaylist(oldPlaylistName, newPlaylistName);
+			PlaylistHeader.Text = newPlaylistName;
+			MainPage._instance?.UpdatePageParameterInHistory(oldPlaylistName, newPlaylistName);
+
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+			var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
+			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == oldPlaylistName)
+			{
+				localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "CustomPlaylist__" + newPlaylistName;
+			}
+
 			AddNoResultsMessage();
 			GlobalNotification.Success("Playlist renamed to " + PlaylistHeader.Text + ".");
 		}
