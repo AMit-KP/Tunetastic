@@ -84,18 +84,22 @@ Tunetastic displays lyrics in sync with your music — no extra setup needed.
 - **Synced lyrics** scroll automatically in time with playback, and are sourced from:
 	- Embedded metadata inside the audio file itself
 	- External `.lrc` files placed alongside the track (same folder, matching filename)
+	- When both an embedded source and an `.lrc` file are available, embedded lyrics take priority for synced playback.
 
-- **Unsynced lyrics** are displayed as plain scrollable text and are always read
-from embedded metadata.
+- **Unsynced lyrics** are displayed as clean, scrollable text and are read from embedded metadata.
 
-- Embedded lyrics can be edited/cleared in the app.
+- **Edit & Clear** — Embedded lyrics can be viewed, edited, or cleared directly inside the app.
 
-- When both an embedded source and an `.lrc` file are available, the embedded lyrics
-takes priority for synced playback. If no lyrics are found.
+- **Interactive Live Offset Fine-Tuning** — If synced lyrics drift or don't line up with the vocals, calibrate them on the fly:
+	- **Live Calibration Toolbar**: Click the sync icon to summon real-time adjustment controls directly above the lyrics. Nudge the offset forward or backward in 50 ms increments (with press-and-hold repeat support) during playback, hearing and seeing the vocal alignment update live until it is locked in.
+	- **Flexible Saving**:
+		- *Save as offset metadata* — Inserts or updates the `[offset:±xxx]` tag in the lyric header, leaving individual line timestamps intact.
+		- *Save by modifying timestamps* — Automatically recalculates and updates every timestamp line throughout the lyrics for universal compatibility across any media player.
+	- *Currently, embedded lyrics are supported for in-app lyrics synchronization.*
 
-- Synced Lyrics can be synchronized. Offsets have 2 modes which can be changed from settings. *Currently only embedded lyrics are supported for lyrics synchronization.*
-   - *Official Standard* - Follows the formal LRC specification. Positive values subtract time to display lyrics sooner (advancing them), while negative values delay lyrics. Recommended for compatibility with spec-compliant files.
-   - *Intuitive/Logical* (Default) - Applies straightforward timestamp addition. Positive values add time to delay lyrics, while negative values shift lyrics earlier. Ideal if you expect + to push lyrics forward into the timeline.
+- **LRC Offset Modes** — Configure how offset calculations are applied in **Settings > Playback**:
+	- *Intuitive / Logical* (Default) — Uses straightforward timestamp addition (`Timestamp + Offset`). Positive (+) values delay lyrics to appear later, while negative (-) values shift lyrics earlier. Ideal if you expect `+` to push lyrics forward along the timeline.
+	- *Official Standard* — Conforms to the formal LRC specification (`Timestamp - Offset`). Positive (+) values advance lyrics to appear sooner, while negative (-) values delay lyrics. Recommended for compatibility with spec-compliant files and external tools.
 
 > <img width="2282" height="1717" alt="Screenshot 2026-04-10 144915" src="https://github.com/user-attachments/assets/d14623ff-26a9-4711-a8a6-10114e88f623" />
 
@@ -111,7 +115,8 @@ A dedicated volume slider sits right in the player UI, and can operate in two di
 - **System Volume** — The slider controls your device's master output volume, in sync with the Windows volume flyout and taskbar speaker icon. Dragging it in Tunetastic is identical to dragging it from the system tray.
 - **App Volume** — The slider controls only Tunetastic's volume as an independent channel, leaving all other audio on your system untouched. This maps directly to Tunetastic's entry in the Windows Volume Mixer, so changes made in either place are always reflected in the other in real time.
 
-**Pause on Mute** — When enabled, Tunetastic will automatically pause playback the moment the volume reaches zero (whether muted via the in-app slider, the system mute key, or any other source), and will resume the instant sound is restored — no need to manually hit play again.
+- **Pause on Mute** — Automatically pauses playback the moment the volume reaches zero or audio is muted (whether via the in-app slider, the system mute key, or the Windows volume flyout).
+- **Resume on Unmute** — Seamlessly resumes the playing track the instant volume is unmuted or increased above zero, eliminating the need to manually hit play (triggers when paused via Pause on Mute).
 
 ---
 
@@ -127,6 +132,33 @@ Tunetastic automatically organizes your music collection into clean, browsable v
 | Genres | Sorted by genre tag |
 | Years | Sorted by release year |
 
+**🔄 Real-Time Folder Auto Sync**
+Keep your music collection synchronized effortlessly without having to manually trigger re-scans:
+- **Live Background Watching** — Actively monitors your configured library folders for changes on disk. Dropping new audio files into your library, deleting tracks, or modifying metadata updates your collection automatically in real time.
+- **Smart Move & Rename Detection** — Renaming files or reorganizing tracks into different subfolders won't wipe your history; Tunetastic fingerprints and tracks moved files so your play counts, date-added stamps, and playlist positions stay intact.
+- **Startup Catch-Up Reconciliation** — Made changes while the app was closed? Tunetastic runs a silent catch-up pass upon launch to reconcile differences between disk and the database, bringing everything up to date in seconds.
+- **Resource-Friendly Batching** — File events are debounced and processed in batches to protect performance. If a massive batch of changes is detected at once, Tunetastic intelligently offers a one-click full rescan.
+
+
+---
+
+### 🎧 Supported Formats
+
+Tunetastic supports 89 audio formats across 11 categories. Individual extensions can be enabled or disabled at any time in **Settings > File Extensions**:
+
+| Category | Description | Supported Formats |
+|---|---|---|
+| **Lossy** | The most common everyday compressed audio formats | `.mp3`, `.aac`, `.m4b`, `.m4r`, `.opus`, `.ac3`, `.eac3`, `.ec3`, `.a52`, `.amr`, `.awb`, `.evrc`, `.qcp`, `.gsm`, `.spx`, `.ilbc`, `.ulaw`, `.alaw`, `.g722`, `.g726`, `.g729`, `.g723`, `.silk`, `.siren`, `.at3`, `.oma`, `.aa3`, `.mp2`, `.mp1`, `.vqf`, `.swf` |
+| **Lossy / Container** | Lossy-encoded audio wrapped inside a general multimedia container | `.mp4`, `.ogg`, `.oga`, `.flv`, `.rmvb` |
+| **Lossless** | Formats that preserve full audio fidelity, popular for archiving and audiophile use | `.flac`, `.alac`, `.caf`, `.ape`, `.wv`, `.pcm`, `.raw`, `.bwf`, `.rf64`, `.tta`, `.shn`, `.mlp`, `.dtshd`, `.thd`, `.truehd` |
+| **Lossless / Container** | Uncompressed audio wrapped in a structured container | `.aiff`, `.aifc` |
+| **Lossless / Lossy / Container** | Container or format able to hold either lossless or lossy encoded audio | `.m4a`, `.wav`, `.wma`, `.ra`, `.rm` |
+| **Lossless / Lossy** | Single format spanning both fully lossless and compressed variants | `.dts` |
+| **Lossless / Lossy / Legacy** | Legacy format spanning both compression types plus old telephony encodings | `.au` |
+| **Container** | General multimedia containers primarily used for video/audio distribution | `.mov`, `.webm`, `.asf`, `.mka`, `.mxf`, `.ts`, `.mts`, `.m2ts`, `.ogx`, `.f4a`, `.3gp`, `.3g2`, `.qt`, `.aif` |
+| **Legacy / Tracker** | Old-school module/tracker music formats | `.mod`, `.xm`, `.it`, `.s3m` |
+| **Legacy / Sound Card** | Vintage computer and sound-card-native audio formats | `.voc`, `.snd`, `.iff`, `.8svx`, `.sd2` |
+| **Game / Console** | Platform-specific formats designed for video game consoles | `.adx`, `.xa`, `.xma`, `.xwma`, `.dsp`, `.adp` |
 
 ---
 
@@ -134,7 +166,7 @@ Tunetastic automatically organizes your music collection into clean, browsable v
 
 Clean up and manage your music metadata without ever leaving Tunetastic or reaching for a third-party tool.
 
-- Edit **all standard ID3 tags** — title, artist, album, genre, year, lyrics and cover/album art
+- Edit **all standard ID3 tags** — title, artist, album, genre, year, lyrics, cover/album art and track number
 - **Inline suggestions** appear as you type, drawn from data already in your library, so tags stay consistent across your collection instead of drifting into duplicates and typos (e.g. start typing an artist name and matching spellings already in your library show up)
 - Embedded lyrics can also be edited or cleared from the same place *(see [Lyrics](#-lyrics))*
 
@@ -153,6 +185,7 @@ Smart playlists keep your most-reached-for music always at hand, and you can bui
 - Create your own playlists and give them any name
 - Rename or delete user-created playlists at any time
 - Add individual tracks, or bulk-add entire albums, genres, or years in one go
+- Reorder and rearrange tracks within playlists (using Move Up / Move Down or drag-and-drop) to build the exact listening order you want
 
 > <img width="2858" height="1717" alt="Screenshot 2026-03-31 123156" src="https://github.com/user-attachments/assets/33f53836-7338-46e3-80da-fa1d2402628c" />
 
@@ -273,9 +306,15 @@ A playback overlay lives right on the taskbar itself, giving you controls at a g
 Track playback progress is shown live on the Tunetastic taskbar icon, so you always know where you are in a track at a glance — without switching windows.
 
 **🔔 System Tray**
-- Minimize to the system tray on close, keeping Tunetastic out of the way but always ready
-- **Click** the tray icon to play or pause instantly
-- **Hover** the tray icon to see the current track and artist
+Tunetastic stays accessible without cluttering your workspace:
+- **Customizable Tray Icon Styles** — Personalize how Tunetastic looks in your taskbar tray:
+  - **Monochrome (Auto)** *(Default)* — Automatically adapts to your Windows taskbar theme, dynamically switching between crisp light and dark monochrome icons as your system appearance changes.
+  - **Full Color** — Displays the vibrant, full-color Tunetastic emblem.
+  - **Light** — High-contrast white/light icon designed for dark taskbars.
+  - **Dark** — High-contrast dark icon designed for light taskbars.
+- **Quick Controls** — Single-click the tray icon to toggle play/pause instantly without opening or focusing the main window.
+- **Track Tooltip** — Hover over the tray icon at any time to peek at the currently playing song title and artist.
+- **Minimize to Tray on Close** — Send Tunetastic silently to the notification area when closing the window so background playback is never interrupted.
 
 ---
 
@@ -284,17 +323,20 @@ Track playback progress is shown live on the Tunetastic taskbar icon, so you alw
 ### 📁 Library Management
 
 - **Add Folders** — Point Tunetastic to your local music directories
-- **File Extensions** — Choose which audio formats to include
+- **Auto Sync** — Toggle background folder watching to automatically keep your library updated with additions, removals, renames, and tag changes on disk
+- **File Extensions** — Choose which audio formats to include (see [Supported Formats](#-supported-formats))
 - **Minimum Track Duration** — Ignore files below a set length (great for skipping short intros or sound effects)
 - **Duplicate Detection** — Options to detect and handle duplicate tracks
 - **Show / Hide Library Views** — Independently toggle the visibility of Artists, Albums, Genres, Years, and each individual playlist (All Songs is always shown)
   - Note: Built-in smart playlists can be hidden; user-created playlists can be renamed or deleted
+- **Reset Playback History** — Clear song play counts and last played timestamps anytime for a clean slate, without modifying your audio files
 
 ### 🎚️ Playback
 
 - Crossfade between tracks with adjustable duration
 - **Volume Mode** — Choose between System Volume and App Volume for the in-app slider
-- **Pause on Mute** — Automatically pause playback when volume drops to zero, and resume when sound is restored
+- **Pause on Mute** — Automatically pause playback when volume drops to zero or audio is muted
+- **Resume on Unmute** — Automatically resume playback when volume is unmuted or raised above zero
 - Additional playback behavior settings
 
 ### 🎨 Appearance & Behavior
