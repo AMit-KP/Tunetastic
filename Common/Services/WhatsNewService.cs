@@ -40,7 +40,7 @@ public static class WhatsNewService
 			var lastDoneVersion = ParseVersion(lastDoneVersionText);
 
 			// Fresh install vs existing user check:
-			if (lastDoneVersionText is null)
+			if (string.IsNullOrWhiteSpace(lastDoneVersionText))
 			{
 				var songsCount = await DatabaseHelper.Instance.TryGetSongsCount();
 				bool hasExistingData = (songsCount is not null && songsCount.Value > 0)
@@ -54,9 +54,6 @@ public static class WhatsNewService
 					localSettings.Values[nameof(LocalSave.WhatsNewDoneVersion)] = currentVersion.ToString(3);
 					return;
 				}
-
-				// Otherwise, user is updating from an older version (e.g. v1.66) where WhatsNew was not yet present.
-				// Treat them as updating to currentVersion so they get to see the What's New dialog!
 			}
 			else if (lastDoneVersion is not null && currentVersion.CompareTo(lastDoneVersion) <= 0)
 			{
