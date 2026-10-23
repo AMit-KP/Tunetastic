@@ -664,7 +664,7 @@
 				           Text="Data Management" />
 			</StackPanel>
 			<dev:SettingsCard Description="Resets the play count to zero and clears the last played time for all songs."
-			                  Header="Reset History">
+			                  Header="Reset Playback History">
 				<Button Content="Reset">
 					<Button.Flyout>
 						<Flyout x:Name="ResetHistoryFlyout">
