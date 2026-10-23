@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using SQLite;
 
 namespace Tunetastic.Common.Services;
@@ -145,6 +145,7 @@ public class DatabaseHelper
 	/// <item><description><c>Genre</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for genre.</description></item>
 	/// <item><description><c>Year</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for year.</description></item>
 	/// <item><description><c>Lyrics</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for lyrics.</description></item>
+	/// <item><description><c>Track</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for track number.</description></item>
 	/// </list>
 	/// </description>
 	/// </item>
@@ -300,7 +301,7 @@ public class DatabaseHelper
 									   Path TEXT PRIMARY KEY,
 									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
-		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics" })
+		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics", "Track" })
 		{
 			await AddColumnIfMissing("PendingTagWrites", col, "INTEGER NOT NULL DEFAULT 0");
 		}
@@ -1021,6 +1022,18 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Resets the playback history for all songs in the database.
+	/// Sets <c>PlayCount</c> to 0 and <c>DateLastPlayed</c> to NULL for all songs.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation.</returns>
+	public async Task ResetAllPlaybackHistory()
+	{
+		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = 0, DateLastPlayed = NULL");
+		OnPlayCountUpdated?.Invoke();
+		OnDateLastPlayedUpdated?.Invoke();
+	}
+
+	/// <summary>
 	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
 	/// </summary>
 	/// <param name="path">The file path of the song whose tag write is pending.</param>
@@ -1031,11 +1044,12 @@ public class DatabaseHelper
 	/// <param name="pendingGenre">1 when the genre still has to be written into the file; otherwise 0.</param>
 	/// <param name="pendingYear">1 when the year still has to be written into the file; otherwise 0.</param>
 	/// <param name="pendingLyrics">1 when the lyrics still have to be written into the file; otherwise 0.</param>
+	/// <param name="pendingTrack">1 when the track still has to be written into the file; otherwise 0.</param>
 	/// <returns>A task that represents the asynchronous operation of storing the pending write.</returns>
-	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0)
+	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0, int pendingTrack = 0)
 	{
-		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics);
+		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics, Track) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics, pendingTrack);
 	}
 
 	/// <summary>
@@ -1566,7 +1580,8 @@ public class DatabaseHelper
 	/// <see cref="AlbumModel"/> objects.</returns>
 	public async Task<List<AlbumModel>> GetSongsGroupedByAlbum(bool ascending = true)
 	{
-		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, Cover
+		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration,
+															   COALESCE(NULLIF(MAX(CASE WHEN Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN Cover END), ''), MAX(Cover), '') AS Cover
 															   FROM Songs
 															   WHERE Album IS NOT NULL AND TRIM(Album) != ''
 															   GROUP BY Album
@@ -2896,7 +2911,7 @@ public class DatabaseHelper
 										CASE WHEN TRIM(S.Album) = 'Unknown Album' THEN 'Unknown' ELSE S.Album END AS Album,
 										COUNT(*) AS Count,
 										SUM(S.Duration) AS TotalDuration,
-										COALESCE(MAX(S.Cover), '') AS Cover
+										COALESCE(NULLIF(MAX(CASE WHEN S.Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN S.Cover END), ''), MAX(S.Cover), '') AS Cover
 										FROM Songs S
 										JOIN ranks R ON R.Name = S.Album
 										GROUP BY S.Album
@@ -2915,7 +2930,8 @@ public class DatabaseHelper
 
 			results.Titles = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Year = ? ORDER BY Title COLLATE NOCASE ASC LIMIT ?", y, limitPerCategory);
 
-			results.Albums = await _database.QueryAsync<AlbumModel>(@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, COALESCE(MAX(Cover), '') AS Cover
+			results.Albums = await _database.QueryAsync<AlbumModel>($@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration,
+																	  COALESCE(NULLIF(MAX(CASE WHEN Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN Cover END), ''), MAX(Cover), '') AS Cover
 																	  FROM Songs
 																	  WHERE Year = ? AND TRIM(Album) != ''
 																	  GROUP BY Album

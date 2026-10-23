@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
@@ -111,11 +111,14 @@ public sealed partial class MainPage : Page
 				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
 				   .ConfigureTitleBar(AppTitleBar);
 		MusicControlsArea.Navigate(typeof(MusicControl));
+		NavFrame.Navigated += NavFrame_Navigated;
 
 		InitializeVolumeSliderAndService();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
+
+		WhatsNewService.ShowIfEligible();
 
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
@@ -292,6 +295,31 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
+	/// Handles the Navigated event of the navigation frame to keep the NavigationView selected item in sync,
+	/// particularly after backward navigation across custom playlists or library views.
+	/// </summary>
+	private void NavFrame_Navigated(object sender, NavigationEventArgs e)
+	{
+		if (e.NavigationMode == NavigationMode.Back)
+		{
+			if (e.SourcePageType == typeof(PlayListTemplate) && e.Parameter is string playlistTitle)
+			{
+				var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
+				var matchingItem = playlistsGroup?.MenuItems.OfType<NavigationViewItem>()
+					.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == playlistTitle);
+				if (matchingItem != null && !ReferenceEquals(NavView.SelectedItem, matchingItem))
+				{
+					NavView.SelectedItem = matchingItem;
+				}
+			}
+			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
+			{
+				App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Handles the selection changed event of the NavigationView component.
 	/// </summary>
 	/// <param name="sender">The NavigationView that raised the event.</param>
@@ -307,9 +335,18 @@ public sealed partial class MainPage : Page
 			string? selectedTag = selectedItem.Tag?.ToString();
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
-		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem && Regex.IsMatch(navigationViewItem.Tag.ToString()!, @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
+		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem &&
+			navigationViewItem.Tag?.ToString() is string tag &&
+			Regex.IsMatch(tag, @"^Tunetastic\.Views\.PlaylistViews\.\S+CustomPlaylist$"))
 		{
-			App.Current.NavService.NavigateTo(typeof(PlayListTemplate), (navigationViewItem.DataContext as DataGroup)!.Title);
+			if (navigationViewItem.DataContext is DataGroup dataGroup)
+			{
+				if (NavFrame.Content is PlayListTemplate currentTemplate && currentTemplate.PlaylistName == dataGroup.Title)
+				{
+					return;
+				}
+				App.Current.NavService.NavigateTo(typeof(PlayListTemplate), dataGroup.Title);
+			}
 		}
 	}
 
@@ -527,7 +564,6 @@ public sealed partial class MainPage : Page
 			playlistsGroup.MenuItems.Add(newItem);
 			playlistsGroup.MenuItems.Add(lastItem);
 
-			NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
 			return true;
 		}
 		return false;
@@ -575,7 +611,6 @@ public sealed partial class MainPage : Page
 					};
 					ToolTipService.SetToolTip(newItem, playlistName);
 					playlistsGroup.MenuItems.Add(newItem);
-					NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
 				}
 				playlistsGroup.MenuItems.Add(lastItem);
 			}
@@ -693,23 +728,80 @@ public sealed partial class MainPage : Page
 	}
 
 	/// <summary>
-	/// Removes a specified page from the navigation history.
+	/// Removes a specified page from the navigation history (both backstack and forwardstack).
 	/// </summary>
 	/// <param name="pageName">
 	/// The name of the page to be removed from the navigation backstack. This should match the parameter used when the page was originally navigated to.
 	/// </param>
 	/// <remarks>
-	/// This method iterates through the navigation backstack and removes any e Imntry that matches the provided page name.
-	/// This is typically used to ensure that certain pages are not accessible via the back navigation once they are hidden or disabled in the UI.
+	/// This method iterates through the navigation backstack and forwardstack and removes any entry that matches the provided page name.
+	/// This is typically used to ensure that certain pages are not accessible via navigation once they are hidden or disabled in the UI.
 	/// </remarks>
-	public async void RemovePageFromHistory(string pageName)
+	public void RemovePageFromHistory(string pageName)
 	{
 		var history = NavFrame.BackStack;
 		for (int i = history.Count - 1; i >= 0; i--)
 		{
-			if (history[i].Parameter.ToString() == pageName || history[i].SourcePageType.FullName == pageName)
+			var entry = history[i];
+			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
+			bool matchesParam = entry.Parameter?.ToString() == pageName;
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+
+			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
 				history.RemoveAt(i);
+			}
+		}
+
+		var forward = NavFrame.ForwardStack;
+		for (int i = forward.Count - 1; i >= 0; i--)
+		{
+			var entry = forward[i];
+			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
+			bool matchesParam = entry.Parameter?.ToString() == pageName;
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+
+			if (isNullParamPlaylist || matchesParam || matchesPageType)
+			{
+				forward.RemoveAt(i);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Selects the specified navigation item in the navigation view.
+	/// </summary>
+	/// <param name="item">The navigation view item to select.</param>
+	public void SelectNavigationItem(NavigationViewItem item)
+	{
+		if (!ReferenceEquals(NavView.SelectedItem, item))
+		{
+			NavView.SelectedItem = item;
+		}
+	}
+
+	/// <summary>
+	/// Updates the parameter of pages in navigation history when a playlist or entity is renamed.
+	/// </summary>
+	/// <param name="oldParameter">The old parameter value to search for.</param>
+	/// <param name="newParameter">The new parameter value to replace it with.</param>
+	public void UpdatePageParameterInHistory(string oldParameter, string newParameter)
+	{
+		var history = NavFrame.BackStack;
+		for (int i = 0; i < history.Count; i++)
+		{
+			if (history[i].Parameter?.ToString() == oldParameter)
+			{
+				history[i] = new PageStackEntry(history[i].SourcePageType, newParameter, history[i].NavigationTransitionInfo);
+			}
+		}
+
+		var forward = NavFrame.ForwardStack;
+		for (int i = 0; i < forward.Count; i++)
+		{
+			if (forward[i].Parameter?.ToString() == oldParameter)
+			{
+				forward[i] = new PageStackEntry(forward[i].SourcePageType, newParameter, forward[i].NavigationTransitionInfo);
 			}
 		}
 	}
@@ -1005,22 +1097,27 @@ public sealed partial class MainPage : Page
 			SongArtists.Text = songData.Artists;
 			SongAlbum.Text = songData.Album;
 
-			_hasOriginalCover = false;
-			try
-			{
-				using var audioCheck = TagLib.File.Create(songData.Path);
-				_hasOriginalCover = audioCheck.Tag.Pictures?.Length > 0;
-			}
-			catch
-			{
-				_hasOriginalCover = false;
-			}
+			_hasOriginalCover = CoverArtHelper.HasRealCover(songData.Cover);
 
 			var thumbnailFilePath = Path.Combine(Constants.ThumbnailsFolder, ThumbnailFolder.MainPlayer.ToString(), Path.GetFileName(songData.Cover));
 			if (!File.Exists(thumbnailFilePath))
 			{
-				using var audioModel = TagLib.File.Create(songData.Path);
-				ImageResizer.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(songData.Cover));
+				if (_hasOriginalCover)
+				{
+					try
+					{
+						using var audioModel = TagLib.File.Create(songData.Path);
+						CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.MainPlayer, audioModel.Tag.Pictures, Path.GetFileName(songData.Cover));
+					}
+					catch
+					{
+						thumbnailFilePath = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.MainPlayer);
+					}
+				}
+				else
+				{
+					thumbnailFilePath = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.MainPlayer);
+				}
 			}
 
 			StorageFile file = await StorageFile.GetFileFromPathAsync(thumbnailFilePath);
@@ -1033,6 +1130,7 @@ public sealed partial class MainPage : Page
 			}
 			SongGenre.Text = songData.Genre;
 			SongYear.Text = songData.Year;
+			SongTrack.Text = songData.Track is > 0 ? songData.Track.Value.ToString() : "-";
 			SongDuration.Text = new DurationToFullTimeConverter().Convert(songData.Duration, null, null, null).ToString();
 			SongSize.Text = songData.FileSize;
 			SongAdded.Text = new DateFormatConverter().Convert(songData.DateAdded, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateAdded, null, "T", null).ToString();
@@ -1107,6 +1205,9 @@ public sealed partial class MainPage : Page
 				YearNumberBox.Text = _songData.Year;
 				YearChanged.Visibility = Visibility.Collapsed;
 
+				TrackNumberBox.Text = _songData.Track > 0 ? _songData.Track.Value.ToString() : string.Empty;
+				TrackChanged.Visibility = Visibility.Collapsed;
+
 				LyricsTextBox.Text = songData.Lyrics;
 				LyricsChanged.Visibility = Visibility.Collapsed;
 
@@ -1155,6 +1256,8 @@ public sealed partial class MainPage : Page
 							changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
 						if (YearChanged.Visibility == Visibility.Visible)
 							changes.Add(("Year", songData.Year, YearNumberBox.Text));
+						if (TrackChanged.Visibility == Visibility.Visible)
+							changes.Add(("Track", songData.Track > 0 ? songData.Track.Value.ToString() : "", TrackNumberBox.Text));
 						if (LyricsChanged.Visibility == Visibility.Visible)
 							changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
 
@@ -1214,9 +1317,11 @@ public sealed partial class MainPage : Page
 						int PendingGenre = 0;
 						int PendingYear = 0;
 						int PendingLyrics = 0;
+						int PendingTrack = 0;
 
 						if (CoverArtChanged.Visibility == Visibility.Visible)
 						{
+							var oldCover = songData.Cover;
 							if (_frontCoverArtPath is not null)
 							{
 								if (!File.Exists(_frontCoverArtPath))
@@ -1229,13 +1334,15 @@ public sealed partial class MainPage : Page
 
 								audioModel.Tag.Pictures = new IPicture[] { picture };
 								PendingCover = 1;
+								songData.Cover = CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
 							}
 							else
 							{
 								audioModel.Tag.Pictures = Array.Empty<IPicture>();
 								PendingCover = 2;
+								songData.Cover = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300);
 							}
-							songData.Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300);
+							CoverArtHelper.DeleteThumbnailFiles(oldCover);
 						}
 						if (TitleChanged.Visibility == Visibility.Visible)
 						{
@@ -1272,6 +1379,13 @@ public sealed partial class MainPage : Page
 							songData.Year = year <= 0 ? "Unknown Year" : year.ToString();
 							PendingYear = year > 0 ? 1 : 2;
 						}
+						if (TrackChanged.Visibility == Visibility.Visible)
+						{
+							var track = string.IsNullOrEmpty(TrackNumberBox.Text) ? 0 : uint.Parse(TrackNumberBox.Text);
+							audioModel.Tag.Track = track;
+							songData.Track = (int)track;
+							PendingTrack = track > 0 ? 1 : 2;
+						}
 						if (LyricsChanged.Visibility == Visibility.Visible)
 						{
 							var lyrics = string.IsNullOrEmpty(LyricsTextBox.Text) ? null : LyricsTextBox.Text;
@@ -1287,7 +1401,7 @@ public sealed partial class MainPage : Page
 						}
 						catch (IOException)
 						{
-							await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics);
+							await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, PendingCover, PendingTitle, PendingArtist, PendingAlbum, PendingGenre, PendingYear, PendingLyrics, PendingTrack);
 
 							if (_frontCoverArtPath is not null)
 							{
@@ -1536,6 +1650,7 @@ public sealed partial class MainPage : Page
 											  AlbumChanged.Visibility == Visibility.Visible ||
 											  GenreChanged.Visibility == Visibility.Visible ||
 											  YearChanged.Visibility == Visibility.Visible ||
+											  TrackChanged.Visibility == Visibility.Visible ||
 											  LyricsChanged.Visibility == Visibility.Visible;
 	}
 
@@ -1657,6 +1772,34 @@ public sealed partial class MainPage : Page
 			if (_songData is not null)
 			{
 				YearChanged.Visibility = YearNumberBox.Text != _songData.Year && (YearNumberBox.Text.Length == 4 || string.IsNullOrEmpty(YearNumberBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
+				EditInfoSaveButtonEnableUpdate();
+			}
+		}
+	}
+
+	private void TrackNumberBox_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (sender is TextBox textBox)
+		{
+			string newText = textBox.Text;
+
+			string filtered = new string(newText.Where(char.IsDigit).ToArray());
+
+			if (filtered.Length > 4)
+				filtered = filtered.Substring(0, 4);
+
+			if (newText != filtered)
+			{
+				int caretPos = textBox.SelectionStart;
+				textBox.Text = filtered;
+
+				textBox.SelectionStart = Math.Min(caretPos, filtered.Length);
+			}
+
+			if (_songData is not null)
+			{
+				var originalTrack = _songData.Track > 0 ? _songData.Track.Value.ToString() : string.Empty;
+				TrackChanged.Visibility = TrackNumberBox.Text != originalTrack ? Visibility.Visible : Visibility.Collapsed;
 				EditInfoSaveButtonEnableUpdate();
 			}
 		}

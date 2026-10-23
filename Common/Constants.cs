@@ -1,4 +1,4 @@
-﻿namespace Tunetastic.Common;
+namespace Tunetastic.Common;
 
 /// <summary>
 /// Provides application-wide constants such as directory paths and commonly used file paths.
@@ -33,4 +33,9 @@ public static partial class Constants
 	/// Represents the directory path where temporary files are stored.
 	/// </summary>
 	public static readonly string TemporaryFolder = Path.Combine(RootDirectoryPath, "Temporary");
+
+	/// <summary>
+	/// The standardized file name used for the default application icon cover thumbnail across thumbnail folders.
+	/// </summary>
+	public const string DefaultCoverFileName = "Tunetastic_Cover.png";
 }

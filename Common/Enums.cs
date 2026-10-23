@@ -1,4 +1,4 @@
-﻿namespace Tunetastic.Common;
+namespace Tunetastic.Common;
 
 // ─────────────────────────────────────────────────────────────
 //  Playback enums
@@ -293,7 +293,8 @@ public enum LocalSave
 	ScanResult_Message,
 	PostUpdateScanDoneVersion,
 	SystemTrayIconStyle,
-	CLIOutputColorEnabled
+	CLIOutputColorEnabled,
+	WhatsNewDoneVersion
 }
 
 public enum SystemTrayIconStyle

@@ -576,6 +576,12 @@
 						<ToggleSwitch x:Name="VersionInfoToggle"
 						              Toggled="VersionInfoToggle_Toggled" />
 					</dev:SettingsCard>
+					<dev:SettingsCard Description="See what's new in this version"
+					                  Header="What's New">
+						<Button x:Name="WhatsNewButton"
+						        Click="WhatsNewButton_Click"
+						        Content="View What's New" />
+					</dev:SettingsCard>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"
@@ -647,16 +653,37 @@
 				                 Visibility="Collapsed" />
 			</dev:SettingsCard>
 
-			<!--  Reset  -->
+			<!--  Data Management  -->
 
 			<StackPanel Orientation="Horizontal"
 			            Spacing="10">
-				<FontIcon FontSize="{Binding ElementName=ResetTextBlock, Path=FontSize}"
-				          Glyph="&#xE777;" />
-				<TextBlock x:Name="ResetTextBlock"
+				<FontIcon FontSize="{Binding ElementName=DataManagementTextBlock, Path=FontSize}"
+				          Glyph="&#xE912;" />
+				<TextBlock x:Name="DataManagementTextBlock"
 				           Style="{ThemeResource TitleTextBlockStyle}"
-				           Text="Reset" />
+				           Text="Data Management" />
 			</StackPanel>
+			<dev:SettingsCard Description="Resets the play count to zero and clears the last played time for all songs."
+			                  Header="Reset Playback History">
+				<Button Content="Reset">
+					<Button.Flyout>
+						<Flyout x:Name="ResetHistoryFlyout">
+							<Flyout.FlyoutPresenterStyle>
+								<Style TargetType="FlyoutPresenter">
+									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
+								</Style>
+							</Flyout.FlyoutPresenterStyle>
+							<StackPanel Spacing="5">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Are you sure?" />
+								<Button Click="ResetHistoryConfirm_Click"
+								        Command="{x:Bind ViewModel.ResetHistoryCommand}"
+								        Content="Yes" />
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+			</dev:SettingsCard>
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
 				<Button Content="Reset">
