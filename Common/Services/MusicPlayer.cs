@@ -964,8 +964,20 @@ public class MusicPlayer
 	/// <returns>True if the path is inside the folder.</returns>
 	private static bool IsInFolder(string path, string folder)
 	{
-		var prefix = folder.EndsWith(Path.DirectorySeparatorChar) ? folder : folder + Path.DirectorySeparatorChar;
-		return path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+		if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(folder))
+			return false;
+
+		try
+		{
+			string rel = Path.GetRelativePath(folder, path);
+			return !rel.StartsWith("..", StringComparison.Ordinal) && !Path.IsPathRooted(rel) && rel != ".";
+		}
+		catch
+		{
+			string normPath = path.Replace('/', '\\').TrimEnd('\\');
+			string normFolder = folder.Replace('/', '\\').TrimEnd('\\');
+			return normPath.StartsWith(normFolder + '\\', StringComparison.OrdinalIgnoreCase);
+		}
 	}
 
 	/// <summary>
