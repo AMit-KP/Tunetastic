@@ -860,7 +860,13 @@ public class MusicPlayer
 
 				// Always move on here, even with Repeat One; replaying the song that just failed would fail again.
 				var result = backward ? await RetreatAndLoad(play) : await AdvanceAndLoad(autoChange: false, play);
-				if (result is not { Loaded: false }) break;
+				if (result == null)
+				{
+					Pause();
+					break;
+				}
+
+				if (result.Value.Loaded) break;
 
 				failedPath = result.Value.Path;
 				skipped.Add(failedPath);
