@@ -79,8 +79,15 @@ internal sealed class FlyleafMediaBackend : IMediaBackend
 	public async Task<bool> OpenAsync(string path)
 	{
 		// Flyleaf doesn't throw for a missing or unreadable file; it reports it in the result.
-		var result = await Task.Run(() => _player.Open(path));
-		return result.Success;
+		try
+		{
+			var result = await Task.Run(() => _player.Open(path)).WaitAsync(TimeSpan.FromSeconds(8));
+			return result.Success;
+		}
+		catch (Exception)
+		{
+			return false;
+		}
 	}
 
 	/// <summary>
