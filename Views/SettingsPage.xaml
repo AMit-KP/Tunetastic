@@ -179,6 +179,18 @@
 				<ToggleSwitch Name="AutoSyncSwitch" />
 			</dev:SettingsCard>
 
+			<dev:SettingsCard Description="Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details."
+			                  Header="CLI Output Style">
+				<ComboBox x:Name="CLIOutputColor">
+					<ComboBoxItem Content="Colorful"
+					              Tag="True"
+					              ToolTipService.ToolTip="Enables rich ANSI colors, status badges, and inline code formatting for terminal output." />
+					<ComboBoxItem Content="Plain Text"
+					              Tag="False"
+					              ToolTipService.ToolTip="Monochrome output without escape codes; ideal for redirecting to text files or minimal terminals." />
+				</ComboBox>
+			</dev:SettingsCard>
+
 			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
 			                      Description="Select which Pre-defined Libraries and Playlists to show/hide on Navigation"
 			                      Header="Libraries and Playlists to show">
@@ -451,6 +463,20 @@
 				              Toggled="MinimizeToTray_OnToggled" />
 			</dev:SettingsCard>
 
+			<dev:SettingsCard Description="Choose the style of the system tray icon."
+			                  Header="System tray icon style">
+				<ComboBox x:Name="SystemTrayIconStyle">
+					<ComboBoxItem Content="Full color"
+					              Tag="FullColor" />
+					<ComboBoxItem Content="Monochrome (Auto)"
+					              Tag="MonochromeAuto" />
+					<ComboBoxItem Content="Dark"
+					              Tag="Dark" />
+					<ComboBoxItem Content="Light"
+					              Tag="Light" />
+				</ComboBox>
+			</dev:SettingsCard>
+
 			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information."
 			                      Header="Taskbar Overlay Controls">
 				<ToggleSwitch x:Name="TaskBarOverlay"
@@ -550,6 +576,12 @@
 						<ToggleSwitch x:Name="VersionInfoToggle"
 						              Toggled="VersionInfoToggle_Toggled" />
 					</dev:SettingsCard>
+					<dev:SettingsCard Description="See what's new in this version"
+					                  Header="What's New">
+						<Button x:Name="WhatsNewButton"
+						        Click="WhatsNewButton_Click"
+						        Content="View What's New" />
+					</dev:SettingsCard>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"
@@ -621,16 +653,37 @@
 				                 Visibility="Collapsed" />
 			</dev:SettingsCard>
 
-			<!--  Reset  -->
+			<!--  Data Management  -->
 
 			<StackPanel Orientation="Horizontal"
 			            Spacing="10">
-				<FontIcon FontSize="{Binding ElementName=ResetTextBlock, Path=FontSize}"
-				          Glyph="&#xE777;" />
-				<TextBlock x:Name="ResetTextBlock"
+				<FontIcon FontSize="{Binding ElementName=DataManagementTextBlock, Path=FontSize}"
+				          Glyph="&#xE912;" />
+				<TextBlock x:Name="DataManagementTextBlock"
 				           Style="{ThemeResource TitleTextBlockStyle}"
-				           Text="Reset" />
+				           Text="Data Management" />
 			</StackPanel>
+			<dev:SettingsCard Description="Resets the play count to zero and clears the last played time for all songs."
+			                  Header="Reset Playback History">
+				<Button Content="Reset">
+					<Button.Flyout>
+						<Flyout x:Name="ResetHistoryFlyout">
+							<Flyout.FlyoutPresenterStyle>
+								<Style TargetType="FlyoutPresenter">
+									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
+								</Style>
+							</Flyout.FlyoutPresenterStyle>
+							<StackPanel Spacing="5">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Are you sure?" />
+								<Button Click="ResetHistoryConfirm_Click"
+								        Command="{x:Bind ViewModel.ResetHistoryCommand}"
+								        Content="Yes" />
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+			</dev:SettingsCard>
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
 				<Button Content="Reset">

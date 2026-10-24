@@ -22,7 +22,7 @@ public static class PostUpdateScanService
 	private static readonly HashSet<string> TargetVersions = new(StringComparer.OrdinalIgnoreCase)
 	{
 		// NOTE: Update the version for rescan
-		"1.61.0"
+		"1.72.9"
 	};
 
 	/// <summary>

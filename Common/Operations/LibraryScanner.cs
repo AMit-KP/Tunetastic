@@ -1,6 +1,5 @@
-﻿using System.Collections.Concurrent;
-using FlyleafLib;
-using FlyleafLib.MediaPlayer;
+using System.Collections.Concurrent;
+using Windows.Storage;
 
 namespace Tunetastic.Common.Operations;
 
@@ -195,10 +194,12 @@ public class LibraryScanner
 			}
 			catch (Exception)
 			{
-				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
-				await RefreshAutoScanResultMessage(message: "No tracks could be added");
+				// Never wipe the library on a failed scan: the failure can be transient (e.g. a locked
+				// database while another process writes), and deleting everything destroys data that the
+				// scan never touched. Leave the previous library in place and report the failure.
+				await RefreshAutoScanResultMessage(message: "Library scan failed; kept the existing library.");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-				return ("Error", "No tracks could be added", failedFiles.ToList());
+				return ("Error", "Library scan failed; kept the existing library.", failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
@@ -259,7 +260,9 @@ public class LibraryScanner
 				Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 				Genre = audioModel.Tag.Genres?.FirstOrDefault(g => !string.IsNullOrEmpty(g)) ?? "Unknown Genre",
 				Track = (int)audioModel.Tag.Track,
-				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
+				Cover = audioModel.Tag.Pictures?.Length > 0
+					? CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
+					: CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				Lyrics = audioModel.Tag.Lyrics,
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension,
@@ -292,26 +295,9 @@ public class LibraryScanner
 
 			if (song.Duration <= 0)
 			{
-				if (!FlyleafLib.Engine.IsLoaded)
-				{
-					var ffmpegPath = Path.Combine(AppContext.BaseDirectory, "Assets", "FFmpeg");
-					Engine.Start(new EngineConfig
-					{
-						UIRefresh = false,
-						FFmpegPath = ffmpegPath,
-					});
-				}
-
-				FlyleafLib.Config config = new FlyleafLib.Config();
-				config.Video.Enabled = false;
-				config.Audio.Enabled = true;
-				config.Player.AutoPlay = false;
-				var tempPlayer = new Player(config);
-				tempPlayer.Open(filePath);
-				song.Duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-				tempPlayer.Stop();
-				tempPlayer.Dispose();
-				song.PlayerType = "Flyleaf";
+				var d = FFmpegProbe.GetDuration(filePath);
+				if (d is { } dur && dur > TimeSpan.Zero)
+					song.Duration = dur.TotalSeconds;
 			}
 
 			return (song, true);
@@ -321,14 +307,10 @@ public class LibraryScanner
 			double duration = 0;
 			try
 			{
-				FlyleafLib.Config config = new FlyleafLib.Config();
-				config.Video.Enabled = false;
-				config.Audio.Enabled = true;
-				config.Player.AutoPlay = false;
-				var tempPlayer = new Player(config);
-				tempPlayer.Open(filePath);
-				duration = TimeSpan.FromTicks(tempPlayer.Duration).TotalSeconds;
-				tempPlayer.Dispose();
+				var file = await StorageFile.GetFileFromPathAsync(filePath);
+				var music = await file.Properties.GetMusicPropertiesAsync();
+
+				duration = music.Duration.TotalSeconds;
 			}
 			catch (Exception)
 			{
@@ -344,7 +326,7 @@ public class LibraryScanner
 				Path = filePath,
 				Year = "Unknown Year",
 				Genre = "Unknown Genre",
-				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
+				Cover = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension
 			};

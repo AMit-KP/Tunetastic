@@ -145,6 +145,7 @@ public class DatabaseHelper
 	/// <item><description><c>Genre</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for genre.</description></item>
 	/// <item><description><c>Year</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for year.</description></item>
 	/// <item><description><c>Lyrics</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for lyrics.</description></item>
+	/// <item><description><c>Track</c> (INTEGER, NOT NULL, DEFAULT 0) — Dirty flag for track number.</description></item>
 	/// </list>
 	/// </description>
 	/// </item>
@@ -186,7 +187,15 @@ public class DatabaseHelper
 	/// <returns>A <see cref="Task"/> that completes once schema creation, migration, and seeding have finished.</returns>
 	public async Task InitializeDatabase()
 	{
-		var dbPath = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tunetastic.db3");
+		// Testing hook: point the CLI (or any caller) at an isolated database file.
+		// When unset, the app's packaged LocalState database is used as before.
+		string? overridePath = Environment.GetEnvironmentVariable("TUNETASTIC_DB_PATH");
+		var dbPath = !string.IsNullOrWhiteSpace(overridePath)
+			? overridePath!
+			: Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "tunetastic.db3");
+		var directory = Path.GetDirectoryName(dbPath);
+		if (!string.IsNullOrEmpty(directory))
+			Directory.CreateDirectory(directory);
 		_database = new SQLiteAsyncConnection(dbPath);
 
 		await _database.ExecuteAsync("PRAGMA foreign_keys = ON");
@@ -292,7 +301,7 @@ public class DatabaseHelper
 									   Path TEXT PRIMARY KEY,
 									   FOREIGN KEY (Path) REFERENCES Songs(Path) ON DELETE CASCADE)");
 
-		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics" })
+		foreach (var col in new[] { "Cover", "Title", "Artist", "Album", "Genre", "Year", "Lyrics", "Track" })
 		{
 			await AddColumnIfMissing("PendingTagWrites", col, "INTEGER NOT NULL DEFAULT 0");
 		}
@@ -664,7 +673,7 @@ public class DatabaseHelper
 	public async Task UpdateSongsDatabase(List<Song> songs)
 	{
 		var existingSongData = await _database.QueryAsync<Song>("SELECT Path, PlayCount, DateLastPlayed FROM Songs");
-		var existingPlaylistLinks = await _database.QueryAsync<(int PlaylistId, string SongPath)>("SELECT PlaylistId, SongPath FROM PlaylistSongs");
+		var existingPlaylistLinks = await _database.QueryAsync<(int PlaylistId, string SongPath, int Position)>("SELECT PlaylistId, SongPath, Position FROM PlaylistSongs");
 
 		await DeleteAllSongsFromDB();
 
@@ -709,9 +718,14 @@ public class DatabaseHelper
 
 		await _database.RunInTransactionAsync(conn =>
 		{
+			var restoredPaths = new HashSet<string>(songs.Select(s => s.Path));
 			foreach (var link in existingPlaylistLinks)
 			{
-				conn.Execute("INSERT INTO PlaylistSongs (PlaylistId, SongPath) VALUES (?, ?)", link.PlaylistId, link.SongPath);
+				// Only restore links whose song survived the rescan; the CLI can link tracks that live
+				// outside the libraries, and restoring those would violate the foreign key and wipe the DB.
+				// Position is restored too, so playlist order survives a re-scan.
+				if (restoredPaths.Contains(link.SongPath))
+					conn.Execute("INSERT OR IGNORE INTO PlaylistSongs (PlaylistId, SongPath, Position) VALUES (?, ?, ?)", link.PlaylistId, link.SongPath, link.Position);
 			}
 		});
 
@@ -851,6 +865,55 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Retrieves a song from the database by its file path, ignoring case.
+	/// Used by the CLI import so a path passed with different casing resolves to the stored row
+	/// instead of creating a case-variant duplicate (the <c>Songs.Path</c> key uses binary collation).
+	/// Transient database lock contention is retried a few times with a short delay; when the
+	/// database stays busy the caller gets a friendly notification instead of a raw exception and
+	/// the lookup returns null. Other failures return null without noise, as before.
+	/// </summary>
+	/// <remarks>
+	/// A null result after exhausted retries is indistinguishable from "not stored"; a caller that
+	/// then inserts could in theory create a case-variant duplicate while another process holds a
+	/// long write lock. The window is narrow (a lookup that stays busy while a later insert in the
+	/// same run succeeds) and read contention is rare in practice, but callers that rely on this
+	/// lookup for history preservation should treat a null result as "unknown", not as proof that
+	/// the song is new.
+	/// </remarks>
+	/// <param name="path">The file path of the song to retrieve from the database.</param>
+	/// <returns>
+	/// A task that represents the asynchronous operation. The task result contains the matching
+	/// <see cref="Song"/> object if found, or null if no match is found or the lookup could not complete.
+	/// </returns>
+	public async Task<Song?> GetSongByPathNoCase(string path)
+	{
+		const int maxAttempts = 3;
+
+		for (int attempt = 1; ; attempt++)
+		{
+			try
+			{
+				var result = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Path = ? COLLATE NOCASE", path);
+				return result.Count > 0 ? result[0] : null;
+			}
+			catch (SQLiteException ex) when (ex.Result == SQLite3.Result.Busy || ex.Result == SQLite3.Result.Locked)
+			{
+				if (attempt >= maxAttempts)
+				{
+					if (MainWindow._instance is not null)
+						GlobalNotification.Error($"The music library database stayed busy, so the lookup for '{path}' could not complete. Close other apps using Tunetastic data and try again.");
+					return null;
+				}
+				await Task.Delay(TimeSpan.FromMilliseconds(40));
+			}
+			catch (Exception)
+			{
+				return null;
+			}
+		}
+	}
+
+	/// <summary>
 	/// Retrieves the PlayerType value for a song based on its file path.
 	/// This method queries the Songs table and returns the PlayerType associated with the specified path.
 	/// </summary>
@@ -959,6 +1022,18 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Resets the playback history for all songs in the database.
+	/// Sets <c>PlayCount</c> to 0 and <c>DateLastPlayed</c> to NULL for all songs.
+	/// </summary>
+	/// <returns>A task representing the asynchronous operation.</returns>
+	public async Task ResetAllPlaybackHistory()
+	{
+		await _database.ExecuteAsync("UPDATE Songs SET PlayCount = 0, DateLastPlayed = NULL");
+		OnPlayCountUpdated?.Invoke();
+		OnDateLastPlayedUpdated?.Invoke();
+	}
+
+	/// <summary>
 	/// Inserts a new pending tag write entry. Skips silently if the path already exists (enforced by PRIMARY KEY).
 	/// </summary>
 	/// <param name="path">The file path of the song whose tag write is pending.</param>
@@ -969,11 +1044,12 @@ public class DatabaseHelper
 	/// <param name="pendingGenre">1 when the genre still has to be written into the file; otherwise 0.</param>
 	/// <param name="pendingYear">1 when the year still has to be written into the file; otherwise 0.</param>
 	/// <param name="pendingLyrics">1 when the lyrics still have to be written into the file; otherwise 0.</param>
+	/// <param name="pendingTrack">1 when the track still has to be written into the file; otherwise 0.</param>
 	/// <returns>A task that represents the asynchronous operation of storing the pending write.</returns>
-	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0)
+	public async Task AddPendingTagWrite(string path, int pendingCover = 0, int pendingTitle = 0, int pendingArtist = 0, int pendingAlbum = 0, int pendingGenre = 0, int pendingYear = 0, int pendingLyrics = 0, int pendingTrack = 0)
 	{
-		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics);
+		await _database.ExecuteAsync("INSERT OR REPLACE INTO PendingTagWrites (Path, Cover, Title, Artist, Album, Genre, Year, Lyrics, Track) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+										path, pendingCover, pendingTitle, pendingArtist, pendingAlbum, pendingGenre, pendingYear, pendingLyrics, pendingTrack);
 	}
 
 	/// <summary>
@@ -1195,6 +1271,31 @@ public class DatabaseHelper
 		{
 			int position = 0;
 			foreach (var path in songPaths)
+			{
+				conn.Execute(@"UPDATE PlaylistSongs
+							   SET Position = ?
+							   WHERE PlaylistId = (SELECT Id FROM Playlists WHERE Name = ?)
+							   AND SongPath = ?", position++, playlistName, path);
+			}
+		});
+	}
+
+	/// <summary>
+	/// Reorders the songs in a specified playlist by updating their Position values
+	/// to match the provided ordered list of song paths.
+	/// </summary>
+	/// <param name="playlistName">The name of the playlist whose songs need to be reordered.</param>
+	/// <param name="orderedSongPaths">
+	/// A list of song file paths in the desired order. Each song's Position will be set
+	/// to its index in this list.
+	/// </param>
+	/// <returns>A task that represents the asynchronous operation of reordering songs in the playlist.</returns>
+	public async Task ReorderPlaylistSongs(string playlistName, List<string> orderedSongPaths)
+	{
+		await _database.RunInTransactionAsync(conn =>
+		{
+			int position = 0;
+			foreach (var path in orderedSongPaths)
 			{
 				conn.Execute(@"UPDATE PlaylistSongs
 							   SET Position = ?
@@ -1479,7 +1580,8 @@ public class DatabaseHelper
 	/// <see cref="AlbumModel"/> objects.</returns>
 	public async Task<List<AlbumModel>> GetSongsGroupedByAlbum(bool ascending = true)
 	{
-		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, Cover
+		var result = await _database.QueryAsync<AlbumModel>(@$"SELECT CASE WHEN TRIM(Album) = 'Unknown Album' THEN 'Unknown' ELSE Album END AS Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration,
+															   COALESCE(NULLIF(MAX(CASE WHEN Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN Cover END), ''), MAX(Cover), '') AS Cover
 															   FROM Songs
 															   WHERE Album IS NOT NULL AND TRIM(Album) != ''
 															   GROUP BY Album
@@ -2809,7 +2911,7 @@ public class DatabaseHelper
 										CASE WHEN TRIM(S.Album) = 'Unknown Album' THEN 'Unknown' ELSE S.Album END AS Album,
 										COUNT(*) AS Count,
 										SUM(S.Duration) AS TotalDuration,
-										COALESCE(MAX(S.Cover), '') AS Cover
+										COALESCE(NULLIF(MAX(CASE WHEN S.Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN S.Cover END), ''), MAX(S.Cover), '') AS Cover
 										FROM Songs S
 										JOIN ranks R ON R.Name = S.Album
 										GROUP BY S.Album
@@ -2828,7 +2930,8 @@ public class DatabaseHelper
 
 			results.Titles = await _database.QueryAsync<Song>("SELECT * FROM Songs WHERE Year = ? ORDER BY Title COLLATE NOCASE ASC LIMIT ?", y, limitPerCategory);
 
-			results.Albums = await _database.QueryAsync<AlbumModel>(@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration, COALESCE(MAX(Cover), '') AS Cover
+			results.Albums = await _database.QueryAsync<AlbumModel>($@"SELECT Album, COUNT(*) AS Count, SUM(Duration) AS TotalDuration,
+																	  COALESCE(NULLIF(MAX(CASE WHEN Cover NOT LIKE '%{Constants.DefaultCoverFileName}' THEN Cover END), ''), MAX(Cover), '') AS Cover
 																	  FROM Songs
 																	  WHERE Year = ? AND TRIM(Album) != ''
 																	  GROUP BY Album

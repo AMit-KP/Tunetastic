@@ -222,41 +222,6 @@
 		      Height="Auto"
 		      HorizontalAlignment="Center"
 		      VerticalAlignment="Center">
-			<ContentDialog x:Name="AddPlaylistDialog"
-			               Title="Create New Playlist"
-			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
-			               DefaultButton="Primary"
-			               IsPrimaryButtonEnabled="False"
-			               PrimaryButtonText="Create"
-			               SecondaryButtonText="Cancel"
-			               Visibility="Collapsed">
-				<StackPanel Spacing="10">
-					<TextBox x:Name="PlaylistNameBox"
-					         Width="400"
-					         PlaceholderText="Enter playlist name"
-					         TextChanged="OnPlaylistNameChanged" />
-					<TextBlock x:Name="ErrorMessage"
-					           Foreground="Red"
-					           Text=""
-					           TextWrapping="WrapWholeWords" />
-					<StackPanel Width="400"
-					            Orientation="Horizontal"
-					            Spacing="10">
-						<TextBlock x:Name="AddPlaylistDialogDescription"
-						           Width="290"
-						           VerticalAlignment="Center"
-						           TextWrapping="WrapWholeWords">
-							<Run Text="You can also select an existing playlist file." />
-							<LineBreak />
-							<Run Text="Supported formats: M3U, M3U8, PLS, WPL, ZPL" />
-						</TextBlock>
-						<Button Width="100"
-						        Click="BrowseButton_Click"
-						        Content="Browse"
-						        Style="{StaticResource AccentButtonStyle}" />
-					</StackPanel>
-				</StackPanel>
-			</ContentDialog>
 			<ContentDialog x:Name="SongInfo"
 			               Title="Song/Track Information"
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
@@ -390,31 +355,31 @@
 							<RowDefinition Height="Auto" />
 						</Grid.RowDefinitions>
 						<Grid Grid.Row="0"
-						      RowSpacing="5">
-							<Grid.RowDefinitions>
-								<RowDefinition Height="Auto" />
-								<RowDefinition Height="Auto" />
-							</Grid.RowDefinitions>
-							<TextBlock Grid.Row="0"
-							           FontWeight="ExtraBold"
-							           Style="{ThemeResource BodyTextBlockStyle}"
-							           Text="Genre:" />
-							<TextBlock x:Name="SongGenre"
-							           Grid.Row="1"
-							           IsTextSelectionEnabled="True"
-							           MaxLines="1"
-							           Style="{ThemeResource BodyTextBlockStyle}"
-							           TextTrimming="CharacterEllipsis" />
-						</Grid>
-						<Grid x:Name="OtherDetailsGrid"
-						      Grid.Row="1"
 						      ColumnSpacing="10">
 							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="Auto" />
-								<ColumnDefinition Width="Auto" />
-								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="120" />
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="70" />
 								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
+							<Grid Grid.Column="2"
+							      RowSpacing="5">
+								<Grid.RowDefinitions>
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+								</Grid.RowDefinitions>
+								<TextBlock Grid.Row="0"
+								           FontWeight="ExtraBold"
+								           Style="{ThemeResource BodyTextBlockStyle}"
+								           Text="Genre:" />
+								<TextBlock x:Name="SongGenre"
+								           Grid.Row="1"
+								           IsTextSelectionEnabled="True"
+								           MaxLines="1"
+								           Style="{ThemeResource BodyTextBlockStyle}"
+								           TextTrimming="CharacterEllipsis" />
+							</Grid>
 							<Grid Grid.Column="0"
 							      RowSpacing="5">
 								<Grid.RowDefinitions>
@@ -439,13 +404,39 @@
 								<TextBlock Grid.Row="0"
 								           FontWeight="ExtraBold"
 								           Style="{ThemeResource BodyTextBlockStyle}"
+								           Text="Track:" />
+								<TextBlock x:Name="SongTrack"
+								           Grid.Row="1"
+								           Style="{ThemeResource BodyTextBlockStyle}"
+								           TextWrapping="WrapWholeWords" />
+							</Grid>
+						</Grid>
+						<Grid x:Name="OtherDetailsGrid"
+						      Grid.Row="1"
+						      ColumnSpacing="10">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="120" />
+								<ColumnDefinition Width="Auto"
+								                  MinWidth="70" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<Grid Grid.Column="0"
+							      RowSpacing="5">
+								<Grid.RowDefinitions>
+									<RowDefinition Height="Auto" />
+									<RowDefinition Height="Auto" />
+								</Grid.RowDefinitions>
+								<TextBlock Grid.Row="0"
+								           FontWeight="ExtraBold"
+								           Style="{ThemeResource BodyTextBlockStyle}"
 								           Text="Duration:" />
 								<TextBlock x:Name="SongDuration"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
-							<Grid Grid.Column="2"
+							<Grid Grid.Column="1"
 							      RowSpacing="5">
 								<Grid.RowDefinitions>
 									<RowDefinition Height="Auto" />
@@ -460,7 +451,7 @@
 								           Style="{ThemeResource BodyTextBlockStyle}"
 								           TextWrapping="WrapWholeWords" />
 							</Grid>
-							<Grid Grid.Column="3"
+							<Grid Grid.Column="2"
 							      RowSpacing="5">
 								<Grid.RowDefinitions>
 									<RowDefinition Height="Auto" />
@@ -809,7 +800,8 @@
 						<Grid ColumnSpacing="8">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
-								<ColumnDefinition Width="160" />
+								<ColumnDefinition Width="130" />
+								<ColumnDefinition Width="130" />
 							</Grid.ColumnDefinitions>
 
 							<StackPanel Grid.Column="0"
@@ -866,6 +858,23 @@
 								         PlaceholderText="Enter Year"
 								         TextChanged="YearNumberBox_TextChanged" />
 							</StackPanel>
+
+							<StackPanel Grid.Column="2"
+							            Spacing="4">
+								<StackPanel Orientation="Horizontal"
+								            Spacing="8">
+									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+									           Text="Track" />
+									<ContentControl x:Name="TrackChanged"
+									                Content="CHANGED"
+									                Style="{StaticResource NewBadgeStyle}"
+									                Visibility="Collapsed" />
+								</StackPanel>
+								<TextBox x:Name="TrackNumberBox"
+								         MaxLength="4"
+								         PlaceholderText="Enter Track"
+								         TextChanged="TrackNumberBox_TextChanged" />
+							</StackPanel>
 						</Grid>
 
 						<Grid Height="400"
@@ -900,6 +909,118 @@
 					<x:Double x:Key="ContentDialogMinWidth">550</x:Double>
 				</ContentDialog.Resources>
 			</ContentDialog>
+		</Grid>
+
+		<!--
+			Custom modal overlay for playlist creation: mirrors the ContentDialog look, but lives in the page
+			tree so its drop zone can receive file drops — modal popups are hosted in separate input islands
+			that never receive shell drag-and-drop.
+		-->
+		<Grid x:Name="AddPlaylistOverlay"
+		      Background="#80000000"
+		      KeyboardAcceleratorPlacementMode="Hidden"
+		      Visibility="Collapsed">
+			<Grid.KeyboardAccelerators>
+				<KeyboardAccelerator Key="Escape"
+				                     Invoked="AddPlaylistOverlay_Escape" />
+			</Grid.KeyboardAccelerators>
+			<Border Width="450"
+			        HorizontalAlignment="Center"
+			        VerticalAlignment="Center"
+			        Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
+			        BorderBrush="{ThemeResource ContentDialogBorderBrush}"
+			        BorderThickness="1"
+			        CornerRadius="{ThemeResource OverlayCornerRadius}">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="*" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+					<StackPanel Grid.Row="0"
+					            Padding="24"
+					            Background="#0FFFFFFF"
+					            Spacing="10">
+						<TextBlock Margin="0,0,0,8"
+						           FontSize="20"
+						           FontWeight="SemiBold"
+						           Text="Create New Playlist" />
+						<TextBox x:Name="PlaylistNameBox"
+						         KeyDown="PlaylistNameBox_KeyDown"
+						         PlaceholderText="Enter playlist name"
+						         TextChanged="OnPlaylistNameChanged" />
+						<TextBlock x:Name="ErrorMessage"
+						           Foreground="Red"
+						           Text=""
+						           TextWrapping="WrapWholeWords" />
+						<StackPanel Orientation="Horizontal"
+						            Spacing="10">
+							<TextBlock x:Name="AddPlaylistDialogDescription"
+							           Width="290"
+							           VerticalAlignment="Center"
+							           TextWrapping="WrapWholeWords">
+								<Run Text="You can also select an existing playlist file." />
+								<LineBreak />
+								<Run Text="Supported formats: M3U, M3U8, PLS, WPL, ZPL" />
+							</TextBlock>
+							<Button Width="100"
+							        Click="BrowseButton_Click"
+							        Content="Browse"
+							        Style="{StaticResource AccentButtonStyle}" />
+						</StackPanel>
+						<Border x:Name="PlaylistDropZone"
+						        MinHeight="96"
+						        Padding="12"
+						        AllowDrop="True"
+						        Background="{ThemeResource LayerFillColorDefaultBrush}"
+						        BorderBrush="{ThemeResource ControlStrokeColorSecondaryBrush}"
+						        BorderThickness="1"
+						        CornerRadius="{ThemeResource ControlCornerRadius}"
+						        DragEnter="PlaylistDropZone_DragEnter"
+						        DragLeave="PlaylistDropZone_DragLeave"
+						        DragOver="PlaylistDropZone_DragOver"
+						        Drop="PlaylistDropZone_Drop">
+							<StackPanel HorizontalAlignment="Center"
+							            VerticalAlignment="Center"
+							            Spacing="6">
+								<FontIcon HorizontalAlignment="Center"
+								          FontSize="24"
+								          Glyph="&#xE8E5;" />
+								<TextBlock HorizontalAlignment="Center"
+								           Text="Drag &amp; drop a playlist file here" />
+							</StackPanel>
+						</Border>
+						<TextBlock x:Name="AddPlaylistSongsNote"
+						           Margin="0,8,0,0"
+						           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+						           Text="The selected songs/tracks will be automatically added to this playlist."
+						           TextWrapping="WrapWholeWords"
+						           Visibility="Collapsed">
+						</TextBlock>
+					</StackPanel>
+					<Border Grid.Row="1"
+					        Padding="24"
+					        BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+					        BorderThickness="0,1,0,0">
+						<Grid ColumnSpacing="8">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<Button x:Name="AddPlaylistCreateButton"
+							        Grid.Column="0"
+							        HorizontalAlignment="Stretch"
+							        Click="AddPlaylistCreateButton_Click"
+							        Content="Create"
+							        IsEnabled="False"
+							        Style="{StaticResource AccentButtonStyle}" />
+							<Button Grid.Column="1"
+							        HorizontalAlignment="Stretch"
+							        Click="AddPlaylistCancelButton_Click"
+							        Content="Cancel" />
+						</Grid>
+					</Border>
+				</Grid>
+			</Border>
 		</Grid>
 	</Grid>
 </Page>

@@ -1,5 +1,7 @@
-﻿using System.Globalization;
+﻿using System.Collections.Concurrent;
+using System.Globalization;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Tunetastic.Common.Converters;
 
@@ -267,6 +269,70 @@ public class TrackNumberConverter : IValueConverter
 	/// <param name="parameter">An optional parameter to be used during the conversion. Not used in this implementation.</param>
 	/// <param name="language">The culture or language information for conversion. Not used in this implementation.</param>
 	/// <returns>Throws a <see cref="NotImplementedException"/> because this method is not implemented.</returns>
+	public object ConvertBack(object value, Type targetType, object parameter, string language)
+		=> throw new NotImplementedException();
+}
+
+/// <summary>
+/// Turns a cover thumbnail file path into a cached, decode-sized <see cref="BitmapImage"/> for use in
+/// virtualized lists and tile grids.
+/// </summary>
+/// <remarks>
+/// Cover thumbnails are stored on disk as PNGs and bound into <c>Image.Source</c> by path. Without this
+/// converter every container realization builds a fresh <see cref="BitmapImage"/> and re-decodes the file
+/// from disk — and scrolling back re-decodes the same covers again. This converter:
+/// <list type="bullet">
+///   <item><description>caches one decoded <see cref="BitmapImage"/> per path, so realizations and scroll-back reuse it;</description></item>
+///   <item><description>caps the decode size via <see cref="BitmapImage.DecodePixelWidth"/>/<see cref="BitmapImage.DecodePixelHeight"/> to the on-screen tile size, cutting decode cost and memory.</description></item>
+/// </list>
+/// The cache is process-wide and bounded: when it grows past <see cref="MaxCacheEntries"/> (a safety valve
+/// for pathologically large libraries) it is cleared once, trading a rare re-decode burst for bounded
+/// memory. Must be evaluated on the UI thread (as all bindings are).
+/// </remarks>
+public class CoverImageConverter : IValueConverter
+{
+	/// <summary>On-screen decode size (px) for the small thumbnails used in lists and grids.</summary>
+	private const int DecodeSize = 200;
+
+	/// <summary>Upper bound on cached entries before the cache is cleared as a memory safety valve.</summary>
+	private const int MaxCacheEntries = 3000;
+
+	private static readonly ConcurrentDictionary<string, BitmapImage> Cache = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>Converts a cover path (or empty/null) into a cached, decode-sized <see cref="BitmapImage"/>.</summary>
+	/// <param name="value">The cover file path. Empty/null yields <c>null</c> so the Image shows nothing.</param>
+	/// <param name="targetType">Unused.</param>
+	/// <param name="parameter">Unused.</param>
+	/// <param name="language">Unused.</param>
+	/// <returns>A cached <see cref="BitmapImage"/>, or <c>null</c> when there is no cover.</returns>
+	public object? Convert(object? value, Type targetType, object? parameter, string language)
+	{
+		var path = value as string;
+		if (string.IsNullOrEmpty(path))
+			return null;
+
+		if (Cache.TryGetValue(path, out var existing))
+			return existing;
+
+		if (Cache.Count >= MaxCacheEntries)
+			Cache.Clear();
+
+		return Cache.GetOrAdd(path, CreateImage);
+	}
+
+	/// <summary>Builds a decode-sized <see cref="BitmapImage"/> for the given path. Called at most once per path (until a cache clear).</summary>
+	private static BitmapImage CreateImage(string path)
+	{
+		var image = new BitmapImage
+		{
+			DecodePixelWidth = DecodeSize,
+			DecodePixelHeight = DecodeSize
+		};
+		image.UriSource = new Uri(path);
+		return image;
+	}
+
+	/// <summary>Not supported — this is a one-way converter.</summary>
 	public object ConvertBack(object value, Type targetType, object parameter, string language)
 		=> throw new NotImplementedException();
 }

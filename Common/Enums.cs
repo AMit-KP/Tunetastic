@@ -1,4 +1,4 @@
-﻿namespace Tunetastic.Common;
+namespace Tunetastic.Common;
 
 // ─────────────────────────────────────────────────────────────
 //  Playback enums
@@ -291,6 +291,23 @@ public enum LocalSave
 	ScanResult_FolderCount,
 	ScanResult_Time,
 	ScanResult_Message,
-	PostUpdateScanDoneVersion
+	PostUpdateScanDoneVersion,
+	SystemTrayIconStyle,
+	CLIOutputColorEnabled,
+	WhatsNewDoneVersion
+}
+
+public enum SystemTrayIconStyle
+{
+	FullColor,
+	MonochromeAuto,
+	Dark,
+	Light
+}
+
+public enum AddPlaylistResult
+{
+	Cancelled,
+	Created
 }
 
