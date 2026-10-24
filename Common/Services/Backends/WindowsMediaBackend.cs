@@ -1,4 +1,4 @@
-﻿using Windows.Media.Playback;
+using Windows.Media.Playback;
 
 namespace Tunetastic.Common.Services.Backends;
 
@@ -38,6 +38,7 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	{
 		_player = player;
 		_player.MediaOpened += OnMediaOpened;
+		_player.MediaFailed += OnMediaFailed;
 		_player.MediaEnded += OnMediaEnded;
 		_player.PlaybackSession.PlaybackStateChanged += OnPlaybackStateChanged;
 
@@ -85,12 +86,9 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	/// Asynchronously opens the specified media file for playback.
 	/// </summary>
 	/// <param name="path">The path to the media file.</param>
-	/// <returns>False if the file could not be opened (missing, unreachable or unreadable).</returns>
+	/// <returns>False if the file could not be opened (missing, unreachable, corrupt or unreadable).</returns>
 	public async Task<bool> OpenAsync(string path)
 	{
-		// Setting Source never throws for a missing file; the result only arrives later. Wait for
-		// this source's own OpenOperationCompleted rather than the player's MediaFailed, which can
-		// still be on its way for a previous source.
 		var opened = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		// A source that gets replaced before it finishes opening may never report back. Release
@@ -98,17 +96,31 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		Interlocked.Exchange(ref _pendingOpen, opened)?.TrySetResult(true);
 
 		_isLoading = true;
-		var source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(path));
-		source.OpenOperationCompleted += (s, e) => opened.TrySetResult(e.Error == null);
-		_player.Source = source;
+		Windows.Media.Core.MediaSource? source = null;
+		try
+		{
+			source = Windows.Media.Core.MediaSource.CreateFromUri(new Uri(path));
+			source.OpenOperationCompleted += (s, e) => opened.TrySetResult(e.Error == null);
+			_player.Source = source;
 
-		bool success = await opened.Task;
-		Interlocked.CompareExchange(ref _pendingOpen, null, opened);
-
-		// MediaOpened, which normally clears this, never fires for a failed source. Left set, it
-		// would hide every later state change from the UI.
-		if (!success) _isLoading = false;
-		return success;
+			bool success = await opened.Task;
+			if (!success)
+			{
+				_isLoading = false;
+				source.Dispose();
+			}
+			return success;
+		}
+		catch (Exception)
+		{
+			_isLoading = false;
+			source?.Dispose();
+			return false;
+		}
+		finally
+		{
+			Interlocked.CompareExchange(ref _pendingOpen, null, opened);
+		}
 	}
 
 	/// <summary>
@@ -157,6 +169,17 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	}
 
 	/// <summary>
+	/// Handles the media failed event.
+	/// </summary>
+	/// <param name="sender">The sender of the event.</param>
+	/// <param name="args">The event arguments.</param>
+	private void OnMediaFailed(MediaPlayer sender, MediaPlayerFailedEventArgs args)
+	{
+		_isLoading = false;
+		_pendingOpen?.TrySetResult(false);
+	}
+
+	/// <summary>
 	/// Handles the media ended event.
 	/// </summary>
 	/// <param name="sender">The sender of the event.</param>
@@ -194,7 +217,9 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		_disposed = true;
 		_positionTimer?.Dispose();
 		_player.MediaOpened -= OnMediaOpened;
+		_player.MediaFailed -= OnMediaFailed;
 		_player.MediaEnded -= OnMediaEnded;
 		_player.PlaybackSession.PlaybackStateChanged -= OnPlaybackStateChanged;
 	}
 }
+
