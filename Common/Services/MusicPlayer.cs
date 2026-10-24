@@ -1067,6 +1067,7 @@ public class MusicPlayer
 			return;
 
 		Pause();
+		++_loadGeneration;
 		_activeBackend.Stop();
 		_activeBackend.Dispose();
 
@@ -1191,6 +1192,7 @@ public class MusicPlayer
 			OriginalPlaylist = null;
 			ActualPlaylist = OriginalPlaylist = new List<string>();
 			CurrentSong = "";
+			++_loadGeneration;
 			_activeBackend.Stop();
 			SMTCPlayer.Source = null;
 			localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));

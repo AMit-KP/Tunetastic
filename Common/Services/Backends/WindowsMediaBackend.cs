@@ -147,8 +147,9 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	public void Stop()
 	{
 		_player.Source = null;
+		_isLoading = false;
 		// The removed source will never report back, so release a load still waiting on it.
-		Interlocked.Exchange(ref _pendingOpen, null)?.TrySetResult(true);
+		Interlocked.Exchange(ref _pendingOpen, null)?.TrySetResult(false);
 		_positionTimer?.Change(Timeout.Infinite, Timeout.Infinite);
 	}
 
@@ -215,6 +216,8 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 	{
 		if (_disposed) return;
 		_disposed = true;
+		_isLoading = false;
+		Interlocked.Exchange(ref _pendingOpen, null)?.TrySetResult(false);
 		_positionTimer?.Dispose();
 		_player.MediaOpened -= OnMediaOpened;
 		_player.MediaFailed -= OnMediaFailed;
