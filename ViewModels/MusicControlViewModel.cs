@@ -393,6 +393,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 		{
 			if (MusicPlayer.Instance.SMTC != null)
 				MusicPlayer.Instance.SMTC.PlaybackStatus = MediaPlaybackStatus.Paused;
+			_musicPlayer.CancelSkipUnplayableSongs();
 			_musicPlayer.Pause();
 			_playbackTracker.PausePlayback();
 		}

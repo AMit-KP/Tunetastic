@@ -288,6 +288,7 @@ public class MusicPlayer
 	/// </param>
 	public async void LoadPlaylist(List<string> songPaths, string? startingSong = null, bool play = true, bool dontReloadCurrent = false)
 	{
+		CancelSkipUnplayableSongs();
 		var firstSong = startingSong ?? songPaths[0];
 		bool loaded = await TryLoadSong(firstSong, play, dontReloadCurrent: dontReloadCurrent);
 		await Task.Run(() =>
@@ -309,6 +310,7 @@ public class MusicPlayer
 	/// <param name="startup">Indicates whether this is a startup load operation. Default is false.</param>
 	public async void LoadPlaylist(string? startingSong, bool play = true, bool dontReloadCurrent = false, bool startup = false)
 	{
+		CancelSkipUnplayableSongs();
 		bool loaded = await TryLoadSong(startingSong, play, dontReloadCurrent: dontReloadCurrent, startup: startup);
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -440,6 +442,7 @@ public class MusicPlayer
 	/// <remarks>If the song cannot be loaded, playback skips forward to the next song that can.</remarks>
 	public async Task LoadSong(string? songPath, bool play = true, FadeType? fadeType = null, bool dontReloadCurrent = false, bool startup = false)
 	{
+		CancelSkipUnplayableSongs();
 		if (!await TryLoadSong(songPath, play, fadeType, dontReloadCurrent, startup))
 			await SkipUnplayableSongs(songPath, play);
 	}
@@ -648,6 +651,7 @@ public class MusicPlayer
 		{
 			if (ActualPlaylist?.Count > 0)
 			{
+				CancelSkipUnplayableSongs();
 				var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 				bool restartOnPrevious = bool.Parse(localSettings.Values[nameof(LocalSave.PreviousResetStatus)]?.ToString() ?? "false");
 
@@ -685,6 +689,7 @@ public class MusicPlayer
 	{
 		if (LibraryScanner.IsScanning) return;
 
+		CancelSkipUnplayableSongs();
 		bool play = autoChange || IsPlaying;
 		var result = await AdvanceAndLoad(autoChange, play);
 		if (result is { Loaded: false })
@@ -794,8 +799,24 @@ public class MusicPlayer
 	}
 
 	private const int MaxSongsToSkip = 10;
-	private bool _skippingUnplayableSongs;
+	private readonly object _skipLock = new();
+	private CancellationTokenSource? _skipCts;
 	private int _loadGeneration;
+
+	/// <summary>
+	/// Cancels any in-flight unplayable song skip loop.
+	/// </summary>
+	public void CancelSkipUnplayableSongs()
+	{
+		lock (_skipLock)
+		{
+			if (_skipCts != null)
+			{
+				_skipCts.Cancel();
+				_skipCts = null;
+			}
+		}
+	}
 	private string? _lastNotification;
 	private DateTime _lastNotificationTime;
 
@@ -834,16 +855,26 @@ public class MusicPlayer
 	/// </param>
 	private async Task SkipUnplayableSongs(string? failedPath, bool play, bool backward = false)
 	{
-		// LoadPlaylist and Next can both hit the same failure; one loop is enough.
-		if (_skippingUnplayableSongs) return;
-		_skippingUnplayableSongs = true;
+		CancellationTokenSource cts;
+		lock (_skipLock)
+		{
+			_skipCts?.Cancel();
+			cts = new CancellationTokenSource();
+			_skipCts = cts;
+		}
+
 		try
 		{
+			var token = cts.Token;
 			var skipped = new List<string?> { failedPath };
 
 			while (true)
 			{
-				var unavailableFolder = await GetUnavailableLibraryFolder(failedPath);
+				if (token.IsCancellationRequested) return;
+
+				var unavailableFolder = await GetUnavailableLibraryFolder(failedPath, token);
+				if (token.IsCancellationRequested) return;
+
 				if (unavailableFolder != null)
 				{
 					Pause();
@@ -860,6 +891,8 @@ public class MusicPlayer
 
 				// Always move on here, even with Repeat One; replaying the song that just failed would fail again.
 				var result = backward ? await RetreatAndLoad(play) : await AdvanceAndLoad(autoChange: false, play);
+				if (token.IsCancellationRequested) return;
+
 				if (result == null)
 				{
 					Pause();
@@ -872,6 +905,8 @@ public class MusicPlayer
 				skipped.Add(failedPath);
 			}
 
+			if (token.IsCancellationRequested) return;
+
 			if (skipped.Count == 1)
 				NotifyOnce(skipped[0] != null ? $"Could not load song:\n{skipped[0]}" : "Could not load next song.", warning: false);
 			else
@@ -879,7 +914,14 @@ public class MusicPlayer
 		}
 		finally
 		{
-			_skippingUnplayableSongs = false;
+			lock (_skipLock)
+			{
+				if (_skipCts == cts)
+				{
+					_skipCts = null;
+				}
+			}
+			cts.Dispose();
 		}
 	}
 
@@ -888,11 +930,14 @@ public class MusicPlayer
 	/// </summary>
 	/// <param name="songPath">The song to check.</param>
 	/// <returns>The unreachable library folder, or null if it is reachable or the song isn't in a library.</returns>
-	private static async Task<string?> GetUnavailableLibraryFolder(string? songPath)
+	private static async Task<string?> GetUnavailableLibraryFolder(string? songPath, CancellationToken token = default)
 	{
-		if (string.IsNullOrEmpty(songPath)) return null;
+		if (string.IsNullOrEmpty(songPath) || token.IsCancellationRequested) return null;
 
-		var library = (await DatabaseHelper.Instance.GetAllLibraries())
+		var libraries = await DatabaseHelper.Instance.GetAllLibraries();
+		if (token.IsCancellationRequested) return null;
+
+		var library = libraries
 			.Select(l => l.Path)
 			.Where(folder => IsInFolder(songPath, folder))
 			.OrderByDescending(folder => folder.Length)
@@ -900,8 +945,15 @@ public class MusicPlayer
 		if (library == null) return null;
 
 		// Directory.Exists can take several seconds on a disconnected network path.
-		bool reachable = await Task.Run(() => Directory.Exists(library));
-		return reachable ? null : library;
+		try
+		{
+			bool reachable = await Task.Run(() => Directory.Exists(library), token);
+			return reachable ? null : library;
+		}
+		catch (OperationCanceledException)
+		{
+			return null;
+		}
 	}
 
 	/// <summary>
@@ -1072,6 +1124,7 @@ public class MusicPlayer
 		if (pendingPaths.Count == 0)
 			return;
 
+		CancelSkipUnplayableSongs();
 		Pause();
 		++_loadGeneration;
 		_activeBackend.Stop();
@@ -1192,6 +1245,7 @@ public class MusicPlayer
 		var track = song ?? await DatabaseHelper.Instance.GetSongByPath(CurrentSong);
 		if (track == null)
 		{
+			CancelSkipUnplayableSongs();
 			Pause();
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			ActualPlaylist = null;
