@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
+using System.Diagnostics;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Tunetastic.Common.Infrastructure;
 
@@ -22,9 +23,9 @@ public static class GlobalNotification
 	/// The notification will be shown with a blue color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the notification.</param>
-	public async static void Info(string message)
+	public static void Info(string message)
 	{
-		Growl.InfoGlobal(new GrowlInfo
+		Show(() => Growl.InfoGlobal(new GrowlInfo
 		{
 			ShowDateTime = false,
 			IsIconVisible = true,
@@ -36,11 +37,7 @@ public static class GlobalNotification
 			IsClosable = true,
 			Title = $"{ProcessInfoHelper.ProductName} ({ProcessInfoHelper.VersionWithPrefix})",
 			Message = message,
-		});
-
-		await Task.Delay(20);
-
-		MainWindow._instance.BringToFront();
+		}));
 	}
 
 	/// <summary>
@@ -48,9 +45,9 @@ public static class GlobalNotification
 	/// The notification will be shown with a green color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the notification.</param>
-	public async static void Success(string message)
+	public static void Success(string message)
 	{
-		Growl.SuccessGlobal(new GrowlInfo
+		Show(() => Growl.SuccessGlobal(new GrowlInfo
 		{
 			ShowDateTime = false,
 			IsIconVisible = true,
@@ -62,11 +59,7 @@ public static class GlobalNotification
 			IsClosable = true,
 			Title = $"{ProcessInfoHelper.ProductName} ({ProcessInfoHelper.VersionWithPrefix})",
 			Message = message,
-		});
-
-		await Task.Delay(20);
-
-		MainWindow._instance.BringToFront();
+		}));
 	}
 
 	/// <summary>
@@ -74,9 +67,9 @@ public static class GlobalNotification
 	/// The notification will be shown with a red color and will automatically close.
 	/// </summary>
 	/// <param name="message">The error message content to display in the notification.</param>
-	public async static void Error(string message)
+	public static void Error(string message)
 	{
-		Growl.ErrorGlobal(new GrowlInfo
+		Show(() => Growl.ErrorGlobal(new GrowlInfo
 		{
 			ShowDateTime = false,
 			IsIconVisible = true,
@@ -87,11 +80,7 @@ public static class GlobalNotification
 			WaitTime = TimeSpan.FromSeconds(10),
 			Title = "Tunetastic",
 			Message = message
-		});
-
-		await Task.Delay(20);
-
-		MainWindow._instance.BringToFront();
+		}));
 	}
 
 	/// <summary>
@@ -99,9 +88,9 @@ public static class GlobalNotification
 	/// The notification will be shown with a yellow color and will automatically close.
 	/// </summary>
 	/// <param name="message">The message content to display in the warning notification.</param>
-	public async static void Warning(string message)
+	public static void Warning(string message)
 	{
-		Growl.WarningGlobal(new GrowlInfo
+		Show(() => Growl.WarningGlobal(new GrowlInfo
 		{
 			ShowDateTime = false,
 			IsIconVisible = true,
@@ -112,10 +101,53 @@ public static class GlobalNotification
 			IsClosable = true,
 			Title = "Tunetastic",
 			Message = message
+		}));
+	}
+
+	/// <summary>
+	/// Dispatches the notification creation and display onto the UI thread safely.
+	/// </summary>
+	/// <param name="growlAction">The delegate creating and presenting the Growl notification.</param>
+	private static void Show(Action growlAction)
+	{
+		RunOnUIThread(async () =>
+		{
+			try
+			{
+				growlAction();
+				await Task.Delay(20);
+				MainWindow._instance?.BringToFront();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"[GlobalNotification] Failed to show notification: {ex}");
+			}
 		});
+	}
 
-		await Task.Delay(20);
+	/// <summary>
+	/// Runs the given action on the UI thread using the main window's DispatcherQueue.
+	/// If no dispatcher is available (e.g. during early startup or late teardown),
+	/// the action is safely dropped to avoid cross-thread COM exceptions.
+	/// </summary>
+	/// <param name="action">The action to run.</param>
+	private static void RunOnUIThread(Action action)
+	{
+		var dispatcherQueue = App.MainWindow?.DispatcherQueue;
+		if (dispatcherQueue == null)
+		{
+			Debug.WriteLine("[GlobalNotification] No UI DispatcherQueue available; notification dropped.");
+			return;
+		}
 
-		MainWindow._instance.BringToFront();
+		if (dispatcherQueue.HasThreadAccess)
+		{
+			action();
+		}
+		else
+		{
+			dispatcherQueue.TryEnqueue(() => action());
+		}
 	}
 }
+
