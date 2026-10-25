@@ -456,7 +456,7 @@ public class MusicPlayer
 		try
 		{
 			if (string.IsNullOrWhiteSpace(songPath)) return true;
-			int loadId = ++_loadGeneration;
+			int loadId = Interlocked.Increment(ref _loadGeneration);
 
 			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 			var position = MusicControl._instance?.ViewModel?.ProgressBarValue ?? 0;
@@ -807,7 +807,7 @@ public class MusicPlayer
 	private const int MaxSongsToSkip = 10;
 	private readonly object _skipLock = new();
 	private CancellationTokenSource? _skipCts;
-	private int _loadGeneration;
+	private volatile int _loadGeneration;
 
 	/// <summary>
 	/// Cancels any in-flight unplayable song skip loop.
@@ -1144,7 +1144,7 @@ public class MusicPlayer
 
 		CancelSkipUnplayableSongs();
 		Pause();
-		++_loadGeneration;
+		Interlocked.Increment(ref _loadGeneration);
 		_activeBackend.Stop();
 		_activeBackend.Dispose();
 
@@ -1270,7 +1270,7 @@ public class MusicPlayer
 			OriginalPlaylist = null;
 			ActualPlaylist = OriginalPlaylist = new List<string>();
 			CurrentSong = "";
-			++_loadGeneration;
+			Interlocked.Increment(ref _loadGeneration);
 			_activeBackend.Stop();
 			SMTCPlayer.Source = null;
 			localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
