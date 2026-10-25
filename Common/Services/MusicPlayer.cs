@@ -528,16 +528,22 @@ public class MusicPlayer
 						: CrossfadeTransition(capturedSong, selectedFadeTime));
 				}*/
 
+			var previousSong = CurrentSong;
+			CurrentSong = capturedSong;
+
 			bool opened = await _activeBackend.OpenAsync(capturedSong);
 			// A newer load started while this one was opening. It owns playback now, so this one
 			// must neither start playing nor count as a failure.
 			if (loadId != _loadGeneration) return true;
-			if (!opened) return false;
+			if (!opened)
+			{
+				CurrentSong = previousSong;
+				return false;
+			}
+
+			localSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
 
 			if (capturedPlay) Play(capturedPosition);
-
-			CurrentSong = capturedSong;
-			localSettings.Values[nameof(LocalSave.LastPlayedTrack)] = CurrentSong;
 			return true;
 		}
 		catch (Exception)

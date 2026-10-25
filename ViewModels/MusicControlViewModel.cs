@@ -596,7 +596,6 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// is intended to be called when a new media file is successfully opened for playback.</remarks>
 	private async void PlaybackSession_MediaOpenedAsync()
 	{
-		await Task.Delay(50);
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			var songPath = _musicPlayer.CurrentSong;
