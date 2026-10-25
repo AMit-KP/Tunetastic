@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <views:SongListPageBase x:Class="Tunetastic.Views.LibraryViews.YearDetailPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
-      xmlns:common="using:Tunetastic.Common"
-      xmlns:views="using:Tunetastic.Views.Common"
-      xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:dev="using:DevWinUI"
-      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      ActualThemeChanged="Page_ActualThemeChanged"
-      Loaded="Page_Loaded"
-      SizeChanged="Page_SizeChanged"
-      mc:Ignorable="d">
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+                        xmlns:common="using:Tunetastic.Common"
+                        xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+                        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                        xmlns:dev="using:DevWinUI"
+                        xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                        xmlns:scrubber="using:Tunetastic.Common.Controls"
+                        xmlns:views="using:Tunetastic.Views.Common"
+                        Loaded="Page_Loaded"
+                        SizeChanged="Page_SizeChanged"
+                        mc:Ignorable="d">
 
 	<views:SongListPageBase.Resources>
 		<MenuFlyout x:Key="RightClickMenu"
@@ -142,6 +142,10 @@
 								                     Click="SortButton_OnClick"
 								                     GroupName="SortBy"
 								                     Text="Duration" />
+								<RadioMenuFlyoutItem x:Name="TrackSort"
+								                     Click="SortButton_OnClick"
+								                     GroupName="SortBy"
+								                     Text="Track" />
 								<MenuFlyoutSeparator />
 								<RadioMenuFlyoutItem x:Name="Ascending"
 								                     Click="SortButton_OnClick"
@@ -290,7 +294,7 @@
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind YearGroupSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
-				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				          ScrollViewer.VerticalScrollMode="Enabled"
 				          SelectionChanged="ListView_SelectionChanged"
 				          SelectionMode="Single">
@@ -347,7 +351,7 @@
 								      Margin="0,2,0,2"
 								      CornerRadius="10">
 									<Image VerticalAlignment="Center"
-									       Source="{x:Bind Cover}" />
+									       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
 								</Grid>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
@@ -413,7 +417,6 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 				</ListView>
@@ -429,7 +432,7 @@
 				          ItemClick="ListView_ItemClick"
 				          ItemsSource="{x:Bind YearGroupSongs}"
 				          ScrollViewer.CanContentRenderOutsideBounds="False"
-				          ScrollViewer.VerticalScrollBarVisibility="Visible"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
 				          ScrollViewer.VerticalScrollMode="Enabled"
 				          SelectionChanged="ListView_SelectionChanged"
 				          SelectionMode="Single">
@@ -468,7 +471,7 @@
 											      CornerRadius="10">
 												<Image HorizontalAlignment="Center"
 												       VerticalAlignment="Center"
-												       Source="{x:Bind Cover}" />
+												       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
 											</Grid>
 										</Grid>
 										<StackPanel Grid.Column="2"
@@ -580,19 +583,12 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 
 				</ListView>
 			</Grid>
-			<StackPanel x:Name="AlphabetNavigationPanel"
-			            Margin="0,50,30,10"
-			            HorizontalAlignment="Right"
-			            VerticalAlignment="Stretch"
-			            Orientation="Vertical"
-			            Spacing="0">
-			</StackPanel>
+			<scrubber:AlphabetScrubber x:Name="AlphabetScrubber" />
 		</Grid>
 	</Grid>
 </views:SongListPageBase>

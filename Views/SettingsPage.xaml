@@ -179,6 +179,18 @@
 				<ToggleSwitch Name="AutoSyncSwitch" />
 			</dev:SettingsCard>
 
+			<dev:SettingsCard Description="Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details."
+			                  Header="CLI Output Style">
+				<ComboBox x:Name="CLIOutputColor">
+					<ComboBoxItem Content="Colorful"
+					              Tag="True"
+					              ToolTipService.ToolTip="Enables rich ANSI colors, status badges, and inline code formatting for terminal output." />
+					<ComboBoxItem Content="Plain Text"
+					              Tag="False"
+					              ToolTipService.ToolTip="Monochrome output without escape codes; ideal for redirecting to text files or minimal terminals." />
+				</ComboBox>
+			</dev:SettingsCard>
+
 			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
 			                      Description="Select which Pre-defined Libraries and Playlists to show/hide on Navigation"
 			                      Header="Libraries and Playlists to show">
@@ -293,10 +305,16 @@
 				<ToggleSwitch x:Name="UseSystemVolume"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted."
+			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted or became 0."
 			                  Header="Pause on Mute">
 				<ToggleSwitch x:Name="PauseOnMute"
 				              Toggled="PauseOnMute_OnToggled" />
+			</dev:SettingsCard>
+			<dev:SettingsCard x:Name="ResumeOnUnmuteSettings"
+			                  Description="When turned on, the app will resume the track that is currently playing when the volume is unmuted or increased more than 0. (It'll only trigger if pause happened because of Pause on Mute)"
+			                  Header="Resume on Unmute">
+				<ToggleSwitch x:Name="ResumeOnUnmute"
+				              Toggled="ResumeOnUnmute_Toggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard Description="When turned on, the app will start playing the track that was last playing."
 			                  Header="Auto-Start playing track when app starts">
@@ -445,6 +463,20 @@
 				              Toggled="MinimizeToTray_OnToggled" />
 			</dev:SettingsCard>
 
+			<dev:SettingsCard Description="Choose the style of the system tray icon."
+			                  Header="System tray icon style">
+				<ComboBox x:Name="SystemTrayIconStyle">
+					<ComboBoxItem Content="Full color"
+					              Tag="FullColor" />
+					<ComboBoxItem Content="Monochrome (Auto)"
+					              Tag="MonochromeAuto" />
+					<ComboBoxItem Content="Dark"
+					              Tag="Dark" />
+					<ComboBoxItem Content="Light"
+					              Tag="Light" />
+				</ComboBox>
+			</dev:SettingsCard>
+
 			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information."
 			                      Header="Taskbar Overlay Controls">
 				<ToggleSwitch x:Name="TaskBarOverlay"
@@ -544,6 +576,12 @@
 						<ToggleSwitch x:Name="VersionInfoToggle"
 						              Toggled="VersionInfoToggle_Toggled" />
 					</dev:SettingsCard>
+					<dev:SettingsCard Description="See what's new in this version"
+					                  Header="What's New">
+						<Button x:Name="WhatsNewButton"
+						        Click="WhatsNewButton_Click"
+						        Content="View What's New" />
+					</dev:SettingsCard>
 					<dev:SettingsCard HorizontalContentAlignment="Left"
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"
@@ -591,16 +629,61 @@
 				        Click="BuyMeACoffee_Click"
 				        Content="Support Development ☕" />
 			</dev:SettingsCard>
-			<!--  Reset  -->
+
+			<dev:SettingsCard x:Name="MusicDownloader_Panel"
+			                  PointerPressed="MusicDownloader_Reveal"
+			                  ToolTipService.ToolTip="Click 5 times to reveal">
+				<dev:SettingsCard.Header>
+					<TextBlock>
+						<Run FontStyle="Italic"
+						     FontWeight="SemiBold"
+						     Text="&quot;Culture shouldn't exist only for those who can afford it&quot;" />
+						<LineBreak />
+						<Run Text="                                                       — by Arsi Hakita Patala" />
+					</TextBlock>
+				</dev:SettingsCard.Header>
+				<dev:SettingsCard.Description>
+					<TextBlock x:Name="MusicDownloader_Description">
+						<Run Text="If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots." />
+					</TextBlock>
+				</dev:SettingsCard.Description>
+				<HyperlinkButton x:Name="MusicDownloadLink"
+				                 Content="Music Downloader"
+				                 NavigateUri="https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1"
+				                 Visibility="Collapsed" />
+			</dev:SettingsCard>
+
+			<!--  Data Management  -->
 
 			<StackPanel Orientation="Horizontal"
 			            Spacing="10">
-				<FontIcon FontSize="{Binding ElementName=ResetTextBlock, Path=FontSize}"
-				          Glyph="&#xE777;" />
-				<TextBlock x:Name="ResetTextBlock"
+				<FontIcon FontSize="{Binding ElementName=DataManagementTextBlock, Path=FontSize}"
+				          Glyph="&#xE912;" />
+				<TextBlock x:Name="DataManagementTextBlock"
 				           Style="{ThemeResource TitleTextBlockStyle}"
-				           Text="Reset" />
+				           Text="Data Management" />
 			</StackPanel>
+			<dev:SettingsCard Description="Resets the play count to zero and clears the last played time for all songs."
+			                  Header="Reset Playback History">
+				<Button Content="Reset">
+					<Button.Flyout>
+						<Flyout x:Name="ResetHistoryFlyout">
+							<Flyout.FlyoutPresenterStyle>
+								<Style TargetType="FlyoutPresenter">
+									<Setter Property="Background" Value="{ThemeResource LayerOnMicaBaseAltFillColorDefault}" />
+								</Style>
+							</Flyout.FlyoutPresenterStyle>
+							<StackPanel Spacing="5">
+								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           Text="Are you sure?" />
+								<Button Click="ResetHistoryConfirm_Click"
+								        Command="{x:Bind ViewModel.ResetHistoryCommand}"
+								        Content="Yes" />
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+			</dev:SettingsCard>
 			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
 				<Button Content="Reset">

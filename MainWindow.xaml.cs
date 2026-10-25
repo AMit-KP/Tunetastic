@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Graphics;
@@ -22,6 +22,7 @@ public sealed partial class MainWindow : WindowEx
 	{
 		InitializeComponent();
 		_instance = this;
+		CaptionToolTip.Window = this;
 
 		CurrentAppWindow = this.AppWindow;
 		ExtendsContentIntoTitleBar = true;
@@ -49,13 +50,15 @@ public sealed partial class MainWindow : WindowEx
 	public void AddTrayIcon()
 	{
 		uint iconId = 7823;
-		App.TrayIcon ??= new SystemTrayIcon(iconId, Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico"), "Tunetastic");
+		App.TrayIcon ??= new SystemTrayIcon(iconId, TrayIconService.GetInitialIconPath(), "Tunetastic");
 		App.TrayIcon.RightClick += OnTrayIconRightClick;
 		App.TrayIcon.IsVisible = true;
+		TrayIconService.Initialize();
 	}
 
 	public void RemoveTrayIcon()
 	{
+		TrayIconService.Shutdown();
 		if (App.TrayIcon is not null)
 		{
 			App.TrayIcon.RightClick -= OnTrayIconRightClick;
@@ -166,6 +169,9 @@ public sealed partial class MainWindow : WindowEx
 		App.Current.AudioService.Dispose();
 		TaskbarOverlayManager.Shutdown();
 		this.Close();
+
+		// NOTE: Hard-terminate to avoid a random shutdown crash
+		Environment.Exit(0);
 	}
 
 	public void WindowResizePermission(bool permission)

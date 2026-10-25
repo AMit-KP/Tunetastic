@@ -13,11 +13,45 @@
 [![Language](https://img.shields.io/badge/Language-C%23-239120?logo=csharp)](https://learn.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue)](LICENSE)
 
-<a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank"  rel="noopener noreferrer">
-	<img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200"/>
+[![Latest Release](https://img.shields.io/github/v/release/AMit-KP/Tunetastic?label=Latest&color=green)](https://github.com/AMit-KP/Tunetastic/releases/latest)
+[![Pre-release](https://img.shields.io/github/v/release/AMit-KP/Tunetastic?include_prereleases&label=Pre-release&color=orange)](https://github.com/AMit-KP/Tunetastic/releases)
+
+<a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank" rel="noopener noreferrer">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://get.microsoft.com/images/en-us%20dark.svg">
+    <img alt="Get it from Microsoft" src="https://get.microsoft.com/images/en-us%20light.svg" width="200">
+  </picture>
 </a>
 
 </div>
+
+
+## Store stats
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/installs-dark.svg">
+  <img alt="Installs over time" src="Assets/charts/installs-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/map-dark.svg">
+  <img alt="Where people install from" src="Assets/charts/map-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/ratings-dark.svg">
+  <img alt="Ratings" src="Assets/charts/ratings-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/github-views-dark.svg">
+  <img alt="Repo views" src="Assets/charts/github-views-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/github-clones-dark.svg">
+  <img alt="Git clones" src="Assets/charts/github-clones-light.svg">
+</picture>
 
 ---
 
@@ -50,18 +84,22 @@ Tunetastic displays lyrics in sync with your music — no extra setup needed.
 - **Synced lyrics** scroll automatically in time with playback, and are sourced from:
 	- Embedded metadata inside the audio file itself
 	- External `.lrc` files placed alongside the track (same folder, matching filename)
+	- When both an embedded source and an `.lrc` file are available, embedded lyrics take priority for synced playback.
 
-- **Unsynced lyrics** are displayed as plain scrollable text and are always read
-from embedded metadata.
+- **Unsynced lyrics** are displayed as clean, scrollable text and are read from embedded metadata.
 
-- Embedded lyrics can be edited/cleared in the app.
+- **Edit & Clear** — Embedded lyrics can be viewed, edited, or cleared directly inside the app.
 
-- When both an embedded source and an `.lrc` file are available, the embedded lyrics
-takes priority for synced playback. If no lyrics are found.
+- **Interactive Live Offset Fine-Tuning** — If synced lyrics drift or don't line up with the vocals, calibrate them on the fly:
+	- **Live Calibration Toolbar**: Click the sync icon to summon real-time adjustment controls directly above the lyrics. Nudge the offset forward or backward in 50 ms increments (with press-and-hold repeat support) during playback, hearing and seeing the vocal alignment update live until it is locked in.
+	- **Flexible Saving**:
+		- *Save as offset metadata* — Inserts or updates the `[offset:±xxx]` tag in the lyric header, leaving individual line timestamps intact.
+		- *Save by modifying timestamps* — Automatically recalculates and updates every timestamp line throughout the lyrics for universal compatibility across any media player.
+	- *Currently, embedded lyrics are supported for in-app lyrics synchronization.*
 
-- Synced Lyrics can be synchronized. Offsets have 2 modes which can be changed from settings. *Currently only embedded lyrics are supported for lyrics synchronization.*
-   - *Official Standard* - Follows the formal LRC specification. Positive values subtract time to display lyrics sooner (advancing them), while negative values delay lyrics. Recommended for compatibility with spec-compliant files.
-   - *Intuitive/Logical* (Default) - Applies straightforward timestamp addition. Positive values add time to delay lyrics, while negative values shift lyrics earlier. Ideal if you expect + to push lyrics forward into the timeline.
+- **LRC Offset Modes** — Configure how offset calculations are applied in **Settings > Playback**:
+	- *Intuitive / Logical* (Default) — Uses straightforward timestamp addition (`Timestamp + Offset`). Positive (+) values delay lyrics to appear later, while negative (-) values shift lyrics earlier. Ideal if you expect `+` to push lyrics forward along the timeline.
+	- *Official Standard* — Conforms to the formal LRC specification (`Timestamp - Offset`). Positive (+) values advance lyrics to appear sooner, while negative (-) values delay lyrics. Recommended for compatibility with spec-compliant files and external tools.
 
 > <img width="2282" height="1717" alt="Screenshot 2026-04-10 144915" src="https://github.com/user-attachments/assets/d14623ff-26a9-4711-a8a6-10114e88f623" />
 
@@ -77,7 +115,8 @@ A dedicated volume slider sits right in the player UI, and can operate in two di
 - **System Volume** — The slider controls your device's master output volume, in sync with the Windows volume flyout and taskbar speaker icon. Dragging it in Tunetastic is identical to dragging it from the system tray.
 - **App Volume** — The slider controls only Tunetastic's volume as an independent channel, leaving all other audio on your system untouched. This maps directly to Tunetastic's entry in the Windows Volume Mixer, so changes made in either place are always reflected in the other in real time.
 
-**Pause on Mute** — When enabled, Tunetastic will automatically pause playback the moment the volume reaches zero (whether muted via the in-app slider, the system mute key, or any other source), and will resume the instant sound is restored — no need to manually hit play again.
+- **Pause on Mute** — Automatically pauses playback the moment the volume reaches zero or audio is muted (whether via the in-app slider, the system mute key, or the Windows volume flyout).
+- **Resume on Unmute** — Seamlessly resumes the playing track the instant volume is unmuted or increased above zero, eliminating the need to manually hit play (triggers when paused via Pause on Mute).
 
 ---
 
@@ -93,6 +132,33 @@ Tunetastic automatically organizes your music collection into clean, browsable v
 | Genres | Sorted by genre tag |
 | Years | Sorted by release year |
 
+**🔄 Real-Time Folder Auto Sync**
+Keep your music collection synchronized effortlessly without having to manually trigger re-scans:
+- **Live Background Watching** — Actively monitors your configured library folders for changes on disk. Dropping new audio files into your library, deleting tracks, or modifying metadata updates your collection automatically in real time.
+- **Smart Move & Rename Detection** — Renaming files or reorganizing tracks into different subfolders won't wipe your history; Tunetastic fingerprints and tracks moved files so your play counts, date-added stamps, and playlist positions stay intact.
+- **Startup Catch-Up Reconciliation** — Made changes while the app was closed? Tunetastic runs a silent catch-up pass upon launch to reconcile differences between disk and the database, bringing everything up to date in seconds.
+- **Resource-Friendly Batching** — File events are debounced and processed in batches to protect performance. If a massive batch of changes is detected at once, Tunetastic intelligently offers a one-click full rescan.
+
+
+---
+
+### 🎧 Supported Formats
+
+Tunetastic supports 89 audio formats across 11 categories. Individual extensions can be enabled or disabled at any time in **Settings > File Extensions**:
+
+| Category | Description | Supported Formats |
+|---|---|---|
+| **Lossy** | The most common everyday compressed audio formats | `.mp3`, `.aac`, `.m4b`, `.m4r`, `.opus`, `.ac3`, `.eac3`, `.ec3`, `.a52`, `.amr`, `.awb`, `.evrc`, `.qcp`, `.gsm`, `.spx`, `.ilbc`, `.ulaw`, `.alaw`, `.g722`, `.g726`, `.g729`, `.g723`, `.silk`, `.siren`, `.at3`, `.oma`, `.aa3`, `.mp2`, `.mp1`, `.vqf`, `.swf` |
+| **Lossy / Container** | Lossy-encoded audio wrapped inside a general multimedia container | `.mp4`, `.ogg`, `.oga`, `.flv`, `.rmvb` |
+| **Lossless** | Formats that preserve full audio fidelity, popular for archiving and audiophile use | `.flac`, `.alac`, `.caf`, `.ape`, `.wv`, `.pcm`, `.raw`, `.bwf`, `.rf64`, `.tta`, `.shn`, `.mlp`, `.dtshd`, `.thd`, `.truehd` |
+| **Lossless / Container** | Uncompressed audio wrapped in a structured container | `.aiff`, `.aifc` |
+| **Lossless / Lossy / Container** | Container or format able to hold either lossless or lossy encoded audio | `.m4a`, `.wav`, `.wma`, `.ra`, `.rm` |
+| **Lossless / Lossy** | Single format spanning both fully lossless and compressed variants | `.dts` |
+| **Lossless / Lossy / Legacy** | Legacy format spanning both compression types plus old telephony encodings | `.au` |
+| **Container** | General multimedia containers primarily used for video/audio distribution | `.mov`, `.webm`, `.asf`, `.mka`, `.mxf`, `.ts`, `.mts`, `.m2ts`, `.ogx`, `.f4a`, `.3gp`, `.3g2`, `.qt`, `.aif` |
+| **Legacy / Tracker** | Old-school module/tracker music formats | `.mod`, `.xm`, `.it`, `.s3m` |
+| **Legacy / Sound Card** | Vintage computer and sound-card-native audio formats | `.voc`, `.snd`, `.iff`, `.8svx`, `.sd2` |
+| **Game / Console** | Platform-specific formats designed for video game consoles | `.adx`, `.xa`, `.xma`, `.xwma`, `.dsp`, `.adp` |
 
 ---
 
@@ -100,7 +166,7 @@ Tunetastic automatically organizes your music collection into clean, browsable v
 
 Clean up and manage your music metadata without ever leaving Tunetastic or reaching for a third-party tool.
 
-- Edit **all standard ID3 tags** — title, artist, album, genre, year, lyrics and cover/album art
+- Edit **all standard ID3 tags** — title, artist, album, genre, year, lyrics, cover/album art and track number
 - **Inline suggestions** appear as you type, drawn from data already in your library, so tags stay consistent across your collection instead of drifting into duplicates and typos (e.g. start typing an artist name and matching spellings already in your library show up)
 - Embedded lyrics can also be edited or cleared from the same place *(see [Lyrics](#-lyrics))*
 
@@ -119,8 +185,72 @@ Smart playlists keep your most-reached-for music always at hand, and you can bui
 - Create your own playlists and give them any name
 - Rename or delete user-created playlists at any time
 - Add individual tracks, or bulk-add entire albums, genres, or years in one go
+- Reorder and rearrange tracks within playlists (using Move Up / Move Down or drag-and-drop) to build the exact listening order you want
 
 > <img width="2858" height="1717" alt="Screenshot 2026-03-31 123156" src="https://github.com/user-attachments/assets/33f53836-7338-46e3-80da-fa1d2402628c" />
+
+---
+
+### ⌨️ Command Line — `playlist add`
+
+Tunetastic can be driven from the terminal (via the `Tunetastic.exe` execution alias) to add local audio files to a playlist — handy for batch imports and scripting:
+
+```powershell
+# PowerShell (append | Out-Host)
+tunetastic --help | Out-Host
+tunetastic playlist add "My Playlist" "C:\Music\song.mp3" | Out-Host
+tunetastic playlist add "My Playlist" "C:\Music\*.mp3" | Out-Host
+tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run | Out-Host
+tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --json | Out-Host
+```
+
+```cmd
+:: Command Prompt (cmd.exe - append | more)
+tunetastic --help | more
+tunetastic playlist add "My Playlist" "C:\Music\song.mp3" | more
+tunetastic playlist add "My Playlist" "C:\Music\*.mp3" | more
+tunetastic playlist add "My Playlist" "C:\Music\Album" --dry-run | more
+tunetastic playlist add "My Playlist" "C:\Downloads\ep.flac" --add-external --json | more
+```
+
+> [!NOTE]
+> - **Terminal Output Piping**: Because Tunetastic is packaged as a Windows GUI application, Windows terminals do not attach console output handles unless the command is piped. Append `| Out-Host` in PowerShell or `| more` in Command Prompt to view output in your terminal.
+> *(Tip: In PowerShell, you can add `function tunetastic { Tunetastic.exe @args | Out-Host }` to your `$PROFILE` to run commands without having to append `| Out-Host` every time).*
+> - The command works whether or not the app window is open (open views refresh the next time they load), but avoid running it during an active library scan. Files outside your configured libraries are skipped unless `--add-external` is passed; see the flag description below for the rescan limitation.
+
+- The playlist is created when the first track is added and it does not exist yet (pass `--no-create` to fail instead).
+- Folders are scanned recursively (unreadable subfolders are skipped); wildcards are supported in the file name (`C:\Music\*.mp3`) in any shell. Multiple files, patterns and folders can be mixed in one call. Inputs are added in the order given; within one folder or pattern, files are added sorted by path.
+- All metadata the library can store is imported with the same routine the library scan uses: title, artist, album, year, genre, track number, lyrics and embedded cover art. Only the release year is kept (TagLib exposes no fuller date to the reader). Your duplicate-detection and minimum-duration settings are respected. Re-importing a track keeps its play count and playback position in the playlist.
+- Embedded values the library has no column for (album artist, disc number, disc count, composer, extra performers/genres/pictures, comment, copyright) are listed in the output instead of being silently ignored. Obscure tag fields that almost no music file carries (sort names, MusicBrainz IDs, ReplayGain, BPM, …) are neither stored nor listed.
+- Output: `--json` prints one machine-readable JSON report on stdout (per-track outcomes are named strings: `Added`, `WouldAdd`, `AlreadyPresent`, `Skipped`), and nothing else. Without it, the human-readable report goes to stdout and failed inputs also go to stderr (pipe to `| Out-Host` in PowerShell or `| more` in cmd.exe). Visual formatting (ANSI color badges vs. plain text) can be switched in **Settings > Library & PlayLists > CLI Output Style** or via the `NO_COLOR` environment variable. Exit codes: `0` = success with no failed inputs (check the counts), `1` = completed with failed inputs, `2` = usage/config error or cancellation.
+- `--dry-run` reports what would happen without changing your library or playlists. It still ensures the database schema and writes cover-thumbnail files (cleaned up by the next full library scan).
+- Files outside your configured library folders are skipped unless you pass `--add-external`. Even with `--add-external`, external tracks are excluded from auto-scan tracking and removed again by the next full library re-scan, which only keeps tracks inside library folders — the flag only lets the import through, it does not protect the track from later rescans.
+
+
+Example JSON report (stdout):
+
+```json
+{
+  "Playlist": "My Playlist",
+  "PlaylistCreated": true,
+  "PlaylistWouldBeCreated": false,
+  "DryRun": false,
+  "Tracks": [
+    {
+      "Path": "C:\\Music\\song.mp3",
+      "Title": "Song",
+      "Status": "Added",
+      "Reason": null,
+      "Imported": ["Title 'Song'", "Cover art (embedded image/jpeg)"],
+      "Defaulted": [],
+      "Skipped": ["Album artist 'X' (library has no album-artist column)"],
+      "Warnings": []
+    }
+  ],
+  "Failures": [],
+  "Notices": []
+}
+```
 
 ---
 
@@ -176,9 +306,15 @@ A playback overlay lives right on the taskbar itself, giving you controls at a g
 Track playback progress is shown live on the Tunetastic taskbar icon, so you always know where you are in a track at a glance — without switching windows.
 
 **🔔 System Tray**
-- Minimize to the system tray on close, keeping Tunetastic out of the way but always ready
-- **Click** the tray icon to play or pause instantly
-- **Hover** the tray icon to see the current track and artist
+Tunetastic stays accessible without cluttering your workspace:
+- **Customizable Tray Icon Styles** — Personalize how Tunetastic looks in your taskbar tray:
+  - **Monochrome (Auto)** *(Default)* — Automatically adapts to your Windows taskbar theme, dynamically switching between crisp light and dark monochrome icons as your system appearance changes.
+  - **Full Color** — Displays the vibrant, full-color Tunetastic emblem.
+  - **Light** — High-contrast white/light icon designed for dark taskbars.
+  - **Dark** — High-contrast dark icon designed for light taskbars.
+- **Quick Controls** — Single-click the tray icon to toggle play/pause instantly without opening or focusing the main window.
+- **Track Tooltip** — Hover over the tray icon at any time to peek at the currently playing song title and artist.
+- **Minimize to Tray on Close** — Send Tunetastic silently to the notification area when closing the window so background playback is never interrupted.
 
 ---
 
@@ -187,17 +323,20 @@ Track playback progress is shown live on the Tunetastic taskbar icon, so you alw
 ### 📁 Library Management
 
 - **Add Folders** — Point Tunetastic to your local music directories
-- **File Extensions** — Choose which audio formats to include
+- **Auto Sync** — Toggle background folder watching to automatically keep your library updated with additions, removals, renames, and tag changes on disk
+- **File Extensions** — Choose which audio formats to include (see [Supported Formats](#-supported-formats))
 - **Minimum Track Duration** — Ignore files below a set length (great for skipping short intros or sound effects)
 - **Duplicate Detection** — Options to detect and handle duplicate tracks
 - **Show / Hide Library Views** — Independently toggle the visibility of Artists, Albums, Genres, Years, and each individual playlist (All Songs is always shown)
   - Note: Built-in smart playlists can be hidden; user-created playlists can be renamed or deleted
+- **Reset Playback History** — Clear song play counts and last played timestamps anytime for a clean slate, without modifying your audio files
 
 ### 🎚️ Playback
 
 - Crossfade between tracks with adjustable duration
 - **Volume Mode** — Choose between System Volume and App Volume for the in-app slider
-- **Pause on Mute** — Automatically pause playback when volume drops to zero, and resume when sound is restored
+- **Pause on Mute** — Automatically pause playback when volume drops to zero or audio is muted
+- **Resume on Unmute** — Automatically resume playback when volume is unmuted or raised above zero
 - Additional playback behavior settings
 
 ### 🎨 Appearance & Behavior
@@ -267,9 +406,28 @@ Add an animated rainbow border to the player:
 
 Search for **Tunetastic** in the [Microsoft Store](https://github.com/AMit-KP/Tunetastic/tree/master#tunetastic), or follow the store link once available. No manual setup or certificate trust required — just install and play.
 
-### Github Releases *(Only Recommended if you want the latest version earlier)*
+### Winget Package Manager
 
-Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download the Store Certificate(.cer) file and the MSIX file for your system architecture. Install the .cer file 1st (Valid for a year). Then, proceed to install the MSIX file.
+Open Command Prompt or Powershell on your windows and type the following
+```bash
+winget install Tunetastic
+```
+
+### GitHub Releases *(Recommended only if you want new versions before the Store gets them)*
+
+1. Open the [Releases](https://github.com/AMit-KP/Tunetastic/releases) page and download these two files:
+   - `Tunetastic_Certificate.cer`
+   - The `.msix` file for your system architecture (`x64` or `arm64`)
+2. Install the certificate first:
+   - Double-click the `.cer` file and choose **Install Certificate**.
+   - Select **Local Machine** and click Next (approve the admin prompt).
+   - Choose **Place all certificates in the following store**, click **Browse**, and select **Trusted People**.
+   - Click Next, then Finish.
+3. Double-click the `.msix` file and click **Install**.
+
+> **Note:** The certificate only needs to be installed once. You can skip step 2 for later releases.
+>
+> **Note:** The GitHub and Microsoft Store versions are signed differently and can't update each other. If you have the Store version installed, uninstall it before installing from GitHub (and vice versa).
 
 ### Building from Source
 
@@ -286,6 +444,18 @@ Ensure the following workloads are installed in Visual Studio 2026:
 - **.NET desktop development**
 - **Windows application development** (includes Windows App SDK)
 
+#### SixLabors License
+
+This project uses [ImageSharp](https://github.com/SixLabors/ImageSharp), which requires a license key from SixLabors. The key is not included in this repository.
+
+To build locally:
+
+1. Get your own license key at [licensing.sixlabors.com](https://licensing.sixlabors.com/).
+2. Save the license file as `sixlabors.lic` in the project root, next to `Tunetastic.csproj`.
+3. Do not commit this file. It is already listed in `.gitignore`.
+
+Without this file, the build will fail with a license error.
+
 Then press **F5** to build and run.
 
 ---
@@ -293,6 +463,8 @@ Then press **F5** to build and run.
 ## Contributing
 
 Contributions are welcome! Please open an issue to discuss what you'd like to change before submitting a pull request. Make sure your code follows the existing style and that all builds pass cleanly.
+
+Each contributor needs their own SixLabors license key. Do not share keys or commit them to the repository. Pull requests from forks will not have access to the maintainer's CI secrets, so the automated build may fail on them until a maintainer reviews the change.
 
 ---
 
@@ -302,6 +474,27 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
+## Credits & Special Thanks
+
+[@Mahdi Hosseini](https://github.com/ghost1372) - For the amazing [DevWinUI](https://github.com/ghost1372/DevWinUI) that saved me hours of development and research time as an inexperienced developer.
+ 
+---
+
+## Inspired by
+
+<div align="center">
+
+*"Culture shouldn't exist only for those who can afford it"*
+
+— by Arsi "Hakita" Patala
+
+</div>
+
+If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots:
+
+>**Telegram Bot:** [@Music Downloader](https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1) *(Note: External third-party bot. Use at your own discretion.)*
+
+---
 <div align="center">
 
 Made with ♥ for music lovers on Windows

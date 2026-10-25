@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <views:SongListPageBase x:Class="Tunetastic.Views.PlaylistViews.PlayListTemplate"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
-      xmlns:common="using:Tunetastic.Common"
-      xmlns:views="using:Tunetastic.Views.Common"
-      xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:dev="using:DevWinUI"
-      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-      Loaded="Page_Loaded"
-      mc:Ignorable="d">
+                        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+                        xmlns:common="using:Tunetastic.Common"
+                        xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+                        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                        xmlns:dev="using:DevWinUI"
+                        xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+                        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                        xmlns:views="using:Tunetastic.Views.Common"
+                        x:Name="PlayListTemplatePage"
+                        Loaded="Page_Loaded"
+                        mc:Ignorable="d">
 
 	<views:SongListPageBase.Resources>
 		<MenuFlyout x:Key="RightClickMenu"
@@ -37,6 +38,40 @@
 					<FontIcon Glyph="&#xE84F;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
+			<MenuFlyoutSeparator />
+			<MenuFlyoutSubItem Text="Move">
+				<MenuFlyoutSubItem.Icon>
+					<FontIcon Glyph="&#xE7C2;" />
+				</MenuFlyoutSubItem.Icon>
+				<MenuFlyoutItem Click="MoveToTop_Click"
+				                Text="Move to Top"
+				                ToolTipService.ToolTip="Move this track to the top of the playlist">
+					<MenuFlyoutItem.Icon>
+						<FontIcon Glyph="&#xE898;" />
+					</MenuFlyoutItem.Icon>
+				</MenuFlyoutItem>
+				<MenuFlyoutItem Click="MoveUp_Click"
+				                Text="Move Up"
+				                ToolTipService.ToolTip="Move this track up by one position">
+					<MenuFlyoutItem.Icon>
+						<FontIcon Glyph="&#xE74A;" />
+					</MenuFlyoutItem.Icon>
+				</MenuFlyoutItem>
+				<MenuFlyoutItem Click="MoveDown_Click"
+				                Text="Move Down"
+				                ToolTipService.ToolTip="Move this track down by one position">
+					<MenuFlyoutItem.Icon>
+						<FontIcon Glyph="&#xE74B;" />
+					</MenuFlyoutItem.Icon>
+				</MenuFlyoutItem>
+				<MenuFlyoutItem Click="MoveToBottom_Click"
+				                Text="Move to Bottom"
+				                ToolTipService.ToolTip="Move this track to the bottom of the playlist">
+					<MenuFlyoutItem.Icon>
+						<FontIcon Glyph="&#xE896;" />
+					</MenuFlyoutItem.Icon>
+				</MenuFlyoutItem>
+			</MenuFlyoutSubItem>
 			<MenuFlyoutSeparator />
 			<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
 			                Text="Info/Tag">
@@ -87,6 +122,11 @@
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
+				<ToggleButton x:Name="ReorderButton"
+				              Click="ReorderButton_Click"
+				              ToolTipService.ToolTip="Reorder playlist tracks">
+					<FontIcon Glyph="&#xE70F;" />
+				</ToggleButton>
 				<ToggleButton x:Name="MultiSelectButton"
 				              Click="MultiSelectButton_Click"
 				              ToolTipService.ToolTip="Turn on multi-select mode">
@@ -183,6 +223,14 @@
 									                Tag="DurationDesc"
 									                Text="Descending" />
 								</MenuFlyoutSubItem>
+								<MenuFlyoutSubItem Text="Track">
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TrackAsc"
+									                Text="Ascending" />
+									<MenuFlyoutItem Click="SortPlayList_Click"
+									                Tag="TrackDesc"
+									                Text="Descending" />
+								</MenuFlyoutSubItem>
 								<MenuFlyoutSubItem Text="Play Count">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="PlayCountAsc"
@@ -243,6 +291,40 @@
 									<FontIcon Glyph="&#xE84F;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
+							<MenuFlyoutSeparator />
+							<MenuFlyoutSubItem Text="Move">
+								<MenuFlyoutSubItem.Icon>
+									<FontIcon Glyph="&#xE7C2;" />
+								</MenuFlyoutSubItem.Icon>
+								<MenuFlyoutItem Click="MoveMultiToTop_Click"
+								                Text="Move to Top"
+								                ToolTipService.ToolTip="Move selected tracks to the top of the playlist">
+									<MenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE898;" />
+									</MenuFlyoutItem.Icon>
+								</MenuFlyoutItem>
+								<MenuFlyoutItem Click="MoveMultiUp_Click"
+								                Text="Move Up"
+								                ToolTipService.ToolTip="Move selected tracks up by one position">
+									<MenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE74A;" />
+									</MenuFlyoutItem.Icon>
+								</MenuFlyoutItem>
+								<MenuFlyoutItem Click="MoveMultiDown_Click"
+								                Text="Move Down"
+								                ToolTipService.ToolTip="Move selected tracks down by one position">
+									<MenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE74B;" />
+									</MenuFlyoutItem.Icon>
+								</MenuFlyoutItem>
+								<MenuFlyoutItem Click="MoveMultiToBottom_Click"
+								                Text="Move to Bottom"
+								                ToolTipService.ToolTip="Move selected tracks to the bottom of the playlist">
+									<MenuFlyoutItem.Icon>
+										<FontIcon Glyph="&#xE896;" />
+									</MenuFlyoutItem.Icon>
+								</MenuFlyoutItem>
+							</MenuFlyoutSubItem>
 							<MenuFlyoutSeparator />
 							<MenuFlyoutItem Click="MenuFlyoutMultiItemRemove_OnClick"
 							                Text="Remove"
@@ -415,6 +497,10 @@
 				          Margin="10,10,10,10"
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
+				          AllowDrop="False"
+				          CanDragItems="False"
+				          CanReorderItems="False"
+				          DragItemsCompleted="ListView_DragItemsCompleted"
 				          IsItemClickEnabled="True"
 				          IsMultiSelectCheckBoxEnabled="False"
 				          IsRightTapEnabled="True"
@@ -470,69 +556,85 @@
 
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:Song">
-							<controls:DataRow HorizontalAlignment="Left"
-							                  Background="Transparent"
-							                  ContextFlyout="{StaticResource RightClickMenu}">
-								<Grid Width="40"
-								      Height="60"
-								      Margin="0,2,0,2"
-								      CornerRadius="10">
-									<Image VerticalAlignment="Center"
-									       Source="{x:Bind Cover}" />
-								</Grid>
-								<TextBlock HorizontalAlignment="Left"
-								           VerticalAlignment="Center"
-								           Text="{x:Bind Title}"
-								           TextTrimming="CharacterEllipsis">
-									<ToolTipService.ToolTip>
-										<TextBlock TextTrimming="CharacterEllipsis"
-										           TextWrapping="WrapWholeWords">
-											<Run Text="Title: " />
-											<Run FontWeight="Bold"
-											     Text="{x:Bind Title}" />
-										</TextBlock>
-									</ToolTipService.ToolTip>
-								</TextBlock>
-								<TextBlock HorizontalAlignment="Left"
-								           VerticalAlignment="Center"
-								           Text="{x:Bind Artists}"
-								           TextTrimming="CharacterEllipsis">
-									<ToolTipService.ToolTip>
-										<TextBlock TextTrimming="CharacterEllipsis"
-										           TextWrapping="WrapWholeWords">
-											<Run Text="Artists: " />
-											<Run FontWeight="Bold"
-											     Text="{x:Bind Artists}" />
-										</TextBlock>
-									</ToolTipService.ToolTip>
-								</TextBlock>
-								<TextBlock HorizontalAlignment="Left"
-								           VerticalAlignment="Center"
-								           Text="{x:Bind Album}"
-								           TextTrimming="CharacterEllipsis">
-									<ToolTipService.ToolTip>
-										<TextBlock TextTrimming="CharacterEllipsis"
-										           TextWrapping="WrapWholeWords">
-											<Run Text="Album: " />
-											<Run FontWeight="Bold"
-											     Text="{x:Bind Album}" />
-										</TextBlock>
-									</ToolTipService.ToolTip>
-								</TextBlock>
-								<TextBlock HorizontalAlignment="Left"
-								           VerticalAlignment="Center"
-								           HorizontalTextAlignment="Left"
-								           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}"
-								           TextTrimming="CharacterEllipsis">
-									<ToolTipService.ToolTip>
-										<TextBlock>
-											<Run Text="Duration: " />
-											<Run FontWeight="Bold"
-											     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
-										</TextBlock>
-									</ToolTipService.ToolTip>
-								</TextBlock>
-							</controls:DataRow>
+							<Grid Background="Transparent">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="*" />
+								</Grid.ColumnDefinitions>
+								<Path Grid.Column="0"
+								      Width="14"
+								      Height="16"
+								      Margin="0,0,10,0"
+								      VerticalAlignment="Center"
+								      Data="M 48,2.5 Q 50,0 52,2.5 L 71.5,26 Q 73.5,28 70.5,28 L 29.5,28 Q 26.5,28 28.5,26 Z M 3,37 L 97,37 A 3,3 0 0 1 97,43 L 3,43 A 3,3 0 0 1 3,37 Z M 3,56 L 97,56 A 3,3 0 0 1 97,62 L 3,62 A 3,3 0 0 1 3,56 Z M 3,75 L 97,75 A 3,3 0 0 1 97,81 L 3,81 A 3,3 0 0 1 3,75 Z M 29.5,90 L 70.5,90 Q 73.5,90 71.5,92 L 52,115.5 Q 50,118 48,115.5 L 28.5,92 Q 26.5,90 29.5,90 Z"
+								      Fill="{ThemeResource TextFillColorSecondaryBrush}"
+								      Stretch="Uniform"
+								      Visibility="{Binding IsReorderMode, ElementName=PlayListTemplatePage, Converter={StaticResource BoolToVisibility}}" />
+								<controls:DataRow Grid.Column="1"
+								                  HorizontalAlignment="Left"
+								                  Background="Transparent"
+								                  ContextFlyout="{StaticResource RightClickMenu}">
+									<Grid Width="40"
+									      Height="60"
+									      Margin="0,2,0,2"
+									      CornerRadius="10">
+										<Image VerticalAlignment="Center"
+										       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
+									</Grid>
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           Text="{x:Bind Title}"
+									           TextTrimming="CharacterEllipsis">
+										<ToolTipService.ToolTip>
+											<TextBlock TextTrimming="CharacterEllipsis"
+											           TextWrapping="WrapWholeWords">
+												<Run Text="Title: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind Title}" />
+											</TextBlock>
+										</ToolTipService.ToolTip>
+									</TextBlock>
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           Text="{x:Bind Artists}"
+									           TextTrimming="CharacterEllipsis">
+										<ToolTipService.ToolTip>
+											<TextBlock TextTrimming="CharacterEllipsis"
+											           TextWrapping="WrapWholeWords">
+												<Run Text="Artists: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind Artists}" />
+											</TextBlock>
+										</ToolTipService.ToolTip>
+									</TextBlock>
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           Text="{x:Bind Album}"
+									           TextTrimming="CharacterEllipsis">
+										<ToolTipService.ToolTip>
+											<TextBlock TextTrimming="CharacterEllipsis"
+											           TextWrapping="WrapWholeWords">
+												<Run Text="Album: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind Album}" />
+											</TextBlock>
+										</ToolTipService.ToolTip>
+									</TextBlock>
+									<TextBlock HorizontalAlignment="Left"
+									           VerticalAlignment="Center"
+									           HorizontalTextAlignment="Left"
+									           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}"
+									           TextTrimming="CharacterEllipsis">
+										<ToolTipService.ToolTip>
+											<TextBlock>
+												<Run Text="Duration: " />
+												<Run FontWeight="Bold"
+												     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
+											</TextBlock>
+										</ToolTipService.ToolTip>
+									</TextBlock>
+								</controls:DataRow>
+							</Grid>
 						</DataTemplate>
 					</ListView.ItemTemplate>
 					<ListView.ItemContainerStyle>
@@ -544,7 +646,7 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
+							<ReorderThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 				</ListView>
@@ -554,6 +656,10 @@
 				          Margin="10,10,10,10"
 				          Padding="0,0,35,0"
 				          VerticalAlignment="Top"
+				          AllowDrop="False"
+				          CanDragItems="False"
+				          CanReorderItems="False"
+				          DragItemsCompleted="ListView_DragItemsCompleted"
 				          IsItemClickEnabled="True"
 				          IsMultiSelectCheckBoxEnabled="False"
 				          IsRightTapEnabled="True"
@@ -576,10 +682,20 @@
 							<Grid Background="Transparent"
 							      ContextFlyout="{StaticResource RightClickMenu}">
 								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
 									<ColumnDefinition Width="*" />
 									<ColumnDefinition Width="Auto" />
 								</Grid.ColumnDefinitions>
-								<Grid Grid.Column="0"
+								<Path Grid.Column="0"
+								      Width="15"
+								      Height="18"
+								      Margin="0,0,15,0"
+								      VerticalAlignment="Center"
+								      Data="M 48,2.5 Q 50,0 52,2.5 L 71.5,26 Q 73.5,28 70.5,28 L 29.5,28 Q 26.5,28 28.5,26 Z M 3,37 L 97,37 A 3,3 0 0 1 97,43 L 3,43 A 3,3 0 0 1 3,37 Z M 3,56 L 97,56 A 3,3 0 0 1 97,62 L 3,62 A 3,3 0 0 1 3,56 Z M 3,75 L 97,75 A 3,3 0 0 1 97,81 L 3,81 A 3,3 0 0 1 3,75 Z M 29.5,90 L 70.5,90 Q 73.5,90 71.5,92 L 52,115.5 Q 50,118 48,115.5 L 28.5,92 Q 26.5,90 29.5,90 Z"
+								      Fill="{ThemeResource TextFillColorSecondaryBrush}"
+								      Stretch="Uniform"
+								      Visibility="{Binding IsReorderMode, ElementName=PlayListTemplatePage, Converter={StaticResource BoolToVisibility}}" />
+								<Grid Grid.Column="1"
 								      HorizontalAlignment="Left"
 								      VerticalAlignment="Center">
 									<Grid>
@@ -599,7 +715,7 @@
 											      CornerRadius="10">
 												<Image HorizontalAlignment="Center"
 												       VerticalAlignment="Center"
-												       Source="{x:Bind Cover}" />
+												       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}" />
 											</Grid>
 										</Grid>
 										<StackPanel Grid.Column="2"
@@ -658,7 +774,7 @@
 										</StackPanel>
 									</Grid>
 								</Grid>
-								<Grid Grid.Column="1"
+								<Grid Grid.Column="2"
 								      Width="120"
 								      HorizontalAlignment="Right"
 								      VerticalAlignment="Center">
@@ -711,7 +827,7 @@
 					<ListView.ItemContainerTransitions>
 						<TransitionCollection>
 							<AddDeleteThemeTransition />
-							<ContentThemeTransition />
+							<ReorderThemeTransition />
 						</TransitionCollection>
 					</ListView.ItemContainerTransitions>
 

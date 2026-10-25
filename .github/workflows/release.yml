@@ -1,4 +1,4 @@
-name: Release
+﻿name: Release
 
 on:
   release:
@@ -17,6 +17,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Create SixLabors license file
+        shell: pwsh
+        env:
+          SIXLABORS_LIC: ${{ secrets.SIXLABORS_LIC }}
+        run: |
+          if (-not $env:SIXLABORS_LIC) { Write-Error "SIXLABORS_LIC secret is missing or empty"; exit 1 }
+          [System.IO.File]::WriteAllText("$PWD\sixlabors.lic", $env:SIXLABORS_LIC)
+
+      - name: Decode signing certificate
+        shell: pwsh
+        env:
+          CERT_B64: ${{ secrets.SIGNING_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+        run: |
+          if (-not $env:CERT_B64) { Write-Error "SIGNING_CERT_BASE64 secret is missing"; exit 1 }
+          if (-not $env:CERT_PASSWORD) { Write-Error "SIGNING_CERT_PASSWORD secret is missing"; exit 1 }
+
+          $pfxPath = Join-Path $env:RUNNER_TEMP "signing.pfx"
+          [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:CERT_B64))
+          echo "PFX_PATH=$pfxPath" >> $env:GITHUB_ENV
+
+          # Export public .cer from the same PFX so it always matches the signature
+          $securePw = ConvertTo-SecureString $env:CERT_PASSWORD -AsPlainText -Force
+          $cert = Get-PfxCertificate -FilePath $pfxPath -Password $securePw
+          Write-Host "Cert subject: $($cert.Subject)"
+          $cerPath = Join-Path $env:RUNNER_TEMP "Tunetastic_Certificate.cer"
+          Export-Certificate -Cert $cert -FilePath $cerPath | Out-Null
+          echo "CER_PATH=$cerPath" >> $env:GITHUB_ENV
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v3
 
@@ -24,12 +53,16 @@ jobs:
         run: dotnet restore Tunetastic.sln --configfile nuget.config
 
       - name: Build and package MSIX (${{ matrix.platform }})
+        env:
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
         run: |
           msbuild Tunetastic.csproj `
             /t:Build `
             /p:Configuration=Release `
             /p:Platform=${{ matrix.platform }} `
-            /p:AppxPackageSigningEnabled=false `
+            /p:AppxPackageSigningEnabled=true `
+            /p:PackageCertificateKeyFile="$env:PFX_PATH" `
+            /p:PackageCertificatePassword="$env:CERT_PASSWORD" `
             /p:UapAppxPackageBuildMode=SideloadOnly `
             /p:AppxBundle=Never `
             /p:GenerateAppxPackageOnBuild=true `
@@ -37,18 +70,34 @@ jobs:
 
       - name: Find MSIX file (${{ matrix.platform }})
         id: find_msix
+        shell: pwsh
         run: |
-          $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}" -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $searchRoot = "${{ github.workspace }}\AppxPackages\${{ matrix.platform }}"
+          $msix = Get-ChildItem -Recurse -Path $searchRoot -Filter "*.msix" -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notmatch '\\Dependencies\\' } |
+            Select-Object -First 1
           if (-not $msix) {
             Write-Host "Falling back to workspace search..."
-            $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}" -Filter "*.msix" -ErrorAction SilentlyContinue | Select-Object -First 1
+            $msix = Get-ChildItem -Recurse -Path "${{ github.workspace }}" -Filter "*.msix" -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -notmatch '\\Dependencies\\' } |
+              Select-Object -First 1
           }
           if (-not $msix) { Write-Error "No .msix file found!"; exit 1 }
           Write-Host "Found MSIX at: $($msix.FullName)"
           echo "MSIX_PATH=$($msix.FullName)" >> $env:GITHUB_OUTPUT
 
+      - name: Verify signature (${{ matrix.platform }})
+        shell: pwsh
+        run: |
+          $msix = "${{ steps.find_msix.outputs.MSIX_PATH }}"
+          $sig = Get-AuthenticodeSignature $msix
+          Write-Host "Status: $($sig.Status)"
+          Write-Host "Subject: $($sig.SignerCertificate.Subject)"
+          if (-not $sig.SignerCertificate) { Write-Error "Package is NOT signed"; exit 1 }
+
       - name: Rename MSIX (${{ matrix.platform }})
         id: rename_msix
+        shell: pwsh
         run: |
           $msix = "${{ steps.find_msix.outputs.MSIX_PATH }}"
           $platform = "${{ matrix.platform }}".ToLower()
@@ -59,14 +108,14 @@ jobs:
           $newPath = Join-Path (Split-Path $msix) $newName
           Rename-Item -Path $msix -NewName $newName
           echo "MSIX_RENAMED=$newPath" >> $env:GITHUB_OUTPUT
-      
+
       - name: Upload MSIX to release (${{ matrix.platform }})
         uses: softprops/action-gh-release@v3
         with:
           files: ${{ steps.rename_msix.outputs.MSIX_RENAMED }}
-    
+
       - name: Upload CER to release (x64 only)
         if: matrix.platform == 'x64'
         uses: softprops/action-gh-release@v3
         with:
-          files: ${{ github.workspace }}/Assets/Store/Tunetastic_Store_Publisher_Certificate.cer
+          files: ${{ env.CER_PATH }}

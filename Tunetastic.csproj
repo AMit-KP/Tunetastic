@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -21,7 +21,7 @@
     <IsAotCompatible>False</IsAotCompatible>
     <WindowsPackageType>MSIX</WindowsPackageType>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
-    <Version>1.57.66</Version>
+    <Version>1.77.17</Version>
     <!--Remove git hash from assembly informational version in .NET >= 8, Example: false = 1.0.0, true = 1.0.0+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-->
     <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
     <NoWarn>$(NoWarn);CS0618</NoWarn>
@@ -37,8 +37,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.57.66.3580</AssemblyVersion>
-    <FileVersion>1.57.66.3580</FileVersion>
+    <AssemblyVersion>1.77.17.3940</AssemblyVersion>
+    <FileVersion>1.77.17.3940</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>
@@ -194,26 +194,24 @@
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Triggers" Version="8.2.251219" />
     <PackageReference Include="Config.Net" Version="5.2.1" />
-    <PackageReference Include="DevWinUI" Version="9.9.4" />
-    <PackageReference Include="DevWinUI.ContextMenu" Version="9.9.1" />
-    <PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
-    <PackageReference Include="Downloader" Version="5.5.0" />
-    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.0" />
-    <PackageReference Include="FlyleafLib" Version="3.11.3" />
+    <PackageReference Include="DevWinUI" Version="10.7.0" />
+    <PackageReference Include="DevWinUI.ContextMenu" Version="10.0.0" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="9.0.1.1" />
+    <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.2" />
+    <PackageReference Include="FlyleafLib" Version="3.11.12" />
     <PackageReference Include="Humanizer.Core" Version="3.0.10" />
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.13" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.WinUI.Managed" Version="3.0.1" />
-    <PackageReference Include="NAudio.Wasapi" Version="2.3.0" />
+    <PackageReference Include="NAudio.Wasapi" Version="3.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="nucs.JsonSettings" Version="2.0.2" />
-    <PackageReference Include="nucs.JsonSettings.AutosaveGenerator" Version="2.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="4.1.3" />
     <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
     <PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
-    <PackageReference Include="System.Management" Version="10.0.11" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
+    <PackageReference Include="System.Management" Version="10.0.13" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="WinUIEx" Version="2.9.3" />
@@ -239,6 +237,18 @@
     </Content>
     <Content Update="Assets\FFmpeg\swscale-9.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\AppIcon_Light.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\AppIcon_Dark.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\WhatsNew\whatsnew.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\AppIcon_Full.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
@@ -291,6 +301,7 @@
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxPackageDir>C:\Users\amitp\source\repos\Tunetastic\AppPackages\</AppxPackageDir>
   <CreateMSIXPackage>True</CreateMSIXPackage>
+  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 </PropertyGroup>
   <Target Name="TransformAllT4Templates" BeforeTargets="BeforeBuild">
     <ItemGroup>

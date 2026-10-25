@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Text;
@@ -20,8 +20,29 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// </summary>
 	public ObservableCollection<Song> PlayListSongs => ViewModel.Songs;
 
+	public static readonly DependencyProperty IsReorderModeProperty =
+		DependencyProperty.Register(
+			nameof(IsReorderMode),
+			typeof(bool),
+			typeof(PlayListTemplate),
+			new PropertyMetadata(false));
+
+	/// <summary>
+	/// Gets or sets a value indicating whether track reordering mode is currently active.
+	/// </summary>
+	public bool IsReorderMode
+	{
+		get => (bool)GetValue(IsReorderModeProperty);
+		set => SetValue(IsReorderModeProperty, value);
+	}
+
 	/// <inheritdoc/>
 	protected override string PlaylistKey => "CustomPlaylist__" + PlaylistHeader.Text;
+
+	/// <summary>
+	/// Gets the current playlist name displayed in the header.
+	/// </summary>
+	public string PlaylistName => PlaylistHeader.Text;
 
 	/// <inheritdoc/>
 	protected override Button ShuffleAndPlayControl => ShuffleAndPlay;
@@ -94,7 +115,6 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		if (result == ContentDialogResult.Primary)
 		{
-			App.Current.NavService.GoBack();
 			var playListTag = "Tunetastic.Views.PlaylistViews." + Regex.Replace(playListName, @"\s+", "_") + "CustomPlaylist";
 
 			await DatabaseHelper.Instance.RemovePlaylist(playListName);
@@ -119,6 +139,53 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			{
 				MusicPlayer.Instance.CurrentSong = "";
 				MusicPlayer.Instance.ResetOrReloadPlayer();
+			}
+
+			// Purge all entries for this playlist (and any orphaned/null-parameter entries) from history FIRST
+			MainPage._instance?.RemovePageFromHistory(playListName);
+
+			// Ensure the top of BackStack does not point to a deleted/non-existent playlist
+			while (Frame?.BackStack.Count > 0)
+			{
+				var topEntry = Frame.BackStack[Frame.BackStack.Count - 1];
+				if (topEntry.SourcePageType == typeof(PlayListTemplate))
+				{
+					var topPlaylistName = topEntry.Parameter?.ToString();
+					bool playlistExists = !string.IsNullOrEmpty(topPlaylistName) &&
+						playlistsGroup?.MenuItems.OfType<NavigationViewItem>().Any(item => (item.DataContext as DataGroup)?.Title == topPlaylistName) == true;
+
+					if (!playlistExists)
+					{
+						Frame.BackStack.RemoveAt(Frame.BackStack.Count - 1);
+						continue;
+					}
+				}
+				break;
+			}
+
+			if (Frame?.CanGoBack == true)
+			{
+				var targetEntry = Frame.BackStack[Frame.BackStack.Count - 1];
+				App.Current.NavService.GoBack();
+
+				if (targetEntry.SourcePageType == typeof(PlayListTemplate) && targetEntry.Parameter is string targetPlaylistTitle)
+				{
+					var matchingItem = playlistsGroup?.MenuItems.OfType<NavigationViewItem>()
+						.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == targetPlaylistTitle);
+					if (matchingItem != null)
+					{
+						MainPage._instance?.SelectNavigationItem(matchingItem);
+					}
+				}
+				else
+				{
+					App.Current.NavService.EnsureNavigationSelection(targetEntry.SourcePageType.FullName);
+				}
+			}
+			else
+			{
+				App.Current.NavService.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.AllSongsViewPage");
+				App.Current.NavService.NavigateTo("Tunetastic.Views.LibraryViews.AllSongsViewPage");
 			}
 		}
 	}
@@ -150,7 +217,50 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
 		$"Add {(multiSelect ? "selected songs/tracks" : "this song/track")} to {playList} playlist";
 
-	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
+	private void MenuFlyout_Opened(object sender, object e)
+	{
+		MenuFlyoutOpened(sender, e);
+
+		if (sender is MenuFlyout menu)
+		{
+			var moveSubItem = menu.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault(item => item.Text == "Move");
+			if (moveSubItem != null && moveSubItem.Items.Count >= 4)
+			{
+				if ((menu.Target as FrameworkElement)?.DataContext is Song song)
+				{
+					// Single-track context menu
+					int index = PlayListSongs.IndexOf(song);
+					moveSubItem.Items[0].IsEnabled = index > 0;
+					moveSubItem.Items[1].IsEnabled = index > 0;
+					moveSubItem.Items[2].IsEnabled = index >= 0 && index < PlayListSongs.Count - 1;
+					moveSubItem.Items[3].IsEnabled = index >= 0 && index < PlayListSongs.Count - 1;
+				}
+				else
+				{
+					// Multi-select corner menu (MoreButton)
+					var selectedSongs = GetCurrentViewStyle().SelectedItems.OfType<Song>().ToList();
+					if (selectedSongs.Count == 0)
+					{
+						moveSubItem.IsEnabled = false;
+					}
+					else
+					{
+						moveSubItem.IsEnabled = true;
+						var selectedIndices = selectedSongs.Select(s => PlayListSongs.IndexOf(s)).Where(idx => idx >= 0).OrderBy(idx => idx).ToList();
+						bool canMoveUp = selectedIndices.Count > 0 && selectedIndices.Any(idx => idx > 0 && !selectedIndices.Contains(idx - 1));
+						bool canMoveDown = selectedIndices.Count > 0 && selectedIndices.Any(idx => idx < PlayListSongs.Count - 1 && !selectedIndices.Contains(idx + 1));
+						bool canMoveToTop = selectedIndices.Count > 0 && !selectedIndices.SequenceEqual(Enumerable.Range(0, selectedIndices.Count));
+						bool canMoveToBottom = selectedIndices.Count > 0 && !selectedIndices.SequenceEqual(Enumerable.Range(PlayListSongs.Count - selectedIndices.Count, selectedIndices.Count));
+
+						moveSubItem.Items[0].IsEnabled = canMoveToTop;
+						moveSubItem.Items[1].IsEnabled = canMoveUp;
+						moveSubItem.Items[2].IsEnabled = canMoveDown;
+						moveSubItem.Items[3].IsEnabled = canMoveToBottom;
+					}
+				}
+			}
+		}
+	}
 
 	private async void LoadPlayListSongs()
 	{
@@ -169,6 +279,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		if (PlayListSongs.Count > 0)
 		{
 			NoResultsGrid.Visibility = Visibility.Collapsed;
+			ReorderButton.Visibility = Visibility.Visible;
 			MultiSelectButton.Visibility = Visibility.Visible;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
@@ -189,6 +300,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		{
 			NoResultsGrid.Visibility = Visibility.Visible;
 			AddNoResultsMessage();
+			ReorderButton.Visibility = Visibility.Collapsed;
+			ReorderButton.IsChecked = false;
+			IsReorderMode = false;
 			MultiSelectButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
@@ -244,6 +358,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 				PlayListSongsListViewGrid.Visibility = Visibility.Visible;
 				PlayListSongsCompactViewGrid.Visibility = Visibility.Collapsed;
 				glyph = "\uE8FD";
+				if (MultiSelectButton.IsChecked == true) Header.Margin = new Thickness(40, 0, 0, 0);
+				else if (IsReorderMode) Header.Margin = new Thickness(38, 0, 0, 0);
+				else Header.Margin = new Thickness(12, 0, 0, 0);
 				break;
 
 			case "Compact View":
@@ -345,6 +462,26 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
+	protected override async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled)
+		{
+			string playlistName = result.Name!;
+			var listView = GetCurrentViewStyle();
+			if (listView.IsMultiSelectCheckBoxEnabled)
+			{
+				await AddSongsToPlayList(playlistName);
+			}
+			else
+			{
+				var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+				await AddSongToPlayList(playlistName, song);
+			}
+		}
+	}
+
 	/// <summary>
 	/// Handles the logic for adding songs to a selected playlist from the current view.
 	/// </summary>
@@ -357,29 +494,39 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// </remarks>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
 	{
+		var playlist = (sender as MenuFlyoutItem)?.Text;
+
 		var listView = GetCurrentViewStyle();
 		if (listView.IsMultiSelectCheckBoxEnabled)
 		{
-			var songs = listView.SelectedItems;
-			List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
-
-			var playlist = (sender as MenuFlyoutItem)?.Text;
-
-			if (playlist != null)
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
-
-			GlobalNotification.Info($"{songs.Count} {(songs.Count > 1 ? "songs/tracks" : "song/track")} added to {playlist} playlist.");
+			await AddSongsToPlayList(playlist);
 		}
 		else
 		{
 			var song = (sender as MenuFlyoutItem)?.DataContext as Song;
-			var playlist = (sender as MenuFlyoutItem)?.Text;
+			await AddSongToPlayList(playlist, song);
+		}
+	}
 
-			if (playlist != null && song != null)
-			{
-				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-				GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
-			}
+	private async Task AddSongToPlayList(string? playlist, Song? song)
+	{
+		if (playlist != null && song != null)
+		{
+			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
+			GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
+		}
+	}
+
+	private async Task AddSongsToPlayList(string? playlist)
+	{
+		var listView = GetCurrentViewStyle();
+		var songs = listView.SelectedItems;
+		List<string> songPaths = songs.Select(s => ((Song)s).Path).ToList();
+
+		if (playlist != null)
+		{
+			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
+			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
 		}
 	}
 
@@ -498,6 +645,45 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// This method also adjusts the visibility and interactivity of related UI components (e.g., MoreButton,
 	/// PlayAllButtonStackPanel) based on the current mode.
 	/// </remarks>
+	/// <summary>
+	/// Handles the click event for the ReorderButton to toggle playlist track reorder mode.
+	/// When enabled, drag-and-drop is allowed and reorder handle icons appear on each tile.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the ReorderButton.</param>
+	/// <param name="e">The event data associated with the click action.</param>
+	private void ReorderButton_Click(object sender, RoutedEventArgs e)
+	{
+		bool isReordering = ReorderButton.IsChecked == true;
+		IsReorderMode = isReordering;
+
+		PlayListSongsListView.CanReorderItems = isReordering;
+		PlayListSongsListView.CanDragItems = isReordering;
+		PlayListSongsListView.AllowDrop = isReordering;
+
+		PlayListSongsCompactView.CanReorderItems = isReordering;
+		PlayListSongsCompactView.CanDragItems = isReordering;
+		PlayListSongsCompactView.AllowDrop = isReordering;
+
+		if (isReordering)
+		{
+			ToolTipService.SetToolTip(ReorderButton, "Done reordering");
+			MultiSelectButton.Visibility = Visibility.Collapsed;
+			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
+			ViewButton.Visibility = Visibility.Collapsed;
+			SettingsButton.Visibility = Visibility.Collapsed;
+			if (GetCurrentViewStyle().Name == "PlayListSongsListView") Header.Margin = new Thickness(38, 0, 0, 0);
+		}
+		else
+		{
+			ToolTipService.SetToolTip(ReorderButton, "Reorder playlist tracks");
+			MultiSelectButton.Visibility = Visibility.Visible;
+			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
+			ViewButton.Visibility = Visibility.Visible;
+			SettingsButton.Visibility = Visibility.Visible;
+			if (GetCurrentViewStyle().Name == "PlayListSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
+		}
+	}
+
 	private void MultiSelectButton_Click(object sender, RoutedEventArgs e)
 	{
 		var view = GetCurrentViewStyle();
@@ -505,6 +691,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		{
 			MoreButton.Visibility = Visibility.Visible;
 			MoreButton.IsEnabled = false;
+			ReorderButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
 			SettingsButton.Visibility = Visibility.Collapsed;
@@ -513,6 +700,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
 			view.IsRightTapEnabled = false;
+			view.CanReorderItems = false;
+			view.CanDragItems = false;
+			view.AllowDrop = false;
 			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
@@ -527,6 +717,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		else
 		{
 			MoreButton.Visibility = Visibility.Collapsed;
+			ReorderButton.Visibility = Visibility.Visible;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
 			SettingsButton.Visibility = Visibility.Visible;
@@ -535,6 +726,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
 			view.IsRightTapEnabled = true;
+			view.CanReorderItems = IsReorderMode;
+			view.CanDragItems = IsReorderMode;
+			view.AllowDrop = IsReorderMode;
 			var ItemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(view);
 
 			foreach (var item in ItemGrids)
@@ -544,7 +738,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					uiElement.IsRightTapEnabled = true;
 				}
 			}
-			if (view.Name == "PlayListSongsListView") Header.Margin = new Thickness(12, 0, 0, 0);
+			if (view.Name == "PlayListSongsListView") Header.Margin = new Thickness(IsReorderMode ? 38 : 12, 0, 0, 0);
 		}
 	}
 
@@ -731,6 +925,8 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			"YearDesc" => (SongProperty.Year, false),
 			"DurationAsc" => (SongProperty.Duration, true),
 			"DurationDesc" => (SongProperty.Duration, false),
+			"TrackAsc" => (SongProperty.Track, true),
+			"TrackDesc" => (SongProperty.Track, false),
 			"PlayCountAsc" => (SongProperty.PlayCount, true),
 			"PlayCountDesc" => (SongProperty.PlayCount, false),
 			"ModifiedTimeAsc" => (SongProperty.DateAdded, true),
@@ -750,6 +946,230 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted.");
 	}
+
+	/// <summary>
+	/// Persists the current order of <see cref="PlayListSongs"/> to the database
+	/// and updates the active MusicPlayer playlist order if this is the currently playing playlist.
+	/// </summary>
+	private async Task PersistPlaylistOrderAsync()
+	{
+		List<string> orderedPaths = PlayListSongs.Select(s => s.Path).ToList();
+		await DatabaseHelper.Instance.ReorderPlaylistSongs(PlaylistHeader.Text, orderedPaths);
+
+		var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
+		if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == PlaylistHeader.Text)
+		{
+			MusicPlayer.Instance.LoadPlaylist(orderedPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
+		}
+	}
+
+	/// <summary>
+	/// Handles completion of a drag-reorder operation on the playlist ListView.
+	/// Persists the new track order to the database.
+	/// </summary>
+	private async void ListView_DragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
+	{
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song to the top (first position) of the playlist.
+	/// </summary>
+	private async void MoveToTop_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index <= 0) return;
+		PlayListSongs.Move(index, 0);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song up by one position in the playlist.
+	/// </summary>
+	private async void MoveUp_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index <= 0) return;
+		PlayListSongs.Move(index, index - 1);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song down by one position in the playlist.
+	/// </summary>
+	private async void MoveDown_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index < 0 || index >= PlayListSongs.Count - 1) return;
+		PlayListSongs.Move(index, index + 1);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves the selected song to the bottom (last position) of the playlist.
+	/// </summary>
+	private async void MoveToBottom_Click(object sender, RoutedEventArgs e)
+	{
+		var song = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (song == null) return;
+		int index = PlayListSongs.IndexOf(song);
+		if (index < 0 || index >= PlayListSongs.Count - 1) return;
+		PlayListSongs.Move(index, PlayListSongs.Count - 1);
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs to the top of the playlist, preserving their relative order.
+	/// </summary>
+	private async void MoveMultiToTop_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		for (int i = 0; i < orderedSelected.Count; i++)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			if (currentIndex != i)
+			{
+				PlayListSongs.Move(currentIndex, i);
+			}
+		}
+
+		foreach (var song in orderedSelected)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (orderedSelected.Count > 0)
+		{
+			view.ScrollIntoView(orderedSelected[0]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs up by one position in the playlist.
+	/// </summary>
+	private async void MoveMultiUp_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		for (int i = 0; i < orderedSelected.Count; i++)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			if (currentIndex > 0 && !selectedSet.Contains(PlayListSongs[currentIndex - 1]))
+			{
+				PlayListSongs.Move(currentIndex, currentIndex - 1);
+			}
+		}
+
+		foreach (var song in orderedSelected)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (orderedSelected.Count > 0)
+		{
+			view.ScrollIntoView(orderedSelected[0]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs down by one position in the playlist.
+	/// </summary>
+	private async void MoveMultiDown_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).Reverse().ToList();
+		for (int i = 0; i < orderedSelected.Count; i++)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			if (currentIndex < PlayListSongs.Count - 1 && !selectedSet.Contains(PlayListSongs[currentIndex + 1]))
+			{
+				PlayListSongs.Move(currentIndex, currentIndex + 1);
+			}
+		}
+
+		var normalOrdered = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		foreach (var song in normalOrdered)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (normalOrdered.Count > 0)
+		{
+			view.ScrollIntoView(normalOrdered[^1]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
+	/// <summary>
+	/// Moves all selected songs to the bottom of the playlist, preserving their relative order.
+	/// </summary>
+	private async void MoveMultiToBottom_Click(object sender, RoutedEventArgs e)
+	{
+		var view = GetCurrentViewStyle();
+		var selectedSet = view.SelectedItems.OfType<Song>().ToHashSet();
+		if (selectedSet.Count == 0) return;
+
+		var orderedSelected = PlayListSongs.Where(s => selectedSet.Contains(s)).ToList();
+		for (int i = orderedSelected.Count - 1; i >= 0; i--)
+		{
+			var song = orderedSelected[i];
+			int currentIndex = PlayListSongs.IndexOf(song);
+			int targetIndex = PlayListSongs.Count - 1 - (orderedSelected.Count - 1 - i);
+			if (currentIndex != targetIndex)
+			{
+				PlayListSongs.Move(currentIndex, targetIndex);
+			}
+		}
+
+		foreach (var song in orderedSelected)
+		{
+			if (!view.SelectedItems.Contains(song))
+			{
+				view.SelectedItems.Add(song);
+			}
+		}
+
+		if (orderedSelected.Count > 0)
+		{
+			view.ScrollIntoView(orderedSelected[^1]);
+		}
+
+		await PersistPlaylistOrderAsync();
+	}
+
 
 	/// <summary>
 	/// Represents a collection of playlist names retrieved from the data source.
@@ -799,12 +1219,21 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					playListNavigationItem.Tag = tag;
 					playListNavigationItem.DataContext = dataGroup;
 					ToolTipService.SetToolTip(playListNavigationItem, dataGroup.Title);
-
-					NavigationPageMappings.PageDictionary.Add(tag, typeof(PlayListTemplate));
 				}
 			}
-			await DatabaseHelper.Instance.RenamePlaylist(PlaylistHeader.Text, PlaylistNameBox.Text.Trim());
-			PlaylistHeader.Text = PlaylistNameBox.Text.Trim();
+			var oldPlaylistName = PlaylistHeader.Text;
+			var newPlaylistName = PlaylistNameBox.Text.Trim();
+			await DatabaseHelper.Instance.RenamePlaylist(oldPlaylistName, newPlaylistName);
+			PlaylistHeader.Text = newPlaylistName;
+			MainPage._instance?.UpdatePageParameterInHistory(oldPlaylistName, newPlaylistName);
+
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+			var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
+			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == oldPlaylistName)
+			{
+				localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "CustomPlaylist__" + newPlaylistName;
+			}
+
 			AddNoResultsMessage();
 			GlobalNotification.Success("Playlist renamed to " + PlaylistHeader.Text + ".");
 		}

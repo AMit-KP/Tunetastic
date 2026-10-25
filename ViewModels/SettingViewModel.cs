@@ -1,118 +1,20 @@
 ﻿using Windows.Storage;
-using Windows.System;
+using Tunetastic.Common.Services;
+using Tunetastic.Common.Infrastructure;
 
 namespace Tunetastic.ViewModels;
 
 public partial class SettingViewModel : ObservableObject
 {
-#pragma warning disable MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
-	[ObservableProperty]
-	public string currentVersion;
-
-	[ObservableProperty]
-	public string lastUpdateCheck;
-
-	[ObservableProperty]
-	public bool isUpdateAvailable;
-
-	[ObservableProperty]
-	public bool isLoading;
-
-	[ObservableProperty]
-	public bool isCheckButtonEnabled = true;
-
-	[ObservableProperty]
-	public string loadingStatus = "Status";
-#pragma warning restore MVVMTK0045 // Using [ObservableProperty] on fields is not AOT compatible for WinRT
-
-	private string ChangeLog = string.Empty;
-
-	public SettingViewModel()
-	{
-		CurrentVersion = $"Current Version {ProcessInfoHelper.Version}";
-		LastUpdateCheck = Settings.LastUpdateCheck;
-	}
-
+	/// <summary>
+	/// Resets the playback history for all songs in the library.
+	/// Resets the play count to zero and clears the last played timestamp.
+	/// </summary>
 	[RelayCommand]
-	private async Task CheckForUpdateAsync()
+	public async Task ResetHistory()
 	{
-		IsLoading = true;
-		IsUpdateAvailable = false;
-		IsCheckButtonEnabled = false;
-		LoadingStatus = "Checking for new version";
-		if (NetworkHelper.IsNetworkAvailable())
-		{
-			try
-			{
-				//TODO: Fix UserName and Repo
-				string username = "";
-				string repo = "";
-				LastUpdateCheck = DateTime.Now.ToShortDateString();
-				Settings.LastUpdateCheck = DateTime.Now.ToShortDateString();
-				var update = await UpdateHelper.CheckUpdateAsync(username, repo, new Version(ProcessInfoHelper.Version));
-				if (update.StableRelease.IsExistNewVersion)
-				{
-					IsUpdateAvailable = true;
-					ChangeLog = update.StableRelease.Changelog;
-					LoadingStatus = $"We found a new version {update.StableRelease.TagName} Created at {update.StableRelease.CreatedAt} and Published at {update.StableRelease.PublishedAt}";
-				}
-				else if (update.PreRelease.IsExistNewVersion)
-				{
-					IsUpdateAvailable = true;
-					ChangeLog = update.PreRelease.Changelog;
-					LoadingStatus = $"We found a new PreRelease Version {update.PreRelease.TagName} Created at {update.PreRelease.CreatedAt} and Published at {update.PreRelease.PublishedAt}";
-				}
-				else
-				{
-					LoadingStatus = "You are using latest version";
-				}
-			}
-			catch (Exception ex)
-			{
-				LoadingStatus = ex.Message;
-				IsLoading = false;
-				IsCheckButtonEnabled = true;
-			}
-		}
-		else
-		{
-			LoadingStatus = "Error Connection";
-		}
-		IsLoading = false;
-		IsCheckButtonEnabled = true;
-	}
-
-	[RelayCommand]
-	private async Task GoToUpdateAsync()
-	{
-		//TODO: Change Uri
-		await Launcher.LaunchUriAsync(new Uri(""));
-	}
-
-	[RelayCommand]
-	private async Task GetReleaseNotesAsync()
-	{
-		ContentDialog dialog = new ContentDialog()
-		{
-			Title = "Release Note",
-			CloseButtonText = "Close",
-			Content = new ScrollViewer
-			{
-				Content = new TextBlock
-				{
-					Text = ChangeLog,
-					Margin = new Thickness(10)
-				},
-				Margin = new Thickness(10)
-			},
-			Margin = new Thickness(10),
-			DefaultButton = ContentDialogButton.Close,
-			XamlRoot = App.MainWindow.Content.XamlRoot
-		};
-
-		MainWindow._instance.WindowResizePermission(false);
-		await dialog.ShowAsync();
-		MainWindow._instance.WindowResizePermission(true);
+		await DatabaseHelper.Instance.ResetAllPlaybackHistory();
+		GlobalNotification.Success("Playback history reset successfully.");
 	}
 
 	/// <summary>
@@ -130,7 +32,7 @@ public partial class SettingViewModel : ObservableObject
 	/// <summary>
 	/// Resets all application settings to their default values.
 	/// This method clears both local settings and persistent application data storage.
-	/// It is commonly used when a complete reset of user preferences and stored data is required.
+	/// It is commonly used when a complete reset of user preferences or stored data is required.
 	/// </summary>
 	/// <returns>A Task that represents the asynchronous operation.</returns>
 	public async Task ResetAllSettings()
