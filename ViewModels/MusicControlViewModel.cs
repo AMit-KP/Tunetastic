@@ -191,10 +191,10 @@ public partial class MusicControlViewModel : ObservableRecipient
 						_dispatcherQueue.TryEnqueue(async () => await TogglePlayPause());
 						break;
 					case SystemMediaTransportControlsButton.Next:
-						_dispatcherQueue.TryEnqueue(() => NextSong());
+						_dispatcherQueue.TryEnqueue(async () => await NextSong());
 						break;
 					case SystemMediaTransportControlsButton.Previous:
-						_dispatcherQueue.TryEnqueue(() => PreviousSong());
+						_dispatcherQueue.TryEnqueue(async () => await PreviousSong());
 						break;
 				}
 			};
@@ -284,7 +284,11 @@ public partial class MusicControlViewModel : ObservableRecipient
 					break;
 
 				case PlaybackState.Ended:
-					_ = _musicPlayer.Next(autoChange: true);
+					try
+					{
+						await _musicPlayer.Next(autoChange: true);
+					}
+					catch (Exception) { }
 					break;
 			}
 		});
@@ -317,15 +321,15 @@ public partial class MusicControlViewModel : ObservableRecipient
 	//  Keyboard input
 	// ─────────────────────────────────────────────────────────
 
-	private void keyboardInput(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
+	private async void keyboardInput(UIElement sender, ProcessKeyboardAcceleratorEventArgs args)
 	{
 		switch (args.Modifiers)
 		{
 			case Windows.System.VirtualKeyModifiers.Control when args.Key == Windows.System.VirtualKey.N:
-				NextSong();
+				await NextSong();
 				break;
 			case Windows.System.VirtualKeyModifiers.Control when args.Key == Windows.System.VirtualKey.P:
-				PreviousSong();
+				await PreviousSong();
 				break;
 		}
 	}
@@ -358,7 +362,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 	// ─────────────────────────────────────────────────────────
 	private async Task LoadLastPlayedTrack()
 	{
-		await Task.Delay(200);
+		try
+		{
+			await Task.Delay(200);
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
 		{
@@ -381,6 +387,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
 		}
+		}
+		catch (Exception) { }
 	}
 
 	// ─────────────────────────────────────────────────────────
@@ -453,14 +461,18 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// </summary>
 	/// <remarks>This method stops any active midpoint timer, resets the playback tracker, and updates the progress
 	/// bar to the beginning of the next song. Use this command to skip to the next track during playback.</remarks>
-	[RelayCommand]
-	private void NextSong()
+	[RelayCommand(AllowConcurrentExecutions = true)]
+	private async Task NextSong()
 	{
 		ProgressBarValue = 0;
 		_midpointTimer?.Stop();
 		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
-		_ = _musicPlayer.Next();
+		try
+		{
+			await _musicPlayer.Next();
+		}
+		catch (Exception) { }
 	}
 
 	/// <summary>
@@ -469,14 +481,18 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// <remarks>Calling this method resets the progress bar and playback tracker to the beginning of the previous
 	/// song. If the current song is the first in the queue, behavior depends on the implementation of the underlying music
 	/// player.</remarks>
-	[RelayCommand]
-	private void PreviousSong()
+	[RelayCommand(AllowConcurrentExecutions = true)]
+	private async Task PreviousSong()
 	{
 		ProgressBarValue = 0;
 		_midpointTimer?.Stop();
 		_midpointTimer?.Tick -= MidpointTimer_Tick;
 		_playbackTracker.Reset();
-		_ = _musicPlayer.Previous();
+		try
+		{
+			await _musicPlayer.Previous();
+		}
+		catch (Exception) { }
 	}
 
 	/// <summary>
@@ -717,9 +733,9 @@ public partial class MusicControlViewModel : ObservableRecipient
 			new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"next_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Next");
 
 
-		prevButton.Click += (s, e) => PreviousSong();
+		prevButton.Click += async (s, e) => await PreviousSong();
 		Play_Pause_Button.Click += async (s, e) => await TogglePlayPause();
-		nextButton.Click += (s, e) => NextSong();
+		nextButton.Click += async (s, e) => await NextSong();
 
 		TaskbarManager.Instance.ThumbnailToolBars.AddButtons(App.Hwnd, prevButton, Play_Pause_Button, nextButton);
 
@@ -779,8 +795,8 @@ public partial class MusicControlViewModel : ObservableRecipient
 		if (_overlayGrid.RootGrid is not null)
 		{
 			_overlayGrid.PlayPauseButton?.Click += async (_, _) => await TogglePlayPause();
-			_overlayGrid.PreviousButton?.Click += (_, _) => PreviousSong();
-			_overlayGrid.NextButton?.Click += (_, _) => NextSong();
+			_overlayGrid.PreviousButton?.Click += async (_, _) => await PreviousSong();
+			_overlayGrid.NextButton?.Click += async (_, _) => await NextSong();
 		}
 	}
 

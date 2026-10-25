@@ -695,11 +695,18 @@ public class MusicPlayer
 	{
 		if (LibraryScanner.IsScanning) return;
 
-		CancelSkipUnplayableSongs();
-		bool play = autoChange || IsPlaying;
-		var result = await AdvanceAndLoad(autoChange, play);
-		if (result is { Loaded: false })
-			await SkipUnplayableSongs(result.Value.Path, play);
+		try
+		{
+			CancelSkipUnplayableSongs();
+			bool play = autoChange || IsPlaying;
+			var result = await AdvanceAndLoad(autoChange, play);
+			if (result is { Loaded: false })
+				await SkipUnplayableSongs(result.Value.Path, play);
+		}
+		catch (Exception)
+		{
+			GlobalNotification.Error("Could not load next song.");
+		}
 	}
 
 	/// <summary>

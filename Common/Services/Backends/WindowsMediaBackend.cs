@@ -103,10 +103,14 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 			source.OpenOperationCompleted += (s, e) => opened.TrySetResult(e.Error == null);
 			_player.Source = source;
 
-			bool success = await opened.Task;
+			bool success = await opened.Task.WaitAsync(TimeSpan.FromSeconds(8));
 			if (!success)
 			{
 				_isLoading = false;
+				if (ReferenceEquals(_player.Source, source))
+				{
+					_player.Source = null;
+				}
 				source.Dispose();
 			}
 			return success;
@@ -114,6 +118,10 @@ internal sealed class WindowsMediaBackend : IMediaBackend
 		catch (Exception)
 		{
 			_isLoading = false;
+			if (source != null && ReferenceEquals(_player.Source, source))
+			{
+				_player.Source = null;
+			}
 			source?.Dispose();
 			return false;
 		}
