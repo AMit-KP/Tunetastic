@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace Tunetastic.Common.Infrastructure;
