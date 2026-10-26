@@ -174,5 +174,167 @@ public static class CoverArtHelper
 	{
 		return CreateThumbnailImage(thumbnailFolder, pictures, size, size);
 	}
+
+	/// <summary>
+	/// Rapidly clears the thumbnail cache folder without blocking the calling thread.
+	/// </summary>
+	/// <remarks>
+	/// Standard recursive <see cref="Directory.Delete(string, bool)"/> runs synchronously and single-threaded,
+	/// taking seconds or minutes when thousands of thumbnail files exist. This method instead instantly moves the
+	/// existing directory to a temporary folder on the same volume (an atomic filesystem rename taking ~1ms), freeing
+	/// up <see cref="Constants.ThumbnailsFolder"/> immediately so library scanning can proceed without delay.
+	/// The old thumbnails are then deleted in the background using multi-threaded parallel I/O.
+	/// </remarks>
+	public static void FastPurgeThumbnails()
+	{
+		var thumbnailsPath = Constants.ThumbnailsFolder;
+		if (!Directory.Exists(thumbnailsPath))
+			return;
+
+		var tempTrashFolder = Path.Combine(Constants.TemporaryFolder, "Thumbnails_old_" + Guid.NewGuid().ToString("N"));
+		bool moved = false;
+
+		try
+		{
+			var tempRoot = Path.GetDirectoryName(tempTrashFolder);
+			if (tempRoot != null && !Directory.Exists(tempRoot))
+				Directory.CreateDirectory(tempRoot);
+
+			Directory.Move(thumbnailsPath, tempTrashFolder);
+			moved = true;
+		}
+		catch
+		{
+			// If Directory.Move fails (e.g. open handles or volume boundary), fallback to deleting in-place
+		}
+
+		if (moved)
+		{
+			_ = Task.Run(() =>
+			{
+				DeleteDirectoryParallel(tempTrashFolder, deleteRoot: true);
+				CleanOrphanedThumbnailFolders();
+			});
+		}
+		else
+		{
+			List<string> existingFiles;
+			try
+			{
+				existingFiles = Directory.EnumerateFiles(thumbnailsPath, "*", SearchOption.AllDirectories).ToList();
+			}
+			catch
+			{
+				existingFiles = new List<string>();
+			}
+
+			_ = Task.Run(() =>
+			{
+				DeleteFilesParallel(existingFiles);
+				CleanOrphanedThumbnailFolders();
+			});
+		}
+	}
+
+	/// <summary>
+	/// Deletes a collection of files in parallel to maximize disk and filesystem queue saturation.
+	/// </summary>
+	private static void DeleteFilesParallel(IEnumerable<string> files)
+	{
+		try
+		{
+			var dop = Math.Clamp(Environment.ProcessorCount * 2, 4, 16);
+			Parallel.ForEach(files, new ParallelOptions { MaxDegreeOfParallelism = dop }, file =>
+			{
+				try
+				{
+					File.SetAttributes(file, FileAttributes.Normal);
+					File.Delete(file);
+				}
+				catch
+				{
+					// Best-effort: ignore individual locked files
+				}
+			});
+		}
+		catch
+		{
+			// Best effort
+		}
+	}
+
+	/// <summary>
+	/// Recursively deletes all files and subdirectories inside a directory using parallel file deletion.
+	/// </summary>
+	private static void DeleteDirectoryParallel(string directoryPath, bool deleteRoot)
+	{
+		if (!Directory.Exists(directoryPath))
+			return;
+
+		try
+		{
+			var files = Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories);
+			DeleteFilesParallel(files);
+
+			var subDirs = Directory.EnumerateDirectories(directoryPath, "*", SearchOption.AllDirectories)
+								   .OrderByDescending(d => d.Length);
+			foreach (var dir in subDirs)
+			{
+				try
+				{
+					Directory.Delete(dir, false);
+				}
+				catch
+				{
+					// Best effort
+				}
+			}
+
+			if (deleteRoot)
+			{
+				try
+				{
+					Directory.Delete(directoryPath, true);
+				}
+				catch
+				{
+					// Best effort
+				}
+			}
+		}
+		catch
+		{
+			// Best effort
+		}
+	}
+
+	/// <summary>
+	/// Scans the temporary folder for any leftover "Thumbnails_old_*" directories from previous interrupted sessions and deletes them.
+	/// </summary>
+	private static void CleanOrphanedThumbnailFolders()
+	{
+		try
+		{
+			if (!Directory.Exists(Constants.TemporaryFolder))
+				return;
+
+			var oldFolders = Directory.EnumerateDirectories(Constants.TemporaryFolder, "Thumbnails_old_*");
+			foreach (var folder in oldFolders)
+			{
+				try
+				{
+					DeleteDirectoryParallel(folder, deleteRoot: true);
+				}
+				catch
+				{
+					// Best effort
+				}
+			}
+		}
+		catch
+		{
+			// Best effort
+		}
+	}
 }
 

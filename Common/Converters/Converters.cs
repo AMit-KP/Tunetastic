@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Globalization;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -298,6 +298,9 @@ public class CoverImageConverter : IValueConverter
 	private const int MaxCacheEntries = 3000;
 
 	private static readonly ConcurrentDictionary<string, BitmapImage> Cache = new(StringComparer.OrdinalIgnoreCase);
+
+	/// <summary>Clears the cached cover images from memory.</summary>
+	public static void ClearCache() => Cache.Clear();
 
 	/// <summary>Converts a cover path (or empty/null) into a cached, decode-sized <see cref="BitmapImage"/>.</summary>
 	/// <param name="value">The cover file path. Empty/null yields <c>null</c> so the Image shows nothing.</param>

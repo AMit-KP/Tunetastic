@@ -111,8 +111,8 @@ public class LibraryScanner
 
 		var extensions = await GetEnabledExtensions();
 
-		var path = Path.Combine(Constants.ThumbnailsFolder);
-		if (Directory.Exists(path)) Directory.Delete(path, true);
+		CoverArtHelper.FastPurgeThumbnails();
+		CoverImageConverter.ClearCache();
 
 		ScanProgress = 0.5;
 
