@@ -7,9 +7,9 @@ Closes # (issue number, if applicable)
 
 ## Type of Change
 - [ ] Bug fix
-- [ ] New feature
+- [ ] Enhancement
 - [ ] UI / visual change
-- [ ] Refactor / code cleanup
+- [ ] Refactor/code cleanup
 - [ ] Breaking change (fix or feature that alters existing functionality)
 - [ ] Documentation update
 - [ ] Other (describe below)
@@ -29,7 +29,7 @@ Does this PR introduce any new external libraries, components, or update existin
 ---
 
 ## Screenshots / Media (if applicable)
-Before / after screenshots or short GIFs for any UI or visual synchronization changes.
+Before/after screenshots or short GIFs for any UI or visual synchronization changes.
 
 ---
 
