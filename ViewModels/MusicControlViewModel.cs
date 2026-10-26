@@ -365,28 +365,28 @@ public partial class MusicControlViewModel : ObservableRecipient
 		try
 		{
 			await Task.Delay(200);
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
-		{
-			var song = localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
-			if (string.IsNullOrEmpty(song)) return;
-			var track = await DatabaseHelper.Instance.GetSongByPath(song!);
-
-			if (track == null)
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+			if (localSettings.Values.ContainsKey(nameof(LocalSave.LastPlayedTrack)))
 			{
-				localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
-				localSettings.Values.Remove(nameof(LocalSave.PlayBackPosition));
-				localSettings.Values.Remove(nameof(LocalSave.CurrentPlayinglist));
-				return;
+				var song = localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
+				if (string.IsNullOrEmpty(song)) return;
+				var track = await DatabaseHelper.Instance.GetSongByPath(song!);
+
+				if (track == null)
+				{
+					localSettings.Values.Remove(nameof(LocalSave.LastPlayedTrack));
+					localSettings.Values.Remove(nameof(LocalSave.PlayBackPosition));
+					localSettings.Values.Remove(nameof(LocalSave.CurrentPlayinglist));
+					return;
+				}
+
+				var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
+				DurationOfSong = track.Duration;
+				ProgressBarValue = position;
+				_startupPosition = position;
+
+				_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
 			}
-
-			var position = double.Parse(localSettings.Values[nameof(LocalSave.PlayBackPosition)]?.ToString() ?? "0");
-			DurationOfSong = track.Duration;
-			ProgressBarValue = position;
-			_startupPosition = position;
-
-			_musicPlayer.LoadPlaylist(song, play: bool.Parse(localSettings.Values[nameof(LocalSave.AutoStartStatus)]?.ToString() ?? "false"), startup: true);
-		}
 		}
 		catch (Exception) { }
 	}

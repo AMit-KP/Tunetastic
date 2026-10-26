@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Windows.Storage;
 
 namespace Tunetastic.Common.Operations;
@@ -111,8 +111,8 @@ public class LibraryScanner
 
 		var extensions = await GetEnabledExtensions();
 
-		CoverArtHelper.FastPurgeThumbnails();
-		CoverImageConverter.ClearCache();
+		using var thumbnailSession = CoverArtHelper.CreateThumbnailBackupSession();
+
 
 		ScanProgress = 0.5;
 
@@ -191,12 +191,15 @@ public class LibraryScanner
 				await DatabaseHelper.Instance.UpdateSongsDatabase(songsContainer.ToList());
 				await DatabaseHelper.Instance.WipeFileScanMeta();
 				await DatabaseHelper.Instance.UpdateFileScanMeta(scanMetaContainer.ToList());
+				thumbnailSession.Commit();
+				CoverImageConverter.ClearCache();
 			}
 			catch (Exception)
 			{
 				// Never wipe the library on a failed scan: the failure can be transient (e.g. a locked
 				// database while another process writes), and deleting everything destroys data that the
-				// scan never touched. Leave the previous library in place and report the failure.
+				// scan never touched. Leave the previous library and thumbnail covers in place and report the failure.
+				thumbnailSession.Rollback();
 				await RefreshAutoScanResultMessage(message: "Library scan failed; kept the existing library.");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
 				return ("Error", "Library scan failed; kept the existing library.", failedFiles.ToList());
@@ -218,6 +221,8 @@ public class LibraryScanner
 		}
 		else
 		{
+			thumbnailSession.Commit();
+			CoverImageConverter.ClearCache();
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			await DatabaseHelper.Instance.WipeFileScanMeta();
 			await RefreshAutoScanResultMessage(0, "No libraries found");

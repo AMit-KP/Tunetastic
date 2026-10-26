@@ -1,4 +1,4 @@
-using Windows.Media.Playback;
+﻿using Windows.Media.Playback;
 
 namespace Tunetastic.Common.Services.Backends;
 

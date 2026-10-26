@@ -176,63 +176,120 @@ public static class CoverArtHelper
 	}
 
 	/// <summary>
-	/// Rapidly clears the thumbnail cache folder without blocking the calling thread.
+	/// Manages an atomic, transactional backup session for thumbnail images during library rescans.
+	/// Moves the existing thumbnails folder to a temporary backup in ~1-4ms so that the rescan can
+	/// immediately create new thumbnails without delay. If the rescan or database update succeeds,
+	/// the old backup is purged in the background. If it fails, the previous thumbnails are restored instantly.
 	/// </summary>
-	/// <remarks>
-	/// Standard recursive <see cref="Directory.Delete(string, bool)"/> runs synchronously and single-threaded,
-	/// taking seconds or minutes when thousands of thumbnail files exist. This method instead instantly moves the
-	/// existing directory to a temporary folder on the same volume (an atomic filesystem rename taking ~1ms), freeing
-	/// up <see cref="Constants.ThumbnailsFolder"/> immediately so library scanning can proceed without delay.
-	/// The old thumbnails are then deleted in the background using multi-threaded parallel I/O.
-	/// </remarks>
-	public static void FastPurgeThumbnails()
+	public sealed class ThumbnailBackupSession : IDisposable
 	{
-		var thumbnailsPath = Constants.ThumbnailsFolder;
-		if (!Directory.Exists(thumbnailsPath))
-			return;
+		private readonly string? _backupPath;
+		private readonly string _thumbnailsPath;
+		private bool _committed;
 
-		var tempTrashFolder = Path.Combine(Constants.TemporaryFolder, "Thumbnails_old_" + Guid.NewGuid().ToString("N"));
-		bool moved = false;
-
-		try
+		internal ThumbnailBackupSession(string? backupPath, string thumbnailsPath)
 		{
-			var tempRoot = Path.GetDirectoryName(tempTrashFolder);
-			if (tempRoot != null && !Directory.Exists(tempRoot))
-				Directory.CreateDirectory(tempRoot);
-
-			Directory.Move(thumbnailsPath, tempTrashFolder);
-			moved = true;
-		}
-		catch
-		{
-			// If Directory.Move fails (e.g. open handles or volume boundary), fallback to deleting in-place
+			_backupPath = backupPath;
+			_thumbnailsPath = thumbnailsPath;
 		}
 
-		if (moved)
+		/// <summary>
+		/// Commits the session upon successful scan and database update. Deletes the previous backup
+		/// folder asynchronously in the background.
+		/// </summary>
+		public void Commit()
 		{
-			_ = Task.Run(() =>
+			if (_committed) return;
+			_committed = true;
+
+			if (_backupPath != null && Directory.Exists(_backupPath))
 			{
-				DeleteDirectoryParallel(tempTrashFolder, deleteRoot: true);
-				CleanOrphanedThumbnailFolders();
-			});
+				var folderToDelete = _backupPath;
+				_ = Task.Run(() =>
+				{
+					DeleteDirectoryParallel(folderToDelete, deleteRoot: true);
+					CleanOrphanedThumbnailFolders();
+				});
+			}
 		}
-		else
+
+		/// <summary>
+		/// Rolls back the session upon a failed scan or database error. Restores the previous thumbnails
+		/// folder instantly (~1-4ms), ensuring database rows never lose their corresponding cover art files.
+		/// </summary>
+		public void Rollback()
 		{
-			List<string> existingFiles;
+			if (_committed) return;
+			_committed = true;
+
+			if (_backupPath == null || !Directory.Exists(_backupPath))
+				return;
+
 			try
 			{
-				existingFiles = Directory.EnumerateFiles(thumbnailsPath, "*", SearchOption.AllDirectories).ToList();
+				if (Directory.Exists(_thumbnailsPath))
+				{
+					var failedTrash = Path.Combine(Constants.TemporaryFolder, "Thumbnails_failed_" + Guid.NewGuid().ToString("N"));
+					try
+					{
+						Directory.Move(_thumbnailsPath, failedTrash);
+						_ = Task.Run(() => DeleteDirectoryParallel(failedTrash, deleteRoot: true));
+					}
+					catch
+					{
+						_ = Task.Run(() => DeleteDirectoryParallel(_thumbnailsPath, deleteRoot: false));
+					}
+				}
+
+				if (!Directory.Exists(_thumbnailsPath))
+				{
+					Directory.Move(_backupPath, _thumbnailsPath);
+				}
 			}
 			catch
 			{
-				existingFiles = new List<string>();
+				// Best-effort restoration
 			}
+		}
 
-			_ = Task.Run(() =>
+		/// <summary>
+		/// Automatically rolls back if the session finishes without being committed.
+		/// </summary>
+		public void Dispose()
+		{
+			if (!_committed)
 			{
-				DeleteFilesParallel(existingFiles);
-				CleanOrphanedThumbnailFolders();
-			});
+				Rollback();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Initiates a transactional thumbnail backup session. Instantly renames the existing
+	/// <see cref="Constants.ThumbnailsFolder"/> to a temporary backup on the same volume (~1-4ms),
+	/// allowing new thumbnails to be written cleanly while protecting existing covers against database update failures.
+	/// </summary>
+	public static ThumbnailBackupSession CreateThumbnailBackupSession()
+	{
+		var thumbnailsPath = Constants.ThumbnailsFolder;
+		if (!Directory.Exists(thumbnailsPath))
+			return new ThumbnailBackupSession(null, thumbnailsPath);
+
+		var backupPath = Path.Combine(Constants.TemporaryFolder, "Thumbnails_backup_" + Guid.NewGuid().ToString("N"));
+
+		try
+		{
+			var tempRoot = Path.GetDirectoryName(backupPath);
+			if (tempRoot != null && !Directory.Exists(tempRoot))
+				Directory.CreateDirectory(tempRoot);
+
+			Directory.Move(thumbnailsPath, backupPath);
+			return new ThumbnailBackupSession(backupPath, thumbnailsPath);
+		}
+		catch
+		{
+			// If moving fails (e.g. active folder lock), proceed without backup
+			return new ThumbnailBackupSession(null, thumbnailsPath);
 		}
 	}
 
@@ -311,23 +368,43 @@ public static class CoverArtHelper
 	/// <summary>
 	/// Scans the temporary folder for any leftover "Thumbnails_old_*" directories from previous interrupted sessions and deletes them.
 	/// </summary>
-	private static void CleanOrphanedThumbnailFolders()
+	internal static void CleanOrphanedThumbnailFolders()
 	{
 		try
 		{
 			if (!Directory.Exists(Constants.TemporaryFolder))
 				return;
 
-			var oldFolders = Directory.EnumerateDirectories(Constants.TemporaryFolder, "Thumbnails_old_*");
-			foreach (var folder in oldFolders)
+			// If the main thumbnails folder is missing, attempt restoring the most recent orphaned backup
+			if (!Directory.Exists(Constants.ThumbnailsFolder))
 			{
-				try
+				var backupFolder = Directory.EnumerateDirectories(Constants.TemporaryFolder, "Thumbnails_backup_*").FirstOrDefault();
+				if (backupFolder != null)
 				{
-					DeleteDirectoryParallel(folder, deleteRoot: true);
+					try
+					{
+						Directory.Move(backupFolder, Constants.ThumbnailsFolder);
+					}
+					catch
+					{
+						// Best effort
+					}
 				}
-				catch
+			}
+
+			var patterns = new[] { "Thumbnails_old_*", "Thumbnails_backup_*", "Thumbnails_failed_*" };
+			foreach (var pattern in patterns)
+			{
+				foreach (var folder in Directory.EnumerateDirectories(Constants.TemporaryFolder, pattern))
 				{
-					// Best effort
+					try
+					{
+						DeleteDirectoryParallel(folder, deleteRoot: true);
+					}
+					catch
+					{
+						// Best effort
+					}
 				}
 			}
 		}
@@ -336,5 +413,6 @@ public static class CoverArtHelper
 			// Best effort
 		}
 	}
+
 }
 

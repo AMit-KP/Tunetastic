@@ -1,6 +1,4 @@
 ﻿using Windows.Storage;
-using Tunetastic.Common.Services;
-using Tunetastic.Common.Infrastructure;
 
 namespace Tunetastic.ViewModels;
 

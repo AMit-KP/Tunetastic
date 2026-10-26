@@ -1,4 +1,4 @@
-namespace Tunetastic.Common;
+﻿namespace Tunetastic.Common;
 
 // ─────────────────────────────────────────────────────────────
 //  Playback enums

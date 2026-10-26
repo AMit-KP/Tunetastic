@@ -228,5 +228,6 @@ public partial class App : Application
 		var menuFolder = await ContextMenuService.CreateDefualtMenusFolderAsync();
 		ContextMenuService menuService = new ContextMenuService(menuFolder);
 		await menuService.SaveAsync(menu);
+		_ = Task.Run(CoverArtHelper.CleanOrphanedThumbnailFolders);
 	}
 }

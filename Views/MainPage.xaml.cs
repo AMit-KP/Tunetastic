@@ -1,4 +1,4 @@
-using System.Runtime.InteropServices.WindowsRuntime;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
@@ -1048,8 +1048,8 @@ public sealed partial class MainPage : Page
 					text = isAfter ? "Removed" : (field == "Cover Art" ? "No cover art" : $"No {field.ToLower()}");
 				}
 				else if (text.Equals("No cover art", StringComparison.OrdinalIgnoreCase) ||
-				         text.Equals("No cover", StringComparison.OrdinalIgnoreCase) ||
-				         text.Equals("Removed", StringComparison.OrdinalIgnoreCase))
+						 text.Equals("No cover", StringComparison.OrdinalIgnoreCase) ||
+						 text.Equals("Removed", StringComparison.OrdinalIgnoreCase))
 				{
 					isPlaceholder = true;
 				}
@@ -1225,49 +1225,49 @@ public sealed partial class MainPage : Page
 
 				PopulateArtistTeachingTip(ArtistSplitRules);
 
-			ShowEditSongInfo:
+ShowEditSongInfo:
 				MainWindow._instance.WindowResizePermission(false);
 				var editResult = await EditSongInfo.ShowAsync();
 				MainWindow._instance.WindowResizePermission(true);
 
-					if (editResult == ContentDialogResult.Primary)
+				if (editResult == ContentDialogResult.Primary)
+				{
+					var changes = new List<(string Field, object Before, object After)>();
+
+					if (CoverArtChanged.Visibility == Visibility.Visible)
 					{
-						var changes = new List<(string Field, object Before, object After)>();
+						object before = _hasOriginalCover
+							? CreateCoverArtPreview(bitmapImage)
+							: "No cover art";
 
-						if (CoverArtChanged.Visibility == Visibility.Visible)
+						object after = _frontCoverArtPath is not null
+							? CreateCoverArtPreview(CoverArtImage.Source)
+							: "Removed";
+
+						changes.Add(("Cover Art", before, after));
+					}
+					if (TitleChanged.Visibility == Visibility.Visible)
+						changes.Add(("Title", songData.Title, TitleTextBox.Text));
+					if (ArtistChanged.Visibility == Visibility.Visible)
+						changes.Add(("Artist", songData.Artists, ArtistTextBox.Text));
+					if (AlbumChanged.Visibility == Visibility.Visible)
+						changes.Add(("Album", songData.Album, AlbumTextBox.Text));
+					if (GenreChanged.Visibility == Visibility.Visible)
+						changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
+					if (YearChanged.Visibility == Visibility.Visible)
+						changes.Add(("Year", songData.Year, YearNumberBox.Text));
+					if (TrackChanged.Visibility == Visibility.Visible)
+						changes.Add(("Track", songData.Track > 0 ? songData.Track.Value.ToString() : "", TrackNumberBox.Text));
+					if (LyricsChanged.Visibility == Visibility.Visible)
+						changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
+
+					var content = changes.Count > 0
+						? new StackPanel
 						{
-							object before = _hasOriginalCover
-								? CreateCoverArtPreview(bitmapImage)
-								: "No cover art";
-
-							object after = _frontCoverArtPath is not null
-								? CreateCoverArtPreview(CoverArtImage.Source)
-								: "Removed";
-
-							changes.Add(("Cover Art", before, after));
-						}
-						if (TitleChanged.Visibility == Visibility.Visible)
-							changes.Add(("Title", songData.Title, TitleTextBox.Text));
-						if (ArtistChanged.Visibility == Visibility.Visible)
-							changes.Add(("Artist", songData.Artists, ArtistTextBox.Text));
-						if (AlbumChanged.Visibility == Visibility.Visible)
-							changes.Add(("Album", songData.Album, AlbumTextBox.Text));
-						if (GenreChanged.Visibility == Visibility.Visible)
-							changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
-						if (YearChanged.Visibility == Visibility.Visible)
-							changes.Add(("Year", songData.Year, YearNumberBox.Text));
-						if (TrackChanged.Visibility == Visibility.Visible)
-							changes.Add(("Track", songData.Track > 0 ? songData.Track.Value.ToString() : "", TrackNumberBox.Text));
-						if (LyricsChanged.Visibility == Visibility.Visible)
-							changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
-
-						var content = changes.Count > 0
-							? new StackPanel
+							Spacing = 12,
+							MinWidth = 420,
+							Children =
 							{
-								Spacing = 12,
-								MinWidth = 420,
-								Children =
-								{
 									new TextBlock
 									{
 										Text = $"The following change{(changes.Count > 1 ? "s" : "")} will be written to the file:",
@@ -1280,22 +1280,22 @@ public sealed partial class MainPage : Page
 										Padding = new Thickness(0, 0, 16, 0),
 										Content = BuildTagChangesTable(changes)
 									}
-								}
 							}
-							: (object)new TextBlock { Text = "Are you sure you want to make these changes?" };
+						}
+						: (object)new TextBlock { Text = "Are you sure you want to make these changes?" };
 
-						ContentDialog confirmationDialog = new ContentDialog()
-						{
-							Title = "Confirm Changes",
-							CloseButtonText = "No",
-							PrimaryButtonText = "Yes",
+					ContentDialog confirmationDialog = new ContentDialog()
+					{
+						Title = "Confirm Changes",
+						CloseButtonText = "No",
+						PrimaryButtonText = "Yes",
 
-							Content = content,
+						Content = content,
 
-							DefaultButton = ContentDialogButton.Primary,
-							RequestedTheme = App.Current.ThemeService.ActualTheme,
-							XamlRoot = App.MainWindow.Content.XamlRoot
-						};
+						DefaultButton = ContentDialogButton.Primary,
+						RequestedTheme = App.Current.ThemeService.ActualTheme,
+						XamlRoot = App.MainWindow.Content.XamlRoot
+					};
 
 					MainWindow._instance.WindowResizePermission(false);
 					ContentDialogResult confirmationResult = await confirmationDialog.ShowAsync();
