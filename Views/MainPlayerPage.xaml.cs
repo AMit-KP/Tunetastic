@@ -184,6 +184,8 @@ public sealed partial class MainPlayerPage : Page
 
 						UpdateCoverArtSize();
 						MusicInfoButton.Visibility = Visibility.Visible;
+						AddToPlaylistButton.Visibility = Visibility.Visible;
+						_ = PopulateAddToPlaylistMenu();
 						ShowLyricsButton.Visibility = string.IsNullOrEmpty(track?.Lyrics) ? Visibility.Collapsed : Visibility.Visible;
 						LyricMenuOptions(embeddedLyrics: true);
 						lyricsText = track?.Lyrics;
@@ -242,6 +244,7 @@ public sealed partial class MainPlayerPage : Page
 		CoverArtImage.Source = BGbitmapImage;
 		Title.Text = "Please select a song";
 		MusicInfoButton.Visibility = Visibility.Collapsed;
+		AddToPlaylistButton.Visibility = Visibility.Collapsed;
 		_externalLrcPath = null;
 		return Task.CompletedTask;
 	}
@@ -400,6 +403,93 @@ public sealed partial class MainPlayerPage : Page
 	private async void MusicInfoButton_Click(object sender, RoutedEventArgs e)
 	{
 		MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(_musicPlayer.CurrentSong));
+	}
+
+	/// <summary>
+	/// Handles the opening event of the Add to Playlist flyout to refresh the list of playlists.
+	/// </summary>
+	private async void AddToPlaylistFlyout_Opening(object? sender, object e)
+	{
+		await PopulateAddToPlaylistMenu();
+	}
+
+	/// <summary>
+	/// Populates the Add to Playlist flyout with the create option and all existing playlists.
+	/// </summary>
+	private async Task PopulateAddToPlaylistMenu()
+	{
+		if (AddToPlaylistFlyout == null) return;
+
+		var playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
+
+		AddToPlaylistFlyout.Items.Clear();
+
+		var createNewMenu = new MenuFlyoutItem
+		{
+			Text = "Create/Add New playlist",
+			Icon = new FontIcon { Glyph = "\uF8AA" }
+		};
+		ToolTipService.SetToolTip(createNewMenu, "Create/Add a new playlist and add this song/track to it.");
+		createNewMenu.Click += NewPlaylist_Click;
+		AddToPlaylistFlyout.Items.Add(createNewMenu);
+
+		if (playLists.Count > 0)
+		{
+			AddToPlaylistFlyout.Items.Add(new MenuFlyoutSeparator());
+		}
+
+		foreach (var playList in playLists)
+		{
+			var menuItem = new MenuFlyoutItem
+			{
+				Text = playList,
+				Icon = new FontIcon { Glyph = "\uE728" }
+			};
+			ToolTipService.SetToolTip(menuItem, $"Add this song/track to {playList} playlist");
+			menuItem.Click += AddToPlaylist_Click;
+			AddToPlaylistFlyout.Items.Add(menuItem);
+		}
+	}
+
+	/// <summary>
+	/// Opens the Add Playlist dialog overlay to create a new playlist and add the currently playing song to it.
+	/// </summary>
+	private async void NewPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var result = await MainPage._instance!.ShowAddPlaylistDialog(songsToAddAfterCreate: true);
+
+		if (result.Result != AddPlaylistResult.Cancelled && !string.IsNullOrWhiteSpace(result.Name))
+		{
+			await AddSongToPlayList(result.Name);
+			await PopulateAddToPlaylistMenu();
+		}
+	}
+
+	/// <summary>
+	/// Adds the currently playing song to the chosen playlist.
+	/// </summary>
+	private async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
+	{
+		var playlist = (sender as MenuFlyoutItem)?.Text;
+		await AddSongToPlayList(playlist);
+	}
+
+	/// <summary>
+	/// Helper to add the currently playing song to a specified playlist and notify the user.
+	/// </summary>
+	private async Task AddSongToPlayList(string? playlist)
+	{
+		if (string.IsNullOrEmpty(playlist)) return;
+
+		var songPath = _musicPlayer.CurrentSong;
+		if (string.IsNullOrEmpty(songPath)) return;
+
+		var track = await DatabaseHelper.Instance.GetSongByPath(songPath);
+		if (track != null)
+		{
+			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, track.Path);
+			GlobalNotification.Info($"{track.Title} added to {playlist} playlist.");
+		}
 	}
 
 	private void TiltCoverArtAndShowLyrics()
