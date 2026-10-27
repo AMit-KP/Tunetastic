@@ -1,4 +1,4 @@
-using System.IO.Pipes;
+﻿using System.IO.Pipes;
 using WinUIEx;
 
 namespace Tunetastic;
