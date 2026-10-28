@@ -228,6 +228,22 @@ public class ArtistModel
 }
 
 /// <summary>
+/// Represents a folder entity containing music tracks.
+/// Used in FoldersViewPage for flat and hierarchical views.
+/// </summary>
+public class FolderModel
+{
+	public string Name { get; set; } = string.Empty;
+	public string Path { get; set; } = string.Empty;
+	public int Count { get; set; }
+	public int TotalSongCount { get; set; }
+	public int SubFolderCount { get; set; }
+	public double TotalDuration { get; set; }
+	public string Cover { get; set; } = string.Empty;
+	public bool HasSubFolders => SubFolderCount > 0;
+}
+
+/// <summary>
 /// Represents a rule for splitting or categorizing artist names in the Tunetastic application. <br/>
 /// The rule can be configured as either a "Splitter" to break apart artist names, or an "Exception" to preserve specific artist names intact. <br/>
 /// The Pattern field can be treated as a literal string or regular expression based on IsRegex. <br/>

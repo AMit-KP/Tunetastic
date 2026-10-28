@@ -656,6 +656,7 @@ public sealed partial class MainPage : Page
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.AlbumsEnabled)]?.ToString() ?? "true")) HideLibrary("Albums");
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.GenresEnabled)]?.ToString() ?? "true")) HideLibrary("Genres");
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true")) HideLibrary("Years");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.FoldersEnabled)]?.ToString() ?? "true")) HideLibrary("Folders");
 	}
 
 	/// <summary>

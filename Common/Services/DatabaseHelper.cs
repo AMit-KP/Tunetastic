@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using SQLite;
 
 namespace Tunetastic.Common.Services;
@@ -1587,6 +1587,22 @@ public class DatabaseHelper
 															   GROUP BY Album
 															   ORDER BY Album {(ascending ? "ASC" : "DESC")}");
 		return result.ToList();
+	}
+
+	/// <summary>
+	/// Retrieves lightweight song records (Path, Duration, and Cover) for folder aggregation and modeling.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous query operation returning a list of songs with Path, Duration, and Cover populated.</returns>
+	public async Task<List<Song>> GetSongPathsWithMetadataAsync()
+	{
+		try
+		{
+			return await _database.QueryAsync<Song>("SELECT Path, Duration, Cover FROM Songs WHERE Path IS NOT NULL AND Path != ''");
+		}
+		catch (Exception)
+		{
+			return new List<Song>();
+		}
 	}
 
 	/// <summary>
