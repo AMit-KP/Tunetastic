@@ -104,12 +104,6 @@ public sealed partial class MainPage : Page
 
 		AppIcon.Source = new BitmapImage(new Uri(this.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
 
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var folderViewMode = localSettings.Values[nameof(LocalSave.FoldersViewMode)]?.ToString() ?? "All Music Folders";
-		NavigationPageMappings.PageDictionary["Tunetastic.Views.LibraryViews.FoldersViewPage"] = folderViewMode == "Folder Hierarchy"
-			? typeof(Tunetastic.Views.LibraryViews.FolderHierarchyPage)
-			: typeof(Tunetastic.Views.LibraryViews.FoldersViewPage);
-
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
 		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
 				   .ConfigureDefaultPage(typeof(MainPlayerPage))
@@ -121,6 +115,7 @@ public sealed partial class MainPage : Page
 
 		InitializeVolumeSliderAndService();
 
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
 
 		WhatsNewService.ShowIfEligible();
@@ -319,7 +314,7 @@ public sealed partial class MainPage : Page
 			}
 			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
 			{
-				if (e.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderHierarchyPage))
+				if (e.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage))
 				{
 					App.Current.NavService?.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.FoldersViewPage");
 				}
@@ -758,7 +753,7 @@ public sealed partial class MainPage : Page
 			var entry = history[i];
 			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
 			bool matchesParam = entry.Parameter?.ToString() == pageName;
-			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage" || (pageName == "Folders" && entry.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage));
 
 			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
@@ -772,7 +767,7 @@ public sealed partial class MainPage : Page
 			var entry = forward[i];
 			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
 			bool matchesParam = entry.Parameter?.ToString() == pageName;
-			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage" || (pageName == "Folders" && entry.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage));
 
 			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
