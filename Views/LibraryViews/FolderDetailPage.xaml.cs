@@ -132,6 +132,16 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		_ = RunScanningAwareInit();
 	}
 
+	private static readonly System.Reflection.FieldInfo? NavServiceLastParamField =
+		typeof(JsonNavigationService).GetField("_lastParameterUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+	private bool _isNavigatingForwardToSubFolder = false;
+	private ConnectedAnimation? _pendingBackAnimation = null;
+	private bool _isExecutingBackAnimation = false;
+	private double _lastSizedSubFolderWidth = -1;
+	private int _lastSizedSubFolderCount = -1;
+	private double _adjustedSubFolderTileMargin = 10;
+
 	/// <inheritdoc/>
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
@@ -140,12 +150,17 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		if (e.Parameter is string folderPath && !string.IsNullOrWhiteSpace(folderPath))
 		{
 			CurrentFolderPath = folderPath;
+			if (App.Current.NavService is JsonNavigationService navService)
+			{
+				NavServiceLastParamField?.SetValue(navService, folderPath);
+			}
 			var folderName = Path.GetFileName(folderPath);
 			if (string.IsNullOrEmpty(folderName)) folderName = folderPath;
 			ActualFolderGroup.Text = folderName;
 			ActualFolderGroup.Visibility = Visibility.Visible;
 			ActualFolderGroup.Opacity = 1;
 			ToolTipService.SetToolTip(ActualFolderGroup, folderPath);
+			_ = UpdateBreadcrumbsAsync();
 		}
 
 		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimation");
@@ -159,6 +174,25 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			});
 		}
 
+		var backAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
+		if (backAnimation != null)
+		{
+			_pendingBackAnimation = backAnimation;
+		}
+
+		if (_pendingBackAnimation != null)
+		{
+			_ = TryPlayBackAnimationAsync();
+		}
+
+		SubFolderTileView.SelectionMode = ListViewSelectionMode.None;
+		SubFolderTileView.SelectedItem = null;
+		SubFolderTileView.IsItemClickEnabled = true;
+		ResetAllSubFolderTilesVisibility();
+		_lastSizedSubFolderWidth = -1;
+		_lastSizedSubFolderCount = -1;
+		SubFolderTileView_SizeChanged(null, null);
+
 		SelectFoldersOnNavigation();
 	}
 
@@ -167,9 +201,16 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	/// </summary>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		if (e.SourcePageType.Name == "FoldersViewPage")
+		if (_isNavigatingForwardToSubFolder)
 		{
-			AutoScrollHeader.IsPlaying = false;
+			_isNavigatingForwardToSubFolder = false;
+			base.OnNavigatingFrom(e);
+			return;
+		}
+
+		if (e.SourcePageType.Name == "FoldersViewPage" || e.SourcePageType.Name == "FolderDetailPage")
+		{
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = CurrentFolderPath;
 			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimationBack", ActualFolderGroup);
 
 			var fadeOut = new DoubleAnimation
@@ -187,6 +228,121 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			sb.Begin();
 		}
 		base.OnNavigatingFrom(e);
+	}
+
+	private async Task UpdateBreadcrumbsAsync()
+	{
+		BreadcrumbSegmentsPanel.Children.Clear();
+		if (string.IsNullOrWhiteSpace(CurrentFolderPath))
+		{
+			BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+			return;
+		}
+
+		try
+		{
+			var normalizedCurrent = FolderOperations.NormalizeFolderPath(CurrentFolderPath);
+			var rootFolders = await FolderOperations.GetRootFoldersHierarchicalAsync();
+			var matchingRoot = rootFolders.FirstOrDefault(r =>
+				LibraryScanner.IsSameOrNestedPath(normalizedCurrent, FolderOperations.NormalizeFolderPath(r.Path)));
+
+			var chain = new List<(string Name, string Path)>();
+			string? rootPath = matchingRoot != null ? FolderOperations.NormalizeFolderPath(matchingRoot.Path) : null;
+
+			if (!string.IsNullOrEmpty(rootPath) && !normalizedCurrent.Equals(rootPath, StringComparison.OrdinalIgnoreCase))
+			{
+				var parent = Path.GetDirectoryName(normalizedCurrent);
+				while (!string.IsNullOrEmpty(parent))
+				{
+					var normParent = FolderOperations.NormalizeFolderPath(parent);
+					var dirName = Path.GetFileName(normParent);
+					if (string.IsNullOrEmpty(dirName)) dirName = normParent;
+
+					chain.Add((dirName, normParent));
+
+					if (normParent.Equals(rootPath, StringComparison.OrdinalIgnoreCase))
+						break;
+
+					parent = Path.GetDirectoryName(normParent);
+				}
+				chain.Reverse();
+			}
+			else if (string.IsNullOrEmpty(rootPath))
+			{
+				var parent = Path.GetDirectoryName(normalizedCurrent);
+				if (!string.IsNullOrEmpty(parent))
+				{
+					var normParent = FolderOperations.NormalizeFolderPath(parent);
+					var dirName = Path.GetFileName(normParent);
+					if (string.IsNullOrEmpty(dirName)) dirName = normParent;
+					chain.Add((dirName, normParent));
+				}
+			}
+
+			if (chain.Count > 0)
+			{
+				foreach (var ancestor in chain)
+				{
+					var segGrid = new Grid
+					{
+						BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+						Tag = ancestor.Path,
+						VerticalAlignment = VerticalAlignment.Center
+					};
+					segGrid.Tapped += AncestorBreadcrumb_Tapped;
+
+					var textBlock = new TextBlock
+					{
+						Text = ancestor.Name,
+						Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+						Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],
+						MaxWidth = 220,
+						TextTrimming = TextTrimming.CharacterEllipsis,
+						VerticalAlignment = VerticalAlignment.Center
+					};
+
+					ToolTipService.SetToolTip(segGrid, ancestor.Path);
+					segGrid.Children.Add(textBlock);
+					BreadcrumbSegmentsPanel.Children.Add(segGrid);
+
+					var sepIcon = new FontIcon
+					{
+						Glyph = "\uE974",
+						Margin = new Thickness(0, 4, 0, 0),
+						HorizontalAlignment = HorizontalAlignment.Center,
+						VerticalAlignment = VerticalAlignment.Center
+					};
+					BreadcrumbSegmentsPanel.Children.Add(sepIcon);
+				}
+
+				BreadcrumbSegmentsPanel.Visibility = Visibility.Visible;
+			}
+			else
+			{
+				BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+			}
+		}
+		catch (Exception)
+		{
+			BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+		}
+	}
+
+	private void AncestorBreadcrumb_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+	{
+		if ((sender as FrameworkElement)?.Tag is string targetPath && !string.IsNullOrWhiteSpace(targetPath))
+		{
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = CurrentFolderPath;
+			if (App.Current.NavService is JsonNavigationService nav)
+			{
+				NavServiceLastParamField?.SetValue(nav, null);
+			}
+			bool navigated = App.Current.NavService.NavigateTo(typeof(FolderDetailPage), targetPath, false, new DrillInNavigationTransitionInfo());
+			if (!navigated)
+			{
+				App.Current.NavService.Frame?.Navigate(typeof(FolderDetailPage), targetPath, new DrillInNavigationTransitionInfo());
+			}
+		}
 	}
 
 	private void Folders_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -297,6 +453,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			SubFolders.Clear();
 			SubFolders.AddRange(subfolders);
 			SubFoldersSection.Visibility = SubFolders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+			_ = TryPlayBackAnimationAsync();
 		}
 		else
 		{
@@ -311,6 +468,34 @@ public sealed partial class FolderDetailPage : SongListPageBase
 
 		FolderGroupSongs.Clear();
 		FolderGroupSongs.AddRange(songs);
+
+		if (SubFolders.Count > 0 && FolderGroupSongs.Count == 0)
+		{
+			SubFoldersRowDefinition.Height = new GridLength(1, GridUnitType.Star);
+			SongsRowDefinition.Height = new GridLength(0);
+			SubFolderTileView.MaxHeight = double.PositiveInfinity;
+			SubFolderTileView.VerticalAlignment = VerticalAlignment.Stretch;
+			SubFoldersHeader.Visibility = Visibility.Collapsed;
+			FolderDetailListViewGrid.Visibility = Visibility.Collapsed;
+			FolderDetailCompactViewGrid.Visibility = Visibility.Collapsed;
+		}
+		else if (SubFolders.Count > 0)
+		{
+			SubFoldersRowDefinition.Height = GridLength.Auto;
+			SongsRowDefinition.Height = new GridLength(1, GridUnitType.Star);
+			SubFolderTileView.MaxHeight = 410;
+			SubFolderTileView.VerticalAlignment = VerticalAlignment.Top;
+			SubFoldersHeader.Visibility = Visibility.Visible;
+		}
+		else
+		{
+			SubFoldersRowDefinition.Height = new GridLength(0);
+			SongsRowDefinition.Height = new GridLength(1, GridUnitType.Star);
+		}
+
+		_lastSizedSubFolderWidth = -1;
+		_lastSizedSubFolderCount = -1;
+		SubFolderTileView_SizeChanged(null, null);
 
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
@@ -365,12 +550,223 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		ApplyViewStyle(viewStyle);
 	}
 
+	private void SubFolderTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
+	{
+		const double baseContentWidth = 220;
+		const double baseMargin = 10;
+
+		double availableWidth = SubFolderTileView.ActualWidth;
+		if (availableWidth <= 0 || SubFolderTileView.ItemsPanelRoot is not ItemsWrapGrid grid)
+			return;
+
+		int itemCount = SubFolderTileView.Items.Count;
+		if (itemCount <= 0) return;
+
+		if (availableWidth == _lastSizedSubFolderWidth && itemCount == _lastSizedSubFolderCount)
+			return;
+		_lastSizedSubFolderWidth = availableWidth;
+		_lastSizedSubFolderCount = itemCount;
+
+		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
+		int count = Math.Min(itemCount, maxFitCount);
+
+		double usedWidth = count * baseContentWidth + (count + 1) * baseMargin;
+		double remainingSpace = availableWidth - usedWidth;
+
+		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
+
+		double adjustedItemWidth = baseContentWidth;
+		double adjustedMargin = baseMargin;
+
+		if (layoutIsWrapping && count > 0)
+		{
+			double extraPerTile = remainingSpace / count;
+			adjustedItemWidth += extraPerTile;
+			adjustedMargin += extraPerTile * 0.5;
+		}
+
+		_adjustedSubFolderTileMargin = adjustedMargin;
+
+		for (int i = 0; i < itemCount; i++)
+		{
+			var container = SubFolderTileView.ContainerFromItem(SubFolderTileView.Items[i]) as ListViewItem;
+			if (container != null)
+			{
+				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
+			}
+		}
+
+		grid.ItemWidth = adjustedItemWidth;
+	}
+
+	private void ResetAllSubFolderTilesVisibility()
+	{
+		if (SubFolderTileView?.Items == null) return;
+		for (int i = 0; i < SubFolderTileView.Items.Count; i++)
+		{
+			if (SubFolderTileView.ContainerFromItem(SubFolderTileView.Items[i]) is ListViewItem container)
+			{
+				container.IsHitTestVisible = true;
+				if (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") is FrameworkElement tb)
+				{
+					tb.Visibility = Visibility.Visible;
+					tb.Opacity = 1;
+				}
+			}
+		}
+	}
+
+	private void SubFolderTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
+	{
+		SubFolderTileView_SizeChanged(null, null);
+
+		if (args.ItemContainer is ListViewItem container)
+		{
+			container.IsHitTestVisible = true;
+			container.Margin = new Thickness(_adjustedSubFolderTileMargin, 15, _adjustedSubFolderTileMargin, 15);
+
+			var textBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") as FrameworkElement;
+			if (textBlock != null)
+			{
+				textBlock.Visibility = Visibility.Visible;
+				textBlock.Opacity = 1;
+			}
+		}
+	}
+
 	private void SubFolderTileView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		if (e.ClickedItem is FolderModel subfolder)
 		{
+			try
+			{
+				var container = SubFolderTileView.ContainerFromItem(subfolder) as ListViewItem;
+				if (container != null)
+				{
+					var subFolderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") as FrameworkElement;
+					if (subFolderTextBlock != null && subFolderTextBlock.Visibility == Visibility.Visible)
+					{
+						ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimation", subFolderTextBlock);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"[FolderDetailPage] SubFolderTileView animation prep error: {ex.Message}");
+			}
+
+			_isNavigatingForwardToSubFolder = true;
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = subfolder.Path;
-			App.Current.NavService.NavigateTo(typeof(FolderDetailPage), subfolder.Path, false, new DrillInNavigationTransitionInfo());
+			if (App.Current.NavService is JsonNavigationService nav)
+			{
+				NavServiceLastParamField?.SetValue(nav, null);
+			}
+			bool navigated = App.Current.NavService.NavigateTo(typeof(FolderDetailPage), subfolder.Path, false, new DrillInNavigationTransitionInfo());
+			if (!navigated)
+			{
+				App.Current.NavService.Frame?.Navigate(typeof(FolderDetailPage), subfolder.Path, new DrillInNavigationTransitionInfo());
+			}
+		}
+	}
+
+	private async Task TryPlayBackAnimationAsync()
+	{
+		if (_isExecutingBackAnimation) return;
+
+		if (_pendingBackAnimation == null)
+		{
+			_pendingBackAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
+		}
+
+		if (_pendingBackAnimation == null) return;
+
+		var selectedFolder = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)]?.ToString();
+		if (string.IsNullOrEmpty(selectedFolder))
+		{
+			_pendingBackAnimation = null;
+			return;
+		}
+
+		_isExecutingBackAnimation = true;
+		try
+		{
+			var normSelected = FolderOperations.NormalizeFolderPath(selectedFolder);
+
+			int waitCount = 0;
+			while ((SubFolders == null || SubFolders.Count == 0) && waitCount < 30)
+			{
+				await Task.Delay(50);
+				waitCount++;
+			}
+
+			if (SubFolders == null || SubFolders.Count == 0)
+			{
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			var selectedSubFolder = SubFolders.FirstOrDefault(s =>
+				FolderOperations.NormalizeFolderPath(s.Path).Equals(normSelected, StringComparison.OrdinalIgnoreCase))
+				?? SubFolders.FirstOrDefault(s =>
+				normSelected.StartsWith(FolderOperations.NormalizeFolderPath(s.Path), StringComparison.OrdinalIgnoreCase));
+
+			if (selectedSubFolder == null)
+			{
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			try
+			{
+				SubFolderTileView.ScrollIntoView(selectedSubFolder);
+			}
+			catch { }
+
+			ListViewItem? container = null;
+			for (int i = 0; i < 20; i++)
+			{
+				container = SubFolderTileView.ContainerFromItem(selectedSubFolder) as ListViewItem;
+				if (container != null) break;
+				await Task.Delay(40);
+			}
+
+			if (container != null)
+			{
+				FrameworkElement? textBlock = null;
+				for (int i = 0; i < 15; i++)
+				{
+					textBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") as FrameworkElement;
+					if (textBlock != null) break;
+					await Task.Delay(30);
+				}
+
+				if (textBlock != null && _pendingBackAnimation != null)
+				{
+					textBlock.Visibility = Visibility.Visible;
+					textBlock.Opacity = 1;
+					var anim = _pendingBackAnimation;
+					_pendingBackAnimation = null;
+					anim.Completed += (s, e) =>
+					{
+						textBlock.Visibility = Visibility.Visible;
+						textBlock.Opacity = 1;
+						ResetAllSubFolderTilesVisibility();
+					};
+					if (!anim.TryStart(textBlock))
+					{
+						textBlock.Visibility = Visibility.Visible;
+						textBlock.Opacity = 1;
+					}
+					return;
+				}
+			}
+
+			_pendingBackAnimation = null;
+		}
+		finally
+		{
+			_isExecutingBackAnimation = false;
+			ResetAllSubFolderTilesVisibility();
 		}
 	}
 
@@ -542,9 +938,12 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		_ = AdjustAlphabetSize();
-		while (FolderGroupSongs == null || FolderGroupSongs.Count == 0)
+		_ = TryPlayBackAnimationAsync();
+		int maxWait = 50;
+		while ((FolderGroupSongs == null || FolderGroupSongs.Count == 0) && maxWait > 0)
 		{
 			await Task.Delay(100);
+			maxWait--;
 		}
 		ScrollToCurrentPlayingTrack();
 	}
@@ -563,7 +962,11 @@ public sealed partial class FolderDetailPage : SongListPageBase
 
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)
 	{
-		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () => await AdjustAlphabetSize());
+		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
+		{
+			await AdjustAlphabetSize();
+			SubFolderTileView_SizeChanged(null, null);
+		});
 	}
 }
 

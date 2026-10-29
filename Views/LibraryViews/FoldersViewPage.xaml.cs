@@ -214,10 +214,25 @@ public sealed partial class FoldersViewPage : TileListPageBase
 		}
 	}
 
+	private ConnectedAnimation? _pendingBackAnimation = null;
+	private bool _isExecutingBackAnimation = false;
+
 	protected override void OnNavigatedTo(NavigationEventArgs e)
 	{
 		base.OnNavigatedTo(e);
 		connectedAnimation = (e.NavigationMode == NavigationMode.Back) || (e.Parameter is string s && s == "Folders");
+		if (connectedAnimation)
+		{
+			var anim = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
+			if (anim != null)
+			{
+				_pendingBackAnimation = anim;
+			}
+			if (_pendingBackAnimation != null)
+			{
+				_ = TryPlayBackAnimationAsync();
+			}
+		}
 	}
 
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
@@ -257,6 +272,99 @@ public sealed partial class FoldersViewPage : TileListPageBase
 		base.OnNavigatingFrom(e);
 	}
 
+	private async Task TryPlayBackAnimationAsync()
+	{
+		if (_isExecutingBackAnimation) return;
+
+		if (_pendingBackAnimation == null)
+		{
+			_pendingBackAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
+		}
+
+		if (_pendingBackAnimation == null) return;
+
+		var selectedFolder = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)]?.ToString();
+		if (string.IsNullOrEmpty(selectedFolder))
+		{
+			_pendingBackAnimation = null;
+			return;
+		}
+
+		_isExecutingBackAnimation = true;
+		try
+		{
+			var normSelected = FolderOperations.NormalizeFolderPath(selectedFolder);
+
+			int waitCount = 0;
+			while ((FoldersGroup == null || FoldersGroup.Count == 0) && waitCount < 30)
+			{
+				await Task.Delay(50);
+				waitCount++;
+			}
+
+			if (FoldersGroup == null || FoldersGroup.Count == 0)
+			{
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			var selectedFolderModel = FoldersGroup.FirstOrDefault(s =>
+				FolderOperations.NormalizeFolderPath(s.Path).Equals(normSelected, StringComparison.OrdinalIgnoreCase))
+				?? FoldersGroup.FirstOrDefault(s =>
+				normSelected.StartsWith(FolderOperations.NormalizeFolderPath(s.Path), StringComparison.OrdinalIgnoreCase));
+
+			if (selectedFolderModel == null)
+			{
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			try
+			{
+				await FolderTileView.SmoothScrollIntoViewWithItemAsync(selectedFolderModel, itemPlacement: ScrollItemPlacement.Center, disableAnimation: true, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
+
+			ListViewItem? container = null;
+			for (int i = 0; i < 20; i++)
+			{
+				container = FolderTileView.ContainerFromItem(selectedFolderModel) as ListViewItem;
+				if (container != null) break;
+				await Task.Delay(40);
+			}
+
+			if (container != null)
+			{
+				FrameworkElement? folderTextBlock = null;
+				for (int i = 0; i < 15; i++)
+				{
+					folderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "FolderTextBlock") as FrameworkElement;
+					if (folderTextBlock != null) break;
+					await Task.Delay(30);
+				}
+
+				if (folderTextBlock != null && _pendingBackAnimation != null)
+				{
+					folderTextBlock.Visibility = Visibility.Visible;
+					folderTextBlock.Opacity = 1;
+					_pendingBackAnimation.TryStart(folderTextBlock);
+					_pendingBackAnimation = null;
+					connectedAnimation = false;
+					return;
+				}
+			}
+
+			_pendingBackAnimation = null;
+			connectedAnimation = false;
+		}
+		finally
+		{
+			_isExecutingBackAnimation = false;
+		}
+	}
+
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		while (FoldersGroup == null || FoldersGroup.Count == 0)
@@ -269,42 +377,7 @@ public sealed partial class FoldersViewPage : TileListPageBase
 
 		if (connectedAnimation)
 		{
-			var selectedFolder = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)]?.ToString();
-			var selectedFolderModel = FoldersGroup.FirstOrDefault(s => s.Path.Equals(selectedFolder, StringComparison.OrdinalIgnoreCase))
-				?? FoldersGroup.FirstOrDefault(s => selectedFolder != null && selectedFolder.StartsWith(s.Path, StringComparison.OrdinalIgnoreCase));
-
-			var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
-
-			if (animation != null && selectedFolderModel != null)
-			{
-				await Task.Delay(30);
-				try
-				{
-					await FolderTileView.SmoothScrollIntoViewWithItemAsync(selectedFolderModel, itemPlacement: ScrollItemPlacement.Top, disableAnimation: true, scrollIfVisible: false);
-				}
-				catch (Exception)
-				{
-				}
-
-				var container = FolderTileView.ContainerFromItem(selectedFolderModel) as ListViewItem;
-				if (container == null)
-				{
-					await Task.Delay(50);
-					container = FolderTileView.ContainerFromItem(selectedFolderModel) as ListViewItem;
-				}
-
-				if (container != null)
-				{
-					var folderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "FolderTextBlock") as FrameworkElement;
-					if (folderTextBlock != null)
-					{
-						folderTextBlock.Visibility = Visibility.Visible;
-						folderTextBlock.Opacity = 1;
-						animation.TryStart(folderTextBlock);
-					}
-				}
-			}
-			connectedAnimation = false;
+			_ = TryPlayBackAnimationAsync();
 			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? string.Empty;
 			if (currentPlaylist.StartsWith("FolderGroup>"))
 			{

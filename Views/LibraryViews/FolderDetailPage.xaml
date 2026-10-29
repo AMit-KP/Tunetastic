@@ -55,6 +55,23 @@
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 		</MenuFlyout>
+
+		<MenuFlyout x:Key="SubFolderRightClickMenu">
+			<MenuFlyoutItem Click="SubFolderPlay_OnClick"
+			                Text="Play"
+			                ToolTipService.ToolTip="Play this folder">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE768;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+			<MenuFlyoutItem Click="SubFolderAddToQueue_OnClick"
+			                Text="Add to queue"
+			                ToolTipService.ToolTip="Add this folder to the queue">
+				<MenuFlyoutItem.Icon>
+					<FontIcon Glyph="&#xE84F;" />
+				</MenuFlyoutItem.Icon>
+			</MenuFlyoutItem>
+		</MenuFlyout>
 	</views:SongListPageBase.Resources>
 
 	<Grid Margin="10,10,10,-10">
@@ -76,6 +93,7 @@
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="Auto" />
 					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="Auto" />
 					<ColumnDefinition Width="*" />
 				</Grid.ColumnDefinitions>
 				<Grid Grid.Column="0"
@@ -92,7 +110,12 @@
 				          HorizontalAlignment="Center"
 				          VerticalAlignment="Center"
 				          Glyph="&#xE974;" />
-				<Grid Grid.Column="2">
+				<StackPanel x:Name="BreadcrumbSegmentsPanel"
+				            Grid.Column="2"
+				            Orientation="Horizontal"
+				            Spacing="10"
+				            Visibility="Collapsed" />
+				<Grid Grid.Column="3">
 					<dev:AutoScrollView x:Name="AutoScrollHeader"
 					                    IsPlaying="False">
 						<TextBlock x:Name="ActualFolderGroup"
@@ -229,8 +252,8 @@
 		<Grid x:Name="ContentGrid"
 		      Grid.Row="1">
 			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto" />
-				<RowDefinition Height="*" />
+				<RowDefinition x:Name="SubFoldersRowDefinition" Height="Auto" />
+				<RowDefinition x:Name="SongsRowDefinition" Height="*" />
 			</Grid.RowDefinitions>
 
 			<StackPanel x:Name="GoToSettings"
@@ -304,80 +327,151 @@
 			</Grid>
 
 			<!-- Subfolders section (for hierarchical view) -->
-			<StackPanel x:Name="SubFoldersSection"
-			            Grid.Row="0"
-			            Margin="10,0,10,12"
-			            Spacing="8"
-			            Visibility="Collapsed">
-				<TextBlock Margin="5,0,0,0"
+			<Grid x:Name="SubFoldersSection"
+			      Grid.Row="0"
+			      Margin="0,0,0,10"
+			      Visibility="Collapsed">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+				<TextBlock x:Name="SubFoldersHeader"
+				           Grid.Row="0"
+				           Margin="15,0,0,5"
 				           Style="{ThemeResource SubtitleTextBlockStyle}"
 				           Text="Subfolders" />
 				<ListView x:Name="SubFolderTileView"
-				          Height="115"
-				          Padding="0,0,35,0"
+				          Grid.Row="1"
+				          Margin="10,0,10,0"
+				          Padding="12,0"
+				          ScrollViewer.VerticalScrollBarVisibility="Hidden"
+				          VerticalAlignment="Top"
+				          HorizontalContentAlignment="Stretch"
+				          ContainerContentChanging="SubFolderTileView_ContainerContentChanging"
 				          IsItemClickEnabled="True"
+				          IsMultiSelectCheckBoxEnabled="False"
 				          IsRightTapEnabled="True"
 				          ItemClick="SubFolderTileView_ItemClick"
 				          ItemsSource="{x:Bind SubFolders}"
-				          ScrollViewer.HorizontalScrollBarVisibility="Auto"
-				          ScrollViewer.HorizontalScrollMode="Enabled"
-				          ScrollViewer.VerticalScrollBarVisibility="Disabled"
-				          ScrollViewer.VerticalScrollMode="Disabled"
-				          SelectionMode="Single">
+				          SelectionMode="None"
+				          SizeChanged="SubFolderTileView_SizeChanged">
 					<ListView.ItemsPanel>
 						<ItemsPanelTemplate>
-							<ItemsStackPanel Orientation="Horizontal" />
+							<ItemsWrapGrid ItemHeight="170"
+							               ItemWidth="220"
+							               Orientation="Horizontal" />
 						</ItemsPanelTemplate>
 					</ListView.ItemsPanel>
+
+					<ListView.ItemContainerTransitions>
+						<TransitionCollection>
+							<RepositionThemeTransition />
+						</TransitionCollection>
+					</ListView.ItemContainerTransitions>
+
+					<ListView.ItemContainerStyle>
+						<Style TargetType="ListViewItem">
+							<Setter Property="Margin" Value="10,15,10,15" />
+							<Setter Property="Template">
+								<Setter.Value>
+									<ControlTemplate TargetType="ListViewItem">
+										<Grid x:Name="TileRoot"
+										      Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondary}"
+										      BorderBrush="{ThemeResource SystemAccentColor}"
+										      BorderThickness="2"
+										      CornerRadius="25">
+											<VisualStateManager.VisualStateGroups>
+												<VisualStateGroup x:Name="CommonStates">
+													<VisualState x:Name="Normal" />
+													<VisualState x:Name="PointerOver">
+														<Storyboard>
+															<ColorAnimation Storyboard.TargetName="TileRoot"
+															                Storyboard.TargetProperty="(Grid.Background).(SolidColorBrush.Color)"
+															                To="{StaticResource SystemAccentColor}"
+															                Duration="0:0:0.2" />
+														</Storyboard>
+													</VisualState>
+													<VisualState x:Name="Pressed">
+														<Storyboard>
+															<ColorAnimation Storyboard.TargetName="TileRoot"
+															                Storyboard.TargetProperty="(Grid.Background).(SolidColorBrush.Color)"
+															                To="{StaticResource AccentFillColorDisabled}"
+															                Duration="0:0:0.1" />
+														</Storyboard>
+													</VisualState>
+													<VisualState x:Name="Selected">
+														<Storyboard>
+															<ColorAnimation Storyboard.TargetName="TileRoot"
+															                Storyboard.TargetProperty="(Grid.Background).(SolidColorBrush.Color)"
+															                To="{ThemeResource SystemAccentColor}"
+															                Duration="0:0:0.2" />
+														</Storyboard>
+													</VisualState>
+												</VisualStateGroup>
+											</VisualStateManager.VisualStateGroups>
+
+											<ContentPresenter Width="150"
+											                  Height="110"
+											                  Margin="0"
+											                  HorizontalAlignment="Center"
+											                  VerticalAlignment="Center" />
+										</Grid>
+									</ControlTemplate>
+								</Setter.Value>
+							</Setter>
+						</Style>
+					</ListView.ItemContainerStyle>
+
 					<ListView.ItemTemplate>
 						<DataTemplate x:DataType="common:FolderModel">
-							<Grid Width="160"
-							      Height="95"
-							      Margin="0,0,12,0"
-							      Padding="12,10"
-							      Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondary}"
-							      BorderBrush="{ThemeResource SystemAccentColor}"
-							      BorderThickness="1"
-							      CornerRadius="14">
-								<Grid.ContextFlyout>
-									<MenuFlyout>
-										<MenuFlyoutItem Click="SubFolderPlay_OnClick"
-										                Text="Play">
-											<MenuFlyoutItem.Icon>
-												<FontIcon Glyph="&#xE768;" />
-											</MenuFlyoutItem.Icon>
-										</MenuFlyoutItem>
-										<MenuFlyoutItem Click="SubFolderAddToQueue_OnClick"
-										                Text="Add to queue">
-											<MenuFlyoutItem.Icon>
-												<FontIcon Glyph="&#xE84F;" />
-											</MenuFlyoutItem.Icon>
-										</MenuFlyoutItem>
-									</MenuFlyout>
-								</Grid.ContextFlyout>
-								<FontIcon HorizontalAlignment="Left"
-								          VerticalAlignment="Top"
-								          FontSize="20"
-								          Foreground="{ThemeResource SystemAccentColor}"
-								          Glyph="&#xE8B7;" />
-								<TextBlock HorizontalAlignment="Left"
+							<Grid Background="Transparent"
+							      ContextFlyout="{StaticResource SubFolderRightClickMenu}">
+								<ToolTipService.ToolTip>
+									<TextBlock TextTrimming="CharacterEllipsis"
+									           TextWrapping="WrapWholeWords">
+										<Run FontWeight="Bold"
+										     Text="{x:Bind Name}" />
+										<LineBreak />
+										<Run Text="Path: " />
+										<Run Text="{x:Bind Path}" />
+										<LineBreak />
+										<Run Text="Songs: " />
+										<Run FontWeight="Bold"
+										     Text="{x:Bind TotalSongCount}" />
+										<LineBreak />
+										<Run Text="Total Duration: " />
+										<LineBreak />
+										<Run FontWeight="Bold"
+										     Text="{x:Bind TotalDuration, Converter={StaticResource DurationToFullTimeConverter}}" />
+									</TextBlock>
+								</ToolTipService.ToolTip>
+								<TextBlock x:Name="SubFolderTextBlock"
+								           HorizontalAlignment="Center"
 								           VerticalAlignment="Center"
-								           FontWeight="SemiBold"
-								           MaxLines="2"
-								           Style="{ThemeResource BodyStrongTextBlockStyle}"
+								           FontStyle="Normal"
+								           FontWeight="Bold"
+								           Style="{ThemeResource TitleTextBlockStyle}"
 								           Text="{x:Bind Name}"
+								           TextAlignment="Center"
 								           TextTrimming="CharacterEllipsis"
 								           TextWrapping="WrapWholeWords" />
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Bottom"
-								           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+								           FontStyle="Normal"
+								           FontWeight="SemiBold"
 								           Style="{ThemeResource CaptionTextBlockStyle}"
 								           Text="{x:Bind TotalSongCount}" />
+								<TextBlock HorizontalAlignment="Right"
+								           VerticalAlignment="Bottom"
+								           FontStyle="Normal"
+								           FontWeight="SemiBold"
+								           Style="{ThemeResource CaptionTextBlockStyle}"
+								           Text="{x:Bind TotalDuration, Converter={StaticResource DurationConverter}}" />
 							</Grid>
 						</DataTemplate>
 					</ListView.ItemTemplate>
 				</ListView>
-			</StackPanel>
+			</Grid>
 
 			<!-- Songs list row -->
 			<Grid Grid.Row="1">

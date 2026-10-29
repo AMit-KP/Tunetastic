@@ -294,6 +294,9 @@ public sealed partial class MainPage : Page
 		SearchTeachingTip.IsOpen = false;
 	}
 
+	private static readonly System.Reflection.FieldInfo? NavServiceLastParamField =
+		typeof(JsonNavigationService).GetField("_lastParameterUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
 	/// <summary>
 	/// Handles the Navigated event of the navigation frame to keep the NavigationView selected item in sync,
 	/// particularly after backward navigation across custom playlists or library views.
@@ -302,6 +305,11 @@ public sealed partial class MainPage : Page
 	{
 		if (e.NavigationMode == NavigationMode.Back)
 		{
+			if (App.Current.NavService is JsonNavigationService navService)
+			{
+				NavServiceLastParamField?.SetValue(navService, e.Parameter);
+			}
+
 			if (e.SourcePageType == typeof(PlayListTemplate) && e.Parameter is string playlistTitle)
 			{
 				var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
