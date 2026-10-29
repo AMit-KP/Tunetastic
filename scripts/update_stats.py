@@ -26,12 +26,12 @@ API = HOST + "/v1.0/my/analytics"
 
 # ---------- helpers ----------
 def load(path, default):
-    return json.loads(path.read_text()) if path.exists() else default
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else default
 
 
 def save(path, obj):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(obj, indent=1, sort_keys=True) + "\n")
+    path.write_text(json.dumps(obj, indent=1, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def monday(d):
@@ -167,11 +167,11 @@ def render_github(today):
     stamp = f"Updated {today.day} {today:%b %Y}"
     OUT.mkdir(exist_ok=True)
     for theme, c in render.THEMES.items():
-        (OUT / f"github-views-{theme}.svg").write_text(render.traffic_card(
+        (OUT / f"github-views-{theme}.svg").write_text(encoding="utf-8", data=render.traffic_card(
             c, dates, [gh[d]["views"] for d in days],
             "Repo views", "Daily page views from GitHub since Oct 1, 2026.",
             stamp, "Views"))
-        (OUT / f"github-clones-{theme}.svg").write_text(render.traffic_card(
+        (OUT / f"github-clones-{theme}.svg").write_text(encoding="utf-8", data=render.traffic_card(
             c, dates, [gh[d]["clones"] for d in days],
             "Git clones", "Daily clones from GitHub since Oct 1, 2026.",
             stamp, "Clones"))
@@ -182,7 +182,7 @@ def render_all(today, installs, ratings, cfg):
     render_github(today)
     if not installs:
         raise SystemExit("No install data yet - nothing to draw.")
-    world = json.loads((ROOT / "scripts" / "world.json").read_text())
+    world = json.loads((ROOT / "scripts" / "world.json").read_text(encoding="utf-8"))
     last_complete = monday(today) - dt.timedelta(days=7)
     keys = sorted(parse_day(k) for k in list(installs) + list(ratings))
     first = keys[0]
@@ -218,9 +218,9 @@ def render_all(today, installs, ratings, cfg):
 
     OUT.mkdir(exist_ok=True)
     for theme, c in render.THEMES.items():
-        (OUT / f"installs-{theme}.svg").write_text(render.installs_card(c, weeks, vals, total, last3, updates, stamp))
-        (OUT / f"map-{theme}.svg").write_text(render.map_card(c, world, rows, total, stamp))
-        (OUT / f"ratings-{theme}.svg").write_text(render.ratings_card(c, weeks, events, stamp))
+        (OUT / f"installs-{theme}.svg").write_text(encoding="utf-8", data=render.installs_card(c, weeks, vals, total, last3, updates, stamp))
+        (OUT / f"map-{theme}.svg").write_text(encoding="utf-8", data=render.map_card(c, world, rows, total, stamp))
+        (OUT / f"ratings-{theme}.svg").write_text(encoding="utf-8", data=render.ratings_card(c, weeks, events, stamp))
     print(f"Drew graphics: {total} installs, {len(rows)} locations, {sum(sum(v) for v in ratings.values())} ratings")
 
 
