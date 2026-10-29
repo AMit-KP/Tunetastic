@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
@@ -314,7 +314,14 @@ public sealed partial class MainPage : Page
 			}
 			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
 			{
-				App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+				if (e.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderHierarchyPage))
+				{
+					App.Current.NavService?.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.FoldersViewPage");
+				}
+				else
+				{
+					App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+				}
 			}
 		}
 	}
@@ -346,6 +353,25 @@ public sealed partial class MainPage : Page
 					return;
 				}
 				App.Current.NavService.NavigateTo(typeof(PlayListTemplate), dataGroup.Title);
+			}
+		}
+		if (args.SelectedItemContainer is NavigationViewItem foldersNavItem &&
+			foldersNavItem.Tag?.ToString() == "Tunetastic.Views.LibraryViews.FoldersViewPage")
+		{
+			var viewMode = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.FoldersViewMode)]?.ToString() ?? "All Music Folders";
+			if (viewMode == "Folder Hierarchy")
+			{
+				if (NavFrame.Content is not Tunetastic.Views.LibraryViews.FolderHierarchyPage)
+				{
+					App.Current.NavService.NavigateTo(typeof(Tunetastic.Views.LibraryViews.FolderHierarchyPage));
+				}
+			}
+			else
+			{
+				if (NavFrame.Content is not Tunetastic.Views.LibraryViews.FoldersViewPage)
+				{
+					App.Current.NavService.NavigateTo(typeof(Tunetastic.Views.LibraryViews.FoldersViewPage));
+				}
 			}
 		}
 	}
