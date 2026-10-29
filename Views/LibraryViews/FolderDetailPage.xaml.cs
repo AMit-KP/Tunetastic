@@ -143,6 +143,8 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			var folderName = Path.GetFileName(folderPath);
 			if (string.IsNullOrEmpty(folderName)) folderName = folderPath;
 			ActualFolderGroup.Text = folderName;
+			ActualFolderGroup.Visibility = Visibility.Visible;
+			ActualFolderGroup.Opacity = 1;
 			ToolTipService.SetToolTip(ActualFolderGroup, folderPath);
 		}
 
@@ -158,6 +160,33 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		}
 
 		SelectFoldersOnNavigation();
+	}
+
+	/// <summary>
+	/// Handles the navigation animation and visibility when navigating away from the current page.
+	/// </summary>
+	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+	{
+		if (e.SourcePageType.Name == "FoldersViewPage")
+		{
+			AutoScrollHeader.IsPlaying = false;
+			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimationBack", ActualFolderGroup);
+
+			var fadeOut = new DoubleAnimation
+			{
+				To = 0,
+				Duration = TimeSpan.FromMilliseconds(30),
+				FillBehavior = FillBehavior.Stop
+			};
+			Storyboard.SetTarget(fadeOut, ActualFolderGroup);
+			Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+			var sb = new Storyboard();
+			sb.Children.Add(fadeOut);
+			sb.Completed += (_, __) => ActualFolderGroup.Visibility = Visibility.Collapsed;
+			sb.Begin();
+		}
+		base.OnNavigatingFrom(e);
 	}
 
 	private void Folders_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
@@ -510,9 +539,26 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		App.Current.NavService.NavigateTo(typeof(SettingsPage));
 	}
 
-	private void Page_Loaded(object sender, RoutedEventArgs e)
+	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		_ = AdjustAlphabetSize();
+		while (FolderGroupSongs == null || FolderGroupSongs.Count == 0)
+		{
+			await Task.Delay(100);
+		}
+		ScrollToCurrentPlayingTrack();
+	}
+
+	private void ScrollToCurrentPlayingTrack()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? string.Empty;
+		if (currentPlaylist == $"FolderGroup>{CurrentFolderPath}")
+		{
+			var lastTrack = localSettings.Values[nameof(LocalSave.LastPlayedTrack)]?.ToString();
+			var song = FolderGroupSongs.FirstOrDefault(s => s.Path == lastTrack);
+			_ = ScrollToSong(song);
+		}
 	}
 
 	private void Page_SizeChanged(object sender, SizeChangedEventArgs e)

@@ -167,12 +167,18 @@ public sealed partial class FoldersViewPage : TileListPageBase
 
 	private async void SortButton_OnClick(object sender, RoutedEventArgs e)
 	{
+		_lastSizedWidth = -1;
+		_lastSizedCount = -1;
 		await UpdateListBasedOnSorting();
+		await AdjustAlphabetSize();
 	}
 
 	private async void ViewButton_OnClick(object sender, RoutedEventArgs e)
 	{
+		_lastSizedWidth = -1;
+		_lastSizedCount = -1;
 		await UpdateListBasedOnSorting();
+		await AdjustAlphabetSize();
 	}
 
 	private void FolderTileView_ItemClick(object sender, ItemClickEventArgs e)
@@ -264,7 +270,8 @@ public sealed partial class FoldersViewPage : TileListPageBase
 		if (connectedAnimation)
 		{
 			var selectedFolder = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)]?.ToString();
-			var selectedFolderModel = FoldersGroup.FirstOrDefault(s => s.Path == selectedFolder);
+			var selectedFolderModel = FoldersGroup.FirstOrDefault(s => s.Path.Equals(selectedFolder, StringComparison.OrdinalIgnoreCase))
+				?? FoldersGroup.FirstOrDefault(s => selectedFolder != null && selectedFolder.StartsWith(s.Path, StringComparison.OrdinalIgnoreCase));
 
 			var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
 
@@ -280,19 +287,48 @@ public sealed partial class FoldersViewPage : TileListPageBase
 				}
 
 				var container = FolderTileView.ContainerFromItem(selectedFolderModel) as ListViewItem;
+				if (container == null)
+				{
+					await Task.Delay(50);
+					container = FolderTileView.ContainerFromItem(selectedFolderModel) as ListViewItem;
+				}
+
 				if (container != null)
 				{
-					var folderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "FolderTextBlock");
+					var folderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "FolderTextBlock") as FrameworkElement;
 					if (folderTextBlock != null)
+					{
+						folderTextBlock.Visibility = Visibility.Visible;
+						folderTextBlock.Opacity = 1;
 						animation.TryStart(folderTextBlock);
+					}
 				}
 			}
 			connectedAnimation = false;
+			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? string.Empty;
+			if (currentPlaylist.StartsWith("FolderGroup>"))
+			{
+				var selectedTile = FoldersGroup.FirstOrDefault(s => s.Path == currentPlaylist.Substring("FolderGroup>".Length));
+				FolderTileView.SelectedItem = selectedTile;
+			}
 		}
+		else
+			ScrollToCurrentPlayingTrack();
 
 		await Task.Delay(100);
 		FolderTileView.SizeChanged -= FolderTileView_SizeChanged;
 		FolderTileView.SizeChanged += FolderTileView_SizeChanged;
+	}
+
+	private void ScrollToCurrentPlayingTrack()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var currentPlaylist = localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? string.Empty;
+		if (currentPlaylist.StartsWith("FolderGroup>"))
+		{
+			var selectedTile = FoldersGroup.FirstOrDefault(s => s.Path == currentPlaylist.Substring("FolderGroup>".Length));
+			_ = ScrollToTile(selectedTile);
+		}
 	}
 
 	private void FolderTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
@@ -319,35 +355,35 @@ public sealed partial class FoldersViewPage : TileListPageBase
 		double remainingSpace = availableWidth - usedWidth;
 
 		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
+
 		double adjustedItemWidth = baseContentWidth;
-		_adjustedTileMargin = baseMargin;
+		double adjustedMargin = baseMargin;
 
-		if (count > 0 && !layoutIsWrapping)
+		if (layoutIsWrapping && count > 0)
 		{
-			double extraPerItem = remainingSpace / count;
-			adjustedItemWidth = baseContentWidth + extraPerItem;
-		}
-		else if (count > 0 && layoutIsWrapping)
-		{
-			double extraSpace = availableWidth - (count * baseContentWidth);
-			_adjustedTileMargin = Math.Max(baseMargin, extraSpace / (count * 2));
+			double extraPerTile = remainingSpace / count;
+			adjustedItemWidth += extraPerTile;
+			adjustedMargin += extraPerTile * 0.5;
 		}
 
-		grid.ItemWidth = adjustedItemWidth + 2 * _adjustedTileMargin;
+		_adjustedTileMargin = adjustedMargin;
 
-		var itemGrids = DevWinUI.DependencyObjectExtensions.FindDescendants(FolderTileView);
-		foreach (var item in itemGrids)
+		for (int i = 0; i < itemCount; i++)
 		{
-			if (item is ListViewItem container)
+			var container = FolderTileView.ContainerFromItem(FolderTileView.Items[i]) as ListViewItem;
+			if (container != null)
 			{
-				container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
+				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
 			}
 		}
+
+		grid.ItemWidth = adjustedItemWidth;
 	}
 
 	private void FolderTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
 	{
 		FolderTileView_SizeChanged(null, null);
+
 		if (args.ItemContainer is ListViewItem container)
 			container.Margin = new Thickness(_adjustedTileMargin, 15, _adjustedTileMargin, 15);
 	}
@@ -374,6 +410,15 @@ public sealed partial class FoldersViewPage : TileListPageBase
 
 		if (targetFolder != null)
 		{
+			try
+			{
+				await FolderTileView.SmoothScrollIntoViewWithItemAsync(targetFolder, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
+			FolderTileView.SelectedItem = targetFolder;
+			await Task.Delay(500);
 			try
 			{
 				await FolderTileView.SmoothScrollIntoViewWithItemAsync(targetFolder, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false);
