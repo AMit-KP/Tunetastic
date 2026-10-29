@@ -174,7 +174,7 @@ def render_github(today):
     for theme, c in render.THEMES.items():
         (OUT / f"github-views-{theme}.svg").write_text(encoding="utf-8", data=render.traffic_card(
             c, dates, views,
-            "Repo views", "Daily page views from GitHub since Oct 1, 2026.",
+            "Github Repo views", "Daily page views from GitHub since Oct 1, 2026.",
             stamp, "Views", last3=last3_views))
         (OUT / f"github-clones-{theme}.svg").write_text(encoding="utf-8", data=render.traffic_card(
             c, dates, clones,
