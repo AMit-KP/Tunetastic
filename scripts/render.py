@@ -260,17 +260,18 @@ def map_card(c, world, rows, total, stamp):
     land, brd = world["land"], world["borders"]
     bub, labels = "", ""
     plotted = [r for r in rows if r[0] in world["c"]]
+    min_label_v = plotted[min(4, len(plotted) - 1)][2] if plotted else 0
     for i, (code, name, v) in enumerate(plotted):
         _, x, y = world["c"][code]
         r = 2.5 + 16 * math.sqrt(v / vmax)
         d = 0.25 + i * 0.018
         bub += (f'<circle class="bp" cx="{x}" cy="{y}" r="{r:.1f}" fill="url(#bg2)" stroke="{c["a"]}" stroke-width="1"'
                 f' style="animation-delay:{d:.2f}s"/>')
-        if v > 5:
+        if v > 7:
             phase = (i * 0.37) % 2.8
             bub += (f'<circle class="ph" cx="{x}" cy="{y}" r="{r:.1f}" fill="none" stroke="{c["a"]}" stroke-width="1.5"'
                     f' vector-effect="non-scaling-stroke" style="animation-delay:{d + .6 + phase:.2f}s"/>')
-        if i < 3:
+        if v >= min_label_v and v > 0:
             labels += (f'<text x="{x}" y="{y - r - 5:.1f}" font-size="13" font-weight="700" fill="{c["tx"]}" text-anchor="middle"'
                        f' style="animation:fade .6s ease {d + .2:.2f}s backwards">{escape(name)}</text>')
     mapsvg = (f'<g transform="translate({PAD},{my}) scale({k:.4f}) translate({-vb[0]},{-vb[1]})" style="animation:fade .5s ease backwards">'
