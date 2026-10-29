@@ -104,6 +104,12 @@ public sealed partial class MainPage : Page
 
 		AppIcon.Source = new BitmapImage(new Uri(this.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
 
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var folderViewMode = localSettings.Values[nameof(LocalSave.FoldersViewMode)]?.ToString() ?? "All Music Folders";
+		NavigationPageMappings.PageDictionary["Tunetastic.Views.LibraryViews.FoldersViewPage"] = folderViewMode == "Folder Hierarchy"
+			? typeof(Tunetastic.Views.LibraryViews.FolderHierarchyPage)
+			: typeof(Tunetastic.Views.LibraryViews.FoldersViewPage);
+
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
 		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
 				   .ConfigureDefaultPage(typeof(MainPlayerPage))
@@ -115,7 +121,6 @@ public sealed partial class MainPage : Page
 
 		InitializeVolumeSliderAndService();
 
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
 
 		WhatsNewService.ShowIfEligible();
@@ -353,25 +358,6 @@ public sealed partial class MainPage : Page
 					return;
 				}
 				App.Current.NavService.NavigateTo(typeof(PlayListTemplate), dataGroup.Title);
-			}
-		}
-		if (args.SelectedItemContainer is NavigationViewItem foldersNavItem &&
-			foldersNavItem.Tag?.ToString() == "Tunetastic.Views.LibraryViews.FoldersViewPage")
-		{
-			var viewMode = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.FoldersViewMode)]?.ToString() ?? "All Music Folders";
-			if (viewMode == "Folder Hierarchy")
-			{
-				if (NavFrame.Content is not Tunetastic.Views.LibraryViews.FolderHierarchyPage)
-				{
-					App.Current.NavService.NavigateTo(typeof(Tunetastic.Views.LibraryViews.FolderHierarchyPage));
-				}
-			}
-			else
-			{
-				if (NavFrame.Content is not Tunetastic.Views.LibraryViews.FoldersViewPage)
-				{
-					App.Current.NavService.NavigateTo(typeof(Tunetastic.Views.LibraryViews.FoldersViewPage));
-				}
 			}
 		}
 	}

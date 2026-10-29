@@ -50,6 +50,7 @@ public sealed partial class FoldersViewPage : FolderPageBase
 		if (FolderHierarchyViewStyle.IsChecked)
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.FoldersViewMode)] = "Folder Hierarchy";
+			NavigationPageMappings.PageDictionary["Tunetastic.Views.LibraryViews.FoldersViewPage"] = typeof(FolderHierarchyPage);
 			App.Current.NavService.NavigateTo(typeof(FolderHierarchyPage), CurrentFolderPath);
 		}
 	}

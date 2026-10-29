@@ -103,6 +103,7 @@ public sealed partial class FolderHierarchyPage : FolderPageBase
 		if (AllMusicFoldersViewStyle.IsChecked)
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.FoldersViewMode)] = "All Music Folders";
+			NavigationPageMappings.PageDictionary["Tunetastic.Views.LibraryViews.FoldersViewPage"] = typeof(FoldersViewPage);
 			App.Current.NavService.NavigateTo(typeof(FoldersViewPage), CurrentFolderPath);
 		}
 	}
