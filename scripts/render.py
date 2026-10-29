@@ -1,4 +1,5 @@
 ﻿"""Builds the README graphics (light + dark SVGs) from stored data."""
+import datetime as dt
 import math
 from xml.sax.saxutils import escape
 
@@ -229,17 +230,18 @@ def installs_card(c, weeks, vals, total, last3, updates, stamp):
                 boxes + body, stamp, defs, icss)
 
 
-def traffic_card(c, dates, values, title, hint, stamp, p_label):
+def traffic_card(c, dates, values, title, hint, stamp, p_label, last3=None):
     """Daily line for one metric: one graph per year, newest first."""
     step, top = axis(max(values + [1]))
     slices = year_slices(dates, values) or [(dates[0].year, dates, values)]
 
     total = sum(values)
-    peak = max(values)
-    peak_day = dates[values.index(peak)]
+    if last3 is None:
+        cutoff = (dates[-1] - dt.timedelta(days=90)) if dates else None
+        last3 = sum(v for d, v in zip(dates, values) if d >= cutoff) if cutoff else 0
     boxes = ""
     for i, (num, lab) in enumerate([(f"{total:,}", f"{p_label} (all time)"),
-                                    (f"{peak:,}", f"Best day: {peak_day.day} {peak_day:%b %Y}")]):
+                                    (f"{last3:,}", "Last 3 months")]):
         x = PAD + i * 216
         boxes += (f'<rect x="{x}" y="78" width="204" height="70" rx="10" fill="none" stroke="{c["bd"]}"/>'
                   f'<text x="{x+16}" y="115" font-size="30" font-weight="700" fill="url(#lg)">{num}</text>'

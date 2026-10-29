@@ -166,15 +166,20 @@ def render_github(today):
     dates = [parse_day(d) for d in days]
     stamp = f"Updated {today.day} {today:%b %Y}"
     OUT.mkdir(exist_ok=True)
+    cutoff = today - dt.timedelta(days=90)
+    views = [gh[d]["views"] for d in days]
+    clones = [gh[d]["clones"] for d in days]
+    last3_views = sum(v for d, v in zip(dates, views) if d >= cutoff)
+    last3_clones = sum(v for d, v in zip(dates, clones) if d >= cutoff)
     for theme, c in render.THEMES.items():
         (OUT / f"github-views-{theme}.svg").write_text(encoding="utf-8", data=render.traffic_card(
-            c, dates, [gh[d]["views"] for d in days],
+            c, dates, views,
             "Repo views", "Daily page views from GitHub since Oct 1, 2026.",
-            stamp, "Views"))
+            stamp, "Views", last3=last3_views))
         (OUT / f"github-clones-{theme}.svg").write_text(encoding="utf-8", data=render.traffic_card(
-            c, dates, [gh[d]["clones"] for d in days],
+            c, dates, clones,
             "Git clones", "Daily clones from GitHub since Oct 1, 2026.",
-            stamp, "Clones"))
+            stamp, "Clones", last3=last3_clones))
     print(f"Drew GitHub traffic graphs for {len(days)} days since Oct 1, 2026")
 
 # ---------- render ----------
