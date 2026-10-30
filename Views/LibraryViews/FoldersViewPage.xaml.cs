@@ -604,6 +604,7 @@ public sealed partial class FoldersViewPage : TileListPageBase
 						await DatabaseHelper.Instance.DeleteSongFromDB(s.Path);
 					}
 				}
+				FolderOperations.InvalidateCache();
 				FoldersGroup.Remove(folder);
 				MusicPlayer.Instance.HandleAfterDelete();
 				GlobalNotification.Success($"Deleted {songs.Count} songs from '{folder.Name}'.");
@@ -662,6 +663,7 @@ public sealed partial class FoldersViewPage : TileListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(s.Path);
 				}
 			}
+			FolderOperations.InvalidateCache();
 			foreach (var f in selectedFolders)
 			{
 				FoldersGroup.Remove(f);

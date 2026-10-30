@@ -79,6 +79,7 @@ public static class FolderOperations
 				});
 			}
 
+			_cachedRootFolders = folders;
 			return ascending
 				? folders.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList()
 				: folders.OrderByDescending(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -95,10 +96,32 @@ public static class FolderOperations
 	/// </summary>
 	/// <param name="ascending">Specifies whether folders should be sorted in ascending or descending alphabetical order.</param>
 	/// <returns>A list of top-level <see cref="FolderModel"/> root folders.</returns>
+	private static List<FolderModel>? _cachedRootFolders;
+
+	/// <summary>
+	/// Gets the cached list of root folders in hierarchical mode, if available.
+	/// </summary>
+	public static List<FolderModel>? CachedRootFolders => _cachedRootFolders;
+
+	/// <summary>
+	/// Clears the cached root folders.
+	/// </summary>
+	public static void InvalidateCache()
+	{
+		_cachedRootFolders = null;
+	}
+
 	public static async Task<List<FolderModel>> GetRootFoldersHierarchicalAsync(bool ascending = true)
 	{
 		try
 		{
+			if (_cachedRootFolders != null)
+			{
+				return ascending
+					? _cachedRootFolders.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList()
+					: _cachedRootFolders.OrderByDescending(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
+			}
+
 			var songs = await DatabaseHelper.Instance.GetSongPathsWithMetadataAsync();
 			var directGroups = songs
 				.Where(s => !string.IsNullOrEmpty(s.Path))

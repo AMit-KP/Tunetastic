@@ -77,6 +77,7 @@ public class LibraryScanner
 		}
 
 		_isScanning = false;
+		FolderOperations.InvalidateCache();
 		MusicPlayer.Instance.ResetOrReloadPlayer();
 		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.NoProgress);
 	}

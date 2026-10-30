@@ -110,6 +110,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 					LibraryWatcherService.MarkSelfInitiated(songData.Path);
 					File.Delete(songData.Path);
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
+					FolderOperations.InvalidateCache();
 					FolderGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
 					GlobalNotification.Success("Song/Track deleted." +
@@ -160,7 +161,14 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			ActualFolderGroup.Visibility = Visibility.Visible;
 			ActualFolderGroup.Opacity = 1;
 			ToolTipService.SetToolTip(ActualFolderGroup, folderPath);
-			_ = UpdateBreadcrumbsAsync();
+			if (FolderOperations.CachedRootFolders != null)
+			{
+				UpdateBreadcrumbs(FolderOperations.CachedRootFolders);
+			}
+			else
+			{
+				_ = UpdateBreadcrumbsAsync();
+			}
 		}
 
 		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimation");
@@ -230,20 +238,22 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		base.OnNavigatingFrom(e);
 	}
 
-	private async Task UpdateBreadcrumbsAsync()
+	private void UpdateBreadcrumbs(List<FolderModel>? rootFolders)
 	{
 		BreadcrumbSegmentsPanel.Children.Clear();
 		if (string.IsNullOrWhiteSpace(CurrentFolderPath))
 		{
+			BreadcrumbsColDef.Width = new GridLength(1, GridUnitType.Star);
+			HeaderColDef.Width = new GridLength(0);
 			BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+			Grid.SetColumn(HeaderContainerGrid, 2);
 			return;
 		}
 
 		try
 		{
 			var normalizedCurrent = FolderOperations.NormalizeFolderPath(CurrentFolderPath);
-			var rootFolders = await FolderOperations.GetRootFoldersHierarchicalAsync();
-			var matchingRoot = rootFolders.FirstOrDefault(r =>
+			var matchingRoot = rootFolders?.FirstOrDefault(r =>
 				LibraryScanner.IsSameOrNestedPath(normalizedCurrent, FolderOperations.NormalizeFolderPath(r.Path)));
 
 			var chain = new List<(string Name, string Path)>();
@@ -315,17 +325,32 @@ public sealed partial class FolderDetailPage : SongListPageBase
 					BreadcrumbSegmentsPanel.Children.Add(sepIcon);
 				}
 
+				BreadcrumbsColDef.Width = GridLength.Auto;
+				HeaderColDef.Width = new GridLength(1, GridUnitType.Star);
+				Grid.SetColumn(HeaderContainerGrid, 3);
 				BreadcrumbSegmentsPanel.Visibility = Visibility.Visible;
 			}
 			else
 			{
+				BreadcrumbsColDef.Width = new GridLength(1, GridUnitType.Star);
+				HeaderColDef.Width = new GridLength(0);
 				BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+				Grid.SetColumn(HeaderContainerGrid, 2);
 			}
 		}
 		catch (Exception)
 		{
+			BreadcrumbsColDef.Width = new GridLength(1, GridUnitType.Star);
+			HeaderColDef.Width = new GridLength(0);
 			BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+			Grid.SetColumn(HeaderContainerGrid, 2);
 		}
+	}
+
+	private async Task UpdateBreadcrumbsAsync()
+	{
+		var rootFolders = FolderOperations.CachedRootFolders ?? await FolderOperations.GetRootFoldersHierarchicalAsync();
+		UpdateBreadcrumbs(rootFolders);
 	}
 
 	private void AncestorBreadcrumb_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
