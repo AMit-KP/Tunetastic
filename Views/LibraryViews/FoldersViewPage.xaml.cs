@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -134,7 +134,7 @@ public sealed partial class FoldersViewPage : TileListPageBase
 
 		var viewDropdownContent = new TextBlock();
 		viewDropdownContent.Inlines.Add(new Run { Text = "Mode: " });
-		viewDropdownContent.Inlines.Add(new Run { Text = isHierarchy ? "Hierarchy" : "Flat" });
+		viewDropdownContent.Inlines.Add(new Run { Text = isHierarchy ? "Folder Hierarchy" : "All Music Folders" });
 		ViewButton.Content = viewDropdownContent;
 		ToolTipService.SetToolTip(ViewButton, $"Current Mode: {viewModeText}");
 

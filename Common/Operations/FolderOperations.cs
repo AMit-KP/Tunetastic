@@ -79,7 +79,6 @@ public static class FolderOperations
 				});
 			}
 
-			_cachedRootFolders = folders;
 			return ascending
 				? folders.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList()
 				: folders.OrderByDescending(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -171,6 +170,7 @@ public static class FolderOperations
 				});
 			}
 
+			_cachedRootFolders = folders;
 			return ascending
 				? folders.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList()
 				: folders.OrderByDescending(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
