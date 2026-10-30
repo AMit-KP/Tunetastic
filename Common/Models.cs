@@ -33,6 +33,9 @@ public class Song
 	public string? FileSize { get; set; }
 	public string PlayerType { get; set; } = "Flyleaf";
 	public int? Track { get; set; }
+
+	[Ignore]
+	public bool IsFolder { get; set; }
 }
 
 /// <summary>

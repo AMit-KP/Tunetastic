@@ -26,11 +26,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	public ObservableCollection<Song> FolderGroupSongs => ViewModel.Songs;
 
 	/// <summary>
-	/// Gets or sets the collection of immediate subfolders displayed in hierarchical mode.
-	/// </summary>
-	public ObservableCollection<FolderModel> SubFolders { get; set; } = new();
-
-	/// <summary>
 	/// Gets or sets the absolute path of the folder currently displayed.
 	/// </summary>
 	public string CurrentFolderPath { get; set; } = string.Empty;
@@ -55,75 +50,138 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	private void PlayAllButton_OnClick(object sender, RoutedEventArgs e) => PlayAll_OnClick(sender, e);
 	private void ShuffleAndPlayButton_OnClick(object sender, RoutedEventArgs e) => ShuffleAndPlay_OnClick(sender, e);
 	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) => SongListView_SelectionChanged(sender, e);
-	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
+
+	private void MenuFlyout_Opened(object sender, object e)
+	{
+		var menu = sender as MenuFlyout;
+		var target = menu?.Target as FrameworkElement;
+		var song = target?.DataContext as Song
+			?? menu?.Items.OfType<FrameworkElement>().Select(i => i.DataContext).OfType<Song>().FirstOrDefault();
+
+		if (song != null && song.IsFolder)
+		{
+			if (AddToPlaylist != null) AddToPlaylist.Visibility = Visibility.Collapsed;
+			if (PlaylistSeparator != null) PlaylistSeparator.Visibility = Visibility.Collapsed;
+			if (InfoTagMenuItem != null) InfoTagMenuItem.Visibility = Visibility.Collapsed;
+			if (InfoSeparator != null) InfoSeparator.Visibility = Visibility.Collapsed;
+			if (DeleteMenuItem != null) DeleteMenuItem.Visibility = Visibility.Collapsed;
+			if (DeleteSeparator != null) DeleteSeparator.Visibility = Visibility.Collapsed;
+		}
+		else
+		{
+			if (AddToPlaylist != null) AddToPlaylist.Visibility = Visibility.Visible;
+			if (PlaylistSeparator != null) PlaylistSeparator.Visibility = Visibility.Visible;
+			if (InfoTagMenuItem != null) InfoTagMenuItem.Visibility = Visibility.Visible;
+			if (InfoSeparator != null) InfoSeparator.Visibility = Visibility.Visible;
+			if (DeleteMenuItem != null) DeleteMenuItem.Visibility = Visibility.Visible;
+			if (DeleteSeparator != null) DeleteSeparator.Visibility = Visibility.Visible;
+			MenuFlyoutOpened(sender, e);
+		}
+	}
 
 	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
 	{
-		var track = e.ClickedItem as Song;
-		List<string> songPaths = FolderGroupSongs.Select(s => s.Path).ToList();
-		MusicPlayer.Instance.LoadPlaylist(songPaths, track?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"FolderGroup>{CurrentFolderPath}";
+		if (e.ClickedItem is Song track)
+		{
+			if (track.IsFolder)
+			{
+				NavigateToFolder(track.Path);
+				return;
+			}
+
+			List<string> songPaths = FolderGroupSongs.Where(s => !s.IsFolder).Select(s => s.Path).ToList();
+			MusicPlayer.Instance.LoadPlaylist(songPaths, track.Path);
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"FolderGroup>{CurrentFolderPath}";
+		}
 	}
 
-	private void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
+	private async void MenuFlyoutItemPlay_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		List<string> songPaths = FolderGroupSongs.Select(s => s.Path).ToList();
-		MusicPlayer.Instance.LoadPlaylist(songPaths, songData?.Path);
-		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"FolderGroup>{CurrentFolderPath}";
+		if (songData == null) return;
+
+		if (songData.IsFolder)
+		{
+			var songs = await FolderOperations.GetSongsInFolderAsync(songData.Path, includeSubfolders: true);
+			if (songs.Count > 0)
+			{
+				var songPaths = songs.Select(s => s.Path).ToList();
+				MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
+				Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"FolderGroup>{songData.Path}";
+			}
+		}
+		else
+		{
+			List<string> songPaths = FolderGroupSongs.Where(s => !s.IsFolder).Select(s => s.Path).ToList();
+			MusicPlayer.Instance.LoadPlaylist(songPaths, songData.Path);
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"FolderGroup>{CurrentFolderPath}";
+		}
 	}
 
 	private async void MenuFlyoutItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		List<string> songPaths = new List<string> { songData?.Path ?? "" };
-		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
-		GlobalNotification.Info($"{songData?.Title} added to queue.");
+		if (songData == null) return;
+
+		if (songData.IsFolder)
+		{
+			var songs = await FolderOperations.GetSongsInFolderAsync(songData.Path, includeSubfolders: true);
+			if (songs.Count > 0)
+			{
+				await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songs.Select(s => s.Path).ToList());
+				GlobalNotification.Info($"Added {songs.Count} songs from '{songData.Title}' to queue.");
+			}
+		}
+		else
+		{
+			List<string> songPaths = new() { songData.Path };
+			await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+			GlobalNotification.Info($"{songData.Title} added to queue.");
+		}
 	}
 
 	private async void MenuFlyoutItemInfoTag_OnClick(object sender, RoutedEventArgs e)
 	{
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
-		if (songData is not null) MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
+		if (songData is not null && !songData.IsFolder)
+			MainPage._instance?.ShowSongInfo(await DatabaseHelper.Instance.GetSongByPath(songData.Path));
 	}
 
 	private async void MenuFlyoutItemDelete_OnClick(object sender, RoutedEventArgs e)
 	{
-		DeleteDialog.Visibility = Visibility.Visible;
 		var songData = (sender as MenuFlyoutItem)?.DataContext as Song;
+		if (songData == null || songData.IsFolder) return;
 
-		if (songData != null)
+		DeleteDialog.Visibility = Visibility.Visible;
+		DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
+								$"\nTitle: {songData.Title}" +
+								$"\nArtist: {songData.Artists}" +
+								$"\nAlbum: {songData.Album}" +
+								$"\nFile: {songData.Path}";
+
+		MainWindow._instance.WindowResizePermission(false);
+		var result = await DeleteDialog.ShowAsync();
+		MainWindow._instance.WindowResizePermission(true);
+		if (result == ContentDialogResult.Primary)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
-									$"\nTitle: {songData.Title}" +
-									$"\nArtist: {songData.Artists}" +
-									$"\nAlbum: {songData.Album}" +
-									$"\nFile: {songData.Path}";
-
-			MainWindow._instance.WindowResizePermission(false);
-			var result = await DeleteDialog.ShowAsync();
-			MainWindow._instance.WindowResizePermission(true);
-			if (result == ContentDialogResult.Primary)
+			if (File.Exists(songData.Path))
 			{
-				if (File.Exists(songData.Path))
-				{
-					LibraryWatcherService.MarkSelfInitiated(songData.Path);
-					File.Delete(songData.Path);
-					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
-					FolderOperations.InvalidateCache();
-					FolderGroupSongs.Remove(songData);
-					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Success("Song/Track deleted." +
-												$"\nTitle: {songData.Title}" +
-												$"\nArtist: {songData.Artists}" +
-												$"\nAlbum: {songData.Album}" +
-												$"\nFile: {songData.Path}");
-				}
+				LibraryWatcherService.MarkSelfInitiated(songData.Path);
+				File.Delete(songData.Path);
+				await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
+				FolderOperations.InvalidateCache();
+				FolderGroupSongs.Remove(songData);
+				MusicPlayer.Instance.HandleAfterDelete();
+				GlobalNotification.Success("Song/Track deleted." +
+											$"\nTitle: {songData.Title}" +
+											$"\nArtist: {songData.Artists}" +
+											$"\nAlbum: {songData.Album}" +
+											$"\nFile: {songData.Path}");
 			}
-			if (FolderGroupSongs.Count <= 0 && SubFolders.Count <= 0)
-			{
-				App.Current.NavService.GoBack();
-			}
+		}
+		if (FolderGroupSongs.Count <= 0)
+		{
+			App.Current.NavService.GoBack();
 		}
 	}
 
@@ -138,13 +196,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 
 	private static readonly System.Reflection.FieldInfo? NavServiceSuppressNavField =
 		typeof(JsonNavigationService).GetField("_suppressSelectionNavigation", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-
-	private bool _isNavigatingForwardToSubFolder = false;
-	private ConnectedAnimation? _pendingBackAnimation = null;
-	private bool _isExecutingBackAnimation = false;
-	private double _lastSizedSubFolderWidth = -1;
-	private int _lastSizedSubFolderCount = -1;
-	private double _adjustedSubFolderTileMargin = 10;
 
 	/// <inheritdoc/>
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -185,25 +236,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			});
 		}
 
-		var backAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
-		if (backAnimation != null)
-		{
-			_pendingBackAnimation = backAnimation;
-		}
-
-		if (_pendingBackAnimation != null)
-		{
-			_ = TryPlayBackAnimationAsync();
-		}
-
-		SubFolderTileView.SelectionMode = ListViewSelectionMode.None;
-		SubFolderTileView.SelectedItem = null;
-		SubFolderTileView.IsItemClickEnabled = true;
-		ResetAllSubFolderTilesVisibility();
-		_lastSizedSubFolderWidth = -1;
-		_lastSizedSubFolderCount = -1;
-		SubFolderTileView_SizeChanged(null, null);
-
 		SelectFoldersOnNavigation();
 	}
 
@@ -212,14 +244,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	/// </summary>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		if (_isNavigatingForwardToSubFolder)
-		{
-			_isNavigatingForwardToSubFolder = false;
-			base.OnNavigatingFrom(e);
-			return;
-		}
-
-		if (e.SourcePageType.Name == "FoldersViewPage" || e.SourcePageType.Name == "FolderDetailPage")
+		if (e.SourcePageType.Name == "FoldersViewPage")
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = CurrentFolderPath;
 			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimationBack", ActualFolderGroup);
@@ -239,6 +264,20 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			sb.Begin();
 		}
 		base.OnNavigatingFrom(e);
+	}
+
+	private void NavigateToFolder(string folderPath)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = folderPath;
+		if (App.Current.NavService is JsonNavigationService nav)
+		{
+			NavServiceLastParamField?.SetValue(nav, null);
+		}
+		bool navigated = App.Current.NavService.NavigateTo(typeof(FolderDetailPage), folderPath, false, new DrillInNavigationTransitionInfo());
+		if (!navigated)
+		{
+			App.Current.NavService.Frame?.Navigate(typeof(FolderDetailPage), folderPath, new DrillInNavigationTransitionInfo());
+		}
 	}
 
 	private void UpdateBreadcrumbs(List<FolderModel>? rootFolders)
@@ -492,17 +531,24 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		var viewMode = localSettings.Values[nameof(LocalSave.FoldersViewMode)]?.ToString() ?? "All Music Folders";
 		bool isHierarchy = viewMode == "Folder Hierarchy";
 
+		var subfolderItems = new List<Song>();
 		if (isHierarchy)
 		{
 			var subfolders = await FolderOperations.GetSubFoldersAsync(CurrentFolderPath, AscOrder);
-			SubFolders.Clear();
-			SubFolders.AddRange(subfolders);
-			SubFoldersSection.Visibility = SubFolders.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-			_ = TryPlayBackAnimationAsync();
-		}
-		else
-		{
-			SubFoldersSection.Visibility = Visibility.Collapsed;
+			foreach (var sf in subfolders)
+			{
+				subfolderItems.Add(new Song
+				{
+					IsFolder = true,
+					Title = sf.Name,
+					Path = sf.Path,
+					Duration = sf.TotalDuration,
+					Artists = string.Empty,
+					Album = string.Empty,
+					Year = string.Empty,
+					Cover = string.Empty
+				});
+			}
 		}
 
 		var songs = await FolderOperations.GetSongsInFolderAsync(
@@ -512,35 +558,8 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			ascending: AscOrder);
 
 		FolderGroupSongs.Clear();
+		FolderGroupSongs.AddRange(subfolderItems);
 		FolderGroupSongs.AddRange(songs);
-
-		if (SubFolders.Count > 0 && FolderGroupSongs.Count == 0)
-		{
-			SubFoldersRowDefinition.Height = new GridLength(1, GridUnitType.Star);
-			SongsRowDefinition.Height = new GridLength(0);
-			SubFolderTileView.MaxHeight = double.PositiveInfinity;
-			SubFolderTileView.VerticalAlignment = VerticalAlignment.Stretch;
-			SubFoldersHeader.Visibility = Visibility.Collapsed;
-			FolderDetailListViewGrid.Visibility = Visibility.Collapsed;
-			FolderDetailCompactViewGrid.Visibility = Visibility.Collapsed;
-		}
-		else if (SubFolders.Count > 0)
-		{
-			SubFoldersRowDefinition.Height = GridLength.Auto;
-			SongsRowDefinition.Height = new GridLength(1, GridUnitType.Star);
-			SubFolderTileView.MaxHeight = 410;
-			SubFolderTileView.VerticalAlignment = VerticalAlignment.Top;
-			SubFoldersHeader.Visibility = Visibility.Visible;
-		}
-		else
-		{
-			SubFoldersRowDefinition.Height = new GridLength(0);
-			SongsRowDefinition.Height = new GridLength(1, GridUnitType.Star);
-		}
-
-		_lastSizedSubFolderWidth = -1;
-		_lastSizedSubFolderCount = -1;
-		SubFolderTileView_SizeChanged(null, null);
 
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
@@ -552,12 +571,12 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				hasSpecialCharacters = FolderGroupSongs.Any(s => FirstLetter(s.Title) == "#");
 				break;
 			case "Artists":
-				availableLetters = FolderGroupSongs.Select(s => FirstLetter(s.Artists)).Where(c => c != "#").Distinct().OrderBy(c => c);
-				hasSpecialCharacters = FolderGroupSongs.Any(s => FirstLetter(s.Artists) == "#");
+				availableLetters = FolderGroupSongs.Where(s => !s.IsFolder).Select(s => FirstLetter(s.Artists)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = FolderGroupSongs.Where(s => !s.IsFolder).Any(s => FirstLetter(s.Artists) == "#");
 				break;
 			case "Album":
-				availableLetters = FolderGroupSongs.Select(s => FirstLetter(s.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
-				hasSpecialCharacters = FolderGroupSongs.Any(s => FirstLetter(s.Album) == "#");
+				availableLetters = FolderGroupSongs.Where(s => !s.IsFolder).Select(s => FirstLetter(s.Album)).Where(c => c != "#").Distinct().OrderBy(c => c);
+				hasSpecialCharacters = FolderGroupSongs.Where(s => !s.IsFolder).Any(s => FirstLetter(s.Album) == "#");
 				break;
 		}
 
@@ -580,7 +599,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		localSettings.Values[nameof(LocalSave.FolderDetailViewSortBy)] = sortBy;
 		localSettings.Values[nameof(LocalSave.FolderDetailViewSortOrder)] = orderBy;
 
-		GoToSettings.Visibility = (FolderGroupSongs.Count == 0 && SubFolders.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+		GoToSettings.Visibility = FolderGroupSongs.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
 	}
 
 	private async void SortButton_OnClick(object sender, RoutedEventArgs e)
@@ -593,253 +612,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		var viewStyle = ListViewStyle.IsChecked ? "List View" : "Compact View";
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.FolderDetailViewStyle)] = viewStyle;
 		ApplyViewStyle(viewStyle);
-	}
-
-	private void SubFolderTileView_SizeChanged(object? sender, SizeChangedEventArgs? e)
-	{
-		const double baseContentWidth = 220;
-		const double baseMargin = 10;
-
-		double availableWidth = SubFolderTileView.ActualWidth;
-		if (availableWidth <= 0 || SubFolderTileView.ItemsPanelRoot is not ItemsWrapGrid grid)
-			return;
-
-		int itemCount = SubFolderTileView.Items.Count;
-		if (itemCount <= 0) return;
-
-		if (availableWidth == _lastSizedSubFolderWidth && itemCount == _lastSizedSubFolderCount)
-			return;
-		_lastSizedSubFolderWidth = availableWidth;
-		_lastSizedSubFolderCount = itemCount;
-
-		int maxFitCount = (int)(availableWidth / (baseContentWidth + 2 * baseMargin));
-		int count = Math.Min(itemCount, maxFitCount);
-
-		double usedWidth = count * baseContentWidth + (count + 1) * baseMargin;
-		double remainingSpace = availableWidth - usedWidth;
-
-		bool layoutIsWrapping = itemCount > count || remainingSpace < baseMargin * 2;
-
-		double adjustedItemWidth = baseContentWidth;
-		double adjustedMargin = baseMargin;
-
-		if (layoutIsWrapping && count > 0)
-		{
-			double extraPerTile = remainingSpace / count;
-			adjustedItemWidth += extraPerTile;
-			adjustedMargin += extraPerTile * 0.5;
-		}
-
-		_adjustedSubFolderTileMargin = adjustedMargin;
-
-		for (int i = 0; i < itemCount; i++)
-		{
-			var container = SubFolderTileView.ContainerFromItem(SubFolderTileView.Items[i]) as ListViewItem;
-			if (container != null)
-			{
-				container.Margin = new Thickness(adjustedMargin, 15, adjustedMargin, 15);
-			}
-		}
-
-		grid.ItemWidth = adjustedItemWidth;
-	}
-
-	private void ResetAllSubFolderTilesVisibility()
-	{
-		if (SubFolderTileView?.Items == null) return;
-		for (int i = 0; i < SubFolderTileView.Items.Count; i++)
-		{
-			if (SubFolderTileView.ContainerFromItem(SubFolderTileView.Items[i]) is ListViewItem container)
-			{
-				container.IsHitTestVisible = true;
-				if (DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") is FrameworkElement tb)
-				{
-					tb.Visibility = Visibility.Visible;
-					tb.Opacity = 1;
-				}
-			}
-		}
-	}
-
-	private void SubFolderTileView_ContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs args)
-	{
-		SubFolderTileView_SizeChanged(null, null);
-
-		if (args.ItemContainer is ListViewItem container)
-		{
-			container.IsHitTestVisible = true;
-			container.Margin = new Thickness(_adjustedSubFolderTileMargin, 15, _adjustedSubFolderTileMargin, 15);
-
-			var textBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") as FrameworkElement;
-			if (textBlock != null)
-			{
-				textBlock.Visibility = Visibility.Visible;
-				textBlock.Opacity = 1;
-			}
-		}
-	}
-
-	private void SubFolderTileView_ItemClick(object sender, ItemClickEventArgs e)
-	{
-		if (e.ClickedItem is FolderModel subfolder)
-		{
-			try
-			{
-				var container = SubFolderTileView.ContainerFromItem(subfolder) as ListViewItem;
-				if (container != null)
-				{
-					var subFolderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") as FrameworkElement;
-					if (subFolderTextBlock != null && subFolderTextBlock.Visibility == Visibility.Visible)
-					{
-						ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimation", subFolderTextBlock);
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				System.Diagnostics.Debug.WriteLine($"[FolderDetailPage] SubFolderTileView animation prep error: {ex.Message}");
-			}
-
-			_isNavigatingForwardToSubFolder = true;
-			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = subfolder.Path;
-			if (App.Current.NavService is JsonNavigationService nav)
-			{
-				NavServiceLastParamField?.SetValue(nav, null);
-			}
-			bool navigated = App.Current.NavService.NavigateTo(typeof(FolderDetailPage), subfolder.Path, false, new DrillInNavigationTransitionInfo());
-			if (!navigated)
-			{
-				App.Current.NavService.Frame?.Navigate(typeof(FolderDetailPage), subfolder.Path, new DrillInNavigationTransitionInfo());
-			}
-		}
-	}
-
-	private async Task TryPlayBackAnimationAsync()
-	{
-		if (_isExecutingBackAnimation) return;
-
-		if (_pendingBackAnimation == null)
-		{
-			_pendingBackAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
-		}
-
-		if (_pendingBackAnimation == null) return;
-
-		var selectedFolder = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)]?.ToString();
-		if (string.IsNullOrEmpty(selectedFolder))
-		{
-			_pendingBackAnimation = null;
-			return;
-		}
-
-		_isExecutingBackAnimation = true;
-		try
-		{
-			var normSelected = FolderOperations.NormalizeFolderPath(selectedFolder);
-
-			int waitCount = 0;
-			while ((SubFolders == null || SubFolders.Count == 0) && waitCount < 30)
-			{
-				await Task.Delay(50);
-				waitCount++;
-			}
-
-			if (SubFolders == null || SubFolders.Count == 0)
-			{
-				_pendingBackAnimation = null;
-				return;
-			}
-
-			var selectedSubFolder = SubFolders.FirstOrDefault(s =>
-				FolderOperations.NormalizeFolderPath(s.Path).Equals(normSelected, StringComparison.OrdinalIgnoreCase))
-				?? SubFolders.FirstOrDefault(s =>
-				normSelected.StartsWith(FolderOperations.NormalizeFolderPath(s.Path), StringComparison.OrdinalIgnoreCase));
-
-			if (selectedSubFolder == null)
-			{
-				_pendingBackAnimation = null;
-				return;
-			}
-
-			try
-			{
-				SubFolderTileView.ScrollIntoView(selectedSubFolder);
-			}
-			catch { }
-
-			ListViewItem? container = null;
-			for (int i = 0; i < 20; i++)
-			{
-				container = SubFolderTileView.ContainerFromItem(selectedSubFolder) as ListViewItem;
-				if (container != null) break;
-				await Task.Delay(40);
-			}
-
-			if (container != null)
-			{
-				FrameworkElement? textBlock = null;
-				for (int i = 0; i < 15; i++)
-				{
-					textBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "SubFolderTextBlock") as FrameworkElement;
-					if (textBlock != null) break;
-					await Task.Delay(30);
-				}
-
-				if (textBlock != null && _pendingBackAnimation != null)
-				{
-					textBlock.Visibility = Visibility.Visible;
-					textBlock.Opacity = 1;
-					var anim = _pendingBackAnimation;
-					_pendingBackAnimation = null;
-					anim.Completed += (s, e) =>
-					{
-						textBlock.Visibility = Visibility.Visible;
-						textBlock.Opacity = 1;
-						ResetAllSubFolderTilesVisibility();
-					};
-					if (!anim.TryStart(textBlock))
-					{
-						textBlock.Visibility = Visibility.Visible;
-						textBlock.Opacity = 1;
-					}
-					return;
-				}
-			}
-
-			_pendingBackAnimation = null;
-		}
-		finally
-		{
-			_isExecutingBackAnimation = false;
-			ResetAllSubFolderTilesVisibility();
-		}
-	}
-
-	private async void SubFolderPlay_OnClick(object sender, RoutedEventArgs e)
-	{
-		if ((sender as MenuFlyoutItem)?.DataContext is FolderModel subfolder)
-		{
-			var songs = await FolderOperations.GetSongsInFolderAsync(subfolder.Path, includeSubfolders: true);
-			if (songs.Count > 0)
-			{
-				var songPaths = songs.Select(s => s.Path).ToList();
-				MusicPlayer.Instance.LoadPlaylist(songPaths, songPaths[0]);
-				Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = $"FolderGroup>{subfolder.Path}";
-			}
-		}
-	}
-
-	private async void SubFolderAddToQueue_OnClick(object sender, RoutedEventArgs e)
-	{
-		if ((sender as MenuFlyoutItem)?.DataContext is FolderModel subfolder)
-		{
-			var songs = await FolderOperations.GetSongsInFolderAsync(subfolder.Path, includeSubfolders: true);
-			if (songs.Count > 0)
-			{
-				await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songs.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"Added {songs.Count} songs from '{subfolder.Name}' to queue.");
-			}
-		}
 	}
 
 	private void MultiSelectButton_Click(object sender, RoutedEventArgs e)
@@ -888,15 +660,31 @@ public sealed partial class FolderDetailPage : SongListPageBase
 
 	private async void MenuFlyoutMultiItemAddToQueue_OnClick(object sender, RoutedEventArgs e)
 	{
-		var songs = GetCurrentViewStyle().SelectedItems;
-		var songPaths = songs.Select(s => ((Song)s).Path).ToList();
-		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
-		GlobalNotification.Info($"{songPaths.Count} songs added to queue.");
+		var items = GetCurrentViewStyle().SelectedItems.OfType<Song>().ToList();
+		var songPaths = new List<string>();
+		foreach (var item in items)
+		{
+			if (item.IsFolder)
+			{
+				var subSongs = await FolderOperations.GetSongsInFolderAsync(item.Path, includeSubfolders: true);
+				songPaths.AddRange(subSongs.Select(s => s.Path));
+			}
+			else
+			{
+				songPaths.Add(item.Path);
+			}
+		}
+
+		if (songPaths.Count > 0)
+		{
+			await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
+			GlobalNotification.Info($"{songPaths.Count} songs added to queue.");
+		}
 	}
 
 	private async void MenuFlyoutMultiItemDelete_OnClick(object sender, RoutedEventArgs e)
 	{
-		var songs = GetCurrentViewStyle().SelectedItems.OfType<Song>().ToList();
+		var songs = GetCurrentViewStyle().SelectedItems.OfType<Song>().Where(s => !s.IsFolder).ToList();
 		if (songs.Count == 0) return;
 
 		DeleteDialog.Visibility = Visibility.Visible;
@@ -918,6 +706,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 					FolderGroupSongs.Remove(song);
 				}
 			}
+			FolderOperations.InvalidateCache();
 			MusicPlayer.Instance.HandleAfterDelete();
 			GlobalNotification.Success($"Deleted {songs.Count} songs.");
 		}
@@ -936,13 +725,16 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		var listView = GetCurrentViewStyle();
 		if (listView.IsMultiSelectCheckBoxEnabled)
 		{
-			var songs = listView.SelectedItems.OfType<Song>().ToList();
-			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songs.Select(s => s.Path).ToList());
-			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+			var songs = listView.SelectedItems.OfType<Song>().Where(s => !s.IsFolder).ToList();
+			if (songs.Count > 0)
+			{
+				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songs.Select(s => s.Path).ToList());
+				GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+			}
 		}
 		else
 		{
-			if ((sender as MenuFlyoutItem)?.DataContext is Song song)
+			if ((sender as MenuFlyoutItem)?.DataContext is Song song && !song.IsFolder)
 			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
 				GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
@@ -960,13 +752,16 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			var listView = GetCurrentViewStyle();
 			if (listView.IsMultiSelectCheckBoxEnabled)
 			{
-				var songs = listView.SelectedItems.OfType<Song>().ToList();
-				await DatabaseHelper.Instance.AddSongsToPlaylist(playlistName, songs.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"{songs.Count} songs added to {playlistName} playlist.");
+				var songs = listView.SelectedItems.OfType<Song>().Where(s => !s.IsFolder).ToList();
+				if (songs.Count > 0)
+				{
+					await DatabaseHelper.Instance.AddSongsToPlaylist(playlistName, songs.Select(s => s.Path).ToList());
+					GlobalNotification.Info($"{songs.Count} songs added to {playlistName} playlist.");
+				}
 			}
 			else
 			{
-				if ((sender as MenuFlyoutItem)?.DataContext is Song song)
+				if ((sender as MenuFlyoutItem)?.DataContext is Song song && !song.IsFolder)
 				{
 					await DatabaseHelper.Instance.AddSongToPlaylist(playlistName, song.Path);
 					GlobalNotification.Info($"{song.Title} added to {playlistName} playlist.");
@@ -983,7 +778,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		_ = AdjustAlphabetSize();
-		_ = TryPlayBackAnimationAsync();
 		int maxWait = 50;
 		while ((FolderGroupSongs == null || FolderGroupSongs.Count == 0) && maxWait > 0)
 		{
@@ -1010,8 +804,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			await AdjustAlphabetSize();
-			SubFolderTileView_SizeChanged(null, null);
 		});
 	}
 }
-

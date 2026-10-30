@@ -9,4 +9,7 @@
 	<converters:TrackNumberConverter x:Key="TrackNumberConverter" />
 	<converters:CoverImageConverter x:Key="CoverImageConverter" />
 	<toolkit:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+	<toolkit:BoolToVisibilityConverter x:Key="InvertedBoolToVisibility"
+	                                   FalseValue="Visible"
+	                                   TrueValue="Collapsed" />
 </ResourceDictionary>
