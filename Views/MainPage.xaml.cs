@@ -297,6 +297,9 @@ public sealed partial class MainPage : Page
 	private static readonly System.Reflection.FieldInfo? NavServiceLastParamField =
 		typeof(JsonNavigationService).GetField("_lastParameterUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
+	private static readonly System.Reflection.FieldInfo? NavServiceSuppressSelectionNavField =
+		typeof(JsonNavigationService).GetField("_suppressSelectionNavigation", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
 	/// <summary>
 	/// Handles the Navigated event of the navigation frame to keep the NavigationView selected item in sync,
 	/// particularly after backward navigation across custom playlists or library views.
@@ -317,18 +320,47 @@ public sealed partial class MainPage : Page
 					.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == playlistTitle);
 				if (matchingItem != null && !ReferenceEquals(NavView.SelectedItem, matchingItem))
 				{
-					NavView.SelectedItem = matchingItem;
+					if (App.Current.NavService is JsonNavigationService nav)
+					{
+						NavServiceSuppressSelectionNavField?.SetValue(nav, true);
+						try
+						{
+							NavView.SelectedItem = matchingItem;
+						}
+						finally
+						{
+							NavServiceSuppressSelectionNavField?.SetValue(nav, false);
+						}
+					}
+					else
+					{
+						NavView.SelectedItem = matchingItem;
+					}
 				}
 			}
 			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
 			{
-				if (e.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage))
+				string? targetUniqueId = e.SourcePageType switch
 				{
-					App.Current.NavService?.EnsureNavigationSelection("Tunetastic.Views.LibraryViews.FoldersViewPage");
-				}
-				else
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage) => "Tunetastic.Views.LibraryViews.FoldersViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.ArtistDetailPage) => "Tunetastic.Views.LibraryViews.ArtistsViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.AlbumDetailPage) => "Tunetastic.Views.LibraryViews.AlbumsViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.GenreDetailPage) => "Tunetastic.Views.LibraryViews.GenresViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.YearDetailPage) => "Tunetastic.Views.LibraryViews.YearsViewPage",
+					_ => e.SourcePageType.FullName
+				};
+
+				if (!string.IsNullOrEmpty(targetUniqueId) && App.Current.NavService is JsonNavigationService nav)
 				{
-					App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+					NavServiceSuppressSelectionNavField?.SetValue(nav, true);
+					try
+					{
+						nav.EnsureNavigationSelection(targetUniqueId);
+					}
+					finally
+					{
+						NavServiceSuppressSelectionNavField?.SetValue(nav, false);
+					}
 				}
 			}
 		}

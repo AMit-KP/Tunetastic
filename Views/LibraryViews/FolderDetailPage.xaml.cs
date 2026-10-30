@@ -136,6 +136,9 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	private static readonly System.Reflection.FieldInfo? NavServiceLastParamField =
 		typeof(JsonNavigationService).GetField("_lastParameterUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
 
+	private static readonly System.Reflection.FieldInfo? NavServiceSuppressNavField =
+		typeof(JsonNavigationService).GetField("_suppressSelectionNavigation", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
 	private bool _isNavigatingForwardToSubFolder = false;
 	private ConnectedAnimation? _pendingBackAnimation = null;
 	private bool _isExecutingBackAnimation = false;
@@ -382,7 +385,24 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem)
 			.FirstOrDefault(x => x?.Tag?.ToString() == "Tunetastic.Views.LibraryViews.FoldersViewPage");
 		if (libraryNavigationItem != null)
-			libraryNavigationItem.IsSelected = true;
+		{
+			if (App.Current.NavService is JsonNavigationService nav)
+			{
+				NavServiceSuppressNavField?.SetValue(nav, true);
+				try
+				{
+					libraryNavigationItem.IsSelected = true;
+				}
+				finally
+				{
+					NavServiceSuppressNavField?.SetValue(nav, false);
+				}
+			}
+			else
+			{
+				libraryNavigationItem.IsSelected = true;
+			}
+		}
 	}
 
 	/// <inheritdoc/>
