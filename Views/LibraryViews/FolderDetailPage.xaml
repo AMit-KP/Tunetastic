@@ -732,15 +732,13 @@
 											<RowDefinition Height="60" />
 											<RowDefinition Height="45" />
 										</Grid.RowDefinitions>
-										<Grid Grid.Row="0"
-										      HorizontalAlignment="Right"
+										<Grid Grid.Row="1"
 										      VerticalAlignment="Center">
 											<TextBlock HorizontalAlignment="Right"
-											           VerticalAlignment="Center"
+											           VerticalAlignment="Bottom"
 											           HorizontalTextAlignment="Right"
-											           Style="{ThemeResource TitleTextBlockStyle}"
-											           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}"
-											           TextTrimming="CharacterEllipsis">
+											           Style="{ThemeResource BodyStrongTextBlockStyle}"
+											           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}">
 												<ToolTipService.ToolTip>
 													<TextBlock>
 														<Run Text="Duration: " />
@@ -750,15 +748,20 @@
 												</ToolTipService.ToolTip>
 											</TextBlock>
 										</Grid>
-										<Grid Grid.Row="1"
-										      HorizontalAlignment="Right"
+										<Grid Grid.Row="0"
 										      VerticalAlignment="Center">
 											<TextBlock HorizontalAlignment="Right"
-											           VerticalAlignment="Center"
-											           HorizontalTextAlignment="Right"
-											           Style="{ThemeResource SubtitleTextBlockStyle}"
-											           Text="{x:Bind Year}"
-											           TextTrimming="CharacterEllipsis" />
+											           VerticalAlignment="Top"
+											           Style="{ThemeResource BodyStrongTextBlockStyle}"
+											           Text="{x:Bind Year}">
+												<ToolTipService.ToolTip>
+													<TextBlock>
+														<Run Text="Year: " />
+														<Run FontWeight="Bold"
+														     Text="{x:Bind Year}" />
+													</TextBlock>
+												</ToolTipService.ToolTip>
+											</TextBlock>
 										</Grid>
 									</Grid>
 								</Grid>
