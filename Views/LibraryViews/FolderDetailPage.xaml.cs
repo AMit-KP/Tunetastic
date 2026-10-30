@@ -47,6 +47,68 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		_ => FolderDetailCompactView
 	};
 
+	/// <inheritdoc/>
+	protected override async void ScrollToSection(string letter, string sortBy)
+	{
+		Song? targetSong = null;
+		switch (sortBy)
+		{
+			case "Title":
+				targetSong = letter != "#"
+					? FolderGroupSongs.FirstOrDefault(song => song.Title.StartsWith(letter, StringComparison.OrdinalIgnoreCase))
+					: FolderGroupSongs.FirstOrDefault(song => FirstLetter(song.Title) == "#");
+				break;
+
+			case "Artists":
+				targetSong = letter != "#"
+					? FolderGroupSongs.FirstOrDefault(song => !song.IsFolder && song.Artists.StartsWith(letter, StringComparison.OrdinalIgnoreCase))
+					: FolderGroupSongs.FirstOrDefault(song => !song.IsFolder && FirstLetter(song.Artists) == "#");
+				break;
+
+			case "Album":
+				targetSong = letter != "#"
+					? FolderGroupSongs.FirstOrDefault(song => !song.IsFolder && song.Album.StartsWith(letter, StringComparison.OrdinalIgnoreCase))
+					: FolderGroupSongs.FirstOrDefault(song => !song.IsFolder && FirstLetter(song.Album) == "#");
+				break;
+		}
+
+		if (targetSong != null)
+		{
+			var listView = GetCurrentViewStyle();
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == FolderDetailListView ? -40 : 0);
+			}
+			catch (Exception)
+			{
+			}
+			listView.SelectedItem = targetSong;
+			await Task.Delay(500);
+			try
+			{
+				await listView.SmoothScrollIntoViewWithItemAsync(targetSong, itemPlacement: ScrollItemPlacement.Top, disableAnimation: false, scrollIfVisible: false, additionalVerticalOffset: listView == FolderDetailListView ? -40 : 0);
+			}
+			catch (Exception)
+			{
+			}
+		}
+	}
+
+	/// <inheritdoc/>
+	protected override string LetterForItem(object item)
+	{
+		if (item is Song song)
+		{
+			return _lastSortBy switch
+			{
+				"Artists" => song.IsFolder ? "#" : FirstLetter(song.Artists),
+				"Album" => song.IsFolder ? "#" : FirstLetter(song.Album),
+				_ => FirstLetter(song.Title)
+			};
+		}
+		return "#";
+	}
+
 	private void PlayAllButton_OnClick(object sender, RoutedEventArgs e) => PlayAll_OnClick(sender, e);
 	private void ShuffleAndPlayButton_OnClick(object sender, RoutedEventArgs e) => ShuffleAndPlay_OnClick(sender, e);
 	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) => SongListView_SelectionChanged(sender, e);
@@ -510,6 +572,9 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			FolderDetailCompactViewGrid.Visibility = Visibility.Visible;
 			Scrubber.TargetList = FolderDetailCompactView;
 		}
+
+		InvalidateScrubberHighlightFeed();
+		_ = AdjustAlphabetSize();
 
 		var viewDropdownContent = new TextBlock();
 		viewDropdownContent.Inlines.Add(new Run { Text = "View: " });
