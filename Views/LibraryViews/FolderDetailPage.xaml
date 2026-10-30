@@ -374,12 +374,39 @@
 									<Image VerticalAlignment="Center"
 									       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}"
 									       Visibility="{x:Bind IsFolder, Converter={StaticResource InvertedBoolToVisibility}}" />
-									<FontIcon HorizontalAlignment="Center"
-									          VerticalAlignment="Center"
-									          FontSize="22"
-									          Foreground="{ThemeResource AccentAAFillColorDefaultBrush}"
-									          Glyph="&#xE838;"
-									          Visibility="{x:Bind IsFolder, Converter={StaticResource BoolToVisibility}}" />
+									<Grid HorizontalAlignment="Center"
+									      VerticalAlignment="Center"
+									      Visibility="{x:Bind IsFolder, Converter={StaticResource BoolToVisibility}}">
+										<FontIcon HorizontalAlignment="Center"
+										          VerticalAlignment="Center"
+										          FontSize="22"
+										          Foreground="{ThemeResource AccentAAFillColorDefaultBrush}"
+										          Glyph="&#xE838;" />
+										<Border HorizontalAlignment="Right"
+										        VerticalAlignment="Bottom"
+										        Margin="0,0,-7,-10"
+										        MinWidth="15"
+										        Height="14"
+										        Padding="3,0"
+										        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+										        BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+										        BorderThickness="1"
+										        CornerRadius="7">
+											<ToolTipService.ToolTip>
+												<TextBlock>
+													<Run FontWeight="Bold" Text="{x:Bind FolderSongCount}" />
+													<Run Text=" songs" />
+												</TextBlock>
+											</ToolTipService.ToolTip>
+											<TextBlock HorizontalAlignment="Center"
+											           VerticalAlignment="Center"
+											           FontSize="9"
+											           FontWeight="SemiBold"
+											           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+											           Text="{x:Bind FolderSongCount}"
+											           TextAlignment="Center" />
+										</Border>
+									</Grid>
 								</Grid>
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
@@ -499,21 +526,46 @@
 										      Width="100"
 										      Height="100"
 										      Margin="0,10,0,10">
-											<Grid Width="Auto"
-											      Height="Auto"
-											      HorizontalAlignment="Center"
+											<Grid HorizontalAlignment="Center"
 											      VerticalAlignment="Center"
 											      CornerRadius="10">
 												<Image HorizontalAlignment="Center"
 												       VerticalAlignment="Center"
 												       Source="{x:Bind Cover, Converter={StaticResource CoverImageConverter}}"
 												       Visibility="{x:Bind IsFolder, Converter={StaticResource InvertedBoolToVisibility}}" />
+											</Grid>
+											<Grid HorizontalAlignment="Center"
+											      VerticalAlignment="Center"
+											      Visibility="{x:Bind IsFolder, Converter={StaticResource BoolToVisibility}}">
 												<FontIcon HorizontalAlignment="Center"
 												          VerticalAlignment="Center"
 												          FontSize="54"
 												          Foreground="{ThemeResource AccentAAFillColorDefaultBrush}"
-												          Glyph="&#xE838;"
-												          Visibility="{x:Bind IsFolder, Converter={StaticResource BoolToVisibility}}" />
+												          Glyph="&#xE838;" />
+												<Border HorizontalAlignment="Right"
+												        VerticalAlignment="Bottom"
+												        Margin="0,0,-12,-16"
+												        MinWidth="20"
+												        Height="19"
+												        Padding="5,1"
+												        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+												        BorderBrush="{ThemeResource AccentAAFillColorDefaultBrush}"
+												        BorderThickness="1"
+												        CornerRadius="9.5">
+													<ToolTipService.ToolTip>
+														<TextBlock>
+															<Run FontWeight="Bold" Text="{x:Bind FolderSongCount}" />
+															<Run Text=" songs" />
+														</TextBlock>
+													</ToolTipService.ToolTip>
+													<TextBlock HorizontalAlignment="Center"
+													           VerticalAlignment="Center"
+													           FontSize="10"
+													           FontWeight="SemiBold"
+													           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+													           Text="{x:Bind FolderSongCount}"
+													           TextAlignment="Center" />
+												</Border>
 											</Grid>
 										</Grid>
 										<StackPanel Grid.Column="2"

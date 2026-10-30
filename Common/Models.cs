@@ -36,6 +36,9 @@ public class Song
 
 	[Ignore]
 	public bool IsFolder { get; set; }
+
+	[Ignore]
+	public int FolderSongCount { get; set; }
 }
 
 /// <summary>

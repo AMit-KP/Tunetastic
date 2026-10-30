@@ -540,6 +540,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				subfolderItems.Add(new Song
 				{
 					IsFolder = true,
+					FolderSongCount = sf.TotalSongCount,
 					Title = sf.Name,
 					Path = sf.Path,
 					Duration = sf.TotalDuration,
