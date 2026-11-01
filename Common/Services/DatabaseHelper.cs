@@ -1590,6 +1590,22 @@ public class DatabaseHelper
 	}
 
 	/// <summary>
+	/// Retrieves lightweight song records (Path, Duration, and Cover) for folder aggregation and modeling.
+	/// </summary>
+	/// <returns>A task that represents the asynchronous query operation returning a list of songs with Path, Duration, and Cover populated.</returns>
+	public async Task<List<Song>> GetSongPathsWithMetadataAsync()
+	{
+		try
+		{
+			return await _database.QueryAsync<Song>("SELECT Path, Duration, Cover FROM Songs WHERE Path IS NOT NULL AND Path != ''");
+		}
+		catch (Exception)
+		{
+			return new List<Song>();
+		}
+	}
+
+	/// <summary>
 	/// A private regex variable used to split artist names from a given string.
 	/// It defines patterns for common separators such as ",", "&amp;", "and", "feat.", "ft.", "x", etc.,
 	/// ensuring case-insensitivity and cultural variance while using a compiled regex for optimal performance.

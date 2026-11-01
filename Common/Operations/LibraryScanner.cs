@@ -77,6 +77,7 @@ public class LibraryScanner
 		}
 
 		_isScanning = false;
+		FolderOperations.InvalidateCache();
 		MusicPlayer.Instance.ResetOrReloadPlayer();
 		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.NoProgress);
 	}
@@ -404,7 +405,7 @@ public class LibraryScanner
 	/// The comparison is separator aware, so sibling folders that only share a name prefix
 	/// (e.g. "D:\Music" and "D:\Music2") are not mistaken for nested ones and silently dropped.
 	/// </remarks>
-	private static bool IsSameOrNestedPath(string path, string parent)
+	internal static bool IsSameOrNestedPath(string path, string parent)
 	{
 		var trimmedParent = parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 

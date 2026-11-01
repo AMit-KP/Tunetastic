@@ -55,6 +55,12 @@
           "Title": "Years",
           "IconGlyph": "E787",
           "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.LibraryViews.FoldersViewPage",
+          "Title": "Folders",
+          "IconGlyph": "E838",
+          "HideItem": false
         }
       ]
     },

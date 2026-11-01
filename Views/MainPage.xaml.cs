@@ -294,6 +294,12 @@ public sealed partial class MainPage : Page
 		SearchTeachingTip.IsOpen = false;
 	}
 
+	private static readonly System.Reflection.FieldInfo? NavServiceLastParamField =
+		typeof(JsonNavigationService).GetField("_lastParameterUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+	private static readonly System.Reflection.FieldInfo? NavServiceSuppressSelectionNavField =
+		typeof(JsonNavigationService).GetField("_suppressSelectionNavigation", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
 	/// <summary>
 	/// Handles the Navigated event of the navigation frame to keep the NavigationView selected item in sync,
 	/// particularly after backward navigation across custom playlists or library views.
@@ -302,6 +308,11 @@ public sealed partial class MainPage : Page
 	{
 		if (e.NavigationMode == NavigationMode.Back)
 		{
+			if (App.Current.NavService is JsonNavigationService navService)
+			{
+				NavServiceLastParamField?.SetValue(navService, e.Parameter);
+			}
+
 			if (e.SourcePageType == typeof(PlayListTemplate) && e.Parameter is string playlistTitle)
 			{
 				var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
@@ -309,12 +320,48 @@ public sealed partial class MainPage : Page
 					.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == playlistTitle);
 				if (matchingItem != null && !ReferenceEquals(NavView.SelectedItem, matchingItem))
 				{
-					NavView.SelectedItem = matchingItem;
+					if (App.Current.NavService is JsonNavigationService nav)
+					{
+						NavServiceSuppressSelectionNavField?.SetValue(nav, true);
+						try
+						{
+							NavView.SelectedItem = matchingItem;
+						}
+						finally
+						{
+							NavServiceSuppressSelectionNavField?.SetValue(nav, false);
+						}
+					}
+					else
+					{
+						NavView.SelectedItem = matchingItem;
+					}
 				}
 			}
 			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
 			{
-				App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+				string? targetUniqueId = e.SourcePageType switch
+				{
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage) => "Tunetastic.Views.LibraryViews.FoldersViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.ArtistDetailPage) => "Tunetastic.Views.LibraryViews.ArtistsViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.AlbumDetailPage) => "Tunetastic.Views.LibraryViews.AlbumsViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.GenreDetailPage) => "Tunetastic.Views.LibraryViews.GenresViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.YearDetailPage) => "Tunetastic.Views.LibraryViews.YearsViewPage",
+					_ => e.SourcePageType.FullName
+				};
+
+				if (!string.IsNullOrEmpty(targetUniqueId) && App.Current.NavService is JsonNavigationService nav)
+				{
+					NavServiceSuppressSelectionNavField?.SetValue(nav, true);
+					try
+					{
+						nav.EnsureNavigationSelection(targetUniqueId);
+					}
+					finally
+					{
+						NavServiceSuppressSelectionNavField?.SetValue(nav, false);
+					}
+				}
 			}
 		}
 	}
@@ -656,6 +703,7 @@ public sealed partial class MainPage : Page
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.AlbumsEnabled)]?.ToString() ?? "true")) HideLibrary("Albums");
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.GenresEnabled)]?.ToString() ?? "true")) HideLibrary("Genres");
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true")) HideLibrary("Years");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.FoldersEnabled)]?.ToString() ?? "true")) HideLibrary("Folders");
 	}
 
 	/// <summary>
@@ -745,7 +793,7 @@ public sealed partial class MainPage : Page
 			var entry = history[i];
 			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
 			bool matchesParam = entry.Parameter?.ToString() == pageName;
-			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage" || (pageName == "Folders" && entry.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage));
 
 			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
@@ -759,7 +807,7 @@ public sealed partial class MainPage : Page
 			var entry = forward[i];
 			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
 			bool matchesParam = entry.Parameter?.ToString() == pageName;
-			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage" || (pageName == "Folders" && entry.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage));
 
 			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{

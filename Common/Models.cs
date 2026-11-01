@@ -33,6 +33,12 @@ public class Song
 	public string? FileSize { get; set; }
 	public string PlayerType { get; set; } = "Flyleaf";
 	public int? Track { get; set; }
+
+	[Ignore]
+	public bool IsFolder { get; set; }
+
+	[Ignore]
+	public int FolderSongCount { get; set; }
 }
 
 /// <summary>
@@ -225,6 +231,22 @@ public class ArtistModel
 	public string Artist { get; set; } = string.Empty;
 	public int Count { get; set; }
 	public double TotalDuration { get; set; }
+}
+
+/// <summary>
+/// Represents a folder entity containing music tracks.
+/// Used in FoldersViewPage for flat and hierarchical views.
+/// </summary>
+public class FolderModel
+{
+	public string Name { get; set; } = string.Empty;
+	public string Path { get; set; } = string.Empty;
+	public int Count { get; set; }
+	public int TotalSongCount { get; set; }
+	public int SubFolderCount { get; set; }
+	public double TotalDuration { get; set; }
+	public string Cover { get; set; } = string.Empty;
+	public bool HasSubFolders => SubFolderCount > 0;
 }
 
 /// <summary>

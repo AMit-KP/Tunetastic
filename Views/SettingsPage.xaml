@@ -207,6 +207,9 @@
 					<dev:SettingsCard Header="Years">
 						<ToggleSwitch x:Name="YearsToggle" />
 					</dev:SettingsCard>
+					<dev:SettingsCard Header="Folders">
+						<ToggleSwitch x:Name="FoldersToggle" />
+					</dev:SettingsCard>
 					<dev:SettingsCard Header="Recently Added">
 						<ToggleSwitch x:Name="RecentlyAddedToggle" />
 					</dev:SettingsCard>

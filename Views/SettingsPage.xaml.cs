@@ -857,6 +857,8 @@ public sealed partial class SettingsPage : Page
 
 		YearsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true");
 
+		FoldersToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.FoldersEnabled)]?.ToString() ?? "true");
+
 		RecentlyAddedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)]?.ToString() ?? "true");
 
 		RecentlyPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true");
@@ -867,6 +869,7 @@ public sealed partial class SettingsPage : Page
 		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
 		GenresToggle.Toggled += GenresToggle_Toggled;
 		YearsToggle.Toggled += YearsToggle_Toggled;
+		FoldersToggle.Toggled += FoldersToggle_Toggled;
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
@@ -1239,6 +1242,42 @@ public sealed partial class SettingsPage : Page
 		localSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
 
 		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("YearGroup>") == true)
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled state change of the "Folders" toggle switch.
+	/// </summary>
+	private async void FoldersToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		if (!FoldersToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Folders", list => list?.StartsWith("FolderGroup>") == true))
+			{
+				FoldersToggle.Toggled -= FoldersToggle_Toggled;
+				FoldersToggle.IsOn = true;
+				FoldersToggle.Toggled += FoldersToggle_Toggled;
+				return;
+			}
+		}
+
+		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.FoldersViewPage");
+
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = FoldersToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (!FoldersToggle.IsOn)
+		{
+			MainPage._instance?.RemovePageFromHistory("Folders");
+		}
+
+		localSettings.Values[nameof(LocalSave.FoldersEnabled)] = FoldersToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("FolderGroup>") == true)
 		{
 			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
