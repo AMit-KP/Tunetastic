@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -348,6 +348,17 @@
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Appearance &amp; Behavior" />
 			</StackPanel>
+			<dev:SettingsCard x:Name="LanguageCard"
+			                  Description="Choose the display language for Tunetastic. Requires an app restart to take full effect."
+			                  Header="App language">
+				<ComboBox x:Name="AppLanguage"
+				          SelectionChanged="AppLanguage_SelectionChanged">
+					<ComboBoxItem Content="Windows default"
+					              Tag="default" />
+					<ComboBoxItem Content="English (United States)"
+					              Tag="en-US" />
+				</ComboBox>
+			</dev:SettingsCard>
 			<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
 			                  Header="App theme">
 				<ComboBox x:Name="Theme">

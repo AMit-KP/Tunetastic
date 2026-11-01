@@ -1,4 +1,4 @@
-﻿namespace Tunetastic.Common;
+namespace Tunetastic.Common;
 
 // ─────────────────────────────────────────────────────────────
 //  Playback enums
@@ -227,6 +227,7 @@ public enum LocalSave
 	RepeatStatus,
 	Backdrop,
 	Theme,
+	AppLanguage,
 	BackdropTintColorStatus,
 	BackdropTintColorA,
 	BackdropTintColorR,
