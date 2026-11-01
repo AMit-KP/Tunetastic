@@ -64,56 +64,79 @@
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 		</Grid.RowDefinitions>
-		<Grid Grid.Row="0"
+		<Grid x:Name="HeaderRowGrid"
+		      Grid.Row="0"
 		      Margin="15,10,45,10"
-		      ColumnSpacing="15">
+		      ColumnSpacing="15"
+		      RowSpacing="4">
+			<Grid.RowDefinitions>
+				<RowDefinition x:Name="BreadcrumbRowDef" Height="Auto" />
+				<RowDefinition x:Name="TitleRowDef" Height="0" />
+			</Grid.RowDefinitions>
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition x:Name="BreadcrumbsColDef" Width="Auto" />
+				<ColumnDefinition x:Name="TitleColDef" Width="*" />
+				<ColumnDefinition x:Name="ButtonsColDef" Width="Auto" />
 			</Grid.ColumnDefinitions>
 
-			<Grid Grid.Column="0"
-			      HorizontalAlignment="Stretch"
-			      ColumnSpacing="10">
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="Auto" />
-					<ColumnDefinition Width="Auto" />
-					<ColumnDefinition x:Name="BreadcrumbsColDef" Width="*" />
-					<ColumnDefinition x:Name="HeaderColDef" Width="0" />
-				</Grid.ColumnDefinitions>
-				<Grid Grid.Column="0"
-				      BorderBrush="Transparent"
+			<StackPanel x:Name="BreadcrumbTrailContainer"
+			            Grid.Row="0"
+			            Grid.Column="0"
+			            Orientation="Horizontal"
+			            Spacing="8"
+			            VerticalAlignment="Center">
+				<Grid BorderBrush="Transparent"
 				      Tapped="Folders_Tapped">
-					<TextBlock HorizontalAlignment="Left"
+					<TextBlock x:Name="FoldersBreadcrumbText"
+					           HorizontalAlignment="Left"
 					           VerticalAlignment="Center"
 					           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 					           Style="{ThemeResource TitleTextBlockStyle}"
 					           Text="Folders" />
 				</Grid>
-				<FontIcon Grid.Column="1"
+				<FontIcon x:Name="FoldersBreadcrumbChevron"
+				          Margin="0,4,0,0"
+				          HorizontalAlignment="Center"
+				          VerticalAlignment="Center"
+				          Glyph="&#xE974;" />
+				<DropDownButton x:Name="BreadcrumbEllipsisButton"
+				                Visibility="Collapsed"
+				                Padding="6,2"
+				                VerticalAlignment="Center">
+					<TextBlock Text="···" FontSize="14" FontWeight="Bold" />
+					<DropDownButton.Flyout>
+						<MenuFlyout x:Name="BreadcrumbEllipsisFlyout" Placement="BottomEdgeAlignedLeft" />
+					</DropDownButton.Flyout>
+				</DropDownButton>
+				<FontIcon x:Name="BreadcrumbEllipsisChevron"
+				          Visibility="Collapsed"
 				          Margin="0,4,0,0"
 				          HorizontalAlignment="Center"
 				          VerticalAlignment="Center"
 				          Glyph="&#xE974;" />
 				<StackPanel x:Name="BreadcrumbSegmentsPanel"
-				            Grid.Column="2"
 				            Orientation="Horizontal"
-				            Spacing="10"
+				            Spacing="8"
 				            Visibility="Collapsed" />
-				<Grid x:Name="HeaderContainerGrid"
-				      Grid.Column="2">
-					<dev:AutoScrollView x:Name="AutoScrollHeader"
-					                    IsPlaying="False">
-						<TextBlock x:Name="ActualFolderGroup"
-						           HorizontalAlignment="Left"
-						           VerticalAlignment="Center"
-						           Style="{ThemeResource TitleTextBlockStyle}" />
-					</dev:AutoScrollView>
-				</Grid>
+			</StackPanel>
+
+			<Grid x:Name="HeaderContainerGrid"
+			      Grid.Row="0"
+			      Grid.Column="1">
+				<dev:AutoScrollView x:Name="AutoScrollHeader"
+				                    IsPlaying="False">
+					<TextBlock x:Name="ActualFolderGroup"
+					           HorizontalAlignment="Left"
+					           VerticalAlignment="Center"
+					           Style="{ThemeResource TitleTextBlockStyle}"
+					           TextTrimming="CharacterEllipsis"
+					           TextWrapping="NoWrap" />
+				</dev:AutoScrollView>
 			</Grid>
 
 			<StackPanel x:Name="PageButtons"
-			            Grid.Column="1"
+			            Grid.Row="0"
+			            Grid.Column="2"
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
@@ -384,7 +407,7 @@
 										          Glyph="&#xE838;" />
 										<Border HorizontalAlignment="Right"
 										        VerticalAlignment="Bottom"
-										        Margin="0,0,-7,-10"
+										        Margin="0,0,-8,-12"
 										        MinWidth="15"
 										        Height="14"
 										        Padding="3,0"
@@ -408,7 +431,8 @@
 										</Border>
 									</Grid>
 								</Grid>
-								<TextBlock HorizontalAlignment="Left"
+								<TextBlock x:Name="FolderTitleTextBlock"
+								           HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Text="{x:Bind Title}"
 								           TextTrimming="CharacterEllipsis">
@@ -544,7 +568,7 @@
 												          Glyph="&#xE838;" />
 												<Border HorizontalAlignment="Right"
 												        VerticalAlignment="Bottom"
-												        Margin="0,0,-12,-16"
+												        Margin="0,0,-12,-18"
 												        MinWidth="20"
 												        Height="19"
 												        Padding="5,1"
@@ -573,7 +597,8 @@
 										            VerticalAlignment="Center"
 										            Orientation="Vertical"
 										            Spacing="5">
-											<TextBlock HorizontalAlignment="Left"
+											<TextBlock x:Name="FolderTitleTextBlock"
+											           HorizontalAlignment="Left"
 											           VerticalAlignment="Center"
 											           MaxLines="2"
 											           Style="{ThemeResource SubtitleTextBlockStyle}"

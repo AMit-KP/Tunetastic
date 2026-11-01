@@ -96,6 +96,7 @@ public static class FolderOperations
 	/// <param name="ascending">Specifies whether folders should be sorted in ascending or descending alphabetical order.</param>
 	/// <returns>A list of top-level <see cref="FolderModel"/> root folders.</returns>
 	private static List<FolderModel>? _cachedRootFolders;
+	private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, List<FolderModel>> _subfoldersCache = new(StringComparer.OrdinalIgnoreCase);
 
 	/// <summary>
 	/// Gets the cached list of root folders in hierarchical mode, if available.
@@ -108,6 +109,7 @@ public static class FolderOperations
 	public static void InvalidateCache()
 	{
 		_cachedRootFolders = null;
+		_subfoldersCache.Clear();
 	}
 
 	public static async Task<List<FolderModel>> GetRootFoldersHierarchicalAsync(bool ascending = true)
@@ -193,6 +195,13 @@ public static class FolderOperations
 		{
 			var normalizedParent = NormalizeFolderPath(parentFolderPath);
 
+			if (_subfoldersCache.TryGetValue(normalizedParent, out var cached))
+			{
+				return ascending
+					? cached.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList()
+					: cached.OrderByDescending(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();
+			}
+
 			var songs = await DatabaseHelper.Instance.GetSongPathsWithMetadataAsync();
 			var directGroups = songs
 				.Where(s => !string.IsNullOrEmpty(s.Path))
@@ -255,6 +264,7 @@ public static class FolderOperations
 				});
 			}
 
+			_subfoldersCache[normalizedParent] = subfolders;
 			return ascending
 				? subfolders.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList()
 				: subfolders.OrderByDescending(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList();

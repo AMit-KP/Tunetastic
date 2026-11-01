@@ -141,12 +141,68 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		}
 	}
 
+	private bool _isNavigatingForwardToSubFolder = false;
+	private bool _isActivePage = false;
+
+	private void StartAutoScrollHeader(int delayMs = 400, bool forceRestart = false)
+	{
+		_ = Task.Run(async () =>
+		{
+			if (delayMs > 0)
+			{
+				await Task.Delay(delayMs);
+			}
+			_dispatcherQueue.TryEnqueue(() =>
+			{
+				if (_isActivePage && AutoScrollHeader != null)
+				{
+					if (forceRestart)
+					{
+						AutoScrollHeader.IsPlaying = false;
+						AutoScrollHeader.IsPlaying = true;
+					}
+					else if (!AutoScrollHeader.IsPlaying)
+					{
+						AutoScrollHeader.IsPlaying = true;
+					}
+				}
+			});
+		});
+	}
+
 	private void ListView_ItemClick(object sender, ItemClickEventArgs e)
 	{
 		if (e.ClickedItem is Song track)
 		{
 			if (track.IsFolder)
 			{
+				if (sender is ListViewBase lv)
+				{
+					var container = lv.ContainerFromItem(track) as ListViewItem;
+					if (container != null)
+					{
+						var folderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "FolderTitleTextBlock") as FrameworkElement;
+						if (folderTextBlock != null)
+						{
+							ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimation", folderTextBlock);
+
+							var fadeOut = new DoubleAnimation
+							{
+								To = 0,
+								Duration = TimeSpan.FromMilliseconds(30),
+								FillBehavior = FillBehavior.Stop
+							};
+							Storyboard.SetTarget(fadeOut, folderTextBlock);
+							Storyboard.SetTargetProperty(fadeOut, "Opacity");
+
+							var sb = new Storyboard();
+							sb.Children.Add(fadeOut);
+							sb.Completed += (_, __) => folderTextBlock.Visibility = Visibility.Collapsed;
+							sb.Begin();
+						}
+					}
+				}
+				_isNavigatingForwardToSubFolder = true;
 				NavigateToFolder(track.Path);
 				return;
 			}
@@ -263,6 +319,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
 		base.OnNavigatedTo(e);
+		_isActivePage = true;
 
 		if (e.Parameter is string folderPath && !string.IsNullOrWhiteSpace(folderPath))
 		{
@@ -290,12 +347,26 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimation");
 		if (animation != null)
 		{
+			ActualFolderGroup.Visibility = Visibility.Visible;
+			ActualFolderGroup.Opacity = 1;
 			await ActualFolderGroup.DispatcherQueue.EnqueueAsync(async () =>
 			{
 				animation.TryStart(ActualFolderGroup);
 				await Task.Delay(1000);
-				AutoScrollHeader.IsPlaying = true;
+				StartAutoScrollHeader(0, forceRestart: true);
 			});
+		}
+		else
+		{
+			ActualFolderGroup.Visibility = Visibility.Visible;
+			ActualFolderGroup.Opacity = 1;
+			StartAutoScrollHeader(400);
+		}
+
+		var backAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
+		if (backAnimation != null)
+		{
+			_pendingBackAnimation = backAnimation;
 		}
 
 		SelectFoldersOnNavigation();
@@ -306,7 +377,20 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	/// </summary>
 	protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
 	{
-		if (e.SourcePageType.Name == "FoldersViewPage")
+		_isActivePage = false;
+		if (AutoScrollHeader != null)
+		{
+			AutoScrollHeader.IsPlaying = false;
+		}
+
+		if (_isNavigatingForwardToSubFolder)
+		{
+			_isNavigatingForwardToSubFolder = false;
+			base.OnNavigatingFrom(e);
+			return;
+		}
+
+		if (e.SourcePageType.Name == "FoldersViewPage" || e.SourcePageType.Name == "FolderDetailPage")
 		{
 			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = CurrentFolderPath;
 			ConnectedAnimationService.GetForCurrentView().PrepareToAnimate("FolderHeaderAnimationBack", ActualFolderGroup);
@@ -322,7 +406,13 @@ public sealed partial class FolderDetailPage : SongListPageBase
 
 			var sb = new Storyboard();
 			sb.Children.Add(fadeOut);
-			sb.Completed += (_, __) => ActualFolderGroup.Visibility = Visibility.Collapsed;
+			sb.Completed += (_, __) =>
+			{
+				if (!_isActivePage)
+				{
+					ActualFolderGroup.Visibility = Visibility.Collapsed;
+				}
+			};
 			sb.Begin();
 		}
 		base.OnNavigatingFrom(e);
@@ -342,15 +432,140 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		}
 	}
 
+	private ConnectedAnimation? _pendingBackAnimation;
+	private bool _isExecutingBackAnimation;
+
+	private async Task TryPlayBackAnimationAsync()
+	{
+		if (_isExecutingBackAnimation) return;
+
+		if (_pendingBackAnimation == null)
+		{
+			_pendingBackAnimation = ConnectedAnimationService.GetForCurrentView().GetAnimation("FolderHeaderAnimationBack");
+		}
+
+		if (_pendingBackAnimation == null) return;
+
+		var selectedFolder = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)]?.ToString();
+		if (string.IsNullOrEmpty(selectedFolder))
+		{
+			_pendingBackAnimation.Cancel();
+			_pendingBackAnimation = null;
+			return;
+		}
+
+		_isExecutingBackAnimation = true;
+		try
+		{
+			var normSelected = FolderOperations.NormalizeFolderPath(selectedFolder);
+
+			if (FolderGroupSongs == null || FolderGroupSongs.Count == 0)
+			{
+				int waitCount = 0;
+				while ((FolderGroupSongs == null || FolderGroupSongs.Count == 0) && waitCount < 10)
+				{
+					await Task.Delay(30);
+					waitCount++;
+				}
+			}
+
+			if (FolderGroupSongs == null || FolderGroupSongs.Count == 0)
+			{
+				_pendingBackAnimation?.Cancel();
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			var targetItem = FolderGroupSongs.FirstOrDefault(s =>
+				s.IsFolder && FolderOperations.NormalizeFolderPath(s.Path).Equals(normSelected, StringComparison.OrdinalIgnoreCase))
+				?? FolderGroupSongs.FirstOrDefault(s =>
+				s.IsFolder && (normSelected.StartsWith(FolderOperations.NormalizeFolderPath(s.Path), StringComparison.OrdinalIgnoreCase) ||
+				              FolderOperations.NormalizeFolderPath(s.Path).StartsWith(normSelected, StringComparison.OrdinalIgnoreCase)));
+
+			if (targetItem == null)
+			{
+				_pendingBackAnimation?.Cancel();
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			var activeListView = ScrubberTarget;
+			if (activeListView == null)
+			{
+				_pendingBackAnimation?.Cancel();
+				_pendingBackAnimation = null;
+				return;
+			}
+
+			activeListView.UpdateLayout();
+
+			try
+			{
+				await activeListView.SmoothScrollIntoViewWithItemAsync(targetItem, itemPlacement: ScrollItemPlacement.Center, disableAnimation: true, scrollIfVisible: false);
+			}
+			catch (Exception)
+			{
+			}
+
+			ListViewItem? container = null;
+			for (int i = 0; i < 10; i++)
+			{
+				container = activeListView.ContainerFromItem(targetItem) as ListViewItem;
+				if (container != null) break;
+				activeListView.UpdateLayout();
+				await Task.Delay(25);
+			}
+
+			if (container != null)
+			{
+				FrameworkElement? folderTextBlock = null;
+				for (int i = 0; i < 10; i++)
+				{
+					folderTextBlock = DevWinUI.DependencyObjectExtensions.FindDescendant(container, "FolderTitleTextBlock") as FrameworkElement;
+					if (folderTextBlock != null) break;
+					await Task.Delay(20);
+				}
+
+				if (folderTextBlock != null && _pendingBackAnimation != null)
+				{
+					folderTextBlock.Visibility = Visibility.Visible;
+					folderTextBlock.Opacity = 1;
+					_pendingBackAnimation.TryStart(folderTextBlock);
+					_pendingBackAnimation = null;
+					return;
+				}
+			}
+
+			_pendingBackAnimation?.Cancel();
+			_pendingBackAnimation = null;
+		}
+		finally
+		{
+			_isExecutingBackAnimation = false;
+		}
+	}
+
+	private readonly List<(string Name, string Path)> _ancestorChain = new();
+	private static readonly TextBlock _measureBlock = new()
+	{
+		FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe UI Variable Display"),
+		FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+	};
+
+	private static double MeasureText(string text, double fontSize)
+	{
+		_measureBlock.Text = text;
+		_measureBlock.FontSize = fontSize;
+		_measureBlock.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+		return _measureBlock.DesiredSize.Width;
+	}
+
 	private void UpdateBreadcrumbs(List<FolderModel>? rootFolders)
 	{
-		BreadcrumbSegmentsPanel.Children.Clear();
+		_ancestorChain.Clear();
 		if (string.IsNullOrWhiteSpace(CurrentFolderPath))
 		{
-			BreadcrumbsColDef.Width = new GridLength(1, GridUnitType.Star);
-			HeaderColDef.Width = new GridLength(0);
-			BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
-			Grid.SetColumn(HeaderContainerGrid, 2);
+			RebuildBreadcrumbUI();
 			return;
 		}
 
@@ -360,7 +575,6 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			var matchingRoot = rootFolders?.FirstOrDefault(r =>
 				LibraryScanner.IsSameOrNestedPath(normalizedCurrent, FolderOperations.NormalizeFolderPath(r.Path)));
 
-			var chain = new List<(string Name, string Path)>();
 			string? rootPath = matchingRoot != null ? FolderOperations.NormalizeFolderPath(matchingRoot.Path) : null;
 
 			if (!string.IsNullOrEmpty(rootPath) && !normalizedCurrent.Equals(rootPath, StringComparison.OrdinalIgnoreCase))
@@ -372,14 +586,14 @@ public sealed partial class FolderDetailPage : SongListPageBase
 					var dirName = Path.GetFileName(normParent);
 					if (string.IsNullOrEmpty(dirName)) dirName = normParent;
 
-					chain.Add((dirName, normParent));
+					_ancestorChain.Add((dirName, normParent));
 
 					if (normParent.Equals(rootPath, StringComparison.OrdinalIgnoreCase))
 						break;
 
 					parent = Path.GetDirectoryName(normParent);
 				}
-				chain.Reverse();
+				_ancestorChain.Reverse();
 			}
 			else if (string.IsNullOrEmpty(rootPath))
 			{
@@ -389,65 +603,227 @@ public sealed partial class FolderDetailPage : SongListPageBase
 					var normParent = FolderOperations.NormalizeFolderPath(parent);
 					var dirName = Path.GetFileName(normParent);
 					if (string.IsNullOrEmpty(dirName)) dirName = normParent;
-					chain.Add((dirName, normParent));
+					_ancestorChain.Add((dirName, normParent));
 				}
-			}
-
-			if (chain.Count > 0)
-			{
-				foreach (var ancestor in chain)
-				{
-					var segGrid = new Grid
-					{
-						BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
-						Tag = ancestor.Path,
-						VerticalAlignment = VerticalAlignment.Center
-					};
-					segGrid.Tapped += AncestorBreadcrumb_Tapped;
-
-					var textBlock = new TextBlock
-					{
-						Text = ancestor.Name,
-						Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
-						Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],
-						MaxWidth = 220,
-						TextTrimming = TextTrimming.CharacterEllipsis,
-						VerticalAlignment = VerticalAlignment.Center
-					};
-
-					ToolTipService.SetToolTip(segGrid, ancestor.Path);
-					segGrid.Children.Add(textBlock);
-					BreadcrumbSegmentsPanel.Children.Add(segGrid);
-
-					var sepIcon = new FontIcon
-					{
-						Glyph = "\uE974",
-						Margin = new Thickness(0, 4, 0, 0),
-						HorizontalAlignment = HorizontalAlignment.Center,
-						VerticalAlignment = VerticalAlignment.Center
-					};
-					BreadcrumbSegmentsPanel.Children.Add(sepIcon);
-				}
-
-				BreadcrumbsColDef.Width = GridLength.Auto;
-				HeaderColDef.Width = new GridLength(1, GridUnitType.Star);
-				Grid.SetColumn(HeaderContainerGrid, 3);
-				BreadcrumbSegmentsPanel.Visibility = Visibility.Visible;
-			}
-			else
-			{
-				BreadcrumbsColDef.Width = new GridLength(1, GridUnitType.Star);
-				HeaderColDef.Width = new GridLength(0);
-				BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
-				Grid.SetColumn(HeaderContainerGrid, 2);
 			}
 		}
 		catch (Exception)
 		{
+		}
+
+		RebuildBreadcrumbUI();
+	}
+
+	private void RebuildBreadcrumbUI()
+	{
+		double headerWidth = HeaderRowGrid.ActualWidth;
+		if (headerWidth <= 0 && this.ActualWidth > 0)
+		{
+			headerWidth = this.ActualWidth - 60;
+		}
+		if (headerWidth <= 0 && this.XamlRoot != null && this.XamlRoot.Size.Width > 0)
+		{
+			headerWidth = this.XamlRoot.Size.Width - 60;
+		}
+		if (headerWidth <= 0 && App.MainWindow?.Bounds.Width > 0)
+		{
+			headerWidth = App.MainWindow.Bounds.Width - 60;
+		}
+		if (headerWidth <= 0) return;
+
+		PageButtons.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
+		double buttonsWidth = PageButtons.DesiredSize.Width;
+		double availableSingleLineWidth = headerWidth - buttonsWidth - 25;
+
+		double foldersWidth28 = MeasureText("Folders", 28);
+		double titleWidth28 = MeasureText(ActualFolderGroup.Text ?? string.Empty, 28);
+
+		double singleLineRequired = foldersWidth28 + 24 + 10 + titleWidth28;
+
+		if (_ancestorChain.Count > 0)
+		{
+			foreach (var ancestor in _ancestorChain)
+			{
+				double ancWidth = Math.Min(220, MeasureText(ancestor.Name, 28));
+				singleLineRequired += ancWidth + 24 + 10;
+			}
+		}
+
+		bool isTwoLine = singleLineRequired > availableSingleLineWidth;
+
+		BreadcrumbSegmentsPanel.Children.Clear();
+		BreadcrumbEllipsisFlyout.Items.Clear();
+
+		if (isTwoLine)
+		{
+			BreadcrumbRowDef.Height = GridLength.Auto;
+			TitleRowDef.Height = GridLength.Auto;
+
 			BreadcrumbsColDef.Width = new GridLength(1, GridUnitType.Star);
-			HeaderColDef.Width = new GridLength(0);
-			BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
-			Grid.SetColumn(HeaderContainerGrid, 2);
+			TitleColDef.Width = new GridLength(0);
+
+			Grid.SetRow(BreadcrumbTrailContainer, 0);
+			Grid.SetColumn(BreadcrumbTrailContainer, 0);
+			Grid.SetColumnSpan(BreadcrumbTrailContainer, 3);
+
+			Grid.SetRow(HeaderContainerGrid, 1);
+			Grid.SetColumn(HeaderContainerGrid, 0);
+			Grid.SetColumnSpan(HeaderContainerGrid, 2);
+
+			Grid.SetRow(PageButtons, 1);
+			Grid.SetColumn(PageButtons, 2);
+
+			FoldersBreadcrumbText.FontSize = 18;
+			FoldersBreadcrumbChevron.FontSize = 12;
+			FoldersBreadcrumbChevron.Margin = new Thickness(0, 2, 0, 0);
+
+			if (_ancestorChain.Count == 0)
+			{
+				FoldersBreadcrumbChevron.Visibility = Visibility.Visible;
+				BreadcrumbEllipsisButton.Visibility = Visibility.Collapsed;
+				BreadcrumbEllipsisChevron.Visibility = Visibility.Collapsed;
+				BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+			}
+			else
+			{
+				FoldersBreadcrumbChevron.Visibility = Visibility.Visible;
+				BreadcrumbSegmentsPanel.Visibility = Visibility.Visible;
+
+				double foldersWidth18 = MeasureText("Folders", 18);
+				double line1Required = foldersWidth18 + 18 + 8;
+				foreach (var anc in _ancestorChain)
+				{
+					line1Required += Math.Min(200, MeasureText(anc.Name, 18)) + 18 + 8;
+				}
+
+				bool needEllipsis = _ancestorChain.Count >= 3 && (line1Required > headerWidth);
+
+				if (needEllipsis)
+				{
+					var rootAnc = _ancestorChain[0];
+					AddAncestorSegment(rootAnc.Name, rootAnc.Path, 18, showChevron: true, 12);
+
+					BreadcrumbEllipsisButton.Visibility = Visibility.Visible;
+					BreadcrumbEllipsisChevron.Visibility = Visibility.Visible;
+					BreadcrumbEllipsisChevron.FontSize = 12;
+					BreadcrumbEllipsisChevron.Margin = new Thickness(0, 2, 0, 0);
+
+					for (int i = 1; i < _ancestorChain.Count - 1; i++)
+					{
+						var midAnc = _ancestorChain[i];
+						var menuItem = new MenuFlyoutItem
+						{
+							Text = midAnc.Name,
+							Tag = midAnc.Path,
+							Icon = new FontIcon { Glyph = "\uE8B7" }
+						};
+						menuItem.Click += (s, e) =>
+						{
+							if (s is MenuFlyoutItem mi && mi.Tag is string targetPath)
+							{
+								NavigateToBreadcrumb(targetPath);
+							}
+						};
+						BreadcrumbEllipsisFlyout.Items.Add(menuItem);
+					}
+
+					var parentAnc = _ancestorChain[_ancestorChain.Count - 1];
+					AddAncestorSegment(parentAnc.Name, parentAnc.Path, 18, showChevron: true, 12);
+				}
+				else
+				{
+					BreadcrumbEllipsisButton.Visibility = Visibility.Collapsed;
+					BreadcrumbEllipsisChevron.Visibility = Visibility.Collapsed;
+
+					for (int i = 0; i < _ancestorChain.Count; i++)
+					{
+						var anc = _ancestorChain[i];
+						AddAncestorSegment(anc.Name, anc.Path, 18, showChevron: true, 12);
+					}
+				}
+			}
+		}
+		else
+		{
+			BreadcrumbRowDef.Height = GridLength.Auto;
+			TitleRowDef.Height = new GridLength(0);
+
+			BreadcrumbsColDef.Width = GridLength.Auto;
+			TitleColDef.Width = new GridLength(1, GridUnitType.Star);
+
+			Grid.SetRow(BreadcrumbTrailContainer, 0);
+			Grid.SetColumn(BreadcrumbTrailContainer, 0);
+			Grid.SetColumnSpan(BreadcrumbTrailContainer, 1);
+
+			Grid.SetRow(HeaderContainerGrid, 0);
+			Grid.SetColumn(HeaderContainerGrid, 1);
+			Grid.SetColumnSpan(HeaderContainerGrid, 1);
+
+			Grid.SetRow(PageButtons, 0);
+			Grid.SetColumn(PageButtons, 2);
+
+			FoldersBreadcrumbText.FontSize = 28;
+			FoldersBreadcrumbChevron.FontSize = 16;
+			FoldersBreadcrumbChevron.Margin = new Thickness(0, 4, 0, 0);
+			FoldersBreadcrumbChevron.Visibility = Visibility.Visible;
+
+			BreadcrumbEllipsisButton.Visibility = Visibility.Collapsed;
+			BreadcrumbEllipsisChevron.Visibility = Visibility.Collapsed;
+
+			if (_ancestorChain.Count > 0)
+			{
+				BreadcrumbSegmentsPanel.Visibility = Visibility.Visible;
+				for (int i = 0; i < _ancestorChain.Count; i++)
+				{
+					var anc = _ancestorChain[i];
+					AddAncestorSegment(anc.Name, anc.Path, 28, showChevron: true, 16);
+				}
+			}
+			else
+			{
+				BreadcrumbSegmentsPanel.Visibility = Visibility.Collapsed;
+			}
+		}
+
+		StartAutoScrollHeader(300);
+	}
+
+	private void AddAncestorSegment(string name, string path, double fontSize, bool showChevron, double chevronSize)
+	{
+		var segGrid = new Grid
+		{
+			BorderBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+			Tag = path,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		segGrid.Tapped += AncestorBreadcrumb_Tapped;
+
+		var textBlock = new TextBlock
+		{
+			Text = name,
+			Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+			Style = (Style)Application.Current.Resources["TitleTextBlockStyle"],
+			FontSize = fontSize,
+			MaxWidth = fontSize < 20 ? 180 : 220,
+			TextTrimming = TextTrimming.CharacterEllipsis,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+
+		ToolTipService.SetToolTip(segGrid, path);
+		segGrid.Children.Add(textBlock);
+		BreadcrumbSegmentsPanel.Children.Add(segGrid);
+
+		if (showChevron)
+		{
+			var sepIcon = new FontIcon
+			{
+				Glyph = "\uE974",
+				FontSize = chevronSize,
+				Margin = new Thickness(0, fontSize < 20 ? 2 : 4, 0, 0),
+				HorizontalAlignment = HorizontalAlignment.Center,
+				VerticalAlignment = VerticalAlignment.Center
+			};
+			BreadcrumbSegmentsPanel.Children.Add(sepIcon);
 		}
 	}
 
@@ -461,16 +837,21 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	{
 		if ((sender as FrameworkElement)?.Tag is string targetPath && !string.IsNullOrWhiteSpace(targetPath))
 		{
-			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = CurrentFolderPath;
-			if (App.Current.NavService is JsonNavigationService nav)
-			{
-				NavServiceLastParamField?.SetValue(nav, null);
-			}
-			bool navigated = App.Current.NavService.NavigateTo(typeof(FolderDetailPage), targetPath, false, new DrillInNavigationTransitionInfo());
-			if (!navigated)
-			{
-				App.Current.NavService.Frame?.Navigate(typeof(FolderDetailPage), targetPath, new DrillInNavigationTransitionInfo());
-			}
+			NavigateToBreadcrumb(targetPath);
+		}
+	}
+
+	private void NavigateToBreadcrumb(string targetPath)
+	{
+		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.SelectedFolder)] = CurrentFolderPath;
+		if (App.Current.NavService is JsonNavigationService nav)
+		{
+			NavServiceLastParamField?.SetValue(nav, null);
+		}
+		bool navigated = App.Current.NavService.NavigateTo(typeof(FolderDetailPage), targetPath, false, new DrillInNavigationTransitionInfo());
+		if (!navigated)
+		{
+			App.Current.NavService.Frame?.Navigate(typeof(FolderDetailPage), targetPath, new DrillInNavigationTransitionInfo());
 		}
 	}
 
@@ -615,6 +996,16 @@ public sealed partial class FolderDetailPage : SongListPageBase
 					Cover = string.Empty
 				});
 			}
+
+			if (subfolderItems.Count > 0)
+			{
+				FolderGroupSongs.Clear();
+				FolderGroupSongs.AddRange(subfolderItems);
+				if (_pendingBackAnimation != null)
+				{
+					_ = TryPlayBackAnimationAsync();
+				}
+			}
 		}
 
 		var songs = await FolderOperations.GetSongsInFolderAsync(
@@ -623,9 +1014,16 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			orderBy: Enum.Parse<SongProperty>(sortBy),
 			ascending: AscOrder);
 
-		FolderGroupSongs.Clear();
-		FolderGroupSongs.AddRange(subfolderItems);
+		if (subfolderItems.Count == 0)
+		{
+			FolderGroupSongs.Clear();
+		}
 		FolderGroupSongs.AddRange(songs);
+
+		if (_pendingBackAnimation != null)
+		{
+			_ = TryPlayBackAnimationAsync();
+		}
 
 		IOrderedEnumerable<string>? availableLetters = null;
 		bool hasSpecialCharacters = false;
@@ -844,6 +1242,9 @@ public sealed partial class FolderDetailPage : SongListPageBase
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
 		_ = AdjustAlphabetSize();
+		RebuildBreadcrumbUI();
+		_ = TryPlayBackAnimationAsync();
+		StartAutoScrollHeader(400);
 		int maxWait = 50;
 		while ((FolderGroupSongs == null || FolderGroupSongs.Count == 0) && maxWait > 0)
 		{
@@ -870,6 +1271,8 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		_dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, async () =>
 		{
 			await AdjustAlphabetSize();
+			RebuildBreadcrumbUI();
+			StartAutoScrollHeader(200, forceRestart: true);
 		});
 	}
 }
