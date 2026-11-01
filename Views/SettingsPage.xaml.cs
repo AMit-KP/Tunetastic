@@ -673,6 +673,48 @@ public sealed partial class SettingsPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the ComboBox object.</param>
 	/// <param name="e">The event arguments containing details about the selection change.</param>
+	/// <summary>
+	/// Handles the event when the selected display language changes.
+	/// Persists the language code and prompts the user to restart the application to apply the change.
+	/// </summary>
+	private async void AppLanguage_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (AppLanguage.SelectedItem is ComboBoxItem item && item.Tag is string langTag)
+		{
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+			string currentSaved = localSettings.Values[nameof(LocalSave.AppLanguage)]?.ToString() ?? "en-US";
+
+			if (currentSaved != langTag)
+			{
+				localSettings.Values[nameof(LocalSave.AppLanguage)] = langTag;
+				Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = langTag;
+				LocalizationService.Refresh();
+
+				var dialog = new ContentDialog
+				{
+					Title = "Restart Required",
+					Content = "The display language has been updated. Please restart Tunetastic to apply the change across all screens.",
+					PrimaryButtonText = "Restart Now",
+					CloseButtonText = "Later",
+					DefaultButton = ContentDialogButton.Primary,
+					XamlRoot = this.XamlRoot
+				};
+
+				MainWindow._instance?.WindowResizePermission(false);
+				var result = await dialog.ShowAsync();
+				MainWindow._instance?.WindowResizePermission(true);
+				if (result == ContentDialogResult.Primary)
+				{
+					Microsoft.Windows.AppLifecycle.AppInstance.Restart(string.Empty);
+				}
+				else
+				{
+					GlobalNotification.Info("The selected language will be applied when app restarts.");
+				}
+			}
+		}
+	}
+
 	private async void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		App.Current.ThemeService.OnThemeComboBoxSelectionChanged(sender);
@@ -778,6 +820,7 @@ public sealed partial class SettingsPage : Page
 	{
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
+		AppLanguage.SelectedItem = AppLanguage.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.AppLanguage)]?.ToString() ?? "en-US")) ?? AppLanguage.Items[0];
 		Theme.SelectedItem = Theme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.Theme)]?.ToString() ?? "Default"));
 		var backdrop = (localSettings.Values[nameof(LocalSave.Backdrop)]?.ToString() ?? "Acrylic");
 		Backdrop.SelectedItem = Backdrop.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == backdrop);
@@ -811,6 +854,7 @@ public sealed partial class SettingsPage : Page
 		// TODO: set side options based on windows start position
 		TaskBarOverlayPosition.SelectedItem = TaskBarOverlayPosition.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlaySide)]?.ToString() ?? "RightTBOL"));
 
+		AppLanguage.SelectionChanged += AppLanguage_SelectionChanged;
 		Theme.SelectionChanged += Theme_SelectionChanged;
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
 		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;

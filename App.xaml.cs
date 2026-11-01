@@ -1,4 +1,4 @@
-﻿using System.IO.Pipes;
+using System.IO.Pipes;
 using WinUIEx;
 
 namespace Tunetastic;
@@ -74,12 +74,30 @@ public partial class App : Application
 	/// </summary>
 	public App()
 	{
+		ApplyLanguageOverride();
 		Services = ConfigureServices();
 		this.InitializeComponent();
 
 		// Enables Multicore JIT with the specified profile
 		System.Runtime.ProfileOptimization.SetProfileRoot(Constants.RootDirectoryPath);
 		System.Runtime.ProfileOptimization.StartProfile("Startup.Profile");
+	}
+
+	/// <summary>
+	/// Applies the user's saved language preference to the Windows App SDK resource manager before UI components initialize.
+	/// </summary>
+	private static void ApplyLanguageOverride()
+	{
+		try
+		{
+			var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+			string savedLang = localSettings.Values[nameof(LocalSave.AppLanguage)]?.ToString() ?? "en-US";
+			Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = savedLang;
+		}
+		catch
+		{
+			// Safe fallback if local settings storage is not accessible
+		}
 	}
 
 	/// <summary>
@@ -113,6 +131,12 @@ public partial class App : Application
 		MainWindow = mainWindow;
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
 		MainWindow.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
+
+		if ((DevWinUI.AppLanguageHelper.IsPreferredLanguageRtl || System.Globalization.CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft)
+			&& mainWindow.Content is FrameworkElement rootElement)
+		{
+			rootElement.FlowDirection = FlowDirection.RightToLeft;
+		}
 
 		var rootFrame = mainWindow.RootFrame;
 
