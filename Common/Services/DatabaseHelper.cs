@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using SQLite;
 
 namespace Tunetastic.Common.Services;

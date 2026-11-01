@@ -1,8 +1,4 @@
-using System.IO;
-using Tunetastic.Common;
-using Tunetastic.Common.Services;
-
-namespace Tunetastic.Common.Operations;
+﻿namespace Tunetastic.Common.Operations;
 
 /// <summary>
 /// Provides operations for discovering, grouping, and navigating music folders across libraries.

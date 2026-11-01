@@ -1,15 +1,8 @@
-using System.Collections.ObjectModel;
-using System.IO;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Navigation;
-using Tunetastic.Common;
-using Tunetastic.Common.Operations;
-using Tunetastic.Common.Services;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -480,7 +473,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				s.IsFolder && FolderOperations.NormalizeFolderPath(s.Path).Equals(normSelected, StringComparison.OrdinalIgnoreCase))
 				?? FolderGroupSongs.FirstOrDefault(s =>
 				s.IsFolder && (normSelected.StartsWith(FolderOperations.NormalizeFolderPath(s.Path), StringComparison.OrdinalIgnoreCase) ||
-				              FolderOperations.NormalizeFolderPath(s.Path).StartsWith(normSelected, StringComparison.OrdinalIgnoreCase)));
+							  FolderOperations.NormalizeFolderPath(s.Path).StartsWith(normSelected, StringComparison.OrdinalIgnoreCase)));
 
 			if (targetItem == null)
 			{

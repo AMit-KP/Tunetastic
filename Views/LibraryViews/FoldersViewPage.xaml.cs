@@ -1,14 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Navigation;
-using Tunetastic.Common;
-using Tunetastic.Common.Operations;
-using Tunetastic.Common.Services;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.LibraryViews;

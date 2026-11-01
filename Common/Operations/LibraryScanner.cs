@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Windows.Storage;
 
 namespace Tunetastic.Common.Operations;
