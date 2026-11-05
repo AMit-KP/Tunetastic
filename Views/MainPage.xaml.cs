@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
@@ -105,11 +105,15 @@ public sealed partial class MainPage : Page
 		AppIcon.Source = new BitmapImage(new Uri(this.ActualTheme == ElementTheme.Dark ? "ms-appx:///Assets/Store/Logo_Dark.png" : "ms-appx:///Assets/Store/Logo_Light.png"));
 
 		var navService = App.GetService<IJsonNavigationService>() as JsonNavigationService;
+		var resourceManager = new Microsoft.Windows.ApplicationModel.Resources.ResourceManager();
+		var resourceContext = resourceManager.CreateResourceContext();
 		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
 				   .ConfigureDefaultPage(typeof(MainPlayerPage))
 				   .ConfigureSettingsPage(typeof(SettingsPage))
-				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json")
+				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json", resourceManager, resourceContext)
 				   .ConfigureTitleBar(AppTitleBar);
+		LocalizeNavSettings();
+		NavView.Loaded += (_, _) => LocalizeNavSettings();
 		MusicControlsArea.Navigate(typeof(MusicControl));
 		NavFrame.Navigated += NavFrame_Navigated;
 
@@ -277,14 +281,14 @@ public sealed partial class MainPage : Page
 	{
 		SearchTeachingTipContent.Inlines.Clear();
 
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = "• Use " });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_CombinePrefix") });
 		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "+" });
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = " to combine terms — match results across title, artist, album, genre, and year together" });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_CombineSuffix") });
 		SearchTeachingTipContent.Inlines.Add(new LineBreak());
 
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = "• Use " });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_OrPrefix") });
 		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = ";" });
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = " to search for either term — results matching any one of them" });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_OrSuffix") });
 
 		SearchTeachingTip.IsOpen = true;
 	}
@@ -362,7 +366,11 @@ public sealed partial class MainPage : Page
 	/// <param name="args">Event arguments containing details of the invoked item.</param>
 	private async void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
 	{
-		if (args.InvokedItem is string itemText && itemText == "Add New Playlist")
+		var invokedTag = (args.InvokedItemContainer as NavigationViewItem)?.Tag?.ToString()
+			?? (args.InvokedItem as NavigationViewItem)?.Tag?.ToString();
+
+		if (invokedTag == "AddNewPlaylist"
+			|| (args.InvokedItem is string itemText && (itemText == "Add New Playlist" || itemText == LocalizationService.GetString("Nav_AddNewPlaylist.Content"))))
 		{
 			await ShowAddPlaylistDialog();
 		}
@@ -391,13 +399,7 @@ public sealed partial class MainPage : Page
 		AddPlaylistOverlay.RequestedTheme = App.Current.ThemeService.ElementTheme;
 		PlaylistNameBox.Text = string.Empty;
 		ErrorMessage.Text = "";
-		AddPlaylistCreateButton.Content = "Create";
 		AddPlaylistCreateButton.IsEnabled = false;
-		var desc = new TextBlock();
-		desc.Inlines.Add(new Run() { Text = "You can also select an existing playlist file." });
-		desc.Inlines.Add(new LineBreak());
-		desc.Inlines.Add(new Run() { Text = "Supported formats: M3U, M3U8, PLS, WPL, ZPL" });
-		AddPlaylistDialogDescription.Text = desc.Text;
 		ResetDropZoneVisual();
 		playLists = await DatabaseHelper.Instance.GetAllPlaylistNames();
 
@@ -426,14 +428,14 @@ public sealed partial class MainPage : Page
 		if (CreateNewPlaylist(name))
 		{
 			await DatabaseHelper.Instance.CreatePlaylist(name);
-			GlobalNotification.Info($"{name} Playlist created.");
+			GlobalNotification.Info(LocalizationService.FormatString("Notification_PlaylistCreated", name));
 			outcome = AddPlaylistResult.Created;
 		}
 
-		if (AddPlaylistCreateButton.Content.ToString() == "Add Playlist" && PlaylistFileSongs.Count > 0)
+		if (PlaylistFileSongs.Count > 0)
 		{
 			await DatabaseHelper.Instance.AddSongsToPlaylist(name, PlaylistFileSongs);
-			GlobalNotification.Success($"{name} Playlist added with {PlaylistFileSongs.Count} {(PlaylistFileSongs.Count > 1 ? "songs/tracks" : "song/track")}.");
+			GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_PlaylistAddedWithSongs", PlaylistFileSongs.Count, name));
 			outcome = AddPlaylistResult.Created;
 		}
 
@@ -516,12 +518,12 @@ public sealed partial class MainPage : Page
 
 		ErrorMessage.Text = name switch
 		{
-			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
-			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
-			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
-			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
-			_ when name.Length > 255 => "Name is too long",
-			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ when string.IsNullOrWhiteSpace(name) => LocalizationService.GetString("PlaylistValidation_Empty"),
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => LocalizationService.GetString("PlaylistValidation_Reserved"),
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => LocalizationService.GetString("PlaylistValidation_InvalidChars"),
+			_ when name.EndsWith(" ") || name.EndsWith(".") => LocalizationService.GetString("PlaylistValidation_EndingPeriod"),
+			_ when name.Length > 255 => LocalizationService.GetString("PlaylistValidation_TooLong"),
+			_ when playLists != null && playLists.Contains(name) => LocalizationService.GetString("PlaylistValidation_AlreadyExists"),
 			_ => ""
 		};
 
@@ -634,11 +636,25 @@ public sealed partial class MainPage : Page
 	/// </remarks>
 	private async void Page_Loaded(object sender, RoutedEventArgs e)
 	{
+		LocalizeNavSettings();
 		AddPlayLists();
 		HidePreDefinedPlayLists();
 		HidePreDefinedLibraries();
 		await Task.Delay(1000);
 		NavView.IsPaneOpen = false;
+	}
+
+	private void LocalizeNavSettings()
+	{
+		if (NavView.SettingsItem is NavigationViewItem settingsItem)
+		{
+			var settingsTitle = LocalizationService.GetString("Nav_Settings.Title");
+			if (!string.IsNullOrEmpty(settingsTitle) && settingsTitle != "Nav_Settings.Title")
+			{
+				settingsItem.Content = settingsTitle;
+				ToolTipService.SetToolTip(settingsItem, settingsTitle);
+			}
+		}
 	}
 
 	/// <summary>
@@ -836,12 +852,12 @@ public sealed partial class MainPage : Page
 	{
 		var picker = new FileOpenPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
 
-		picker.FileTypeChoices.Add("Playlist Files", new List<string>(PlaylistExtensions));
+		picker.FileTypeChoices.Add(LocalizationService.GetString("PlaylistImport_FilterLabel"), new List<string>(PlaylistExtensions));
 
-		picker.Title = "Select Playlist File";
+		picker.Title = LocalizationService.GetString("PlaylistImport_PickerTitle");
 
 		picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-		picker.CommitButtonText = "Import Playlist";
+		picker.CommitButtonText = LocalizationService.GetString("PlaylistImport_PickerCommit");
 
 		var file = await picker.PickSingleFileAsync();
 		if (file != null)
@@ -875,7 +891,7 @@ public sealed partial class MainPage : Page
 		e.AcceptedOperation = e.DataView.Contains(StandardDataFormats.StorageItems)
 			? DataPackageOperation.Copy
 			: DataPackageOperation.None;
-		e.DragUIOverride.Caption = "Drop to import playlist";
+		e.DragUIOverride.Caption = LocalizationService.GetString("PlaylistImport_DragDrop_Default");
 		e.DragUIOverride.IsCaptionVisible = e.AcceptedOperation == DataPackageOperation.Copy;
 		e.Handled = true;
 	}
@@ -913,7 +929,7 @@ public sealed partial class MainPage : Page
 
 			if (file is null)
 			{
-				ErrorMessage.Text = "Not a supported playlist file";
+				ErrorMessage.Text = LocalizationService.GetString("PlaylistImport_Error_Unsupported");
 				return;
 			}
 
@@ -946,16 +962,16 @@ public sealed partial class MainPage : Page
 		var (name, totalcount, songList) = await ImportExportPlaylist.ImportData(path);
 
 		AddPlaylistDialogDescription.Inlines.Clear();
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = "Do you want to import this playlist?" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = LocalizationService.GetString("PlaylistImport_Prompt_Question") });
 		AddPlaylistDialogDescription.Inlines.Add(new LineBreak());
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Playlist:" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = LocalizationService.GetString("PlaylistImport_Label_Playlist") });
 		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {path}" });
 		AddPlaylistDialogDescription.Inlines.Add(new LineBreak());
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = "Tracks:" });
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {songList.Count} out of {totalcount} found in library" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = LocalizationService.GetString("PlaylistImport_Label_Tracks") });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {LocalizationService.FormatString("PlaylistImport_Summary_TracksFound", songList.Count, totalcount)}" });
 
 		PlaylistNameBox.Text = name;
-		AddPlaylistCreateButton.Content = "Add Playlist";
+		AddPlaylistCreateButton.Content = LocalizationService.GetString("PlaylistImport_Button_Add");
 		PlaylistFileSongs.Clear();
 		PlaylistFileSongs.AddRange(songList);
 	}
@@ -1133,7 +1149,7 @@ public sealed partial class MainPage : Page
 			SongTrack.Text = songData.Track is > 0 ? songData.Track.Value.ToString() : "-";
 			SongDuration.Text = new DurationToFullTimeConverter().Convert(songData.Duration, null, null, null).ToString();
 			SongSize.Text = songData.FileSize;
-			SongAdded.Text = new DateFormatConverter().Convert(songData.DateAdded, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateAdded, null, "T", null).ToString();
+			SongAdded.Text = LocalizationService.FormatString("SongInfo_DateTime_At", new DateFormatConverter().Convert(songData.DateAdded, null, "ddd, dd MMM, yyyy", null)?.ToString() ?? string.Empty, new DateFormatConverter().Convert(songData.DateAdded, null, "T", null)?.ToString() ?? string.Empty);
 			SongPath.Text = songData.Path;
 			SongChannel.Text = songData.AudioChannels;
 			SongBitrate.Text = songData.AudioBitrate ?? string.Empty;
@@ -1152,11 +1168,11 @@ public sealed partial class MainPage : Page
 				SongInfo.TitleTemplate = (DataTemplate)SongInfo.Resources["DefaultTitleTemplate"];
 
 			if (songData.DateLastPlayed != null)
-				SongLastPlayed.Text = new DateFormatConverter().Convert(songData.DateLastPlayed, null, "ddd, dd MMM, yyyy", null).ToString() + " at " + new DateFormatConverter().Convert(songData.DateLastPlayed, null, "T", null).ToString();
+				SongLastPlayed.Text = LocalizationService.FormatString("SongInfo_DateTime_At", new DateFormatConverter().Convert(songData.DateLastPlayed, null, "ddd, dd MMM, yyyy", null)?.ToString() ?? string.Empty, new DateFormatConverter().Convert(songData.DateLastPlayed, null, "T", null)?.ToString() ?? string.Empty);
 			else
-				SongLastPlayed.Text = "Never";
+				SongLastPlayed.Text = LocalizationService.GetString("SongInfo_LastPlayed_Never");
 
-			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != "Never";
+			ClearButton.IsEnabled = SongPlayCount.Text != "0" && SongLastPlayed.Text != LocalizationService.GetString("SongInfo_LastPlayed_Never") && SongLastPlayed.Text != "Never";
 
 			MainWindow._instance.WindowResizePermission(false);
 			var result = await SongInfo.ShowAsync();
@@ -1270,7 +1286,7 @@ ShowEditSongInfo:
 							{
 									new TextBlock
 									{
-										Text = $"The following change{(changes.Count > 1 ? "s" : "")} will be written to the file:",
+										Text = LocalizationService.FormatPluralString("SongInfo_Edit_ChangesListHeader", changes.Count),
 										TextWrapping = TextWrapping.WrapWholeWords
 									},
 									new ScrollViewer
@@ -1282,13 +1298,13 @@ ShowEditSongInfo:
 									}
 							}
 						}
-						: (object)new TextBlock { Text = "Are you sure you want to make these changes?" };
+						: (object)new TextBlock { Text = LocalizationService.GetString("SongInfo_Edit_ConfirmPrompt") };
 
 					ContentDialog confirmationDialog = new ContentDialog()
 					{
-						Title = "Confirm Changes",
-						CloseButtonText = "No",
-						PrimaryButtonText = "Yes",
+						Title = LocalizationService.GetString("SongInfo_Edit_DialogTitle"),
+						CloseButtonText = LocalizationService.GetString("Button_No"),
+						PrimaryButtonText = LocalizationService.GetString("Button_Yes"),
 
 						Content = content,
 
@@ -1325,7 +1341,7 @@ ShowEditSongInfo:
 							if (_frontCoverArtPath is not null)
 							{
 								if (!File.Exists(_frontCoverArtPath))
-									GlobalNotification.Error($"File not found: {_frontCoverArtPath}");
+									GlobalNotification.Error(LocalizationService.FormatString("SongInfo_Edit_FileNotFound", _frontCoverArtPath));
 
 								var picture = new TagLib.Picture(_frontCoverArtPath)
 								{
@@ -1411,7 +1427,7 @@ ShowEditSongInfo:
 								File.Copy(_frontCoverArtPath, coverArtTempPath, overwrite: true);
 							}
 
-							GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+							GlobalNotification.Warning(LocalizationService.GetString("Notification_FileInUse_PendingTagChanges"));
 						}
 
 						songData.DateAdded = new FileInfo(songData.Path).LastWriteTime;
@@ -1462,7 +1478,7 @@ ShowEditSongInfo:
 		await DatabaseHelper.Instance.ResetPlayCount(SongPath.Text);
 		await DatabaseHelper.Instance.ResetDateLastPlayed(SongPath.Text);
 		SongPlayCount.Text = "0";
-		SongLastPlayed.Text = "Never";
+		SongLastPlayed.Text = LocalizationService.GetString("SongInfo_LastPlayed_Never");
 		ClearButton.IsEnabled = false;
 	}
 
@@ -1476,8 +1492,11 @@ ShowEditSongInfo:
 		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
 
 		if (updates.Count != 0)
-			await MessageBox.ShowInfoAsync("App update is available.\n\nOpen Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.", "Update check",
+		{
+			string updateMessage = $"{LocalizationService.GetString("Update_Available_Header")}\n\n{LocalizationService.GetString("Update_Available_Instruction")}";
+			await MessageBox.ShowInfoAsync(updateMessage, LocalizationService.GetString("Update_Available_Title"),
 				buttons: MessageBoxButtons.OK);
+		}
 	}
 
 	public void SetVersionInfoVisibility(bool visible)
@@ -1659,13 +1678,13 @@ ShowEditSongInfo:
 		var filePicker = new FileOpenPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
 		filePicker.ViewMode = PickerViewMode.Thumbnail;
 		filePicker.SuggestedStartLocation = PickerLocationId.Downloads;
-		filePicker.CommitButtonText = "Select Cover Art";
-		filePicker.Title = "Select Cover Art";
+		filePicker.CommitButtonText = LocalizationService.GetString("EditSong_CoverArt_PickerCommit");
+		filePicker.Title = LocalizationService.GetString("EditSong_CoverArt_PickerTitle");
 
 		filePicker.FileTypeChoices.Add("Image Files", new List<string>() { ".jpg", ".jpeg", ".png", ".gif" });
-		filePicker.FileTypeChoices.Add("JPEG Images", new List<string>() { ".jpg", ".jpeg" });
-		filePicker.FileTypeChoices.Add("PNG Images", new List<string>() { ".png" });
-		filePicker.FileTypeChoices.Add("GIF Images", new List<string>() { ".gif" });
+		filePicker.FileTypeChoices.Add(LocalizationService.GetString("FileFilter_JpegImages"), new List<string>() { ".jpg", ".jpeg" });
+		filePicker.FileTypeChoices.Add(LocalizationService.GetString("FileFilter_PngImages"), new List<string>() { ".png" });
+		filePicker.FileTypeChoices.Add(LocalizationService.GetString("FileFilter_GifImages"), new List<string>() { ".gif" });
 
 		var imageFile = await filePicker.PickSingleFileAsync();
 		if (imageFile != null)
@@ -1818,25 +1837,11 @@ ShowEditSongInfo:
 	private void AlbumTextBox_GotFocus(object sender, RoutedEventArgs e)
 	{
 		AlbumTeachingTipContent.Inlines.Clear();
-
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = "• " });
-		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });
-		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.GetString("Key_RightArrow")) });
 		AlbumTeachingTipContent.Inlines.Add(new LineBreak());
-
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
-		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Up (↑)" });
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " / " });
-		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Down (↓)" });
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.GetString("Key_Up"), LocalizationService.GetString("Key_Down")) });
 		AlbumTeachingTipContent.Inlines.Add(new LineBreak());
-
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
-		AlbumTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
-
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.GetString("Key_RightArrow")) });
 		AlbumTeachingTip.IsOpen = true;
 	}
 
@@ -1848,25 +1853,11 @@ ShowEditSongInfo:
 	private void GenreAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
 	{
 		GenreTeachingTipContent.Inlines.Clear();
-
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = "• " });
-		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });
-		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.GetString("Key_RightArrow")) });
 		GenreTeachingTipContent.Inlines.Add(new LineBreak());
-
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
-		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Up (↑)" });
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = " / " });
-		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Down (↓)" });
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.GetString("Key_Up"), LocalizationService.GetString("Key_Down")) });
 		GenreTeachingTipContent.Inlines.Add(new LineBreak());
-
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
-		GenreTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
-
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.GetString("Key_RightArrow")) });
 		GenreTeachingTip.IsOpen = true;
 	}
 
@@ -1883,29 +1874,14 @@ ShowEditSongInfo:
 			.ToList();
 
 		ArtistTeachingTipContent.Inlines.Clear();
-
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Type" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " and/or Press " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to preview suggestions." });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.GetString("Key_RightArrow")) });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Up (↑)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " / " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Down (↓)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to cycle suggestions." });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.GetString("Key_Up"), LocalizationService.GetString("Key_Down")) });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "• Press " });
-		ArtistTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "Right Arrow (→)" });
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = " to accept." });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.GetString("Key_RightArrow")) });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-
-
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = "For multiple artists, separate with:" });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("EditSong_SuggestTip_MultipleArtists") });
 
 		int row = 0;
 		for (int i = 0; i < activeDelimiters.Count; i++)

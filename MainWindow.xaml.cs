@@ -73,8 +73,8 @@ public sealed partial class MainWindow : WindowEx
 		var flyout = new MenuFlyout();
 		flyout.Items.Add(new MenuFlyoutItem() { Text = "Tunetastic", IsEnabled = false });
 		flyout.Items.Add(new MenuFlyoutSeparator());
-		flyout.Items.Add(new MenuFlyoutItem() { Text = "Open" });
-		flyout.Items.Add(new MenuFlyoutItem() { Text = "Exit" });
+		flyout.Items.Add(new MenuFlyoutItem() { Text = LocalizationService.GetString("Tray_Open.Text") });
+		flyout.Items.Add(new MenuFlyoutItem() { Text = LocalizationService.GetString("Tray_Exit.Text") });
 
 		((MenuFlyoutItem)flyout.Items[2]).Click += (s, e) => RestoreFromTrayOrTaskbar();
 		((MenuFlyoutItem)flyout.Items[3]).Click += (s, e) => ExitApp();
@@ -131,7 +131,7 @@ public sealed partial class MainWindow : WindowEx
 	{
 		args.Handled = true;
 		this.Hide();
-		GlobalNotification.Info("Minimized to system tray");
+		GlobalNotification.Info(LocalizationService.GetString("Notification_MinimizedToTray"));
 	}
 
 	/// <summary>

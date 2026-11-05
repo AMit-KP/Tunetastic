@@ -1,3 +1,4 @@
+using Tunetastic.Common.Services;
 ﻿using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -104,10 +105,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	{
 		var playListName = PlaylistHeader.Text;
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Inlines.Clear();
-		DeleteDialogText.Inlines.Add(new Run { Text = "Are you sure you want to delete " });
-		DeleteDialogText.Inlines.Add(new Run { Text = playListName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		DeleteDialogText.Inlines.Add(new Run { Text = " PlayList?" });
+		DeleteDialogText.Text = LocalizationService.FormatString("DeleteDialog_Playlist_Confirm", playListName);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -133,7 +131,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					}
 				}
 			}
-			GlobalNotification.Success($"{playListName} PlayList deleted.");
+			GlobalNotification.Success(LocalizationService.FormatString("Notification_PlaylistDeleted", playListName));
 			var currentPlaylist = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() ?? "";
 			if (currentPlaylist.StartsWith("CustomPlaylist__") && currentPlaylist.Substring("CustomPlaylist__".Length) == playListName)
 			{
@@ -215,7 +213,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	protected override List<string> EmptyLibraryMessages => GoToMessages;
 	/// <inheritdoc/>
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
-		$"Add {(multiSelect ? "selected songs/tracks" : "this song/track")} to {playList} playlist";
+		base.BuildAddToPlaylistTooltip(multiSelect, playList);
 
 	private void MenuFlyout_Opened(object sender, object e)
 	{
@@ -223,7 +221,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		if (sender is MenuFlyout menu)
 		{
-			var moveSubItem = menu.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault(item => item.Text == "Move");
+			var moveSubItem = menu.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault(item => item.Tag?.ToString() == "Move" || item.Text == "Move");
 			if (moveSubItem != null && moveSubItem.Items.Count >= 4)
 			{
 				if ((menu.Target as FrameworkElement)?.DataContext is Song song)
@@ -350,7 +348,9 @@ public sealed partial class PlayListTemplate : SongListPageBase
 	/// </returns>
 	private async Task UpdateListBasedOnViewStyle()
 	{
-		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		var selectedViewItem = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "View" && item.IsChecked);
+		var viewStyle = selectedViewItem?.Tag?.ToString() ?? (selectedViewItem?.Name == "ListViewStyle" ? "List View" : "Compact View");
+		var viewStyleDisplayText = selectedViewItem?.Text ?? viewStyle;
 		string? glyph = null;
 		switch (viewStyle)
 		{
@@ -372,7 +372,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		}
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[Regex.Replace(PlaylistHeader.Text, @"\s+", "_") + "_Playlist_ViewStyle"] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
-		ToolTipService.SetToolTip(ViewButton, viewStyle);
+		ToolTipService.SetToolTip(ViewButton, viewStyleDisplayText);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(selectedSong);
@@ -513,7 +513,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		if (playlist != null && song != null)
 		{
 			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-			GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToPlaylist", song.Title, playlist));
 		}
 	}
 
@@ -526,7 +526,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		if (playlist != null)
 		{
 			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
-			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Songs_AddedToPlaylist", songs.Count, playlist));
 		}
 	}
 
@@ -563,7 +563,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songData?.Title} added to queue.");
+		GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToQueue", songData?.Title ?? ""));
 	}
 
 	/// <summary>
@@ -598,11 +598,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		if (songData != null)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
-									$"\nTitle: {songData.Title}" +
-									$"\nArtist: {songData.Artists}" +
-									$"\nAlbum: {songData.Album}" +
-									$"\nFile: {songData.Path}";
+			DeleteDialogText.Text = LocalizationService.FormatDeleteSingleSongMessage(songData.Title, songData.Artists, songData.Album, songData.Path);
 
 			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
@@ -616,11 +612,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					PlayListSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Success("Song/Track deleted." +
-												$"\nTitle: {songData.Title}" +
-												$"\nArtist: {songData.Artists}" +
-												$"\nAlbum: {songData.Album}" +
-												$"\nFile: {songData.Path}");
+					GlobalNotification.Success(LocalizationService.FormatSongDeletedNotification(songData.Title, songData.Artists, songData.Album, songData.Path));
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -666,7 +658,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		if (isReordering)
 		{
-			ToolTipService.SetToolTip(ReorderButton, "Done reordering");
+			ToolTipService.SetToolTip(ReorderButton, LocalizationService.GetString("Tooltip_Reorder_Done"));
 			MultiSelectButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
@@ -675,7 +667,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		}
 		else
 		{
-			ToolTipService.SetToolTip(ReorderButton, "Reorder playlist tracks");
+			ToolTipService.SetToolTip(ReorderButton, LocalizationService.GetString("PlayList_ReorderButton.ToolTipService.ToolTip"));
 			MultiSelectButton.Visibility = Visibility.Visible;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
@@ -695,7 +687,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			ViewButton.Visibility = Visibility.Collapsed;
 			SettingsButton.Visibility = Visibility.Collapsed;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn off multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOff"));
 			view.SelectionMode = ListViewSelectionMode.Multiple;
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
@@ -721,7 +713,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			ViewButton.Visibility = Visibility.Visible;
 			SettingsButton.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn on multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOn"));
 			view.SelectionMode = ListViewSelectionMode.Single;
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
@@ -758,7 +750,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} added to the queue.");
+		GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Queue_Added", songPaths.Count));
 	}
 
 	/// <summary>
@@ -779,7 +771,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			songList.Add((Song)item);
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
+		DeleteDialogText.Text = LocalizationService.FormatPluralString("DeleteDialog_Confirm", songList.Count);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -798,7 +790,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_Deleted", songList.Count));
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -823,11 +815,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			List<string> songPaths = new List<string> { songData?.Path ?? "" };
 			await DatabaseHelper.Instance.RemoveSongsFromPlaylist(PlaylistHeader.Text, songPaths);
 
-			GlobalNotification.Info($"Song/Track removed from {PlaylistHeader.Text}." +
-									$"\nTitle: {songData!.Title}" +
-									$"\nArtist: {songData!.Artists}" +
-									$"\nAlbum: {songData!.Album}" +
-									$"\nFile: {songData!.Path}");
+			GlobalNotification.Info(LocalizationService.FormatSongRemovedFromPlaylistNotification(PlaylistHeader.Text, songData!.Title, songData!.Artists, songData!.Album, songData!.Path));
 
 			HandleAfterRemove(index);
 		}
@@ -857,7 +845,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		await DatabaseHelper.Instance.RemoveSongsFromPlaylist(PlaylistHeader.Text, songPaths);
 
-		GlobalNotification.Info($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} removed from {PlaylistHeader.Text}.");
+		GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_SongsRemovedFromPlaylist", songList.Count, PlaylistHeader.Text));
 
 		foreach (Song song in songList)
 		{
@@ -944,7 +932,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			MusicPlayer.Instance.LoadPlaylist(songPaths, MusicPlayer.Instance.CurrentSong, MusicPlayer.Instance.IsPlaying, dontReloadCurrent: true);
 		}
 
-		GlobalNotification.Info($"Playlist {PlaylistHeader.Text} sorted.");
+		GlobalNotification.Info(LocalizationService.FormatString("Notification_PlaylistSorted", PlaylistHeader.Text));
 	}
 
 	/// <summary>
@@ -1235,7 +1223,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 			}
 
 			AddNoResultsMessage();
-			GlobalNotification.Success("Playlist renamed to " + PlaylistHeader.Text + ".");
+			GlobalNotification.Success(LocalizationService.FormatString("Notification_PlaylistRenamed", PlaylistHeader.Text));
 		}
 		playLists = null;
 	}
@@ -1254,12 +1242,12 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		ErrorMessage.Text = name switch
 		{
-			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
-			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
+			_ when string.IsNullOrWhiteSpace(name) => LocalizationService.GetString("PlaylistValidation_Empty"),
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => LocalizationService.GetString("PlaylistValidation_Reserved"),
 			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
-			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
-			_ when name.Length > 255 => "Name is too long",
-			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ when name.EndsWith(" ") || name.EndsWith(".") => LocalizationService.GetString("PlaylistValidation_EndingPeriod"),
+			_ when name.Length > 255 => LocalizationService.GetString("PlaylistValidation_TooLong"),
+			_ when playLists != null && playLists.Contains(name) => LocalizationService.GetString("PlaylistValidation_AlreadyExists"),
 			_ => ""
 		};
 
@@ -1327,16 +1315,16 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		ExportErrorMessage.Text = name switch
 		{
-			_ when string.IsNullOrWhiteSpace(name) => "Playlist name cannot be empty",
-			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => "This name is reserved by the system",
+			_ when string.IsNullOrWhiteSpace(name) => LocalizationService.GetString("PlaylistValidation_Empty"),
+			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => LocalizationService.GetString("PlaylistValidation_Reserved"),
 			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
-			_ when name.EndsWith(" ") || name.EndsWith(".") => "Name cannot end with a period",
-			_ when name.Length > maxlength => "Name is too long",
+			_ when name.EndsWith(" ") || name.EndsWith(".") => LocalizationService.GetString("PlaylistValidation_EndingPeriod"),
+			_ when name.Length > maxlength => LocalizationService.GetString("PlaylistValidation_TooLong"),
 			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate) => "Name cannot contain emojis or special symbols.",
 			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.OtherSymbol) => "Name cannot contain emojis or special symbols.",
 			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control) => "Name cannot contain emojis or special symbols.",
 			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.PrivateUse) => "Name cannot contain emojis or special symbols.",
-			_ when playLists != null && playLists.Contains(name) => "Playlist name already exists",
+			_ when playLists != null && playLists.Contains(name) => LocalizationService.GetString("PlaylistValidation_AlreadyExists"),
 			_ => ""
 		};
 

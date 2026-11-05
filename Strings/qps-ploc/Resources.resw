@@ -1,0 +1,3059 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppTitle.Text" xml:space="preserve">
+    <value>[ !!! Ţúúñééţääšţïïĉ !!! ]</value>
+    <comment>Title Bar -&gt; Center -&gt; Main Window Title</comment>
+  </data>
+  <data name="SearchBox.PlaceholderText" xml:space="preserve">
+    <value>[ !!! Šééääŕĉĥ šööñĝš, ääłḅúúɱš, ääŕţïïšţš... !!! ]</value>
+    <comment>Title Bar -&gt; Center -&gt; Global Search AutoSuggestBox Placeholder</comment>
+  </data>
+  <data name="ThemeButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Ţööĝĝłéé Ţĥééɱéé !!! ]</value>
+    <comment>Title Bar -&gt; Right Header -&gt; Quick Actions -&gt; Theme Toggle Button Tooltip</comment>
+  </data>
+  <data name="VolumeMuteButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Ṁúúţéé !!! ]</value>
+    <comment>Title Bar -&gt; Right Header -&gt; Volume Controls -&gt; Mute/Unmute Button Tooltip</comment>
+  </data>
+  <data name="RewindButton_ToolTip" xml:space="preserve">
+    <value>[ !!! 1 šééĉ Ŕééŵïïñð !!! ]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Rewind Button Tooltip</comment>
+  </data>
+  <data name="PrevButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Þŕééṽïïööúúš Ţŕääĉķ !!! ]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Previous Track Button Tooltip</comment>
+  </data>
+  <data name="NextButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Ñééẋţ Ţŕääĉķ !!! ]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Next Track Button Tooltip</comment>
+  </data>
+  <data name="ForwardButton_ToolTip" xml:space="preserve">
+    <value>[ !!! 1 šééĉ Ƒööŕŵääŕð !!! ]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Fast Forward Button Tooltip</comment>
+  </data>
+  <data name="MusicControl_PleaseSelectSong" xml:space="preserve">
+    <value>[ !!! Þłééääšéé šééłééĉţ ää šööñĝ !!! ]</value>
+    <comment>Playback Bar -&gt; Left Info Panel -&gt; Song Title -&gt; Empty State Prompt</comment>
+  </data>
+    <data name="Nav_Player.Title" xml:space="preserve">
+    <value>[ !!! _lyr !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Main Player -&gt; Item Title</comment>
+  </data>
+  <data name="Nav_Player.Content" xml:space="preserve">
+    <value>[ !!! _lyr !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Main Player -&gt; Item Label</comment>
+  </data>
+  <data name="Nav_Library.Title" xml:space="preserve">
+    <value>[ !!! L?rry !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Header Title</comment>
+  </data>
+  <data name="Nav_Library.Content" xml:space="preserve">
+    <value>[ !!! L?rry !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Header</comment>
+  </data>
+  <data name="Nav_AllSongs.Title" xml:space="preserve">
+    <value>[ !!! All Sgs !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; All Songs Item Title</comment>
+  </data>
+  <data name="Nav_AllSongs.Content" xml:space="preserve">
+    <value>[ !!! All Sgs !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; All Songs Item</comment>
+  </data>
+  <data name="Nav_Artists.Title" xml:space="preserve">
+    <value>[ !!! Artsts !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Artists Item Title</comment>
+  </data>
+  <data name="Nav_Artists.Content" xml:space="preserve">
+    <value>[ !!! Artsts !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Artists Item</comment>
+  </data>
+  <data name="Nav_Albums.Title" xml:space="preserve">
+    <value>[ !!! Al??s !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Albums Item Title</comment>
+  </data>
+  <data name="Nav_Albums.Content" xml:space="preserve">
+    <value>[ !!! Al??s !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Albums Item</comment>
+  </data>
+  <data name="Nav_Genres.Title" xml:space="preserve">
+    <value>[ !!! Grs !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Genres Item Title</comment>
+  </data>
+  <data name="Nav_Genres.Content" xml:space="preserve">
+    <value>[ !!! Grs !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Genres Item</comment>
+  </data>
+  <data name="Nav_Years.Title" xml:space="preserve">
+    <value>[ !!! Yrs !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Years Item Title</comment>
+  </data>
+  <data name="Nav_Years.Content" xml:space="preserve">
+    <value>[ !!! Yrs !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Years Item</comment>
+  </data>
+  <data name="Nav_Playlists.Title" xml:space="preserve">
+    <value>[ !!! _lylsts !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Header Title</comment>
+  </data>
+  <data name="Nav_Playlists.Content" xml:space="preserve">
+    <value>[ !!! _lylsts !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Header</comment>
+  </data>
+  <data name="Nav_RecentlyAdded.Title" xml:space="preserve">
+    <value>[ !!! Rctly Addd !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Added Item Title</comment>
+  </data>
+  <data name="Nav_RecentlyAdded.Content" xml:space="preserve">
+    <value>[ !!! Rctly Addd !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Added Item</comment>
+  </data>
+  <data name="Nav_RecentlyPlayed.Title" xml:space="preserve">
+    <value>[ !!! Rctly _lyd !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Played Item Title</comment>
+  </data>
+  <data name="Nav_RecentlyPlayed.Content" xml:space="preserve">
+    <value>[ !!! Rctly _lyd !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Played Item</comment>
+  </data>
+  <data name="Nav_MostPlayed.Title" xml:space="preserve">
+    <value>[ !!! ?st _lyd !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Most Played Item Title</comment>
+  </data>
+  <data name="Nav_MostPlayed.Content" xml:space="preserve">
+    <value>[ !!! ?st _lyd !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Most Played Item</comment>
+  </data>
+  <data name="Nav_AddNewPlaylist.Title" xml:space="preserve">
+    <value>[ !!! Add w _lylst !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Add Playlist Item Title</comment>
+  </data>
+  <data name="Nav_AddNewPlaylist.Content" xml:space="preserve">
+    <value>[ !!! Add w _lylst !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Add Playlist Item</comment>
+  </data>
+  <data name="Nav_Queue.Title" xml:space="preserve">
+    <value>[ !!! O !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Queue -&gt; Item Title</comment>
+  </data>
+  <data name="Nav_Queue.Content" xml:space="preserve">
+    <value>[ !!! O !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Queue -&gt; Item Label</comment>
+  </data>
+  <data name="Nav_Settings.Title" xml:space="preserve">
+    <value>[ !!! Śéţţïñĝš !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Settings -&gt; Item Title</comment>
+  </data>
+  <data name="Nav_Settings.Content" xml:space="preserve">
+    <value>[ !!! Śéţţïñĝš !!! ]</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Settings -&gt; Item Label</comment>
+  </data>
+  <data name="AllSongsView_Title.Text" xml:space="preserve">
+    <value>[ !!! Áłł Šööñĝš !!! ]</value>
+    <comment>Library -&gt; All Songs Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="AllSongsView_Title_ToolTip" xml:space="preserve">
+    <value>[ !!! Ṽïïééŵ ääñð ɱääñääĝéé ääłł šööñĝš ïïñ ýööúúŕ łïïḅŕääŕý !!! ]</value>
+    <comment>Library -&gt; All Songs Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="ArtistsView_Title.Text" xml:space="preserve">
+    <value>[ !!! Áŕţïïšţš !!! ]</value>
+    <comment>Library -&gt; Artists Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="ArtistsView_Title_ToolTip" xml:space="preserve">
+    <value>[ !!! Ḃŕööŵšéé ɱúúšïïĉ ḅý ääŕţïïšţ !!! ]</value>
+    <comment>Library -&gt; Artists Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="AlbumsView_Title.Text" xml:space="preserve">
+    <value>[ !!! Áłḅúúɱš !!! ]</value>
+    <comment>Library -&gt; Albums Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="AlbumsView_Title_ToolTip" xml:space="preserve">
+    <value>[ !!! Ḃŕööŵšéé ɱúúšïïĉ ḅý ääłḅúúɱ !!! ]</value>
+    <comment>Library -&gt; Albums Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="GenresView_Title.Text" xml:space="preserve">
+    <value>[ !!! Ĝééñŕééš !!! ]</value>
+    <comment>Library -&gt; Genres Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="GenresView_Title_ToolTip" xml:space="preserve">
+    <value>[ !!! Ḃŕööŵšéé ɱúúšïïĉ ḅý ĝééñŕéé !!! ]</value>
+    <comment>Library -&gt; Genres Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="YearsView_Title.Text" xml:space="preserve">
+    <value>[ !!! Ýééääŕš !!! ]</value>
+    <comment>Library -&gt; Years Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="YearsView_Title_ToolTip" xml:space="preserve">
+    <value>[ !!! Ḃŕööŵšéé ɱúúšïïĉ ḅý ŕééłééääšéé ýééääŕ !!! ]</value>
+    <comment>Library -&gt; Years Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="MultiSelectButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Ţúúŕñ ööñ ɱúúłţïï-šééłééĉţ ɱööðéé !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Multi-Select Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Sort_Title.Text" xml:space="preserve">
+    <value>[ !!! Ţïïţłéé !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Title" Option</comment>
+  </data>
+  <data name="Sort_Artists.Text" xml:space="preserve">
+    <value>[ !!! Áŕţïïšţš !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Artists" Option</comment>
+  </data>
+  <data name="Sort_Album.Text" xml:space="preserve">
+    <value>[ !!! Áłḅúúɱ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Album" Option</comment>
+  </data>
+  <data name="Sort_Duration.Text" xml:space="preserve">
+    <value>[ !!! Ðúúŕääţïïööñ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Duration" Option</comment>
+  </data>
+  <data name="Sort_Track.Text" xml:space="preserve">
+    <value>[ !!! Ţŕääĉķ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Track" Option</comment>
+  </data>
+  <data name="Sort_Year.Text" xml:space="preserve">
+    <value>[ !!! Ýééääŕ !!! ]</value>
+    <comment>Playlist -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; "Year" Option</comment>
+  </data>
+  <data name="Sort_Ascending.Text" xml:space="preserve">
+    <value>[ !!! Ášĉééñðïïñĝ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Ascending" Option</comment>
+  </data>
+  <data name="Sort_Descending.Text" xml:space="preserve">
+    <value>[ !!! Ðééšĉééñðïïñĝ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Descending" Option</comment>
+  </data>
+  <data name="SortOrder_Ascending.Text" xml:space="preserve">
+    <value>[ !!! Ášĉééñðïïñĝ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Indicator -&gt; Ascending Label</comment>
+  </data>
+  <data name="SortOrder_Descending.Text" xml:space="preserve">
+    <value>[ !!! Ðééšĉééñðïïñĝ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Indicator -&gt; Descending Label</comment>
+  </data>
+  <data name="Sort_SortBy_Label" xml:space="preserve">
+    <value>[ !!! Šööŕţ Ḃý:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Prefix Label</comment>
+  </data>
+  <data name="Sort_Order_Label" xml:space="preserve">
+    <value>[ !!! Óŕðééŕ:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Dropdown Button -&gt; Prefix Label</comment>
+  </data>
+  <data name="Sort_Tooltip_SortedBy" xml:space="preserve">
+    <value>[ !!! Ţĥéé łïïšţ ïïš šööŕţééð ḅý  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Tooltip Prefix</comment>
+  </data>
+  <data name="Sort_Tooltip_InOrder" xml:space="preserve">
+    <value>[ !!!  ĉööłúúɱñ ïïñ  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Tooltip Middle</comment>
+  </data>
+  <data name="Sort_Tooltip_OrderSuffix" xml:space="preserve">
+    <value>[ !!!  ööŕðééŕ. !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Tooltip Suffix</comment>
+  </data>
+  <data name="MaxLimit_Unlimited.Text" xml:space="preserve">
+    <value>[ !!! Úñłïïɱïïţééð !!! ]</value>
+    <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Menu -&gt; "Unlimited" Option</comment>
+  </data>
+  <data name="MaxLimit_Label" xml:space="preserve">
+    <value>[ !!! Ṁääẋ Łïïɱïïţ:  !!! ]</value>
+    <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Prefix Label</comment>
+  </data>
+  <data name="MaxLimit_Tooltip" xml:space="preserve">
+    <value>[ !!! Ţĥéé ɱääẋïïɱúúɱ ñúúɱḅééŕ ööƒ šööñĝš/ţŕääĉķš ţöö ðïïšþłääý ïïñ ţĥéé łïïšţ:  !!! ]</value>
+    <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ViewStyle_List.Text" xml:space="preserve">
+    <value>[ !!! Łïïšţ Ṽïïééŵ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; View Style Menu -&gt; "List View" Option</comment>
+  </data>
+  <data name="ViewStyle_Compact.Text" xml:space="preserve">
+    <value>[ !!! Ĉööɱþääĉţ Ṽïïééŵ !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; View Style Menu -&gt; "Compact View" Option</comment>
+  </data>
+  <data name="TimeStyle_Date.Text" xml:space="preserve">
+    <value>[ !!! Éẋääĉţ Ðääţéé Šţýłéé !!! ]</value>
+    <comment>Playlists (Recently Played/Added) -&gt; Top Action Bar -&gt; Time Style Menu -&gt; "Exact Date Style" Option</comment>
+  </data>
+  <data name="TimeStyle_Relative.Text" xml:space="preserve">
+    <value>[ !!! Ŕééłääţïïṽéé Ţïïɱéé Šţýłéé !!! ]</value>
+    <comment>Playlists (Recently Played/Added) -&gt; Top Action Bar -&gt; Time Style Menu -&gt; "Relative Time Style" Option</comment>
+  </data>
+  <data name="PlayList_MoveSubItem.Text" xml:space="preserve">
+    <value>[ !!! Ṁööṽéé !!! ]</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Move" Submenu -&gt; Header</comment>
+  </data>
+  <data name="PlayList_MoveToTop.Text" xml:space="preserve">
+    <value>[ !!! Môvé ťô Ťôƥ !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Top Item Label</comment>
+  </data>
+  <data name="PlayList_MoveUp.Text" xml:space="preserve">
+    <value>[ !!! Môvé Ûƥ !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Up Item Label</comment>
+  </data>
+  <data name="PlayList_MoveDown.Text" xml:space="preserve">
+    <value>[ !!! Môvé Ðôŵñ !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Down Item Label</comment>
+  </data>
+  <data name="PlayList_MoveToBottom.Text" xml:space="preserve">
+    <value>[ !!! Môvé ťô Ɓôťťôm !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Bottom Item Label</comment>
+  </data>
+  <data name="PlayList_Remove.Text" xml:space="preserve">
+    <value>[ !!! Ŕééɱööṽéé !!! ]</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Remove" Item -&gt; Text</comment>
+  </data>
+  <data name="Tooltip_Title" xml:space="preserve">
+    <value>[ !!! Ţïïţłéé:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Title Label</comment>
+  </data>
+  <data name="Tooltip_Artists" xml:space="preserve">
+    <value>[ !!! Áŕţïïšţš:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Artists Label</comment>
+  </data>
+  <data name="Tooltip_Album" xml:space="preserve">
+    <value>[ !!! Áłḅúúɱ:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Album Label</comment>
+  </data>
+  <data name="Tooltip_Duration" xml:space="preserve">
+    <value>[ !!! Ðúúŕääţïïööñ:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Duration Label</comment>
+  </data>
+  <data name="Tooltip_Year" xml:space="preserve">
+    <value>[ !!! Ýééääŕ:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Year Label</comment>
+  </data>
+  <data name="Tooltip_Track" xml:space="preserve">
+    <value>[ !!! Ţŕääĉķ:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Track Number Label</comment>
+  </data>
+  <data name="Tooltip_DateAdded" xml:space="preserve">
+    <value>[ !!! Ðääţéé Áððééð:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Added Label</comment>
+  </data>
+  <data name="Tooltip_TimeAdded" xml:space="preserve">
+    <value>[ !!! Ţïïɱéé Áððééð:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Added Label</comment>
+  </data>
+  <data name="Tooltip_DatePlayed" xml:space="preserve">
+    <value>[ !!! Ðääţéé Þłääýééð:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Played Label</comment>
+  </data>
+  <data name="Tooltip_TimePlayed" xml:space="preserve">
+    <value>[ !!! Ţïïɱéé Þłääýééð:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Played Label</comment>
+  </data>
+  <data name="Tooltip_CountOfSongs" xml:space="preserve">
+    <value>[ !!! Šööñĝš:  !!! ]</value>
+    <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Song Count Label</comment>
+  </data>
+  <data name="Tooltip_TotalDuration" xml:space="preserve">
+    <value>[ !!! Ţööţääł Ðúúŕääţïïööñ:  !!! ]</value>
+    <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Total Duration Label</comment>
+  </data>
+  <data name="Tooltip_TimesPlayed" xml:space="preserve">
+    <value>[ !!! Ţïïɱééš Þłääýééð:  !!! ]</value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Times Played Label</comment>
+  </data>
+  <data name="SongInfoDialog.Title" xml:space="preserve">
+    <value>[ !!! Šööñĝ Íñƒööŕɱääţïïööñ !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="SongInfoDialog.PrimaryButtonText" xml:space="preserve">
+    <value>[ !!! Óþééñ Ƒïïłéé Łööĉääţïïööñ !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="SongInfoDialog.CloseButtonText" xml:space="preserve">
+    <value>[ !!! Ĉłööšéé !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Close Button</comment>
+  </data>
+  <data name="SongInfo_TitleLabel.Text" xml:space="preserve">
+    <value>[ !!! Ţïïţłéé: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Title Label</comment>
+  </data>
+  <data name="SongInfo_ArtistsLabel.Text" xml:space="preserve">
+    <value>[ !!! Áŕţïïšţš: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Artists Label</comment>
+  </data>
+  <data name="SongInfo_AlbumLabel.Text" xml:space="preserve">
+    <value>[ !!! Áłḅúúɱ: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Album Label</comment>
+  </data>
+  <data name="SongInfo_GenreLabel.Text" xml:space="preserve">
+    <value>[ !!! Ĝééñŕéé: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Genre Label</comment>
+  </data>
+  <data name="SongInfo_YearLabel.Text" xml:space="preserve">
+    <value>[ !!! Ýééääŕ: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Year Label</comment>
+  </data>
+  <data name="SongInfo_TrackLabel.Text" xml:space="preserve">
+    <value>[ !!! Ţŕääĉķ: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Track Label</comment>
+  </data>
+  <data name="SongInfo_DurationLabel.Text" xml:space="preserve">
+    <value>[ !!! Ðúúŕääţïïööñ: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Duration Label</comment>
+  </data>
+  <data name="SongInfo_AddedLabel.Text" xml:space="preserve">
+    <value>[ !!! Ðääţéé Áððééð: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Date Added Label</comment>
+  </data>
+  <data name="SongInfo_SizeLabel.Text" xml:space="preserve">
+    <value>[ !!! Ƒïïłéé Šïïžéé: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Size Label</comment>
+  </data>
+  <data name="SongInfo_ChannelLabel.Text" xml:space="preserve">
+    <value>[ !!! Áúúðïïöö Ĉĥääññééłš: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Channels Label</comment>
+  </data>
+  <data name="SongInfo_PathLabel.Text" xml:space="preserve">
+    <value>[ !!! Ƒïïłéé Þääţĥ: !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Path Label</comment>
+  </data>
+  <data name="SongInfo_PlayedCount" xml:space="preserve">
+    <value>[ !!! Þłääýééð Ĉööúúñţ:  !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Play Count Label</comment>
+  </data>
+  <data name="SongInfo_LastPlayed" xml:space="preserve">
+    <value>[ !!! Łääšţ Þłääýééð:  !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Last Played Label</comment>
+  </data>
+  <data name="SongInfo_FolderButton_ToolTip" xml:space="preserve">
+    <value>[!!! Ôþéñ Çôñţáïñïñğ Ƒôℓđéř !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Open Containing Folder" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="PlaylistDialog_Header.Text" xml:space="preserve">
+    <value>[ !!! Ĉŕééääţéé Ñééŵ Þłääýłïïšţ !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Title Bar Header</comment>
+  </data>
+  <data name="PlaylistDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>[ !!! Þłääýłïïšţ Ñääɱéé !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Name Input Box Placeholder</comment>
+  </data>
+  <data name="PlaylistDialog_DescLine1.Text" xml:space="preserve">
+    <value>[ !!! Ýööúú ĉääñ ääłšöö šééłééĉţ ääñ ééẋïïšţïïñĝ þłääýłïïšţ ƒïïłéé. !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Description Line 1</comment>
+  </data>
+  <data name="PlaylistDialog_DescLine2.Text" xml:space="preserve">
+    <value>[ !!! Šúúþþööŕţééð ƒööŕɱääţš: Ṁ3Ú, Ṁ3Ú8, ÞŁŠ, ŴÞŁ, ŽÞŁ !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Description Line 2</comment>
+  </data>
+  <data name="PlaylistDialog_DropZoneText.Text" xml:space="preserve">
+    <value>[ !!! Ðŕääĝ &amp; ðŕööþ þłääýłïïšţ ƒïïłéé ĥééŕéé, ööŕ !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Drop Zone Instruction</comment>
+  </data>
+  <data name="PlaylistDialog_BrowseButton.Content" xml:space="preserve">
+    <value>[ !!! Ḃŕööŵšéé Ƒïïłéé !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Drop Zone Browse Button</comment>
+  </data>
+  <data name="PlaylistDialog_SongsNote.Text" xml:space="preserve">
+    <value>[ !!! Ñööţéé: Šééłééĉţééð šööñĝ(š) ŵïïłł ḅéé ääúúţööɱääţïïĉääłłý ääððééð ţöö ţĥïïš ñééŵ þłääýłïïšţ. !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Note Banner</comment>
+  </data>
+  <data name="PlaylistDialog_CreateButton.Content" xml:space="preserve">
+    <value>[ !!! Ĉŕééääţéé !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Action Bar -&gt; Create Button</comment>
+  </data>
+  <data name="PlaylistDialog_CancelButton.Content" xml:space="preserve">
+    <value>[ !!! Ĉääñĉééł !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Action Bar -&gt; Cancel Button</comment>
+  </data>
+  <data name="Duration_Hours_Singular" xml:space="preserve">
+    <value>[ !!! {0} ĥööúúŕ !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Hours Unit (Singular)</comment>
+  </data>
+  <data name="Duration_Hours_Plural" xml:space="preserve">
+    <value>[ !!! {0} ĥööúúŕš !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Hours Unit (Plural)</comment>
+  </data>
+  <data name="Duration_Minutes_Singular" xml:space="preserve">
+    <value>[ !!! {0} ɱïïñ !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Minutes Unit (Singular)</comment>
+  </data>
+  <data name="Duration_Minutes_Plural" xml:space="preserve">
+    <value>[ !!! {0} ɱïïñš !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Minutes Unit (Plural)</comment>
+  </data>
+  <data name="Duration_Seconds_Singular" xml:space="preserve">
+    <value>[ !!! {0} šééĉ !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Seconds Unit (Singular)</comment>
+  </data>
+  <data name="Duration_Seconds_Plural" xml:space="preserve">
+    <value>[ !!! {0} šééĉš !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Seconds Unit (Plural)</comment>
+  </data>
+  <data name="Time_SecondsAgo_Singular" xml:space="preserve">
+    <value>[ !!! {0} šééĉööñð ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Seconds Ago (Singular)</comment>
+  </data>
+  <data name="Time_SecondsAgo_Plural" xml:space="preserve">
+    <value>[ !!! {0} šééĉööñðš ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Seconds Ago (Plural)</comment>
+  </data>
+  <data name="Time_MinutesAgo_Singular" xml:space="preserve">
+    <value>[ !!! {0} ɱïïñúúţéé ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Minutes Ago (Singular)</comment>
+  </data>
+  <data name="Time_MinutesAgo_Plural" xml:space="preserve">
+    <value>[ !!! {0} ɱïïñúúţééš ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Minutes Ago (Plural)</comment>
+  </data>
+  <data name="Time_HoursAgo_Singular" xml:space="preserve">
+    <value>[ !!! {0} ĥööúúŕ ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Hours Ago (Singular)</comment>
+  </data>
+  <data name="Time_HoursAgo_Plural" xml:space="preserve">
+    <value>[ !!! {0} ĥööúúŕš ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Hours Ago (Plural)</comment>
+  </data>
+  <data name="Time_DaysAgo_Singular" xml:space="preserve">
+    <value>[ !!! {0} ðääý ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Days Ago (Singular)</comment>
+  </data>
+  <data name="Time_DaysAgo_Plural" xml:space="preserve">
+    <value>[ !!! {0} ðääýš ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Days Ago (Plural)</comment>
+  </data>
+  <data name="Time_WeeksAgo_Singular" xml:space="preserve">
+    <value>[ !!! {0} ŵééééķ ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Weeks Ago (Singular)</comment>
+  </data>
+  <data name="Time_WeeksAgo_Plural" xml:space="preserve">
+    <value>[ !!! {0} ŵééééķš ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Weeks Ago (Plural)</comment>
+  </data>
+  <data name="Time_YearsAgo_Singular" xml:space="preserve">
+    <value>[ !!! {0} ýééääŕ ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Years Ago (Singular)</comment>
+  </data>
+  <data name="Time_YearsAgo_Plural" xml:space="preserve">
+    <value>[ !!! {0} ýééääŕš ääĝöö !!! ]</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Years Ago (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_Confirm_Singular" xml:space="preserve">
+    <value>[ !!! Áŕéé ýööúú šúúŕéé ýööúú ŵääñţ ţöö ðééłééţéé ţĥïïš šööñĝ ƒŕööɱ ýööúúŕ šýšţééɱ? !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Confirmation Prompt (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_Confirm_Plural" xml:space="preserve">
+    <value>[ !!! Áŕéé ýööúú šúúŕéé ýööúú ŵääñţ ţöö ðééłééţéé ţĥééšéé {0} šööñĝš ƒŕööɱ ýööúúŕ šýšţééɱ? !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Confirmation Prompt (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_Title_Singular" xml:space="preserve">
+    <value>[ !!! Ðééłééţéé Šööñĝ !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Window Title (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_Title_Plural" xml:space="preserve">
+    <value>[ !!! Ðééłééţéé Šööñĝš !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Window Title (Plural)</comment>
+  </data>
+  <data name="Notification_Deleted_Singular" xml:space="preserve">
+    <value>[ !!! {0} šööñĝ ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Deletion Result (Singular)</comment>
+  </data>
+  <data name="Notification_Deleted_Plural" xml:space="preserve">
+    <value>[ !!! {0} šööñĝš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Deletion Result (Plural)</comment>
+  </data>
+  <data name="Notification_Queue_Added_Singular" xml:space="preserve">
+    <value>[ !!! {0} šööñĝ ääððééð ţöö ţĥéé ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Queue Addition Result (Singular)</comment>
+  </data>
+  <data name="Notification_Queue_Added_Plural" xml:space="preserve">
+    <value>[ !!! {0} šööñĝš ääððééð ţöö ţĥéé ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Queue Addition Result (Plural)</comment>
+  </data>
+  <data name="Notification_Song_AddedToPlaylist" xml:space="preserve">
+    <value>[ !!! {0} ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Track Added to Playlist</comment>
+  </data>
+  <data name="Notification_Songs_AddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! {0} šööñĝ ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Tracks Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_Songs_AddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! {0} šööñĝš ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Tracks Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_Song_AddedToQueue" xml:space="preserve">
+    <value>[ !!! {0} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Track Added to Queue</comment>
+  </data>
+  <data name="Notification_SongDeleted" xml:space="preserve">
+    <value>[ !!! Šööñĝ ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Song Deleted Notice</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Áłḅúúɱ {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Áłḅúúɱ {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ääłḅúúɱš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ääłḅúúɱš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Áłḅúúɱ {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Áłḅúúɱ {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_AlbumSongsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Áłḅúúɱ {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_AlbumSongsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Áłḅúúɱ {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ääłḅúúɱš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ääłḅúúɱš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ääłḅúúɱš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ääłḅúúɱš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Áŕţïïšţ {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Áŕţïïšţ {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ääŕţïïšţš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ääŕţïïšţš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Áŕţïïšţ {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Áŕţïïšţ {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_ArtistSongsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Áŕţïïšţ {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_ArtistSongsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Áŕţïïšţ {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ääŕţïïšţš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ääŕţïïšţš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ääŕţïïšţš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ääŕţïïšţš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Ĝééñŕéé {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Ĝééñŕéé {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ĝééñŕééš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ĝééñŕééš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Ĝééñŕéé {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Ĝééñŕéé {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_GenreSongsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Ĝééñŕéé {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_GenreSongsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Ĝééñŕéé {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ĝééñŕééš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ĝééñŕééš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedGenresDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ĝééñŕééš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedGenresDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ĝééñŕééš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Ýééääŕ {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Ýééääŕ {1} ääððééð ţöö {2} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ýééääŕš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ýééääŕš, ääððééð ţöö {1} þłääýłïïšţ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Ýééääŕ {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Ýééääŕ {1} ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_YearSongsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ Ýééääŕ {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_YearSongsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ Ýééääŕ {1} ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ýééääŕš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ýééääŕš, ääððééð ţöö ǫúúééúúéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedYearsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝ ööƒ šééłééĉţééð ýééääŕš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedYearsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Áłł {0} šööñĝš ööƒ šééłééĉţééð ýééääŕš ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_PlaylistDeleted" xml:space="preserve">
+    <value>[ !!! {0} ÞłääýŁïïšţ ðééłééţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Playlist Deleted Notice</comment>
+  </data>
+  <data name="Notification_SongRemovedFromPlaylist" xml:space="preserve">
+    <value>[ !!! Šööñĝ/Ţŕääĉķ ŕééɱööṽééð ƒŕööɱ {0}. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Song Removed From Playlist</comment>
+  </data>
+  <data name="Notification_SongsRemovedFromPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! {0} šööñĝ ŕééɱööṽééð ƒŕööɱ {1}. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Songs Removed (Singular)</comment>
+  </data>
+  <data name="Notification_SongsRemovedFromPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! {0} šööñĝš ŕééɱööṽééð ƒŕööɱ {1}. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Songs Removed (Plural)</comment>
+  </data>
+  <data name="Notification_PlaylistSorted" xml:space="preserve">
+    <value>[ !!! Þłääýłïïšţ {0} šööŕţééð. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Playlist Sorted Notice</comment>
+  </data>
+  <data name="Notification_PlaylistRenamed" xml:space="preserve">
+    <value>[ !!! Þłääýłïïšţ ŕééñääɱééð ţöö {0}. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Playlist Renamed Notice</comment>
+  </data>
+  <data name="Settings_LibrarySection.Text" xml:space="preserve">
+    <value>[ !!! Łïïḅŕääŕý Ṁääñääĝééɱééñţ !!! ]</value>
+    <comment>Settings -&gt; Section 1 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AudioSection.Text" xml:space="preserve">
+    <value>[ !!! Áúúðïïöö &amp; Þłääýḅääĉķ !!! ]</value>
+    <comment>Settings -&gt; Section 2 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AppearanceSection.Text" xml:space="preserve">
+    <value>[ !!! Áþþééääŕääñĉéé &amp; Þééŕšööñääłïïžääţïïööñ !!! ]</value>
+    <comment>Settings -&gt; Section 3 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AboutSection.Text" xml:space="preserve">
+    <value>[ !!! Áḅööúúţ !!! ]</value>
+    <comment>Settings -&gt; Section 4 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_DataManagementSection.Text" xml:space="preserve">
+    <value>[ !!! Ðääţää Ṁääñääĝééɱééñţ !!! ]</value>
+    <comment>Settings -&gt; Section 5 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AllLibraries.Header" xml:space="preserve">
+    <value>[ !!! Áłł Łïïḅŕääŕïïééš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_AllLibraries.Description" xml:space="preserve">
+    <value>[ !!! Ĉłïïĉķ ţöö ṽïïééŵ łïïḅŕääŕïïééš ääððééð !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_AddNewFolderButton.Content" xml:space="preserve">
+    <value>[ !!! Áðð Ñééŵ Ƒööłðééŕ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Add Folder Button</comment>
+  </data>
+  <data name="Settings_RemoveFolderButton.Content" xml:space="preserve">
+    <value>[ !!! Ŕééɱööṽéé Ƒööłðééŕ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Folder Item -&gt; Remove Button</comment>
+  </data>
+  <data name="Settings_FileExtensions.Header" xml:space="preserve">
+    <value>[ !!! Ƒïïłéé Éẋţééñšïïööñš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_ConfirmSelectionsButton.Content" xml:space="preserve">
+    <value>[ !!! Ĉööñƒïïŕɱ Šééłééĉţïïööñš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Confirm Selections Button</comment>
+  </data>
+  <data name="Settings_ConfigureCategoryButton.Content" xml:space="preserve">
+    <value>[ !!! Ĉööñƒïïĝúúŕéé !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Configure Button</comment>
+  </data>
+  <data name="Settings_ScanLibraries.Header" xml:space="preserve">
+    <value>[ !!! Šĉääñ Łïïḅŕääŕïïééš ƒööŕ Šööñĝš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Scan Libraries for Songs" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ScanLibraries.Description" xml:space="preserve">
+    <value>[ !!! Ĉłééääŕš ääłł šööñĝš ɱééţääðääţää ääñð ïïñšééŕţš ĉööɱþłééţééłý ñééŵ ɱééţääðääţää. Þŕééšééŕṽééš ööñłý Þłääý Ĉööúúñţ, Łääšţ Þłääýééð Ţïïɱéé ääñð Þłääýłïïšţ ääððïïţïïööñš ƒööŕ ééẋïïšţïïñĝ ţŕääĉķš/šööñĝš. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Scan Libraries for Songs" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_FullScanButton.Content" xml:space="preserve">
+    <value>[ !!! Ƒúúłł Šĉääñ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Scan Libraries for Songs" Card -&gt; Action Button</comment>
+  </data>
+  <data name="Settings_IgnoreShortTracks.Header" xml:space="preserve">
+    <value>[ !!! Íĝñööŕéé Šĥööŕţ Ţŕääĉķš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Short Tracks" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_ShortTracksDuration.Header" xml:space="preserve">
+    <value>[ !!! Ðúúŕääţïïööñ (šééĉööñðš) !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Short Tracks" Expander -&gt; Duration Input Box</comment>
+  </data>
+  <data name="Settings_IgnoreDuplicateTracks.Header" xml:space="preserve">
+    <value>[ !!! Íĝñööŕéé Ðúúþłïïĉääţéé Ţŕääĉķš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Duplicate Tracks" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_IgnoreDuplicateTracks.Description" xml:space="preserve">
+    <value>[ !!! Íƒ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł ïïĝñööŕéé ţŕääĉķš ţĥääţ ääŕéé ääłŕééääðý šĉääññééð ööñĉéé ḅääšééð ööñ Ţïïţłéé, Áłḅúúɱ, ääñð Áŕţïïšţ. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Duplicate Tracks" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_FullScanAtStartup.Header" xml:space="preserve">
+    <value>[ !!! Ƒúúłł Šĉääñ Áţ Šţääŕţúúþ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Full Scan At Startup" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_FullScanAtStartup.Description" xml:space="preserve">
+    <value>[ !!! Šĉääñš ţĥéé łïïḅŕääŕý ƒööŕ ţŕääĉķš ŵĥééñ ţĥéé ääþþ šţääŕţš. Íƒ ţúúŕñééð ööñ, ïïţ ŵïïłł ïïñĉŕééääšéé ţĥéé šţääŕţúúþ ţïïɱéé. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Full Scan At Startup" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AutoSync.Header" xml:space="preserve">
+    <value>[ !!! Áúúţöö Šýñĉ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Auto Sync" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AutoSync.Description" xml:space="preserve">
+    <value>[ !!! Áúúţööɱääţïïĉääłłý ķééééþ ýööúúŕ łïïḅŕääŕý ïïñ šýñĉ ŵïïţĥ ĉĥääñĝééš ööñ ðïïšķ. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Auto Sync" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_CliOutputStyle.Header" xml:space="preserve">
+    <value>[ !!! ĈŁÍ Óúúţþúúţ Šţýłéé !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "CLI Output Style" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_CliOutputStyle.Description" xml:space="preserve">
+    <value>[ !!! Ĉööñţŕööłš ṽïïšúúääł ƒööŕɱääţţïïñĝ ƒööŕ ţééŕɱïïñääł ĉööɱɱääñðš. Ĉööłööŕƒúúł ɱööðéé ðïïšþłääýš ÁÑŠÍ ĉööłööŕš, ḅääðĝééš, ääñð ĥïïĝĥłïïĝĥţééð ţääĝš. Þłääïïñ ţééẋţ ŕééšţööŕééš úúñƒööŕɱääţţééð ɱööñööĉĥŕööɱéé ţééẋţ. Úšéé 'ţúúñééţääšţïïĉ --ĥééłþ | Óúúţ-Ĥööšţ' ƒööŕ ɱööŕéé ðééţääïïłš. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "CLI Output Style" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_LibrariesAndPlaylistsToShow.Header" xml:space="preserve">
+    <value>[ !!! Łïïḅŕääŕïïééš ääñð Þłääýłïïšţš ţöö šĥööŵ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_LibrariesAndPlaylistsToShow.Description" xml:space="preserve">
+    <value>[ !!! Šééłééĉţ ŵĥïïĉĥ Þŕéé-ðééƒïïñééð Łïïḅŕääŕïïééš ääñð Þłääýłïïšţš ţöö šĥööŵ/ĥïïðéé ööñ Ñääṽïïĝääţïïööñ !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_ShowArtists.Header" xml:space="preserve">
+    <value>[ !!! Áŕţïïšţš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Artists Toggle</comment>
+  </data>
+  <data name="Settings_ShowAlbums.Header" xml:space="preserve">
+    <value>[ !!! Áłḅúúɱš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Albums Toggle</comment>
+  </data>
+  <data name="Settings_ShowGenres.Header" xml:space="preserve">
+    <value>[ !!! Ĝééñŕééš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Genres Toggle</comment>
+  </data>
+  <data name="Settings_ShowYears.Header" xml:space="preserve">
+    <value>[ !!! Ýééääŕš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Years Toggle</comment>
+  </data>
+  <data name="Settings_ShowRecentlyAdded.Header" xml:space="preserve">
+    <value>[ !!! Ŕééĉééñţłý Áððééð !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Recently Added Toggle</comment>
+  </data>
+  <data name="Settings_ShowRecentlyPlayed.Header" xml:space="preserve">
+    <value>[ !!! Ŕééĉééñţłý Þłääýééð !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Recently Played Toggle</comment>
+  </data>
+  <data name="Settings_ShowMostPlayed.Header" xml:space="preserve">
+    <value>[ !!! Ṁööšţ Þłääýééð !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Most Played Toggle</comment>
+  </data>
+  <data name="Settings_CrossfadeFade.Header" xml:space="preserve">
+    <value>[ !!! Ĉŕööššƒääðéé/Ƒääðéé !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_CrossfadeFade.Description" xml:space="preserve">
+    <value>[ !!! Ĉłïïĉķ ţöö ṽïïééŵ ääłł ĉŕööššƒääðéé/ƒääðéé šééţţïïñĝš. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_FadePlayPauseStop.Header" xml:space="preserve">
+    <value>[ !!! Ƒääðéé Þłääý/Þääúúšéé/Šţööþ !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Fade Play/Pause/Stop Card</comment>
+  </data>
+  <data name="Settings_AutoAdvanceCrossfading.Header" xml:space="preserve">
+    <value>[ !!! Áúúţöö ääðṽääñĉéé Ĉŕööššƒääðïïñĝ !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Auto Advance Card</comment>
+  </data>
+  <data name="Settings_ManualTrackChangeCrossfading.Header" xml:space="preserve">
+    <value>[ !!! Ṁääñúúääł Ţŕääĉķ Ĉĥääñĝéé Ĉŕööššƒääðïïñĝ !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Manual Track Change Card</comment>
+  </data>
+  <data name="Settings_PreviousRestartsTrack.Header" xml:space="preserve">
+    <value>[ !!! Þŕééṽïïööúúš ḅúúţţööñ ŕééšţääŕţš ţĥéé ĉúúŕŕééñţ ţŕääĉķ !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Previous button restarts the current track" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_PreviousRestartsTrack.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł ŕééšţääŕţ ţĥéé ţŕääĉķ ţĥääţ ïïš ĉúúŕŕééñţłý þłääýïïñĝ ŵĥééñ þŕééṽïïööúúš ḅúúţţööñ ïïš þŕééššééð. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Previous button restarts the current track" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_RestartTrackOnSelection.Header" xml:space="preserve">
+    <value>[ !!! Ŕééšţääŕţ Ţŕääĉķ ööñ Šééłééĉţïïööñ !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Restart Track on Selection" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_RestartTrackOnSelection.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł ŕééšţääŕţ ţĥéé ţŕääĉķ ţĥääţ ïïš ĉúúŕŕééñţłý þłääýïïñĝ ŵĥééñ ïïţ ïïš šééłééĉţééð ääĝääïïñ. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Restart Track on Selection" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_UseSystemVolumeControl.Header" xml:space="preserve">
+    <value>[ !!! Úšéé Šýšţééɱ Ṽööłúúɱéé Ĉööñţŕööł !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Use System Volume Control" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_UseSystemVolumeControl.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł úúšéé ţĥéé šýšţééɱ ṽööłúúɱéé ĉööñţŕööł. Ŵĥééñ ţúúŕñééð ööƒƒ, ţĥéé ääþþ ŵïïłł úúšéé ţĥéé Ţúúñééţääšţïïĉ ääþþ ṽööłúúɱéé ĉööñţŕööł. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Use System Volume Control" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_PauseOnMute.Header" xml:space="preserve">
+    <value>[ !!! Þääúúšéé ööñ Ṁúúţéé !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Pause on Mute" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_PauseOnMute.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł þääúúšéé ţĥéé ţŕääĉķ ţĥääţ ïïš ĉúúŕŕééñţłý þłääýïïñĝ ŵĥééñ ţĥéé ṽööłúúɱéé ïïš ɱúúţééð ööŕ ḅééĉääɱéé 0. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Pause on Mute" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ResumeOnUnmute.Header" xml:space="preserve">
+    <value>[ !!! Ŕééšúúɱéé ööñ Úñɱúúţéé !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Resume on Unmute" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ResumeOnUnmute.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł ŕééšúúɱéé ţĥéé ţŕääĉķ ţĥääţ ïïš ĉúúŕŕééñţłý þłääýïïñĝ ŵĥééñ ţĥéé ṽööłúúɱéé ïïš úúñɱúúţééð ööŕ ïïñĉŕééääšééð ɱööŕéé ţĥääñ 0. (Íţ'łł ööñłý ţŕïïĝĝééŕ ïïƒ þääúúšéé ĥääþþééñééð ḅééĉääúúšéé ööƒ Þääúúšéé ööñ Ṁúúţéé) !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Resume on Unmute" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AutoStartPlaying.Header" xml:space="preserve">
+    <value>[ !!! Áúúţöö-Šţääŕţ þłääýïïñĝ ţŕääĉķ ŵĥééñ ääþþ šţääŕţš !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Auto-Start playing track when app starts" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AutoStartPlaying.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł šţääŕţ þłääýïïñĝ ţĥéé ţŕääĉķ ţĥääţ ŵääš łääšţ þłääýïïñĝ. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Auto-Start playing track when app starts" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ForwardRewindButtons.Header" xml:space="preserve">
+    <value>[ !!! Ƒööŕŵääŕð ääñð Ŕééŵïïñð Ḃúúţţööñ Ṽïïšïïḅïïłïïţý !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Forward and Rewind Button Visibility" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ForwardRewindButtons.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł šĥööŵ ţĥéé ƒööŕŵääŕð ääñð ŕééŵïïñð ḅúúţţööñš. !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Forward and Rewind Button Visibility" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_LrcOffsetStandard.Header" xml:space="preserve">
+    <value>[ !!! ŁŔĈ Óƒƒšééţ Šţääñðääŕð !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "LRC Offset Standard" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_LrcOffsetStandard.Description" xml:space="preserve">
+    <value>[ !!! Ðééƒïïñééš ţĥéé šïïĝñ ĉööñṽééñţïïööñ ƒööŕ [ööƒƒšééţ:] ĉääłĉúúłääţïïööñš. Šééłééĉţ Óƒƒïïĉïïääł Šţääñðääŕð ƒööŕ šþééĉ-ĉööɱþłïïääñţ ţïïɱéé šúúḅţŕääĉţïïööñ (Ţïïɱééšţääɱþ - Óƒƒšééţ) ööŕ Íñţúúïïţïïṽéé ƒööŕ šţŕääïïĝĥţƒööŕŵääŕð ääððïïţïïööñ (Ţïïɱééšţääɱþ + Óƒƒšééţ). !!! ]</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "LRC Offset Standard" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AppLanguage.Header" xml:space="preserve">
+    <value>[ !!! Áþþ łääñĝúúääĝéé !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App language" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AppLanguage.Description" xml:space="preserve">
+    <value>[ !!! Ĉĥööööšéé ţĥéé ðïïšþłääý łääñĝúúääĝéé ƒööŕ Ţúúñééţääšţïïĉ. Ŕééǫúúïïŕééš ääñ ääþþ ŕééšţääŕţ ţöö ţääķéé ƒúúłł ééƒƒééĉţ. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App language" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AppTheme.Header" xml:space="preserve">
+    <value>[ !!! Áþþ ţĥééɱéé !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App theme" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AppTheme.Description" xml:space="preserve">
+    <value>[ !!! Šééłééĉţ ţĥéé ţĥééɱéé ţĥääţ šúúïïţš ýööúúŕ ɱööööð ääñð þŕééƒééŕééñĉéé. Ýööúú ĉääñ ĉĥööööšéé ƒŕööɱ ðääŕķ, łïïĝĥţ, ööŕ šýšţééɱ ţĥééɱééš. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App theme" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_Material.Header" xml:space="preserve">
+    <value>[ !!! Ṁääţééŕïïääł !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Material" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_Material.Description" xml:space="preserve">
+    <value>[ !!! Ĉĥääñĝéé ţĥéé ääþþééääŕääñĉéé ööƒ ţĥéé ḅääĉķðŕööþ ɱääţééŕïïääł ḅééĥïïñð ýööúúŕ ääþþ. Ýööúú ĉääñ ĉĥööööšéé ƒŕööɱ ɱïïĉää, ääĉŕýłïïĉ, ööŕ ţŕääñšþääŕééñţ ööþţïïööñš. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Material" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_TintColor.Header" xml:space="preserve">
+    <value>[ !!! Ţïïñţ Ĉööłööŕ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Tint Color" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_TintColor.Description" xml:space="preserve">
+    <value>[ !!! Áðð ţïïñţ ţöö ýööúúŕ ŵïïñðööŵ ţöö ɱääķéé ýööúúŕ ééẋþééŕïïééñĉéé ɱööŕéé þééŕšööñääłïïžééð. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Tint Color" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_AccentColor.Header" xml:space="preserve">
+    <value>[ !!! Áĉĉééñţ ĉööłööŕ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Accent color" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AccentColor.Description" xml:space="preserve">
+    <value>[ !!! Šýñĉ ýööúúŕ ääþþ'š ĉööłööŕ ŵïïţĥ ýööúúŕ Ŵïïñðööŵš ääĉĉééñţ ĉööłööŕ. Ýööúú ĉääñ ööþééñ ţĥéé Ŵïïñðööŵš ääĉĉééñţ ĉööłööŕ šééţţïïñĝ ḅý ĉłïïĉķïïñĝ ţĥïïš ĉääŕð. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Accent color" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_BlurIntensity.Header" xml:space="preserve">
+    <value>[ !!! Ṁääïïñ Þłääýééŕ Ḃääĉķĝŕööúúñð Ḃłúúŕ Íñţééñšïïţý !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Main Player Background Blur Intensity" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_RainbowFrameBorder.Header" xml:space="preserve">
+    <value>[ !!! Ŕääïïñḅööŵ Ƒŕääɱéé Ḃööŕðééŕ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_RainbowFrameBorder.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, šţääŕţš ää ŕääïïñḅööŵ ƒŕääɱéé ḅööŕðééŕ ääŕööúúñð ţĥéé ääþþ ŵïïñðööŵ. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_RainbowSpeed.Header" xml:space="preserve">
+    <value>[ !!! Ŕääïïñḅööŵ Šþééééð !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Speed Slider Header</comment>
+  </data>
+  <data name="Settings_OnlyDuringPlayback.Header" xml:space="preserve">
+    <value>[ !!! Óñłý ðúúŕïïñĝ þłääýḅääĉķ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Playback Only Card Title</comment>
+  </data>
+  <data name="Settings_OnlyDuringPlayback.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, Ţĥéé ŕääïïñḅööŵ ƒŕääɱéé ḅööŕðééŕ ŵïïłł ḅéé ääþþłïïééð ööñłý ŵĥééñ ţĥééŕéé'š ää ţŕääĉķ ïïñ þłääýïïñĝ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Playback Only Card Description</comment>
+  </data>
+  <data name="Settings_MinimizeToSystemTray.Header" xml:space="preserve">
+    <value>[ !!! Ṁïïñïïɱïïžéé ţĥéé ääþþ ţöö šýšţééɱ ţŕääý !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Minimize the app to system tray" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_MinimizeToSystemTray.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł ɱïïñïïɱïïžéé ţöö šýšţééɱ ţŕääý ŵĥééñ ţĥéé ŵïïñðööŵ ïïš ĉłööšééð. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Minimize the app to system tray" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_SystemTrayIconStyle.Header" xml:space="preserve">
+    <value>[ !!! Šýšţééɱ ţŕääý ïïĉööñ šţýłéé !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "System tray icon style" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_SystemTrayIconStyle.Description" xml:space="preserve">
+    <value>[ !!! Ĉĥööööšéé ţĥéé šţýłéé ööƒ ţĥéé šýšţééɱ ţŕääý ïïĉööñ. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "System tray icon style" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayControls.Header" xml:space="preserve">
+    <value>[ !!! Ţääšķḅääŕ Óṽééŕłääý Ĉööñţŕööłš !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayControls.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł šĥööŵ ää ţääšķḅääŕ ööṽééŕłääý ĉööñţŕööłš. Ĉłïïĉķ ţĥéé ööṽééŕłääý ţöö ööþééñ ţĥéé ääþþ. Ĥööṽééŕ ööṽééŕ ţĥéé ööṽééŕłääý ţöö šéééé ţŕääĉķ/šööñĝ ïïñƒööŕɱääţïïööñ. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayDesign.Header" xml:space="preserve">
+    <value>[ !!! Ţääšķḅääŕ Óṽééŕłääý Ðééšïïĝñ Ĉääţääłööĝ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Design Catalog Card Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayDesign.Description" xml:space="preserve">
+    <value>[ !!! Ţĥéé ðééšïïĝñ ööƒ ţĥéé ţääšķḅääŕ ööṽééŕłääý ĉööñţŕööłš. Íƒ ýööúú ĥääṽéé ääñý ĉööñţŕööł ööṽééŕłääý ðééšïïĝñ/šţýłéé ïïñ ɱïïñð, þłééääšéé łééţ ɱéé ķñööŵ ḅý ĉŕééääţïïñĝ ĜïïţĤúúḅ Íššúúéé úúñðééŕ Áḅööúúţ Šééĉţïïööñ. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Design Catalog Card Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayTheme.Header" xml:space="preserve">
+    <value>[ !!! Ţääšķḅääŕ Óṽééŕłääý Ĉööñţŕööł Ţĥééɱéé !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Theme Card Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayTheme.Description" xml:space="preserve">
+    <value>[ !!! Ðééţééŕɱïïñéé ţĥéé ţĥééɱéé ööƒ ţĥéé ţääšķḅääŕ ööṽééŕłääý ĉööñţŕööłš. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Theme Card Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlaySide.Header" xml:space="preserve">
+    <value>[ !!! Ţääšķḅääŕ Óṽééŕłääý Ĉööñţŕööłš Šïïðéé !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Side Alignment Card Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlaySide.Description" xml:space="preserve">
+    <value>[ !!! Ðééţééŕɱïïñéé ţĥéé þööšïïţïïööñ ööƒ ţĥéé ţääšķḅääŕ ööṽééŕłääý ĉööñţŕööłš. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Side Alignment Card Description</comment>
+  </data>
+  <data name="Settings_AboutTunetastic.Header" xml:space="preserve">
+    <value>[ !!! Ţúúñééţääšţïïĉ ḅý ÁṀïïţ-ĶÞ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_AboutTunetastic.Description" xml:space="preserve">
+    <value>[ !!! Ţúúñééţääšţïïĉ ïïš ää ñééẋţ ĝééñ ɱúúšïïĉ þłääýééŕ ƒööŕ Ŵïïñðööŵš 11 ţĥääţ ḅłééñðš šłééééķ ðééšïïĝñ ääñð ðééééþ þééŕšööñääłïïžääţïïööñ, ţúúŕñïïñĝ ýööúúŕ łïïḅŕääŕý ïïñţöö ääñ ééẋþééŕïïééñĉéé ţĥääţ'š ääš úúñïïǫúúéé, ééẋþŕééššïïṽéé ääñð ĉääþţïïṽääţïïñĝ ääš ţĥéé ɱúúšïïĉ ýööúú łööṽéé. 🎶 !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_CheckForUpdates.Header" xml:space="preserve">
+    <value>[ !!! Ĉĥééĉķ ƒööŕ úúþðääţééš ääţ šţääŕţúúþ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Check for updates at startup" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_CheckForUpdates.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ääþþ ŵïïłł ääúúţööɱääţïïĉääłłý ĉĥééĉķ ƒööŕ úúþðääţééš ääţ šţääŕţúúþ. !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Check for updates at startup" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ShowVersionInfo.Header" xml:space="preserve">
+    <value>[ !!! Šĥööŵ ṽééŕšïïööñ ïïñƒöö ööñ ŢïïţłééḂääŕ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Show version info on TitleBar" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ShowVersionInfo.Description" xml:space="preserve">
+    <value>[ !!! Ŵĥééñ ţúúŕñééð ööñ, ţĥéé ĉúúŕŕééñţ ääþþ ṽééŕšïïööñ ŵïïłł ḅéé šĥööŵñ ööñ ţĥéé ţïïţłéé ḅääŕ. !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Show version info on TitleBar" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_WhatsNew.Header" xml:space="preserve">
+    <value>[ !!! Ŵĥääţ'š Ñééŵ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "What's New" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_WhatsNew.Description" xml:space="preserve">
+    <value>[ !!! Šéééé ŵĥääţ'š ñééŵ ïïñ ţĥïïš ṽééŕšïïööñ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "What's New" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_WhatsNewButton.Content" xml:space="preserve">
+    <value>[ !!! Ṽïïééŵ Ŵĥääţ'š Ñééŵ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "What's New" Card -&gt; View Button</comment>
+  </data>
+  <data name="Settings_FeedbackRating.Header" xml:space="preserve">
+    <value>[ !!! Ƒééééðḅääĉķ &amp; Ŕääţïïñĝ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_FeedbackRating.Description" xml:space="preserve">
+    <value>[ !!! Šĥääŕéé ýööúúŕ ƒééééðḅääĉķ ḅý ŕääţïïñĝ ţĥéé ääþþ. Ýööúúŕ ïïñþúúţ ĥééłþš úúš ïïɱþŕööṽéé ƒééääţúúŕééš ääñð ðééłïïṽééŕ ää ḅééţţééŕ ééẋþééŕïïééñĉéé. !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_RateThisAppButton.Content" xml:space="preserve">
+    <value>[ !!! ⭐ Ŕääţéé ţĥïïš ääþþ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Rate Button</comment>
+  </data>
+  <data name="Settings_IssuesEnhancements.Header" xml:space="preserve">
+    <value>[ !!! Íššúúééš/Éñĥääñĉééɱééñţš !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Issues/Enhancements" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_IssuesEnhancements.Description" xml:space="preserve">
+    <value>[ !!! Íƒ ýööúú ĥääṽéé ääñý ïïššúúééš ööŕ šúúĝĝééšţïïööñš ƒööŕ ééñĥääñĉééɱééñţš, þłééääšéé ööþééñ ääñ ïïššúúéé ööñ ĜïïţĤúúḅ. !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Issues/Enhancements" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_GitHubIssuesButton.Content" xml:space="preserve">
+    <value>[ !!! ĜíťĦûƀ Îššûéš !!! ]</value>
+    <comment>Settings Page -&gt; About Section -&gt; Issues Card -&gt; Open GitHub Issues Button</comment>
+  </data>
+  <data name="Settings_SupportMyWork.Header" xml:space="preserve">
+    <value>[ !!! Šúúþþööŕţ Ṁý Ŵööŕķ !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Support My Work" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_SupportMyWork.Description" xml:space="preserve">
+    <value>[ !!! Łööṽéé ţúúñïïñĝ ïïñ? Ḃúúý ɱéé ää ĉööƒƒéééé ţöö ķééééþ ţĥéé þłääýḅääĉķ šɱööööţĥ ääñð ţĥéé úúþðääţééš ŕööłłïïñĝ! !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Support My Work" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_BuyMeACoffeeButton.Content" xml:space="preserve">
+    <value>[ !!! Šûƥƥôřť Ðévéľôƥméñť ☕ !!! ]</value>
+    <comment>Settings Page -&gt; About Section -&gt; Support Card -&gt; Donation Link Button</comment>
+  </data>
+  <data name="Settings_RelatedLinks.Text" xml:space="preserve">
+    <value>[ !!! Ŕééłääţééð Łïïñķš !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_SourceCode.Content" xml:space="preserve">
+    <value>[ !!! Šööúúŕĉéé Ĉööðéé !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Source Code Hyperlink</comment>
+  </data>
+  <data name="Settings_LeaveAStar.Text" xml:space="preserve">
+    <value>[ !!! (Þłééääšéé, łééääṽéé ää šţääŕ ⭐) !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Star Prompt Note</comment>
+  </data>
+  <data name="Settings_MicrosoftStore.Content" xml:space="preserve">
+    <value>[ !!! Ṁïïĉŕööšööƒţ Šţööŕéé Þääĝéé !!! ]</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Microsoft Store Hyperlink</comment>
+  </data>
+  <data name="Settings_ResetPlaybackHistory.Header" xml:space="preserve">
+    <value>[ !!! Ŕééšééţ Þłääýḅääĉķ Ĥïïšţööŕý !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset Playback History" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ResetPlaybackHistory.Description" xml:space="preserve">
+    <value>[ !!! Ŕééšééţš ţĥéé þłääý ĉööúúñţ ţöö žééŕöö ääñð ĉłééääŕš ţĥéé łääšţ þłääýééð ţïïɱéé ƒööŕ ääłł šööñĝš. !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset Playback History" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ResetAllSettings.Header" xml:space="preserve">
+    <value>[ !!! Ŕééšééţ Áłł Šääṽééð Šééţţïïñĝš !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset All Saved Settings" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ResetAllSettings.Description" xml:space="preserve">
+    <value>[ !!! Íţ ŵïïłł ðééłééţéé ääłł šääṽééð ðääţää ƒŕööɱ Ŵïïñðööŵš Áþþ Ðääţää. Áþþ ŵïïłł ŕééšţääŕţ ääúúţööɱääţïïĉääłłý. !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset All Saved Settings" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ResetButton.Content" xml:space="preserve">
+    <value>[ !!! Ŕééšééţ !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; Reset Cards -&gt; Action Button</comment>
+  </data>
+  <data name="Settings_AreYouSure.Text" xml:space="preserve">
+    <value>[ !!! Áŕéé ýööúú šúúŕéé? !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; Reset Cards -&gt; Confirmation Flyout Warning Text</comment>
+  </data>
+  <data name="Settings_YesButton.Content" xml:space="preserve">
+    <value>[ !!! Ýééš !!! ]</value>
+    <comment>Settings -&gt; Data Management -&gt; Reset Cards -&gt; Confirmation Flyout Confirm Button</comment>
+  </data>
+  <data name="Settings_PendingTagWrites_Singular" xml:space="preserve">
+    <value>[ !!! Ýööúú ĥääṽéé þééñðïïñĝ ţääĝ ŵŕïïţééš ţöö {0} ƒïïłéé. !!! ]</value>
+    <comment>Settings -&gt; Banner Warning -&gt; Pending Tag Writes (Singular)</comment>
+  </data>
+  <data name="Settings_PendingTagWrites_Plural" xml:space="preserve">
+    <value>[ !!! Ýööúú ĥääṽéé þééñðïïñĝ ţääĝ ŵŕïïţééš ţöö {0} ƒïïłééš. !!! ]</value>
+    <comment>Settings -&gt; Banner Warning -&gt; Pending Tag Writes (Plural)</comment>
+  </data>
+  <data name="Settings_Notify_PleaseFullScan" xml:space="preserve">
+    <value>[ !!! Þłééääšéé ðöö ää Ƒúúłł Šĉääñ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Library Full Scan Reminder</comment>
+  </data>
+  <data name="Settings_Notify_ErrorAddingFolder" xml:space="preserve">
+    <value>[ !!! Éŕŕööŕ Áððïïñĝ ţĥéé ƒööłðééŕ. Ṁääķéé šúúŕéé ţĥéé ƒööłðééŕ þääţĥ ðööééšñ'ţ ĉööñţääïïñ ääñý šĥööŕţĉúúţš. Íţ'š ḅééţţééŕ ţöö þŕööṽïïðéé ĉööɱþłééţéé ƒööłðééŕ þääţĥ. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Add Folder Error</comment>
+  </data>
+  <data name="Settings_Notify_AllLibrariesRemoved" xml:space="preserve">
+    <value>[ !!! Áłł łïïḅŕääŕïïééš ääŕéé ŕééɱööṽééð. Þłééääšéé ääðð ääţłééääšţ ööñéé. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; All Libraries Removed Warning</comment>
+  </data>
+  <data name="Settings_Notify_AtLeastOneFormat" xml:space="preserve">
+    <value>[ !!! Áţ łééääšţ ööñéé ƒööŕɱääţ ɱúúšţ ḅéé ééñääḅłééð !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Format Selection Warning</comment>
+  </data>
+  <data name="Settings_Notify_LanguageRestart" xml:space="preserve">
+    <value>[ !!! Ţĥéé šééłééĉţééð łääñĝúúääĝéé ŵïïłł ḅéé ääþþłïïééð ŵĥééñ ääþþ ŕééšţääŕţš. !!! ]</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Language Change Notice</comment>
+  </data>
+  <data name="MusicDownloader_Quote" xml:space="preserve">
+    <value>[ !!! Ŵĥééŕéé ŵööŕðš ƒääïïł, ɱúúšïïĉ šþééääķš. !!! ]</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; Quote Text</comment>
+  </data>
+  <data name="MusicDownloader_Author" xml:space="preserve">
+    <value>[ !!! - Ĥääñš Ĉĥŕïïšţïïääñ Áñðééŕšééñ !!! ]</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; Author Attribution</comment>
+  </data>
+  <data name="MusicDownloader_Desc" xml:space="preserve">
+    <value>[ !!! Ðööŵñłööääð šööñĝš, ääłḅúúɱš, þłääýłïïšţš ðïïŕééĉţłý ţöö ýööúúŕ łïïḅŕääŕý. !!! ]</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; Feature Description</comment>
+  </data>
+  <data name="MusicDownloader_Button" xml:space="preserve">
+    <value>[ !!! Éẋþłööŕéé Ţúúñééţääšţïïĉ Ðööŵñłööääðééŕ ⚡ !!! ]</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; External Downloader Link Button</comment>
+  </data>
+  <data name="Action_Play.Text" xml:space="preserve">
+    <value>[!!! Þℓáý !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Play" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_Play_ToolTip" xml:space="preserve">
+    <value>[!!! Þℓáý ţĥïš šôñğ/ţřáçḳ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Play" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_PlayGroup.Text" xml:space="preserve">
+    <value>[!!! Þℓáý !!!]</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Play" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_PlayGroup_ToolTip" xml:space="preserve">
+    <value>[!!! Þℓáý ţĥïš ğřôúþ ôƒ šôñğš/ţřáçḳš !!!]</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Play" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_AddToPlaylist.Text" xml:space="preserve">
+    <value>[!!! Åđđ ţô þℓáýℓïšţ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Add to playlist" Submenu -&gt; Label</comment>
+  </data>
+  <data name="Action_AddToQueue.Text" xml:space="preserve">
+    <value>[!!! Åđđ ţô ǫúéúé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_AddToQueue_ToolTip" xml:space="preserve">
+    <value>[!!! Åđđ ţĥïš šôñğ/ţřáçḳ ţô ţĥé ǫúéúé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_AddToQueueGroup.Text" xml:space="preserve">
+    <value>[!!! Åđđ ţô ǫúéúé !!!]</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_AddToQueueGroup_ToolTip" xml:space="preserve">
+    <value>[!!! Åđđ ţĥïš ğřôúþ ôƒ šôñğš/ţřáçḳš ţô ţĥé ǫúéúé !!!]</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_InfoTag.Text" xml:space="preserve">
+    <value>[!!! Ïñƒô/Ťáğ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Info/Tag" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_DeleteTrack.Text" xml:space="preserve">
+    <value>[!!! Ðéℓéţé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_DeleteTrack_ToolTip" xml:space="preserve">
+    <value>[!!! Ðéℓéţé ţĥïš šôñğ/ţřáçḳ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_DeleteGroup.Text" xml:space="preserve">
+    <value>[!!! Ðéℓéţé !!!]</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_DeleteGroup_ToolTip" xml:space="preserve">
+    <value>[!!! Ðéℓéţé ţĥïš ğřôúþ ôƒ šôñğš/ţřáçḳš !!!]</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_MultiSelect_ToolTip" xml:space="preserve">
+    <value>[!!! Ťúřñ ôñ ɱúℓţï-šéℓéçţ ɱôđé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Multi-Select Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_ShuffleAndPlay_ToolTip" xml:space="preserve">
+    <value>[!!! Šĥúƒƒℓé Åñđ Þℓáý Åℓℓ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Shuffle &amp; Play All Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_PlayAll_ToolTip" xml:space="preserve">
+    <value>[!!! Þℓáý Åℓℓ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Play All Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToPlaylist.Text" xml:space="preserve">
+    <value>[!!! Åđđ ţô þℓáýℓïšţ !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Add to playlist" Submenu -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueue.Text" xml:space="preserve">
+    <value>[!!! Åđđ ţô ǫúéúé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueue_ToolTip" xml:space="preserve">
+    <value>[!!! Åđđ šéℓéçţéđ šôñğš/ţřáçḳš ţô ţĥé ǫúéúé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueueGroup.Text" xml:space="preserve">
+    <value>[!!! Åđđ ţô ǫúéúé !!!]</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueueGroup_ToolTip" xml:space="preserve">
+    <value>[!!! Åđđ šéℓéçţéđ ğřôúþš ôƒ šôñğš/ţřáçḳš ţô ţĥé ǫúéúé !!!]</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_Delete.Text" xml:space="preserve">
+    <value>[!!! Ðéℓéţé !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_Delete_ToolTip" xml:space="preserve">
+    <value>[!!! Ðéℓéţé šéℓéçţéđ šôñğš/ţřáçḳš !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_DeleteGroup.Text" xml:space="preserve">
+    <value>[!!! Ðéℓéţé !!!]</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_DeleteGroup_ToolTip" xml:space="preserve">
+    <value>[!!! Ðéℓéţé šéℓéçţéđ ğřôúþš ôƒ šôñğš/ţřáçḳš !!!]</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="EmptyState_NoSongs.Text" xml:space="preserve">
+    <value>[!!! Ñô šôñğš ôř ţřáçḳš ƒôúñđ. Þℓéášé, çĥéçḳ ýôúř šéţţïñğš ţô éñšúřé ýôúř ℓïḅřářïéš ářé áđđéđ áñđ šôñğš/ţřáçḳš ĥáṽé ḅééñ šçáññéđ. !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Empty State -&gt; Informational Text</comment>
+  </data>
+  <data name="EmptyState_OpenSettings.Content" xml:space="preserve">
+    <value>[!!! Ôþéñ Šéţţïñğš !!!]</value>
+    <comment>Library &amp; Playlists -&gt; Empty State -&gt; "Open Settings" Action Button -&gt; Label</comment>
+  </data>
+  <data name="EmptyState_PlaylistEmpty.Text" xml:space="preserve">
+    <value>[!!! Åđđ šôɱé šôñğš ôř ţřáçḳš ţô ţĥïš þℓáýℓïšţ ţô šéé ţĥéɱ ĥéřé. !!!]</value>
+    <comment>Playlists -&gt; Empty State -&gt; Informational Text</comment>
+  </data>
+  <data name="DeleteDialog_ConfirmDialog.Title" xml:space="preserve">
+    <value>[!!! Çôñƒïřɱ Ðéℓéţïôñ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="DeleteDialog_ConfirmDialog.PrimaryButtonText" xml:space="preserve">
+    <value>[!!! Ðéℓéţé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; "Delete" Action Button -&gt; Label</comment>
+  </data>
+  <data name="DeleteDialog_ConfirmDialog.SecondaryButtonText" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="DeleteDialog_UndoneWarning.Text" xml:space="preserve">
+    <value>[!!! Ťĥïš áçţïôñ çáññôţ ḅé úñđôñé. !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Permanent Action Warning -&gt; Text</comment>
+  </data>
+  <data name="DeleteDialog_AlbumSongs_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ Åℓḅúɱ {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Album Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_AlbumSongs_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ Åℓḅúɱ {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Album Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedAlbums_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ šéℓéçţéđ áℓḅúɱš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Albums Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedAlbums_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ šéℓéçţéđ áℓḅúɱš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Albums Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_ArtistSongs_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ Åřţïšţ {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Artist Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_ArtistSongs_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ Åřţïšţ {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Artist Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedArtists_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ šéℓéçţéđ ářţïšţš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Artists Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedArtists_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ šéℓéçţéđ ářţïšţš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Artists Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_GenreSongs_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ Ĝéñřé {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Genre Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_GenreSongs_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ Ĝéñřé {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Genre Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedGenres_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ šéℓéçţéđ ğéñřéš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Genres Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedGenres_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ šéℓéçţéđ ğéñřéš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Genres Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_YearSongs_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ Ýéář {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Year Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_YearSongs_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ Ýéář {1} ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Year Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedYears_Singular" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ôƒ šéℓéçţéđ ýéářš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Years Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedYears_Plural" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé ţĥéšé {0} šôñğš/ţřáçḳš ôƒ šéℓéçţéđ ýéářš ƒřôɱ ýôúř šýšţéɱ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Years Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_Playlist_Confirm" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô đéℓéţé {0} ÞℓáýŁïšţ? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Playlist Dialog -&gt; Playlist Deletion Confirmation Prompt</comment>
+  </data>
+  <data name="RecentlyPlayed_Title.Text" xml:space="preserve">
+    <value>[!!! Řéçéñţℓý Þℓáýéđ !!!]</value>
+    <comment>Playlists -&gt; Recently Played View -&gt; Page Header -&gt; Title</comment>
+  </data>
+  <data name="RecentlyPlayed_Title_ToolTip" xml:space="preserve">
+    <value>[!!! Řéçéñţℓý Þℓáýéđ šôñğš/ţřáçḳš ŵïℓℓ ḅé đïšþℓáýéđ ĥéřé !!!]</value>
+    <comment>Playlists -&gt; Recently Played View -&gt; Page Header -&gt; Tooltip</comment>
+  </data>
+  <data name="RecentlyAdded_Title.Text" xml:space="preserve">
+    <value>[!!! Řéçéñţℓý Åđđéđ !!!]</value>
+    <comment>Playlists -&gt; Recently Added View -&gt; Page Header -&gt; Title</comment>
+  </data>
+  <data name="RecentlyAdded_Title_ToolTip" xml:space="preserve">
+    <value>[!!! Řéçéñţℓý Åđđéđ ôř Ṁôđïƒïéđ šôñğš/ţřáçḳš ŵïℓℓ ḅé đïšþℓáýéđ ĥéřé !!!]</value>
+    <comment>Playlists -&gt; Recently Added View -&gt; Page Header -&gt; Tooltip</comment>
+  </data>
+  <data name="MostPlayed_Title.Text" xml:space="preserve">
+    <value>[!!! Ṁôšţℓý Þℓáýéđ !!!]</value>
+    <comment>Playlists -&gt; Most Played View -&gt; Page Header -&gt; Title</comment>
+  </data>
+  <data name="MostPlayed_Title_ToolTip" xml:space="preserve">
+    <value>[!!! Ṁôšţℓý Þℓáýéđ šôñğš/ţřáçḳš ŵïℓℓ ḅé đïšþℓáýéđ ĥéřé !!!]</value>
+    <comment>Playlists -&gt; Most Played View -&gt; Page Header -&gt; Tooltip</comment>
+  </data>
+  <data name="Breadcrumb_Albums.Text" xml:space="preserve">
+    <value>[!!! Åℓḅúɱš !!!]</value>
+    <comment>Library -&gt; Album Detail View -&gt; Breadcrumb Navigation -&gt; "Albums" Link</comment>
+  </data>
+  <data name="Breadcrumb_Artists.Text" xml:space="preserve">
+    <value>[!!! Åřţïšţš !!!]</value>
+    <comment>Library -&gt; Artist Detail View -&gt; Breadcrumb Navigation -&gt; "Artists" Link</comment>
+  </data>
+  <data name="Breadcrumb_Genres.Text" xml:space="preserve">
+    <value>[!!! Ĝéñřéš !!!]</value>
+    <comment>Library -&gt; Genre Detail View -&gt; Breadcrumb Navigation -&gt; "Genres" Link</comment>
+  </data>
+  <data name="Breadcrumb_Years.Text" xml:space="preserve">
+    <value>[!!! Ýéářš !!!]</value>
+    <comment>Library -&gt; Year Detail View -&gt; Breadcrumb Navigation -&gt; "Years" Link</comment>
+  </data>
+  <data name="PlayList_ReorderButton_ToolTip" xml:space="preserve">
+    <value>[!!! Řéôřđéř þℓáýℓïšţ ţřáçḳš !!!]</value>
+    <comment>Playlists -&gt; Top Action Bar -&gt; Reorder Tracks Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_SettingsButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť Šéťťíñĝš !!! ]</value>
+    <comment>Playlist View -&gt; Header Action Bar -&gt; Settings Flyout -&gt; Playlist Settings Button Tooltip</comment>
+  </data>
+  <data name="PlayList_SortPlaylist.Text" xml:space="preserve">
+    <value>[!!! Šôřţ Þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Sort_PlayCount.Text" xml:space="preserve">
+    <value>[!!! Þℓáý Çôúñţ !!!]</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; "Play Count" Option</comment>
+  </data>
+  <data name="PlayList_Sort_ModifiedTime.Text" xml:space="preserve">
+    <value>[!!! Ṁôđïƒïéđ Ťïɱé !!!]</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; "Modified Time" Option</comment>
+  </data>
+  <data name="PlayList_RenamePlaylist.Text" xml:space="preserve">
+    <value>[!!! Řéñáɱé Þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Rename Playlist" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_ExportPlaylist.Text" xml:space="preserve">
+    <value>[!!! Éẋþôřţ Þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Export Playlist" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_DeletePlaylist.Text" xml:space="preserve">
+    <value>[!!! Ðéℓéţé Þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Delete Playlist" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Move.Text" xml:space="preserve">
+    <value>[!!! Ṁôṽé !!!]</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Move" Submenu -&gt; Label</comment>
+  </data>
+  <data name="PlayList_MoveToTop_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé ťĥíš ťřáçķ ťô ťĥé ťôƥ ôƒ ťĥé ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Top Item Tooltip</comment>
+  </data>
+  <data name="PlayList_MoveUp_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé ťĥíš ťřáçķ ûƥ ƀŷ ôñé ƥôšíťíôñ !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Up Item Tooltip</comment>
+  </data>
+  <data name="PlayList_MoveDown_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé ťĥíš ťřáçķ ďôŵñ ƀŷ ôñé ƥôšíťíôñ !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Down Item Tooltip</comment>
+  </data>
+  <data name="PlayList_MoveToBottom_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé ťĥíš ťřáçķ ťô ťĥé ƀôťťôm ôƒ ťĥé ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Bottom Item Tooltip</comment>
+  </data>
+  <data name="PlayList_Remove_ToolTip" xml:space="preserve">
+    <value>[!!! Řéɱôṽé ţĥïš šôñğ/ţřáçḳ ƒřôɱ ţĥé þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Remove" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToTop.Text" xml:space="preserve">
+    <value>[!!! Ṁôṽé ţô Ťôþ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Top" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToTop_ToolTip" xml:space="preserve">
+    <value>[!!! Ṁôṽé šéℓéçţéđ ţřáçḳš ţô ţĥé ţôþ ôƒ ţĥé þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Top" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveUp.Text" xml:space="preserve">
+    <value>[!!! Ṁôṽé Ûþ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Up" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveUp_ToolTip" xml:space="preserve">
+    <value>[!!! Ṁôṽé šéℓéçţéđ ţřáçḳš úþ ḅý ôñé þôšïţïôñ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Up" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveDown.Text" xml:space="preserve">
+    <value>[!!! Ṁôṽé Ðôŵñ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Down" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveDown_ToolTip" xml:space="preserve">
+    <value>[!!! Ṁôṽé šéℓéçţéđ ţřáçḳš đôŵñ ḅý ôñé þôšïţïôñ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Down" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToBottom.Text" xml:space="preserve">
+    <value>[!!! Ṁôṽé ţô Ḃôţţôɱ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Bottom" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToBottom_ToolTip" xml:space="preserve">
+    <value>[!!! Ṁôṽé šéℓéçţéđ ţřáçḳš ţô ţĥé ḅôţţôɱ ôƒ ţĥé þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Bottom" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_Remove.Text" xml:space="preserve">
+    <value>[!!! Řéɱôṽé !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Remove" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_Remove_ToolTip" xml:space="preserve">
+    <value>[!!! Řéɱôṽé šéℓéçţéđ šôñğš/ţřáçḳš ƒřôɱ ţĥé þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Remove" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="ExportDialog_Window.Title" xml:space="preserve">
+    <value>[!!! Éẋþôřţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="ExportDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>[!!! Éẋþôřţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; "Export" Action Button -&gt; Label</comment>
+  </data>
+  <data name="ExportDialog_Window.SecondaryButtonText" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="ExportDialog_Notice.Text" xml:space="preserve">
+    <value>[!!! Ťĥé þℓáýℓïšţ ŵïℓℓ ḅé éẋþôřţéđ áš çĥôôšéñ ƒôřɱáţ áñđ šáṽéđ ţô Ðôŵñℓôáđš ƒôℓđéř. !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; Informational Notice -&gt; Text</comment>
+  </data>
+  <data name="ExportDialog_FileName.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř Þℓáýℓïšţ ƒïℓé ñáɱé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; File Name Input -&gt; Placeholder</comment>
+  </data>
+  <data name="RenameDialog_Window.Title" xml:space="preserve">
+    <value>[!!! Řéñáɱé Þℓáýℓïšţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="RenameDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>[!!! Řéñáɱé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; "Rename" Action Button -&gt; Label</comment>
+  </data>
+  <data name="RenameDialog_Window.SecondaryButtonText" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="RenameDialog_Name.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř ñéŵ þℓáýℓïšţ ñáɱé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; Playlist Name Input -&gt; Placeholder</comment>
+  </data>
+  <data name="MusicControl_Play" xml:space="preserve">
+    <value>[!!! Þℓáý !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Play / Pause Button -&gt; Play State Tooltip</comment>
+  </data>
+  <data name="MusicControl_Pause" xml:space="preserve">
+    <value>[!!! Þáúšé !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Play / Pause Button -&gt; Pause State Tooltip</comment>
+  </data>
+  <data name="MusicControl_ShuffleOn" xml:space="preserve">
+    <value>[!!! Šĥúƒƒℓé Ôñ !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Shuffle Button -&gt; Enabled State Tooltip</comment>
+  </data>
+  <data name="MusicControl_ShuffleOff" xml:space="preserve">
+    <value>[!!! Šĥúƒƒℓé Ôƒƒ !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Shuffle Button -&gt; Disabled State Tooltip</comment>
+  </data>
+  <data name="MusicControl_RepeatAll" xml:space="preserve">
+    <value>[!!! Řéþéáţ Åℓℓ !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Repeat Button -&gt; Repeat All Mode Tooltip</comment>
+  </data>
+  <data name="MusicControl_RepeatOne" xml:space="preserve">
+    <value>[!!! Řéþéáţ Ôñé !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Repeat Button -&gt; Repeat One Mode Tooltip</comment>
+  </data>
+  <data name="MusicControl_RepeatOff" xml:space="preserve">
+    <value>[!!! Řéþéáţ Ôƒƒ !!!]</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Repeat Button -&gt; Repeat Off Mode Tooltip</comment>
+  </data>
+  <data name="MusicControl_IdleSongTitle" xml:space="preserve">
+    <value>[!!! Þℓéášé šéℓéçţ á šôñğ !!!]</value>
+    <comment>Playback Bar -&gt; Track Info -&gt; Idle Title Display -&gt; Text</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Previous" xml:space="preserve">
+    <value>[!!! Þřéṽïôúš !!!]</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Previous Track Button -&gt; Tooltip</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Play" xml:space="preserve">
+    <value>[!!! Þℓáý !!!]</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Play Button -&gt; Tooltip</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Next" xml:space="preserve">
+    <value>[!!! Ñéẋţ !!!]</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Next Track Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_HoldToDecrease_ToolTip" xml:space="preserve">
+    <value>[!!! Ħôℓđ ţô Ðéçřéášé !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Decrease Offset Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_HoldToIncrease_ToolTip" xml:space="preserve">
+    <value>[!!! Ħôℓđ ţô Ïñçřéášé !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Increase Offset Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_AcceptAndSave_ToolTip" xml:space="preserve">
+    <value>[!!! Åççéþţ áñđ Šáṽé !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; "Accept and Save" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_SaveAsOffset.Content" xml:space="preserve">
+    <value>[!!! Šáṽé áš ôƒƒšéţ ɱéţáđáţá !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Offset Option Label</comment>
+  </data>
+  <data name="Lyrics_SaveAsOffset_ToolTip" xml:space="preserve">
+    <value>[!!! Šáṽé áš ôƒƒšéţ ɱéţáđáţá ïñ ţĥé ℓřç ƒïℓé. Łïḳé [ôƒƒšéţ:±ñúɱḅéř]. !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Offset Option Tooltip</comment>
+  </data>
+  <data name="Lyrics_SaveByModifying.Content" xml:space="preserve">
+    <value>[!!! Šáṽé ḅý ɱôđïƒýïñğ ţïɱéšţáɱþš !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Modify Timestamps Option Label</comment>
+  </data>
+  <data name="Lyrics_SaveByModifying_ToolTip" xml:space="preserve">
+    <value>[!!! Šáṽé ḅý çĥáñğïñğ ţïɱéšţáɱþš ïñ ţĥé ℓřç ƒïℓé. !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Modify Timestamps Option Tooltip</comment>
+  </data>
+  <data name="Lyrics_Cancel_ToolTip" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; "Cancel" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_AddToPlaylist_ToolTip" xml:space="preserve">
+    <value>[!!! Åđđ ţô Þℓáýℓïšţ !!!]</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Add to Playlist" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_SongInfo_ToolTip" xml:space="preserve">
+    <value>[!!! Šôñğ/Ťřáçḳ Ïñƒô !!!]</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Song Information" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_ShowLyrics_ToolTip" xml:space="preserve">
+    <value>[!!! Šĥôŵ Łýřïçš !!!]</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Show Lyrics" Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_HideLyrics_ToolTip" xml:space="preserve">
+    <value>[!!! Ħïđé Łýřïçš !!!]</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Hide Lyrics" Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_ToolTip" xml:space="preserve">
+    <value>[!!! Łýřïçš Ṁéñú !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Action Bar -&gt; "Lyrics Menu" Dropdown Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Copy_ToolTip" xml:space="preserve">
+    <value>[!!! Çôþý ţĥé ℓýřïçš !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Copy Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Edit_ToolTip" xml:space="preserve">
+    <value>[!!! Éđïţ ţĥé ℓýřïçš !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Edit Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Sync_ToolTip" xml:space="preserve">
+    <value>[!!! Šýñçřôñïžé ţĥé ℓýřïçš !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Synchronize Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Search_ToolTip" xml:space="preserve">
+    <value>[!!! Šéářçĥ ƒôř ℓýřïçš ôñ ïñţéřñéţ !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Search Online" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Clear_ToolTip" xml:space="preserve">
+    <value>[!!! Çℓéář ţĥé éẋïšţïñğ ℓýřïçš !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Clear Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_OpenLrc_ToolTip" xml:space="preserve">
+    <value>[!!! Ôþéñ ţĥé ℓřç ƒïℓé !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Open LRC File" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_EditDialog.Title" xml:space="preserve">
+    <value>[!!! Éđïţ Łýřïçš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="Lyrics_EditDialog.PrimaryButtonText" xml:space="preserve">
+    <value>[!!! Šáṽé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; "Save" Action Button -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_EditDialog.SecondaryButtonText" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_Libraries.Text" xml:space="preserve">
+    <value>[!!! Łïḅřářïéš !!!]</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Libraries" Stat -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_Folders.Text" xml:space="preserve">
+    <value>[!!! Ƒôℓđéřš !!!]</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Folders" Stat -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_Songs.Text" xml:space="preserve">
+    <value>[!!! Šôñğš !!!]</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Songs" Stat -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_LastScanned.Text" xml:space="preserve">
+    <value>[!!! Łášţ šçáññéđ !!!]</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Last Scanned" Stat -&gt; Label</comment>
+  </data>
+  <data name="Tray_Open.Text" xml:space="preserve">
+    <value>[!!! Ôþéñ !!!]</value>
+    <comment>System Tray -&gt; Context Menu -&gt; "Open" Item -&gt; Label</comment>
+  </data>
+  <data name="Tray_Exit.Text" xml:space="preserve">
+    <value>[!!! Éẋïţ !!!]</value>
+    <comment>System Tray -&gt; Context Menu -&gt; "Exit" Item -&gt; Label</comment>
+  </data>
+  <data name="AutoSync_Title" xml:space="preserve">
+    <value>[!!! Åúţô Šýñç !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="AutoSync_Message" xml:space="preserve">
+    <value>[!!! Å ℓářğé ñúɱḅéř ôƒ ƒïℓé çĥáñğéš ŵéřé đéţéçţéđ. Þℓéášé, đô á ƒúℓℓ šçáñ ţô šýñç ℓïḅřářïéš, ôţĥéřŵïšé ţĥé ℓïḅřářïéš ŵïℓℓ šýñç ôñ áþþ řéšţářţ. !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; Message Body -&gt; Text</comment>
+  </data>
+  <data name="AutoSync_OpenSettings" xml:space="preserve">
+    <value>[!!! Ôþéñ Šéţţïñğš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; "Open Settings" Action Button -&gt; Label</comment>
+  </data>
+  <data name="AutoSync_Later" xml:space="preserve">
+    <value>[!!! Łáţéř !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; "Later" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfoDialog_Window.Title" xml:space="preserve">
+    <value>[!!! Šôñğ/Ťřáçḳ Ïñƒôřɱáţïôñ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="SongInfoDialog_Window.CloseButtonText" xml:space="preserve">
+    <value>[!!! Çℓôšé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Close" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfoDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>[!!! Éđïţ Ðéţáïℓš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Edit Details" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfo_HasLyrics.Content" xml:space="preserve">
+    <value>[!!! 🎵 Ħáš Łýřïçš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Standard Lyrics</comment>
+  </data>
+  <data name="SongInfo_HasSyncedLyrics.Content" xml:space="preserve">
+    <value>[!!! 🎵 Ħáš Šýñçéđ Łýřïçš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Synced Lyrics</comment>
+  </data>
+  <data name="SongInfo_ClearButton_ToolTip" xml:space="preserve">
+    <value>[!!! Çℓéář !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Clear Playback Stats" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="SongInfo_ClearPrompt.Text" xml:space="preserve">
+    <value>[!!! Åřé ýôú šúřé ýôú ŵáñţ ţô çℓéář Þℓáý çôúñţ áñđ Łášţ Þℓáýéđ Ðáţé-Ťïɱé? !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Clear Stats Confirmation -&gt; Text</comment>
+  </data>
+  <data name="SongInfo_ClearConfirmYes.Content" xml:space="preserve">
+    <value>[!!! Ýéš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Clear Stats Confirmation -&gt; "Yes" Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfo_Label_Title.Text" xml:space="preserve">
+    <value>[!!! Ťïţℓé: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Title Label</comment>
+  </data>
+  <data name="SongInfo_Label_Artists.Text" xml:space="preserve">
+    <value>[!!! Åřţïšţš: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Artists Label</comment>
+  </data>
+  <data name="SongInfo_Label_Album.Text" xml:space="preserve">
+    <value>[!!! Åℓḅúɱ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Album Label</comment>
+  </data>
+  <data name="SongInfo_Label_Genre.Text" xml:space="preserve">
+    <value>[!!! Ĝéñřé: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Genre Label</comment>
+  </data>
+  <data name="SongInfo_Label_Year.Text" xml:space="preserve">
+    <value>[!!! Ýéář: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Year Label</comment>
+  </data>
+  <data name="SongInfo_Label_Track.Text" xml:space="preserve">
+    <value>[!!! Ťřáçḳ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Track Label</comment>
+  </data>
+  <data name="SongInfo_Label_Duration.Text" xml:space="preserve">
+    <value>[!!! Ðúřáţïôñ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Duration Label</comment>
+  </data>
+  <data name="SongInfo_Label_Size.Text" xml:space="preserve">
+    <value>[!!! Šïžé: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Size Label</comment>
+  </data>
+  <data name="SongInfo_Label_Added.Text" xml:space="preserve">
+    <value>[!!! Åđđéđ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Added Label</comment>
+  </data>
+  <data name="SongInfo_Label_Path.Text" xml:space="preserve">
+    <value>[!!! Þáţĥ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Path Label</comment>
+  </data>
+  <data name="SongInfo_Label_Channel.Text" xml:space="preserve">
+    <value>[!!! Çĥáññéℓ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Channel Label</comment>
+  </data>
+  <data name="SongInfo_Label_BitRate.Text" xml:space="preserve">
+    <value>[!!! Ḃïţ řáţé: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Bit Rate Label</comment>
+  </data>
+  <data name="SongInfo_Label_SampleRate.Text" xml:space="preserve">
+    <value>[!!! Šáɱþℓé řáţé: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Sample Rate Label</comment>
+  </data>
+  <data name="SongInfo_Label_CodecDescription.Text" xml:space="preserve">
+    <value>[!!! Çôđéç Ðéšçřïþţïôñ: !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Codec Description Label</comment>
+  </data>
+  <data name="EditSongDialog_Window.Title" xml:space="preserve">
+    <value>[!!! Éđïţ Šôñğ/Ťřáçḳ Ïñƒô !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="EditSongDialog_Window.CloseButtonText" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="EditSongDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>[!!! Šáṽé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; "Save" Action Button -&gt; Label</comment>
+  </data>
+  <data name="EditSong_CoverArt.Text" xml:space="preserve">
+    <value>[!!! Çôṽéř Åřţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; Header</comment>
+  </data>
+  <data name="EditSong_NoArtwork.Text" xml:space="preserve">
+    <value>[!!! Ñô ářţŵôřḳ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; Empty Artwork Notice</comment>
+  </data>
+  <data name="EditSong_BrowseCover.Content" xml:space="preserve">
+    <value>[!!! Ḃřôŵšé ñéŵ Çôṽéř ářţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; "Browse New Cover Art" Button -&gt; Label</comment>
+  </data>
+  <data name="EditSong_RemoveCover.Content" xml:space="preserve">
+    <value>[!!! Řéɱôṽé Çôṽéř ářţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; "Remove Cover Art" Button -&gt; Label</comment>
+  </data>
+  <data name="EditSong_Title_Label.Text" xml:space="preserve">
+    <value>[!!! Ťïţℓé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Title</comment>
+  </data>
+  <data name="EditSong_Title_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř ţïţℓé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Title Placeholder</comment>
+  </data>
+  <data name="EditSong_Artists_Label.Text" xml:space="preserve">
+    <value>[!!! Åřţïšţ(š) !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Artist(s)</comment>
+  </data>
+  <data name="EditSong_Artists_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř Åřţïšţ Ñáɱé(š) !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Artist Placeholder</comment>
+  </data>
+  <data name="EditSong_Album_Label.Text" xml:space="preserve">
+    <value>[!!! Åℓḅúɱ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Album</comment>
+  </data>
+  <data name="EditSong_Album_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř Åℓḅúɱ Ñáɱé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Album Placeholder</comment>
+  </data>
+  <data name="EditSong_Genre_Label.Text" xml:space="preserve">
+    <value>[!!! Ĝéñřé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Genre</comment>
+  </data>
+  <data name="EditSong_Genre_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř ğéñřé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Genre Placeholder</comment>
+  </data>
+  <data name="EditSong_Year_Label.Text" xml:space="preserve">
+    <value>[!!! Ýéář !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Year</comment>
+  </data>
+  <data name="EditSong_Year_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř Ýéář !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Year Placeholder</comment>
+  </data>
+  <data name="EditSong_Track_Label.Text" xml:space="preserve">
+    <value>[!!! Ťřáçḳ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Track</comment>
+  </data>
+  <data name="EditSong_Track_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř Ťřáçḳ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Track Placeholder</comment>
+  </data>
+  <data name="EditSong_Lyrics_Label.Text" xml:space="preserve">
+    <value>[!!! Łýřïçš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Lyrics</comment>
+  </data>
+  <data name="EditSong_Lyrics_Box.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř Łýřïçš !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Lyrics Placeholder</comment>
+  </data>
+  <data name="CreatePlaylistDialog_Header.Text" xml:space="preserve">
+    <value>[!!! Çřéáţé Ñéŵ Þℓáýℓïšţ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Dialog Header -&gt; Title</comment>
+  </data>
+  <data name="CreatePlaylistDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>[!!! Éñţéř þℓáýℓïšţ ñáɱé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Input Field -&gt; Placeholder</comment>
+  </data>
+  <data name="CreatePlaylistDialog_BrowseButton.Content" xml:space="preserve">
+    <value>[!!! Ḃřôŵšé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; "Browse" File Button -&gt; Label</comment>
+  </data>
+  <data name="CreatePlaylistDialog_DropZone.Text" xml:space="preserve">
+    <value>[!!! Ðřáğ &amp; đřôþ á þℓáýℓïšţ ƒïℓé ĥéřé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Drop Target Zone -&gt; Guidance Text</comment>
+  </data>
+  <data name="CreatePlaylistDialog_AutoAddNotice.Text" xml:space="preserve">
+    <value>[!!! Ťĥé šéℓéçţéđ šôñğš/ţřáçḳš ŵïℓℓ ḅé áúţôɱáţïçáℓℓý áđđéđ ţô ţĥïš þℓáýℓïšţ. !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Auto-Add Notification -&gt; Text</comment>
+  </data>
+  <data name="CreatePlaylistDialog_CreateButton.Content" xml:space="preserve">
+    <value>[!!! Çřéáţé !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; "Create" Action Button -&gt; Label</comment>
+  </data>
+  <data name="CreatePlaylistDialog_CancelButton.Content" xml:space="preserve">
+    <value>[!!! Çáñçéℓ !!!]</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SearchBox_Tips.Title" xml:space="preserve">
+    <value>[!!! Šéářçĥ ţïþš !!!]</value>
+    <comment>Title Bar -&gt; Center -&gt; Search Box -&gt; Search Tips Flyout Title</comment>
+  </data>
+  <data name="Notification_MinimizedToTray" xml:space="preserve">
+    <value>[ !!! Míñímížéď ťô šŷšťém ťřáŷ !!! ]</value>
+    <comment>Main Window -&gt; System Tray -&gt; Notification Toast -&gt; Info Message</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_Title" xml:space="preserve">
+    <value>[ !!! Řéšťářť Řéqûířéď !!! ]</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Header Title</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_Content" xml:space="preserve">
+    <value>[ !!! Ťĥé ďíšƥľáŷ ľáñĝûáĝé ĥáš ƀééñ ûƥďáťéď. Ƥľéášé řéšťářť Ťûñéťášťíç ťô áƥƥľŷ ťĥé çĥáñĝé áçřôšš áľľ šçřééñš. !!! ]</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Description Message</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_RestartNow" xml:space="preserve">
+    <value>[ !!! Řéšťářť Ñôŵ !!! ]</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_Later" xml:space="preserve">
+    <value>[ !!! Ľáťéř !!! ]</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Close Button</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Title" xml:space="preserve">
+    <value>[ !!! Šçáñ Ľíƀřáříéš !!! ]</value>
+    <comment>Settings Page -&gt; Music Library Section -&gt; Scan Pending Writes Dialog -&gt; Header Title</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Message_Singular" xml:space="preserve">
+    <value>[ !!! Ýôú ĥáṽé þéñđïñğ ţáğ ẅřïţéš ţô {0} ƒïℓé. Iƒ ýôú çôñţïñúé, ïţ ẅïℓℓ řéṽéřţ ţô ïţš ôřïğïñáℓ šţáţé. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; Scan Button -&gt; Pending Writes Warning (Singular)</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Message_Plural" xml:space="preserve">
+    <value>[ !!! Ýôú ĥáṽé þéñđïñğ ţáğ ẅřïţéš ţô {0} ƒïℓéš. Iƒ ýôú çôñţïñúé, ţĥéý ẅïℓℓ řéṽéřţ ţô ţĥéïř ôřïğïñáℓ šţáţé. !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; Scan Button -&gt; Pending Writes Warning (Plural)</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Continue" xml:space="preserve">
+    <value>[ !!! Ĉôñťíñûé !!! ]</value>
+    <comment>Settings Page -&gt; Music Library Section -&gt; Scan Pending Writes Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Cancel" xml:space="preserve">
+    <value>[ !!! Ĉáñçéľ !!! ]</value>
+    <comment>Settings Page -&gt; Music Library Section -&gt; Scan Pending Writes Dialog -&gt; Cancel Button</comment>
+  </data>
+  <data name="Settings_Dialog_ConfigureExtensions_Close" xml:space="preserve">
+    <value>[ !!! Ĉľôšé !!! ]</value>
+    <comment>Settings Page -&gt; File Formats Section -&gt; Category Extensions Dialog -&gt; Close Button</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Title" xml:space="preserve">
+    <value>[ !!! Ðíšáƀľé {0} !!! ]</value>
+    <comment>Settings Page -&gt; Library Selection Section -&gt; Disable Playing Section Dialog -&gt; Header Title</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Message" xml:space="preserve">
+    <value>[ !!! Múšïç ïš çúřřéñţℓý þℓáýïñğ ƒřôɱ {0}. Đïšáḅℓïñğ ïţ ẅïℓℓ šẅïţçĥ þℓáýḅáçḳ ţô Áℓℓ Šôñğš. !!! ]</value>
+    <comment>Settings -&gt; Customization -&gt; Navigation Item Toggle -&gt; Playback Migration Notice</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Continue" xml:space="preserve">
+    <value>[ !!! Ĉôñťíñûé !!! ]</value>
+    <comment>Settings Page -&gt; Library Selection Section -&gt; Disable Playing Section Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Cancel" xml:space="preserve">
+    <value>[ !!! Ĉáñçéľ !!! ]</value>
+    <comment>Settings Page -&gt; Library Selection Section -&gt; Disable Playing Section Dialog -&gt; Cancel Button</comment>
+  </data>
+  <data name="PlaylistValidation_Empty" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť ñámé çáññôť ƀé émƥťŷ !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Empty Name Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_Reserved" xml:space="preserve">
+    <value>[ !!! Ťĥíš ñámé íš řéšéřvéď ƀŷ ťĥé šŷšťém !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; System Reserved Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_InvalidChars" xml:space="preserve">
+    <value>[ !!! Ñámé çôñťáíñš íñváľíď çĥářáçťéřš: \ / : * ? " &lt; &gt; | !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Invalid Characters Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_EndingPeriod" xml:space="preserve">
+    <value>[ !!! Ñámé çáññôť éñď ŵíťĥ á ƥéříôď !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Trailing Period Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_TooLong" xml:space="preserve">
+    <value>[ !!! Ñámé íš ťôô ľôñĝ !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Maximum Length Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_AlreadyExists" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť ñámé áľřéáďŷ éxíšťš !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Duplicate Name Error Message</comment>
+  </data>
+  <data name="PlaylistImport_FilterLabel" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť Ƒíľéš !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Picker -&gt; File Format Filter Label</comment>
+  </data>
+  <data name="PlaylistImport_PickerTitle" xml:space="preserve">
+    <value>[ !!! Šéľéçť Ƥľáŷľíšť Ƒíľé !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Picker -&gt; File Picker Window Title</comment>
+  </data>
+  <data name="PlaylistImport_DragDrop_Default" xml:space="preserve">
+    <value>[ !!! Ðřôƥ ťô ímƥôřť ƥľáŷľíšť !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Drop Zone -&gt; Active Dragging Caption</comment>
+  </data>
+  <data name="PlaylistImport_Error_Unsupported" xml:space="preserve">
+    <value>[ !!! Ñôť á šûƥƥôřťéď ƥľáŷľíšť ƒíľé !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Drop Zone -&gt; Unsupported File Error Message</comment>
+  </data>
+  <data name="PlaylistImport_Prompt_Question" xml:space="preserve">
+    <value>[ !!! Ðô ŷôû ŵáñť ťô ímƥôřť ťĥíš ƥľáŷľíšť? !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Header Question</comment>
+  </data>
+  <data name="PlaylistImport_Label_Playlist" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť: !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Playlist Path Label</comment>
+  </data>
+  <data name="PlaylistImport_Label_Tracks" xml:space="preserve">
+    <value>[ !!! Ťřáçķš: !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Track Count Label</comment>
+  </data>
+  <data name="PlaylistImport_Summary_TracksFound" xml:space="preserve">
+    <value>[ !!! {0} ôûť ôƒ {1} ƒôûñď íñ ľíƀřářŷ !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Tracks Match Summary</comment>
+  </data>
+  <data name="PlaylistImport_Button_Add" xml:space="preserve">
+    <value>[ !!! Âďď Ƥľáŷľíšť !!! ]</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Primary Add Action Button</comment>
+  </data>
+  <data name="Notification_PlaylistCreated" xml:space="preserve">
+    <value>[ !!! {0} Ƥľáŷľíšť çřéáťéď. !!! ]</value>
+    <comment>Main Window -&gt; Notification Toast -&gt; In-App Toast -&gt; Playlist Created Info Message</comment>
+  </data>
+  <data name="Notification_PlaylistAddedWithSongs_Singular" xml:space="preserve">
+    <value>[ !!! {1} Ƥľáŷľíšť áďďéď ŵíťĥ {0} šôñĝ/ťřáçķ. !!! ]</value>
+    <comment>Main Window -&gt; Notification Toast -&gt; In-App Toast -&gt; Playlist Added With One Song Message</comment>
+  </data>
+  <data name="Notification_PlaylistAddedWithSongs_Plural" xml:space="preserve">
+    <value>[ !!! {1} Ƥľáŷľíšť áďďéď ŵíťĥ {0} šôñĝš/ťřáçķš. !!! ]</value>
+    <comment>Main Window -&gt; Notification Toast -&gt; In-App Toast -&gt; Playlist Added With Multiple Songs Message</comment>
+  </data>
+  <data name="SongInfo_Edit_ChangesListHeader_Singular" xml:space="preserve">
+    <value>[ !!! Ťĥé ƒôľľôŵíñĝ çĥáñĝé ŵíľľ ƀé ŵříťťéñ ťô ťĥé ƒíľé: !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Singular Header Message</comment>
+  </data>
+  <data name="SongInfo_Edit_ChangesListHeader_Plural" xml:space="preserve">
+    <value>[ !!! Ťĥé ƒôľľôŵíñĝ çĥáñĝéš ŵíľľ ƀé ŵříťťéñ ťô ťĥé ƒíľé: !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Plural Header Message</comment>
+  </data>
+  <data name="SongInfo_Edit_ConfirmPrompt" xml:space="preserve">
+    <value>[ !!! Âřé ŷôû šûřé ŷôû ŵáñť ťô máķé ťĥéšé çĥáñĝéš? !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Confirmation Question</comment>
+  </data>
+  <data name="SongInfo_Edit_DialogTitle" xml:space="preserve">
+    <value>[ !!! Ĉôñƒířm Ĉĥáñĝéš !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Dialog Title</comment>
+  </data>
+  <data name="SongInfo_Edit_FileNotFound" xml:space="preserve">
+    <value>[ !!! Ƒíľé ñôť ƒôûñď: {0} !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Error Dialog -&gt; File Not Found Message</comment>
+  </data>
+  <data name="SongInfo_NoCoverArt" xml:space="preserve">
+    <value>[ !!! Ñô çôvéř ářť !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Metadata Details -&gt; Missing Cover Art Placeholder</comment>
+  </data>
+  <data name="SongInfo_CoverArt" xml:space="preserve">
+    <value>[ !!! Ĉôvéř Âřť !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Metadata Details -&gt; Cover Art Field Label</comment>
+  </data>
+  <data name="SearchTip_CombinePrefix" xml:space="preserve">
+    <value>[ !!! • Ûšé  !!! ]</value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Prefix Text</comment>
+  </data>
+  <data name="SearchTip_CombineSuffix" xml:space="preserve">
+    <value>[ !!!  ťô çômƀíñé ťéřmš — máťçĥ řéšûľťš áçřôšš ťíťľé, ářťíšť, áľƀûm, ĝéñřé, áñď ŷéář ťôĝéťĥéř !!! ]</value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Suffix Text</comment>
+  </data>
+  <data name="SearchTip_OrPrefix" xml:space="preserve">
+    <value>[ !!! • Ûšé  !!! ]</value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Prefix Text</comment>
+  </data>
+  <data name="SearchTip_OrSuffix" xml:space="preserve">
+    <value>[ !!!  ťô šéářçĥ ƒôř éíťĥéř ťéřm — řéšûľťš máťçĥíñĝ áñŷ ôñé ôƒ ťĥém !!! ]</value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Suffix Text</comment>
+  </data>
+  <data name="ContextMenu_CreateNewPlaylist" xml:space="preserve">
+    <value>[ !!! Ĉřéáťé/Âďď Ñéŵ ƥľáŷľíšť !!! ]</value>
+    <comment>All Song &amp; Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Create New Playlist Entry</comment>
+  </data>
+  <data name="ContextMenu_CreateNewPlaylist_Tooltip" xml:space="preserve">
+    <value>[ !!! Ĉřéáťé/Âďď á ñéŵ ƥľáŷľíšť áñď áďď ťĥé šéľéçťéď šôñĝš/ťřáçķš ťô íť. !!! ]</value>
+    <comment>All Song &amp; Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Create New Playlist Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Song_Single" xml:space="preserve">
+    <value>[ !!! Âďď ťĥíš šôñĝ/ťřáçķ ťô {0} ƥľáŷľíšť !!! ]</value>
+    <comment>All Song Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Single Song Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Song_Multi" xml:space="preserve">
+    <value>[ !!! Âďď šéľéçťéď šôñĝš/ťřáçķš ťô {0} ƥľáŷľíšť !!! ]</value>
+    <comment>All Song Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Multiple Songs Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Group_Single" xml:space="preserve">
+    <value>[ !!! Âďď ťĥíš ĝřôûƥ ôƒ šôñĝš/ťřáçķš ťô {0} ƥľáŷľíšť !!! ]</value>
+    <comment>All Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Single Group Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Group_Multi" xml:space="preserve">
+    <value>[ !!! Âďď šéľéçťéď ĝřôûƥš ôƒ šôñĝš/ťřáçķš ťô {0} ƥľáŷľíšť !!! ]</value>
+    <comment>All Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Multiple Groups Tooltip</comment>
+  </data>
+  <data name="EmptyState_Quote_1_Line1" xml:space="preserve">
+    <value>[ !!! “Évéñ šíľéñçé íš ášķíñĝ ƒôř řôŷáľťíéš.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 1 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_1_Line2" xml:space="preserve">
+    <value>[ !!! Âďď ŷôûř ťřáçķš ôř ťĥíš ƥáĝé šťářťš šéľľíñĝ ámƀíéñť ñôťĥíñĝñéšš áš ÑƑŤš. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 1 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_2_Line1" xml:space="preserve">
+    <value>[ !!! “Ĉûřřéñťľŷ víƀíñĝ ťô ťĥé šôûñď ôƒ ďíšáƥƥôíñťméñť.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 2 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_2_Line2" xml:space="preserve">
+    <value>[ !!! Ĉĥéçķ ŷôûř šéťťíñĝš ôř ťĥíš ƥáĝé šťářťš ĥûmmíñĝ ƥáššívé-áĝĝřéššívéľŷ. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 2 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_3_Line1" xml:space="preserve">
+    <value>[ !!! “Évéñ ŷôûř ƒříďĝé ĥûmš môřé řĥŷťĥm ťĥáñ ťĥíš.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 3 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_3_Line2" xml:space="preserve">
+    <value>[ !!! Âďď ľíƀřáříéš ƀéƒôřé ťĥíš ƥáĝé šťářťš šámƥľíñĝ áƥƥľíáñçé ñôíšéš. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 3 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_4_Line1" xml:space="preserve">
+    <value>[ !!! “Ťĥé šíľéñçé ĥéřé íš ľôûďéř ťĥáñ ŷôûř ûñçľé’š ƥôľíťíçáľ ôƥíñíôñš.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 4 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_4_Line2" xml:space="preserve">
+    <value>[ !!! Šçáñ ŷôûř ťřáçķš ôř ťĥíš ƥáĝé šťářťš ĥôšťíñĝ áŵķŵářď ƒámíľŷ ďíññéřš. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 4 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_5_Line1" xml:space="preserve">
+    <value>[ !!! “Ťĥíš ƥáĝé íš áûďíťíôñíñĝ ƒôř ťĥé řôľé ôƒ ‘ñôťĥíñĝ.’” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 5 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_5_Line2" xml:space="preserve">
+    <value>[ !!! Ĉĥéçķ ŷôûř šéťťíñĝš ƀéƒôřé íť ŵíñš áñ Ôšçář ƒôř ƀéšť íñvíšíƀľé ƥéřƒôřmáñçé. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 5 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_6_Line1" xml:space="preserve">
+    <value>[ !!! “Îť’š šô qûíéť, Î çáñ ĥéář ŷôûř éxíšťéñťíáľ ďřéáď.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 6 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_6_Line2" xml:space="preserve">
+    <value>[ !!! Šçáñ ŷôûř šôñĝš ôř ťĥíš ƥáĝé šťářťš ñářřáťíñĝ ŷôûř íññéř môñôľôĝûé. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 6 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_7_Line1" xml:space="preserve">
+    <value>[ !!! “Ĉûřřéñťľŷ šťřéámíñĝ: ťĥé šôûñď ôƒ ŷôûř ĥôƥéš ƒáďíñĝ.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 7 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_7_Line2" xml:space="preserve">
+    <value>[ !!! Âďď ľíƀřáříéš ƀéƒôřé ťĥíš ƥáĝé šťářťš ŵříťíñĝ ƀřéáķûƥ šôñĝš áƀôûť ŷôû. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 7 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_8_Line1" xml:space="preserve">
+    <value>[ !!! “Évéñ ŷôûř říñĝťôñé ĥáš môřé mûšíçáľ ámƀíťíôñ.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 8 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_8_Line2" xml:space="preserve">
+    <value>[ !!! Šçáñ ŷôûř ťřáçķš ôř ťĥíš ƥáĝé šťářťš řémíxíñĝ ñôťíƒíçáťíôñ šôûñďš. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 8 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_9_Line1" xml:space="preserve">
+    <value>[ !!! “Ťĥé ôñľŷ ťĥíñĝ ƥľáŷíñĝ ĥéřé íš ŷôûř ƥřôçřášťíñáťíôñ.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 9 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_9_Line2" xml:space="preserve">
+    <value>[ !!! Âďď ľíƀřáříéš ƀéƒôřé ťĥíš ƥáĝé šťářťš ĝívíñĝ ƥřôďûçťívíťŷ áďvíçé. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 9 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_10_Line1" xml:space="preserve">
+    <value>[ !!! “Ťĥíš ƥáĝé íš šô émƥťŷ, íť’š çôñšíďéříñĝ á çářééř íñ míñímáľíšm.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 10 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_10_Line2" xml:space="preserve">
+    <value>[ !!! Šçáñ ŷôûř šôñĝš ôř íť šťářťš šéľľíñĝ íñšƥířáťíôñáľ ƥôšťéřš. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 10 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_11_Line1" xml:space="preserve">
+    <value>[ !!! “Évéñ ŷôûř çáť ŵáľķíñĝ áçřôšš ťĥé ķéŷƀôářď máďé môřé ñôíšé.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 11 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_11_Line2" xml:space="preserve">
+    <value>[ !!! Ĉĥéçķ ŷôûř šéťťíñĝš ƀéƒôřé ťĥíš ƥáĝé šťářťš méôŵíñĝ íñ Môřšé çôďé. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 11 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_12_Line1" xml:space="preserve">
+    <value>[ !!! “Ťĥíš íš ľéšš ‘Âľľ Šôñĝš’ áñď môřé ‘Ñôƥé, Ñôñé.’” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 12 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_12_Line2" xml:space="preserve">
+    <value>[ !!! Šçáñ ŷôûř ľíƀřáříéš ôř ťĥíš ƥáĝé šťářťš ĝášľíĝĥťíñĝ ŷôûř mémôřŷ. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 12 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_13_Line1" xml:space="preserve">
+    <value>[ !!! “Îť’š šô qûíéť, Î ťĥôûĝĥť Î ŵáš íñ á mûšéûm.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 13 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_13_Line2" xml:space="preserve">
+    <value>[ !!! Âďď ťřáçķš ƀéƒôřé ťĥíš ƥáĝé šťářťš çĥářĝíñĝ áďmíššíôñ ƒôř šíľéñçé. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 13 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_14_Line1" xml:space="preserve">
+    <value>[ !!! “Ťĥíš ƥáĝé íš çûřřéñťľŷ šťářříñĝ íñ á šíľéñť ƒíľm.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 14 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_14_Line2" xml:space="preserve">
+    <value>[ !!! Šçáñ ŷôûř mûšíç ôř íť šťářťš ŵíññíñĝ áŵářďš ƒôř ďřámáťíç šťíľľñéšš. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 14 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_15_Line1" xml:space="preserve">
+    <value>[ !!! “Évéñ ŷôûř ťĥôûĝĥťš ĥávé á ƀéťťéř ƀéáť.” !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 15 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_15_Line2" xml:space="preserve">
+    <value>[ !!! Ĉĥéçķ ŷôûř šéťťíñĝš ƀéƒôřé ťĥíš ƥáĝé šťářťš ƒřééšťŷľé řáƥƥíñĝ ŷôûř ĝřôçéřŷ ľíšť. !!! ]</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 15 Line 2</comment>
+  </data>
+  <data name="Button_Yes" xml:space="preserve">
+    <value>[ !!! Yes !!! ]</value>
+    <comment>Common Controls -&gt; Dialog Buttons -&gt; Generic Action -&gt; Yes Confirmation Button</comment>
+  </data>
+  <data name="Button_No" xml:space="preserve">
+    <value>[ !!! No !!! ]</value>
+    <comment>Common Controls -&gt; Dialog Buttons -&gt; Generic Action -&gt; No Cancellation Button</comment>
+  </data>
+  <data name="ColumnHeader_Title" xml:space="preserve">
+    <value>[ !!! Ťíťľé !!! ]</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Title Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Artists" xml:space="preserve">
+    <value>[ !!! Âřťíšťš !!! ]</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Artists Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Album" xml:space="preserve">
+    <value>[ !!! Âľƀûm !!! ]</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Album Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Duration" xml:space="preserve">
+    <value>[ !!! Ðûřáťíôñ !!! ]</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Duration Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Played" xml:space="preserve">
+    <value>[ !!! Ƥľáŷéď !!! ]</value>
+    <comment>Most Played View -&gt; Song Table -&gt; Header Row -&gt; Played Count Column Header</comment>
+  </data>
+  <data name="ColumnHeader_ModifiedOn" xml:space="preserve">
+    <value>[ !!! Môďíƒíéď Ôñ !!! ]</value>
+    <comment>Recently Added &amp; Played Views -&gt; Song Table -&gt; Header Row -&gt; Date Modified Column Header</comment>
+  </data>
+  <data name="PlayList_RemoveTrack.Text" xml:space="preserve">
+    <value>[ !!! Řémôvé !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Action Items -&gt; Remove From Playlist Label</comment>
+  </data>
+  <data name="PlayList_RemoveTrack_ToolTip" xml:space="preserve">
+    <value>[ !!! Řémôvé ťĥíš šôñĝ/ťřáçķ ƒřôm ťĥé ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Action Items -&gt; Remove From Playlist Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveToTop.Text" xml:space="preserve">
+    <value>[ !!! Môvé ťô Ťôƥ !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected To Top Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveToTop_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé šéľéçťéď ťřáçķš ťô ťĥé ťôƥ ôƒ ťĥé ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected To Top Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveUp.Text" xml:space="preserve">
+    <value>[ !!! Môvé Ûƥ !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected Up Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveUp_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé šéľéçťéď ťřáçķš ûƥ ƀŷ ôñé ƥôšíťíôñ !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Selected Up Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveDown.Text" xml:space="preserve">
+    <value>[ !!! Môvé Ðôŵñ !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected Down Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveDown_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé šéľéçťéď ťřáçķš ďôŵñ ƀŷ ôñé ƥôšíťíôñ !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Selected Down Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveToBottom.Text" xml:space="preserve">
+    <value>[ !!! Môvé ťô Ɓôťťôm !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected To Bottom Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveToBottom_ToolTip" xml:space="preserve">
+    <value>[ !!! Môvé šéľéçťéď ťřáçķš ťô ťĥé ƀôťťôm ôƒ ťĥé ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Selected To Bottom Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiRemoveTrack.Text" xml:space="preserve">
+    <value>[ !!! Řémôvé !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Action Items -&gt; Remove Selected Tracks Label</comment>
+  </data>
+  <data name="PlayList_MultiRemoveTrack_ToolTip" xml:space="preserve">
+    <value>[ !!! Řémôvé šéľéçťéď šôñĝš/ťřáçķš ƒřôm ťĥé ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Action Items -&gt; Remove Selected Tracks Tooltip</comment>
+  </data>
+  <data name="PlayList_Sort_Title.Text" xml:space="preserve">
+    <value>[ !!! Ťíťľé !!! ]</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Title Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Artists.Text" xml:space="preserve">
+    <value>[ !!! Âřťíšťš !!! ]</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Artists Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Album.Text" xml:space="preserve">
+    <value>[ !!! Âľƀûm !!! ]</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Album Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Year.Text" xml:space="preserve">
+    <value>[ !!! Ŷéář !!! ]</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Year Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Duration.Text" xml:space="preserve">
+    <value>[ !!! Ðûřáťíôñ !!! ]</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Duration Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Track.Text" xml:space="preserve">
+    <value>[ !!! Ťřáçķ !!! ]</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Track Number Sort Submenu Label</comment>
+  </data>
+  <data name="ExportDialog_TextBox.PlaceholderText" xml:space="preserve">
+    <value>[ !!! Éñťéř Ƥľáŷľíšť ƒíľé ñámé !!! ]</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Input Section -&gt; File Name Placeholder</comment>
+  </data>
+  <data name="ExportFormat_M3U8_ToolTip" xml:space="preserve">
+    <value>[ !!! M3Û ÛŤƑ-8 !!! ]</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U8 Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_M3U_ToolTip" xml:space="preserve">
+    <value>[ !!! MƤ3 ÛŘĽ !!! ]</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_PLS_ToolTip" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť Ƒíľé !!! ]</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; PLS Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_WPL_ToolTip" xml:space="preserve">
+    <value>[ !!! Ŵíñďôŵš Méďíá Ƥľáŷéř Ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; WPL Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_ZPL_ToolTip" xml:space="preserve">
+    <value>[ !!! Žûñé Ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; ZPL Format Tooltip</comment>
+  </data>
+  <data name="RenamePlaylistDialog.Title" xml:space="preserve">
+    <value>[ !!! Řéñámé Ƥľáŷľíšť !!! ]</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Dialog Window -&gt; Header Title</comment>
+  </data>
+  <data name="RenamePlaylistDialog.PrimaryButtonText" xml:space="preserve">
+    <value>[ !!! Řéñámé !!! ]</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Action Buttons -&gt; Primary Rename Button</comment>
+  </data>
+  <data name="RenamePlaylistDialog.SecondaryButtonText" xml:space="preserve">
+    <value>[ !!! Ĉáñçéľ !!! ]</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Action Buttons -&gt; Secondary Cancel Button</comment>
+  </data>
+  <data name="RenamePlaylistDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>[ !!! Éñťéř ñéŵ ƥľáŷľíšť ñámé !!! ]</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Input Section -&gt; Playlist Name Placeholder</comment>
+  </data>
+  <data name="CLIOutputColor_Colorful.Content" xml:space="preserve">
+    <value>[ !!! Ĉôľôřƒûľ !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Colorful Option Label</comment>
+  </data>
+  <data name="CLIOutputColor_Colorful_ToolTip" xml:space="preserve">
+    <value>[ !!! Éñáƀľéš říçĥ ÂÑŠÎ çôľôřš, šťáťûš ƀáďĝéš, áñď íñľíñé çôďé ƒôřmáťťíñĝ ƒôř ťéřmíñáľ ôûťƥûť. !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Colorful Option Tooltip</comment>
+  </data>
+  <data name="CLIOutputColor_PlainText.Content" xml:space="preserve">
+    <value>[ !!! Ƥľáíñ Ťéxť !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Plain Text Option Label</comment>
+  </data>
+  <data name="CLIOutputColor_PlainText_ToolTip" xml:space="preserve">
+    <value>[ !!! Môñôçĥřômé ôûťƥûť ŵíťĥôûť éšçáƥé çôďéš; íďéáľ ƒôř řéďířéçťíñĝ ťô ťéxť ƒíľéš ôř míñímáľ ťéřmíñáľš. !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Plain Text Option Tooltip</comment>
+  </data>
+  <data name="LRCOffsetStandard_Official.Content" xml:space="preserve">
+    <value>[ !!! Ôƒƒíçíáľ Šťáñďářď !!! ]</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Official Standard Option Label</comment>
+  </data>
+  <data name="LRCOffsetStandard_Official_ToolTip" xml:space="preserve">
+    <value>[ !!! Ƒôľľôŵš ťĥé ƒôřmáľ ĽŘĈ šƥéçíƒíçáťíôñ. Ƥôšíťívé váľûéš šûƀťřáçť ťímé ťô ďíšƥľáŷ ľŷříçš šôôñéř (áďváñçíñĝ ťĥém), ŵĥíľé ñéĝáťívé váľûéš ďéľáŷ ľŷříçš. Řéçômméñďéď ƒôř çômƥáťíƀíľíťŷ ŵíťĥ šƥéç-çômƥľíáñť ƒíľéš. !!! ]</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Official Standard Option Tooltip</comment>
+  </data>
+  <data name="LRCOffsetStandard_Intuitive.Content" xml:space="preserve">
+    <value>[ !!! Îñťûíťívé/Ľôĝíçáľ !!! ]</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Intuitive Option Label</comment>
+  </data>
+  <data name="LRCOffsetStandard_Intuitive_ToolTip" xml:space="preserve">
+    <value>[ !!! Âƥƥľíéš šťřáíĝĥťƒôřŵářď ťíméšťámƥ áďďíťíôñ. Ƥôšíťívé váľûéš áďď ťímé ťô ďéľáŷ ľŷříçš, ŵĥíľé ñéĝáťívé váľûéš šĥíƒť ľŷříçš éářľíéř. Îďéáľ íƒ ŷôû éxƥéçť + ťô ƥûšĥ ľŷříçš ƒôřŵářď íñťô ťĥé ťíméľíñé. !!! ]</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Intuitive Option Tooltip</comment>
+  </data>
+  <data name="Theme_Light.Content" xml:space="preserve">
+    <value>[ !!! Ľíĝĥť !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; App Theme Dropdown -&gt; Light Theme Option</comment>
+  </data>
+  <data name="Theme_Dark.Content" xml:space="preserve">
+    <value>[ !!! Ðářķ !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; App Theme Dropdown -&gt; Dark Theme Option</comment>
+  </data>
+  <data name="Theme_Default.Content" xml:space="preserve">
+    <value>[ !!! Ðéƒáûľť !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; App Theme Dropdown -&gt; Default Theme Option</comment>
+  </data>
+  <data name="Backdrop_Mica.Content" xml:space="preserve">
+    <value>[ !!! Míçá !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Mica Option</comment>
+  </data>
+  <data name="Backdrop_MicaAlt.Content" xml:space="preserve">
+    <value>[ !!! Míçá Âľť !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Mica Alt Option</comment>
+  </data>
+  <data name="Backdrop_Acrylic.Content" xml:space="preserve">
+    <value>[ !!! Âçřŷľíç !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Acrylic Option</comment>
+  </data>
+  <data name="Backdrop_AcrylicThin.Content" xml:space="preserve">
+    <value>[ !!! Âçřŷľíç Ťĥíñ !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Acrylic Thin Option</comment>
+  </data>
+  <data name="Backdrop_Transparent.Content" xml:space="preserve">
+    <value>[ !!! Ťřáñšƥářéñť !!! ]</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Transparent Option</comment>
+  </data>
+  <data name="TrayIcon_FullColor.Content" xml:space="preserve">
+    <value>[ !!! Ƒûľľ çôľôř !!! ]</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Full Color Option</comment>
+  </data>
+  <data name="TrayIcon_MonochromeAuto.Content" xml:space="preserve">
+    <value>[ !!! Môñôçĥřômé (Âûťô) !!! ]</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Monochrome Auto Option</comment>
+  </data>
+  <data name="TrayIcon_Dark.Content" xml:space="preserve">
+    <value>[ !!! Ðářķ !!! ]</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Dark Option</comment>
+  </data>
+  <data name="TrayIcon_Light.Content" xml:space="preserve">
+    <value>[ !!! Ľíĝĥť !!! ]</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Light Option</comment>
+  </data>
+  <data name="TaskbarOverlayTheme_Default.Content" xml:space="preserve">
+    <value>[ !!! Ðéƒáûľť !!! ]</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Theme Dropdown -&gt; Default Option</comment>
+  </data>
+  <data name="TaskbarOverlayTheme_Light.Content" xml:space="preserve">
+    <value>[ !!! Ľíĝĥť !!! ]</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Theme Dropdown -&gt; Light Option</comment>
+  </data>
+  <data name="TaskbarOverlayTheme_Dark.Content" xml:space="preserve">
+    <value>[ !!! Ðářķ !!! ]</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Theme Dropdown -&gt; Dark Option</comment>
+  </data>
+  <data name="TaskbarOverlaySide_Right.Content" xml:space="preserve">
+    <value>[ !!! Říĝĥť !!! ]</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Position Dropdown -&gt; Right Side Option</comment>
+  </data>
+  <data name="TaskbarOverlaySide_Left.Content" xml:space="preserve">
+    <value>[ !!! Ľéƒť !!! ]</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Position Dropdown -&gt; Left Side Option</comment>
+  </data>
+  <data name="Settings_CheckForUpdates_Button.Content" xml:space="preserve">
+    <value>[ !!! Ĉĥéçķ ƒôř Ñéŵ Véřšíôñ !!! ]</value>
+    <comment>Settings Page -&gt; About Section -&gt; App Version Card -&gt; Check For Updates Button</comment>
+  </data>
+  <data name="Settings_CheckForUpdates_Button.CheckedContent" xml:space="preserve">
+    <value>[ !!! Ĉĥéçķíñĝ... !!! ]</value>
+    <comment>Settings Page -&gt; About Section -&gt; App Version Card -&gt; Check For Updates Loading State</comment>
+  </data>
+  <data name="Settings_EasterEggCard_ToolTip" xml:space="preserve">
+    <value>[ !!! Ĉľíçķ 5 ťíméš ťô řévéáľ !!! ]</value>
+    <comment>Settings Page -&gt; Secret Section -&gt; Downloader Card -&gt; Easter Egg Click Tooltip</comment>
+  </data>
+  <data name="SongInfo_DialogHeader" xml:space="preserve">
+    <value>[ !!! Šôñĝ/Ťřáçķ Îñƒôřmáťíôñ !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Header Section -&gt; Dialog Title Label</comment>
+  </data>
+  <data name="SongInfo_BitRate.Text" xml:space="preserve">
+    <value>[ !!! Ɓíť řáťé: !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Bit Rate Label</comment>
+  </data>
+  <data name="SongInfo_SampleRate.Text" xml:space="preserve">
+    <value>[ !!! Šámƥľé řáťé: !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Sample Rate Label</comment>
+  </data>
+  <data name="SongInfo_CodecDescription.Text" xml:space="preserve">
+    <value>[ !!! Ĉôďéç Ðéšçříƥťíôñ: !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Codec Description Label</comment>
+  </data>
+  <data name="Badge_Changed" xml:space="preserve">
+    <value>[ !!! ĈĦÂÑĜÉÐ !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Fields -&gt; Modified Field Badge</comment>
+  </data>
+  <data name="EditSong_ArtistTip.Title" xml:space="preserve">
+    <value>[ !!! Îñľíñé áûťô-šûĝĝéšťíôñ ƒôř éxíšťíñĝ ářťíšťš. !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Editor -&gt; Artist Input Teaching Tip</comment>
+  </data>
+  <data name="EditSong_AlbumTip.Title" xml:space="preserve">
+    <value>[ !!! Îñľíñé áûťô-šûĝĝéšťíôñ ƒôř éxíšťíñĝ áľƀûmš. !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Editor -&gt; Album Input Teaching Tip</comment>
+  </data>
+  <data name="EditSong_GenreTip.Title" xml:space="preserve">
+    <value>[ !!! Îñľíñé áûťô-šûĝĝéšťíôñ ƒôř éxíšťíñĝ ĝéñřéš. !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Editor -&gt; Genre Input Teaching Tip</comment>
+  </data>
+  <data name="Settings_FormatCategory_TurnOnAll" xml:space="preserve">
+    <value>[!!! Ťúřñ ôñ áℓℓ !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Turn On All Extensions Toggle State</comment>
+  </data>
+  <data name="Settings_FormatCategory_TurnOffAll" xml:space="preserve">
+    <value>[!!! Ťúřñ ôƒƒ áℓℓ !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Turn Off All Extensions Toggle State</comment>
+  </data>
+  <data name="ExportFormat_M3U8.Content" xml:space="preserve">
+    <value>[!!! Ṁ3Û8 !!!]</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U8 File Format Option</comment>
+  </data>
+  <data name="ExportFormat_M3U.Content" xml:space="preserve">
+    <value>[!!! Ṁ3Û !!!]</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U File Format Option</comment>
+  </data>
+  <data name="ExportFormat_PLS.Content" xml:space="preserve">
+    <value>[!!! ÞŁŠ !!!]</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; PLS File Format Option</comment>
+  </data>
+  <data name="ExportFormat_WPL.Content" xml:space="preserve">
+    <value>[!!! ŴÞŁ !!!]</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; WPL File Format Option</comment>
+  </data>
+  <data name="ExportFormat_ZPL.Content" xml:space="preserve">
+    <value>[!!! ŽÞŁ !!!]</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; ZPL File Format Option</comment>
+  </data>
+  <data name="MaxLimit_50.Text" xml:space="preserve">
+    <value>[!!! 50 !!!]</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 50 Tracks Option</comment>
+  </data>
+  <data name="MaxLimit_100.Text" xml:space="preserve">
+    <value>[!!! 100 !!!]</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 100 Tracks Option</comment>
+  </data>
+  <data name="MaxLimit_200.Text" xml:space="preserve">
+    <value>[!!! 200 !!!]</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 200 Tracks Option</comment>
+  </data>
+  <data name="MaxLimit_500.Text" xml:space="preserve">
+    <value>[!!! 500 !!!]</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 500 Tracks Option</comment>
+  </data>
+  <data name="Tooltip_MultiSelect_TurnOff" xml:space="preserve">
+    <value>[!!! Ťúřñ ôƒƒ ɱúℓţï-šéℓéçţ ɱôđé !!!]</value>
+    <comment>Common -&gt; View Action Bar -&gt; Multi-Select Toggle Button -&gt; Turn Off Multi-Select Tooltip</comment>
+  </data>
+  <data name="Tooltip_MultiSelect_TurnOn" xml:space="preserve">
+    <value>[!!! Ťúřñ ôñ ɱúℓţï-šéℓéçţ ɱôđé !!!]</value>
+    <comment>Common -&gt; View Action Bar -&gt; Multi-Select Toggle Button -&gt; Turn On Multi-Select Tooltip</comment>
+  </data>
+  <data name="Sort_Tile_Tooltip_SortedBy" xml:space="preserve">
+    <value>[!!! Ťĥé ţïℓéš ářé šôřţéđ ïñ  !!!]</value>
+    <comment>Common -&gt; View Action Bar -&gt; Sort Order Dropdown -&gt; Tile Sorting Tooltip Prefix</comment>
+  </data>
+  <data name="Tooltip_Reorder_Done" xml:space="preserve">
+    <value>[!!! Ðôñé řéôřđéřïñğ !!!]</value>
+    <comment>Playlists -&gt; Top Action Bar -&gt; Reorder Tracks Button -&gt; Finish Reordering Tooltip</comment>
+  </data>
+  <data name="Metadata_UnknownAlbum" xml:space="preserve">
+    <value>[!!! Ûñḳñôŵñ Åℓḅúɱ !!!]</value>
+    <comment>Library -&gt; Album Detail Page -&gt; Header -&gt; Fallback Album Name When Unset</comment>
+  </data>
+  <data name="Metadata_UnknownArtist" xml:space="preserve">
+    <value>[!!! Ûñḳñôŵñ Åřţïšţ !!!]</value>
+    <comment>Library -&gt; Artist Detail Page -&gt; Header -&gt; Fallback Artist Name When Unset</comment>
+  </data>
+  <data name="Metadata_UnknownGenre" xml:space="preserve">
+    <value>[!!! Ûñḳñôŵñ Ĝéñřé !!!]</value>
+    <comment>Library -&gt; Genre Detail Page -&gt; Header -&gt; Fallback Genre Name When Unset</comment>
+  </data>
+  <data name="Metadata_UnknownYear" xml:space="preserve">
+    <value>[!!! Ûñḳñôŵñ Ýéář !!!]</value>
+    <comment>Library -&gt; Year Detail Page -&gt; Header -&gt; Fallback Year Name When Unset</comment>
+  </data>
+  <data name="SongInfo_LastPlayed_Never" xml:space="preserve">
+    <value>[!!! Ñéṽéř !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Song Info Panel -&gt; Last Played Field (Never Played Value)</comment>
+  </data>
+  <data name="SongInfo_DateTime_At" xml:space="preserve">
+    <value>[!!! {0} áţ {1} !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Song Info Panel -&gt; Date and Time Format Template ({0}=date, {1}=time)</comment>
+  </data>
+  <data name="Notification_FileInUse_PendingTagChanges" xml:space="preserve">
+    <value>[!!! Ƒïℓé ïš ïñ úšé. Ťáğ çĥáñğéš ŵïℓℓ ḅé áþþℓïéđ úþôñ éẋïţ. !!!]</value>
+    <comment>Main Window -&gt; Center Toast Notification -&gt; Tag Editor -&gt; File In Use Warning</comment>
+  </data>
+  <data name="EditSong_CoverArt_PickerTitle" xml:space="preserve">
+    <value>[!!! Šéℓéçţ Çôṽéř Åřţ !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Metadata Flyout -&gt; Cover Art File Picker Dialog Title</comment>
+  </data>
+  <data name="EditSong_CoverArt_PickerCommit" xml:space="preserve">
+    <value>[!!! Šéℓéçţ Çôṽéř Åřţ !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Metadata Flyout -&gt; Cover Art File Picker Commit Button</comment>
+  </data>
+  <data name="PlaylistImport_PickerCommit" xml:space="preserve">
+    <value>[!!! Ïɱþôřţ Þℓáýℓïšţ !!!]</value>
+    <comment>Playlists -&gt; Add Playlist Dialog -&gt; File Picker Dialog -&gt; Import Button Label</comment>
+  </data>
+  <data name="FolderPicker_AddFolderCommit" xml:space="preserve">
+    <value>[!!! Åđđ Ƒôℓđéř !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "Add New Folder" Dialog -&gt; Folder Picker Commit Button</comment>
+  </data>
+  <data name="FileFilter_ImageFiles" xml:space="preserve">
+    <value>[!!! Ïɱáğé Ƒïℓéš !!!]</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; Image Files (*.png, *.jpg, *.jpeg, *.bmp)</comment>
+  </data>
+  <data name="FileFilter_JpegImages" xml:space="preserve">
+    <value>[!!! ĴÞÉĜ Ïɱáğéš !!!]</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; JPEG Images (*.jpg, *.jpeg)</comment>
+  </data>
+  <data name="FileFilter_PngImages" xml:space="preserve">
+    <value>[!!! ÞÑĜ Ïɱáğéš !!!]</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; PNG Images (*.png)</comment>
+  </data>
+  <data name="FileFilter_GifImages" xml:space="preserve">
+    <value>[!!! ĜÏƑ Ïɱáğéš !!!]</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; GIF Images (*.gif)</comment>
+  </data>
+  <data name="Update_Available_Title" xml:space="preserve">
+    <value>[!!! Ûþđáţé çĥéçḳ !!!]</value>
+    <comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Title</comment>
+  </data>
+  <data name="Update_UpToDate_Message" xml:space="preserve">
+    <value>[!!! Ýôúř áþþ ïš úþ ţô đáţé. !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; "Check for New Version" Button -&gt; Up To Date Success Message</comment>
+  </data>
+  <data name="Update_Installed_Title" xml:space="preserve">
+    <value>[!!! Ûþđáţé ïñšţáℓℓéđ !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; Update Notification -&gt; Title</comment>
+  </data>
+  <data name="Update_Installed_Message" xml:space="preserve">
+    <value>[!!! Ťĥé úþđáţé ŵïℓℓ áþþℓý ñéẋţ ţïɱé ýôú ℓáúñçĥ ţĥé áþþ. !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; Update Notification -&gt; Restart Notice Description</comment>
+  </data>
+  <data name="WhatsNew_PreviousReleases_Header" xml:space="preserve">
+    <value>[!!! Þřéṽïôúš Řéℓéášéš !!!]</value>
+    <comment>Main Window -&gt; What's New Dialog -&gt; Expander -&gt; Previous Version Releases Group Header</comment>
+  </data>
+  <data name="Settings_RainbowSpeed_Current" xml:space="preserve">
+    <value>[!!! Çúřřéñţ Řáïñḅôŵ ƒřáɱé ḅôřđéř Šþééđ: {0} !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Rainbow Frame Border -&gt; Rainbow Speed Description ({0}=speed)</comment>
+  </data>
+  <data name="Settings_RainbowSpeed_Disabled" xml:space="preserve">
+    <value>[!!! Řáïñḅôŵ ƒřáɱé ḅôřđéř ïš đïšáḅℓéđ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Rainbow Frame Border -&gt; Rainbow Speed Disabled Description</comment>
+  </data>
+  <data name="Settings_FileExtensions_Allowed" xml:space="preserve">
+    <value>[!!! Ƒïℓé éẋţéñšïôñš áℓℓôŵéđ ƒôř šçáññïñğ ţřáçḳš: {0} !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Allowed Extensions Summary ({0}=extensions)</comment>
+  </data>
+  <data name="Settings_FileExtensions_None" xml:space="preserve">
+    <value>[!!! Ñô ƒïℓé éẋţéñšïôñš éñáḅℓéđ ƒôř šçáññïñğ ţřáçḳš !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; No Extensions Allowed Warning</comment>
+  </data>
+  <data name="Settings_MusicDownloader_BotRevealed" xml:space="preserve">
+    <value>[!!! Ḃôţ ℓïñḳ řéṽéáℓéđ !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Button -&gt; Tooltip When Link Is Revealed</comment>
+  </data>
+  <data name="Settings_MusicDownloader_AlternativeDesc" xml:space="preserve">
+    <value>[!!! Ïƒ ýôú ářé úñáḅℓé ţô áççéšš ôř þúřçĥášé ɱúšïç ţĥřôúğĥ ôƒƒïçïáℓ šţôřéƒřôñţš, ýôú çáñ ïñţéřáçţ ŵïţĥ çôɱɱúñïţý-ĥôšţéđ šéářçĥ ţôôℓš ôř ţĥïřđ-þářţý ḅôţš. !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Section -&gt; Alternative Source Description</comment>
+  </data>
+  <data name="Settings_MusicDownloader_ClickToReveal_Singular" xml:space="preserve">
+    <value>[!!! Çℓïçḳ {0} ţïɱé ţô řéṽéáℓ !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Button -&gt; Tooltip Countdown Singular ({0}=clicks)</comment>
+  </data>
+  <data name="Settings_MusicDownloader_ClickToReveal_Plural" xml:space="preserve">
+    <value>[!!! Çℓïçḳ {0} ţïɱéš ţô řéṽéáℓ !!!]</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Button -&gt; Tooltip Countdown Plural ({0}=clicks)</comment>
+  </data>
+  <data name="Tooltip_PreviousTrack" xml:space="preserve">
+    <value>[!!! Þřéṽïôúš šôñğ/ţřáçḳ !!!]</value>
+    <comment>Overlay -&gt; Mini Player Controls -&gt; Previous Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Tooltip_NextTrack" xml:space="preserve">
+    <value>[!!! Ñéẋţ šôñğ/ţřáçḳ !!!]</value>
+    <comment>Overlay -&gt; Mini Player Controls -&gt; Next Button -&gt; Tooltip</comment>
+  </data>
+  <data name="EditSong_SuggestTip_Preview" xml:space="preserve">
+    <value>[!!! • Ťýþé áñđ/ôř Þřéšš {0} ţô þřéṽïéŵ šúğğéšţïôñš. !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Preview Instruction ({0}=Right Arrow (→))</comment>
+  </data>
+  <data name="EditSong_SuggestTip_Cycle" xml:space="preserve">
+    <value>[!!! • Þřéšš {0} / {1} ţô çýçℓé šúğğéšţïôñš. !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Cycle Instruction ({0}=Up (↑), {1}=Down (↓))</comment>
+  </data>
+  <data name="EditSong_SuggestTip_Accept" xml:space="preserve">
+    <value>[!!! • Þřéšš {0} ţô áççéþţ. !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Accept Instruction ({0}=Right Arrow (→))</comment>
+  </data>
+  <data name="EditSong_SuggestTip_MultipleArtists" xml:space="preserve">
+    <value>[!!! Ƒôř ɱúℓţïþℓé ářţïšţš, šéþářáţé ŵïţĥ: !!!]</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Artist Suggestion Teaching Tip -&gt; Delimiter Legend Header</comment>
+  </data>
+  <data name="Key_RightArrow" xml:space="preserve">
+    <value>[!!! Řïğĥţ Åřřôŵ (→) !!!]</value>
+    <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Right Arrow Navigation Key</comment>
+  </data>
+  <data name="Key_Up" xml:space="preserve">
+    <value>[!!! Ûþ (↑) !!!]</value>
+    <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Up Arrow Navigation Key</comment>
+  </data>
+  <data name="Key_Down" xml:space="preserve">
+    <value>[!!! Ðôŵñ (↓) !!!]</value>
+    <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Down Arrow Navigation Key</comment>
+  </data>
+  <data name="OverlayLayout_CompactPill_Name" xml:space="preserve">
+    <value>[!!! Çôɱþáçţ Þïℓℓ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Compact Pill Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_CompactPill_Desc" xml:space="preserve">
+    <value>[!!! Řôúñđéđ þïℓℓ ŵïţĥ ářţ, ţřáçḳ ïñƒô áñđ çôñţřôℓš áℓŵáýš ṽïšïḅℓé. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Compact Pill Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_CenteredPill_Name" xml:space="preserve">
+    <value>[!!! Çéñţéřéđ Þïℓℓ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Centered Pill Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_CenteredPill_Desc" xml:space="preserve">
+    <value>[!!! Çôñţřôℓš þôšïţïôñéđ áţ ţĥé çéñţřé, ářţ ôñ ţĥé ℓéƒţ áñđ ţĥé ţřáçḳ ïñƒô ôñ ţĥé řïğĥţ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Centered Pill Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_RightDock_Name" xml:space="preserve">
+    <value>[!!! Řïğĥţ Ðôçḳ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Right Dock Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_RightDock_Desc" xml:space="preserve">
+    <value>[!!! Řïğĥţ-áñçĥôřéđ šţřïþ ŵïţĥ çôñţřôℓš ℓéáđïñğ áñđ ţřáçḳ ïñƒô ţřáïℓïñğ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Right Dock Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_FullArtBar_Name" xml:space="preserve">
+    <value>[!!! Ƒúℓℓ Åřţ Ḃář !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Full Art Bar Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_FullArtBar_Desc" xml:space="preserve">
+    <value>[!!! Åℓḅúɱ ářţ ḅℓééđš ƒúℓℓ ţášḳḅář ĥéïğĥţ; ţïţℓé, ářţïšţ áñđ þřôğřéšš ḅář ḅéšïđé ïţ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Full Art Bar Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_HoverReveal_Name" xml:space="preserve">
+    <value>[!!! Ħôṽéř Řéṽéáℓ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Hover Reveal Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_HoverReveal_Desc" xml:space="preserve">
+    <value>[!!! Šĥôŵš ôñℓý ţřáçḳ ïñƒô áţ řéšţ; çôñţřôℓš ƒáđé ïñ ôñ ĥôṽéř. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Hover Reveal Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_IconStrip_Name" xml:space="preserve">
+    <value>[!!! Ïçôñ Šţřïþ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Icon Strip Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_IconStrip_Desc" xml:space="preserve">
+    <value>[!!! Žéřô ţéẋţ — áℓḅúɱ ářţ ţĥúɱḅñáïℓ þℓúš çôñţřôℓ ïçôñ ḅúţţôñš. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Icon Strip Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnly_Name" xml:space="preserve">
+    <value>[!!! Ťéẋţ Ôñℓý !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnly_Desc" xml:space="preserve">
+    <value>[!!! Þúřé ţéẋţ: çôñţřôℓš áñđ ţřáçḳ ñáɱé, ářţïšţš ℓáḅéℓ. Ñô ářţ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnlyReversed_Name" xml:space="preserve">
+    <value>[!!! Ťéẋţ Ôñℓý Řéṽéřšéđ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Reversed Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnlyReversed_Desc" xml:space="preserve">
+    <value>[!!! Þúřé ţéẋţ: ţřáçḳ ñáɱé, ářţïšţš ℓáḅéℓ, áñđ çôñţřôℓš. Ñô ářţ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Reversed Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_MarqueeTicker_Name" xml:space="preserve">
+    <value>[!!! Ṁářǫúéé Ťïçḳéř !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Marquee Ticker Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_MarqueeTicker_Desc" xml:space="preserve">
+    <value>[!!! Šçřôℓℓïñğ ţřáçḳ đéţáïℓš ţïçḳéř ŵïţĥ á ɱïçřô þřôğřéšš ḅář, ñô áℓḅúɱ ářţ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Marquee Ticker Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_ArcRing_Name" xml:space="preserve">
+    <value>[!!! Åřç Řïñğ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Arc Ring Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_ArcRing_Desc" xml:space="preserve">
+    <value>[!!! Çïřçúℓář đïšç ářţ ŵïţĥ áñ ářç þřôğřéšš řïñğ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Arc Ring Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TopAccentStripe_Name" xml:space="preserve">
+    <value>[!!! Ťôþ Åççéñţ Šţřïþé !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Accent Stripe Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TopAccentStripe_Desc" xml:space="preserve">
+    <value>[!!! Ťĥïñ áççéñţ šţřïþé áţ ţôþ éđğé, çôñţřôℓš ḅéℓôŵ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Accent Stripe Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_BottomAccentStripe_Name" xml:space="preserve">
+    <value>[!!! Ḃôţţôɱ Åççéñţ Šţřïþé !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Bottom Accent Stripe Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_BottomAccentStripe_Desc" xml:space="preserve">
+    <value>[!!! Ťĥïñ áççéñţ šţřïþé áţ ḅôţţôɱ éđğé, çôñţřôℓš áḅôṽé. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Bottom Accent Stripe Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TopAlbumAccentStripe_Name" xml:space="preserve">
+    <value>[!!! Ťôþ Åℓḅúɱ Åççéñţ Šţřïþé !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Album Accent Stripe Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TopAlbumAccentStripe_Desc" xml:space="preserve">
+    <value>[!!! Ťôþ šţřïþé ţïñţéđ ţô đôɱïñáñţ áℓḅúɱ ářţ þáℓéţţé çôℓôúř. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Album Accent Stripe Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTint_Name" xml:space="preserve">
+    <value>[!!! Åℓḅúɱ Ťïñţ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTint_Desc" xml:space="preserve">
+    <value>[!!! Ƒúℓℓ ôṽéřℓáý ţïñţéđ šôƒţℓý ŵïţĥ đôɱïñáñţ çôℓôř ƒřôɱ áℓḅúɱ ářţ. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTintProgress_Name" xml:space="preserve">
+    <value>[!!! Åℓḅúɱ Ťïñţ Þřôğřéšš !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Progress Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTintProgress_Desc" xml:space="preserve">
+    <value>[!!! Åℓḅúɱ ţïñţ ḅáçḳğřôúñđ ŵïţĥ đúáℓ-ţôñé þřôğřéšš šţřïþé. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Progress Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_AccentAncientScroll_Name" xml:space="preserve">
+    <value>[!!! Åççéñţ Åñçïéñţ Šçřôℓℓ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Accent Ancient Scroll Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_AccentAncientScroll_Desc" xml:space="preserve">
+    <value>[!!! Þářçĥɱéñţ þářçĥɱéñţ ğřáđïéñţ, šéřïƒ-ïñšþïřéđ ℓáýôúţ šţýℓé. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Accent Ancient Scroll Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_QueuePreview_Name" xml:space="preserve">
+    <value>[!!! Ǫúéúé Þřéṽïéŵ !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Queue Preview Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_QueuePreview_Desc" xml:space="preserve">
+    <value>[!!! Çôɱþáçţ ṽïéŵ šĥôŵïñğ ñéẋţ 2 šôñğš ïñ ţĥé ǫúéúé. !!!]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Queue Preview Design (Description)</comment>
+  </data>
+  <data name="FormatCategory_Lossy_Desc" xml:space="preserve">
+    <value>[!!! Ťĥé ɱôšţ çôɱɱôñ éṽéřýđáý çôɱþřéššéđ áúđïô ƒôřɱáţš !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Lossy Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_Lossless_Desc" xml:space="preserve">
+    <value>[!!! Ƒôřɱáţš ţĥáţ þřéšéřṽé ƒúℓℓ áúđïô ƒïđéℓïţý, þôþúℓář ƒôř ářçĥïṽïñğ áñđ áúđïôþĥïℓé úšé !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Lossless Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessContainer_Desc" xml:space="preserve">
+    <value>[!!! Ûñçôɱþřéššéđ áúđïô ŵřáþþéđ ïñ á šţřúçţúřéđ çôñţáïñéř !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Lossless Container Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessLossyContainer_Desc" xml:space="preserve">
+    <value>[!!! Çôñţáïñéř ôř ƒôřɱáţ áḅℓé ţô ĥôℓđ éïţĥéř ℓôššℓéšš ôř ℓôššý éñçôđéđ áúđïô !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Dual Format Container Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessLossy_Desc" xml:space="preserve">
+    <value>[!!! Šïñğℓé ƒôřɱáţ šþáññïñğ ḅôţĥ ƒúℓℓý ℓôššℓéšš áñđ çôɱþřéššéđ ṽářïáñţš !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Hybrid Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessLossyLegacy_Desc" xml:space="preserve">
+    <value>[!!! Łéğáçý ƒôřɱáţ šþáññïñğ ḅôţĥ çôɱþřéššïôñ ţýþéš þℓúš ôℓđ ţéℓéþĥôñý éñçôđïñğš !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Legacy Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_Container_Desc" xml:space="preserve">
+    <value>[!!! Ĝéñéřáℓ ɱúℓţïɱéđïá çôñţáïñéřš þřïɱářïℓý úšéđ ƒôř ṽïđéô/áúđïô đïšţřïḅúţïôñ !!!]</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; General Container Formats Description</comment>
+  </data>
+  <data name="TaskbarOverlay_DefaultTitle" xml:space="preserve">
+    <value>[ !!! Šôôñğ/Ţřááçḳ Ţïïţłéé !!! ]</value>
+    <comment>Taskbar Overlay -&gt; Preview / Tooltip -&gt; Default Song Title Fallback -&gt; Text</comment>
+  </data>
+  <data name="TaskbarOverlay_DefaultArtist" xml:space="preserve">
+    <value>[ !!! Áŕţïïšţš !!! ]</value>
+    <comment>Taskbar Overlay -&gt; Preview / Tooltip -&gt; Default Artist Name Fallback -&gt; Text</comment>
+  </data>
+  <data name="TaskbarOverlay_DefaultAlbum" xml:space="preserve">
+    <value>[ !!! Áłḅúúɱ !!! ]</value>
+    <comment>Taskbar Overlay -&gt; Preview / Tooltip -&gt; Default Album Name Fallback -&gt; Text</comment>
+  </data>
+  <data name="ToggleSwitch_On" xml:space="preserve">
+    <value>[ !!! Óñ !!! ]</value>
+    <comment>Settings -&gt; Common -&gt; ToggleSwitch -&gt; On Label</comment>
+  </data>
+  <data name="ToggleSwitch_Off" xml:space="preserve">
+    <value>[ !!! Óff !!! ]</value>
+    <comment>Settings -&gt; Common -&gt; ToggleSwitch -&gt; Off Label</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Pause" xml:space="preserve">
+    <value>[ !!! Þáúšé !!! ]</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Pause Button -&gt; Tooltip</comment>
+  </data>
+<data name="Common_DoYouWantToContinue" xml:space="preserve"><value>[ !!! Đô ýôú ẅáñţ ţô çôñţïñúé? !!! ]</value><comment>Common -&gt; Confirmation Dialog -&gt; Action Prompt</comment></data><data name="DeleteDialog_SingleSong_Question" xml:space="preserve"><value>[ !!! Ářé ýôú šúřé ýôú ẅáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ƒřôɱ ýôúř šýšţéɱ? !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Confirmation Question</comment></data><data name="DeleteDialog_Detail_Title" xml:space="preserve"><value>[ !!! Ţïţℓé: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Title Detail Label</comment></data><data name="DeleteDialog_Detail_Artist" xml:space="preserve"><value>[ !!! Ářţïšţ: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Artist Detail Label</comment></data><data name="DeleteDialog_Detail_Album" xml:space="preserve"><value>[ !!! Áłḅúɱ: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Album Detail Label</comment></data><data name="DeleteDialog_Detail_File" xml:space="preserve"><value>[ !!! Fïℓé: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; File Path Detail Label</comment></data><data name="Notification_SongDeleted_Title" xml:space="preserve"><value>[ !!! Šôñğ/Ţřáçḳ đéℓéţéđ. !!! ]</value><comment>Common -&gt; Toast Notification -&gt; Song Deleted Caption</comment></data><data name="Notification_SongRemovedFromPlaylist_Title" xml:space="preserve"><value>[ !!! Šôñğ/Ţřáçḳ řéɱôṽéđ ƒřôɱ {0}. !!! ]</value><comment>Playlists -&gt; Toast Notification -&gt; Song Removed Caption ({0}=playlist name)</comment></data><data name="Update_Available_Header" xml:space="preserve"><value>[ !!! Áþþ úþđáţé ïš áṽáïℓáḅℓé. !!! ]</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Available Header</comment></data><data name="Update_Available_Instruction" xml:space="preserve"><value>[ !!! Ôþéñ Šéţţïñğš. Čℓïçḳ 'Čĥéçḳ ƒôř Ñéẅ Ṽéřšïôñ' úñđéř Áḅôúţ šéçţïôñ ţô ïñšţáℓℓ ïţ. Ôř ôþéñ Mïçřôšôƒţ Šţôřé ţô ïñšţáℓℓ ïţ. !!! ]</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Installation Instruction</comment></data></root>

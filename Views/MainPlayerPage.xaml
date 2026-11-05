@@ -1,5 +1,6 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.MainPlayerPage"
+      xmlns:services="using:Tunetastic.Common.Services"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -340,7 +341,7 @@
 				              Grid.Column="0"
 				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 				              Click="DecreaseButton_Click"
-				              ToolTipService.ToolTip="Hold to Decrease">
+				              ToolTipService.ToolTip="{services:Loc Key=Lyrics_HoldToDecrease_ToolTip}">
 					<FontIcon Glyph="&#xF8AB;" />
 				</RepeatButton>
 				<Border Grid.Column="1"
@@ -358,7 +359,7 @@
 				              Grid.Column="2"
 				              Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 				              Click="IncreaseButton_Click"
-				              ToolTipService.ToolTip="Hold to Increase">
+				              ToolTipService.ToolTip="{services:Loc Key=Lyrics_HoldToIncrease_ToolTip}">
 					<FontIcon Glyph="&#xF8AA;" />
 				</RepeatButton>
 			</Grid>
@@ -366,22 +367,20 @@
 			        Grid.Column="1"
 			        VerticalAlignment="Top"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
-			        ToolTipService.ToolTip="Accept and Save">
+			        ToolTipService.ToolTip="{services:Loc Key=Lyrics_AcceptAndSave_ToolTip}">
 				<FontIcon Glyph="&#xF78C;" />
 				<Button.Flyout>
 					<Flyout>
 						<StackPanel Orientation="Vertical"
 						            Spacing="10">
-							<Button x:Name="SaveAsOffsetButton"
+							<Button x:Name="SaveAsOffsetButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_SaveAsOffset_ToolTip}"
 							        HorizontalAlignment="Center"
 							        Click="SaveAsOffsetButton_Click"
-							        Content="Save as offset metadata"
-							        ToolTipService.ToolTip="Save as offset metadata in the lrc file. Like [offset:±number]." />
-							<Button x:Name="SaveByTimestampsButton"
+							        Content="Save as offset metadata" />
+							<Button x:Name="SaveByTimestampsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_SaveByModifying_ToolTip}"
 							        HorizontalAlignment="Center"
 							        Click="SaveByTimestampsButton_Click"
-							        Content="Save by modifying timestamps"
-							        ToolTipService.ToolTip="Save by changing timestamps in the lrc file." />
+							        Content="Save by modifying timestamps" />
 						</StackPanel>
 					</Flyout>
 				</Button.Flyout>
@@ -391,7 +390,7 @@
 			        VerticalAlignment="Top"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 			        Click="CancelSyncButton_Click"
-			        ToolTipService.ToolTip="Cancel">
+			        ToolTipService.ToolTip="{services:Loc Key=Lyrics_Cancel_ToolTip}">
 				<FontIcon Glyph="&#xF78A;" />
 			</Button>
 		</Grid>
@@ -457,13 +456,13 @@
 				<RowDefinition />
 			</Grid.RowDefinitions>
 			<Button x:Name="AddToPlaylistButton"
+			        ToolTipService.ToolTip="{services:Loc Key=Lyrics_AddToPlaylist_ToolTip}"
 			        Grid.Row="2"
 			        Width="40"
 			        Height="40"
 			        Margin="5"
 			        Padding="3"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
-			        ToolTipService.ToolTip="Add to Playlist"
 			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE728;" />
 				<Button.Flyout>
@@ -472,18 +471,17 @@
 					            Placement="TopEdgeAlignedRight" />
 				</Button.Flyout>
 			</Button>
-			<Button x:Name="MusicInfoButton"
+			<Button x:Name="MusicInfoButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_SongInfo_ToolTip}"
 			        Grid.Row="3"
 			        Width="40"
 			        Height="40"
 			        Margin="5"
 			        Padding="3"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
-			        Click="MusicInfoButton_Click"
-			        ToolTipService.ToolTip="Song/Track Info">
+			        Click="MusicInfoButton_Click">
 				<FontIcon Glyph="&#xE90B;" />
 			</Button>
-			<Button x:Name="ShowLyricsButton"
+			<Button x:Name="ShowLyricsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_ShowLyrics_ToolTip}"
 			        Grid.Row="1"
 			        Width="40"
 			        Height="40"
@@ -491,11 +489,10 @@
 			        Padding="3"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 			        Click="ShowLyricsButton_Click"
-			        ToolTipService.ToolTip="Show Lyrics"
 			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE7BC;" />
 			</Button>
-			<Button x:Name="CloseLyricsButton"
+			<Button x:Name="CloseLyricsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_HideLyrics_ToolTip}"
 			        Grid.Row="1"
 			        Width="40"
 			        Height="40"
@@ -503,18 +500,16 @@
 			        Padding="3"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
 			        Click="CloseLyricsButton_Click"
-			        ToolTipService.ToolTip="Hide Lyrics"
 			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE89F;" />
 			</Button>
-			<Button x:Name="LyricsMenuButton"
+			<Button x:Name="LyricsMenuButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_ToolTip}"
 			        Grid.Row="0"
 			        Width="40"
 			        Height="40"
 			        Margin="5"
 			        Padding="0"
 			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
-			        ToolTipService.ToolTip="Lyrics Menu"
 			        Visibility="Collapsed">
 				<FontIcon Glyph="&#xE712;" />
 				<Button.Flyout>
@@ -526,19 +521,18 @@
 								              Click="CopyAppBarButton_Click"
 								              Icon="Copy"
 								              Label="Copy"
-								              ToolTipService.ToolTip="Copy the lyrics" />
+								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Copy_ToolTip}" />
 								<AppBarSeparator x:Name="Separator1" />
 								<AppBarButton x:Name="EditLyricsButton"
 								              Click="EditAppBarButton_Click"
 								              Icon="Edit"
 								              Label="Edit"
-								              ToolTipService.ToolTip="Edit the lyrics" />
+								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Edit_ToolTip}" />
 								<AppBarSeparator x:Name="Separator2" />
-								<AppBarButton x:Name="SyncLyricsButton"
+								<AppBarButton x:Name="SyncLyricsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Sync_ToolTip}"
 								              Click="SyncLyricsButton_Click"
 								              Icon="Sync"
-								              Label="Sync"
-								              ToolTipService.ToolTip="Syncronize the lyrics" />
+								              Label="Sync" />
 								<!--<AppBarSeparator x:Name="Separator3"/>
 								<AppBarButton x:Name="SearchLyricsButton"
 								              Click="SearchAppBarButton_Click"
@@ -551,12 +545,11 @@
 								              Click="ClearAppBarButton_Click"
 								              Icon="Delete"
 								              Label="Clear"
-								              ToolTipService.ToolTip="Clear the existing lyrics" />
-								<AppBarButton x:Name="OpenLyricsButton"
+								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Clear_ToolTip}" />
+								<AppBarButton x:Name="OpenLyricsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_OpenLrc_ToolTip}"
 								              Click="OpenAppBarButton_Click"
 								              Icon="Folder"
-								              Label="Open File"
-								              ToolTipService.ToolTip="Open the lrc file" />
+								              Label="Open File" />
 							</dev:MenuFlyoutSecondaryItems>
 						</dev:MenuFlyoutAttach.SecondaryMenu>
 					</MenuFlyout>
@@ -568,7 +561,7 @@
 		      MinHeight="600"
 		      HorizontalAlignment="Center"
 		      VerticalAlignment="Center">
-			<ContentDialog x:Name="LyricsEditBlock"
+			<ContentDialog x:Name="LyricsEditBlock" x:Uid="Lyrics_EditDialog"
 			               Title="Edit Lyrics"
 			               MinWidth="800"
 			               MinHeight="600"

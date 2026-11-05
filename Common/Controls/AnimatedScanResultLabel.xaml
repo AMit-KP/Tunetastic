@@ -19,11 +19,7 @@
 			            Orientation="Horizontal">
 				<StackPanel x:Name="LibrariesValue"
 				            Orientation="Horizontal" />
-				<TextBlock Margin="8,0,0,0"
-				           VerticalAlignment="Center"
-				           FontSize="14"
-				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-				           Text="Libraries" />
+				<TextBlock x:Uid="ScanResult_Libraries" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Libraries" />
 			</StackPanel>
 
 			<TextBlock x:Name="CountsDot"
@@ -37,11 +33,7 @@
 			            Orientation="Horizontal">
 				<StackPanel x:Name="FoldersValue"
 				            Orientation="Horizontal" />
-				<TextBlock Margin="8,0,0,0"
-				           VerticalAlignment="Center"
-				           FontSize="14"
-				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-				           Text="Folders" />
+				<TextBlock x:Uid="ScanResult_Folders" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Folders" />
 			</StackPanel>
 
 			<TextBlock Margin="16,0"
@@ -54,11 +46,7 @@
 			            Orientation="Horizontal">
 				<StackPanel x:Name="SongsValue"
 				            Orientation="Horizontal" />
-				<TextBlock Margin="8,0,0,0"
-				           VerticalAlignment="Center"
-				           FontSize="14"
-				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-				           Text="Songs" />
+				<TextBlock x:Uid="ScanResult_Songs" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Songs" />
 			</StackPanel>
 
 			<StackPanel x:Name="MessageValue"
@@ -74,11 +62,7 @@
 
 			<StackPanel x:Name="TimeStat"
 			            Orientation="Horizontal">
-				<TextBlock Margin="0,0,8,0"
-				           VerticalAlignment="Center"
-				           FontSize="14"
-				           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-				           Text="Last scanned" />
+				<TextBlock x:Uid="ScanResult_LastScanned" Margin="0,0,8,0" VerticalAlignment="Center" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="Last scanned" />
 				<StackPanel x:Name="TimeValue"
 				            Orientation="Horizontal" />
 			</StackPanel>

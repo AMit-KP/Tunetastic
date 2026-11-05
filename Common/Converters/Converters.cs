@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+using Tunetastic.Common.Services;
+using System.Collections.Concurrent;
 using System.Globalization;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -88,21 +89,21 @@ public class DurationToFullTimeConverter : IValueConverter
 			TimeSpan duration = TimeSpan.FromSeconds(seconds);
 			if (duration.TotalHours >= 1)
 			{
-				return $"{duration.Hours} hour{(duration.Hours == 1 ? "" : "s")} " +
-					   $"{duration.Minutes} min{(duration.Minutes == 1 ? "" : "s")} " +
-					   $"{duration.Seconds} sec{(duration.Seconds == 1 ? "" : "s")}";
+				return $"{LocalizationService.FormatPluralString("Duration_Hours", duration.Hours)} " +
+					   $"{LocalizationService.FormatPluralString("Duration_Minutes", duration.Minutes)} " +
+					   $"{LocalizationService.FormatPluralString("Duration_Seconds", duration.Seconds)}";
 			}
 			else if (duration.TotalMinutes >= 1)
 			{
-				return $"{duration.Minutes} min{(duration.Minutes == 1 ? "" : "s")} " +
-					   $"{duration.Seconds} sec{(duration.Seconds == 1 ? "" : "s")}";
+				return $"{LocalizationService.FormatPluralString("Duration_Minutes", duration.Minutes)} " +
+					   $"{LocalizationService.FormatPluralString("Duration_Seconds", duration.Seconds)}";
 			}
 			else
 			{
-				return $"{duration.Seconds} sec{(duration.Seconds == 1 ? "" : "s")}";
+				return LocalizationService.FormatPluralString("Duration_Seconds", duration.Seconds);
 			}
 		}
-		return "0 sec";
+		return LocalizationService.FormatPluralString("Duration_Seconds", 0);
 	}
 
 	/// <summary>
@@ -206,17 +207,17 @@ public class RelativeTimeConverter : IValueConverter
 		var diff = now - dateTime;
 
 		if (diff.TotalSeconds < 60)
-			return $"{(int)diff.TotalSeconds} second{(diff.TotalSeconds >= 2 ? "s" : "")} ago";
+			return LocalizationService.FormatPluralString("Time_SecondsAgo", Math.Max(0, (int)diff.TotalSeconds));
 		if (diff.TotalMinutes < 60)
-			return $"{(int)diff.TotalMinutes} minute{(diff.TotalMinutes >= 2 ? "s" : "")} ago";
+			return LocalizationService.FormatPluralString("Time_MinutesAgo", (int)diff.TotalMinutes);
 		if (diff.TotalHours < 24)
-			return $"{(int)diff.TotalHours} hour{(diff.TotalHours >= 2 ? "s" : "")} ago";
+			return LocalizationService.FormatPluralString("Time_HoursAgo", (int)diff.TotalHours);
 		if (diff.TotalDays < 7)
-			return $"{(int)diff.TotalDays} day{(diff.TotalDays >= 2 ? "s" : "")} ago";
+			return LocalizationService.FormatPluralString("Time_DaysAgo", (int)diff.TotalDays);
 		if (diff.TotalDays < 365)
-			return $"{(int)(diff.TotalDays / 7)} week{(diff.TotalDays / 7 >= 2 ? "s" : "")} ago";
+			return LocalizationService.FormatPluralString("Time_WeeksAgo", (int)(diff.TotalDays / 7));
 
-		return $"{(int)(diff.TotalDays / 365)} year{(diff.TotalDays / 365 >= 2 ? "s" : "")} ago";
+		return LocalizationService.FormatPluralString("Time_YearsAgo", (int)(diff.TotalDays / 365));
 	}
 
 	/// <summary>

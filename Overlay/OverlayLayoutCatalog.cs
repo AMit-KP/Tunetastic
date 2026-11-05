@@ -1,4 +1,9 @@
-﻿namespace Tunetastic.Overlay;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Tunetastic.Common;
+
+namespace Tunetastic.Overlay;
 
 /// <summary>
 /// Static registry of all layout display names and descriptions.
@@ -7,91 +12,79 @@
 public class OverlayLayoutCatalog
 {
 	public static IReadOnlyList<OverlayLayoutInfo> All { get; } = new List<OverlayLayoutInfo>
+	{
+		new() { Layout = OverlayLayout.CompactPill },
+		new() { Layout = OverlayLayout.CenteredPill },
+		new() { Layout = OverlayLayout.RightDock },
+		new() { Layout = OverlayLayout.FullArtBar },
+		new() { Layout = OverlayLayout.HoverReveal },
+		new() { Layout = OverlayLayout.IconStrip },
+		new() { Layout = OverlayLayout.TextOnly },
+		new() { Layout = OverlayLayout.TextOnlyReversed },
+		new() { Layout = OverlayLayout.MarqueeTicker },
+		new() { Layout = OverlayLayout.ArcRing },
+		new() { Layout = OverlayLayout.TopAccentStripe },
+		new() { Layout = OverlayLayout.BottomAccentStripe },
+		new() { Layout = OverlayLayout.TopAlbumAccentStripe },
+		new() { Layout = OverlayLayout.AlbumTint },
+		new() { Layout = OverlayLayout.AlbumTintProgress },
+		new() { Layout = OverlayLayout.AccentAncientScroll },
+		new() { Layout = OverlayLayout.QueuePreview },
+	};
+
+	/// <summary>
+	/// Resolves a setting string (which may be an enum name, legacy English display name, or localized name)
+	/// to an OverlayLayout value, falling back safely to CompactPill.
+	/// </summary>
+	public static OverlayLayout FromSettingString(string? value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
 		{
-			new() {
-				Layout      = OverlayLayout.CompactPill,
-				DisplayName = "Compact Pill",
-				Description = "Rounded pill with art, track info and controls always visible."
-			},
-			new() {
-				Layout      = OverlayLayout.CenteredPill,
-				DisplayName = "Centered Pill",
-				Description = "Controls positioned at the centre, art on the left and the track info on the right."
-			},
-			new() {
-				Layout      = OverlayLayout.RightDock,
-				DisplayName = "Right Dock",
-				Description = "Right-anchored strip with controls leading and track info trailing."
-			},
-			new() {
-				Layout      = OverlayLayout.FullArtBar,
-				DisplayName = "Full Art Bar",
-				Description = "Album art bleeds full taskbar height; title, artist and progress bar beside it."
-			},
-			new() {
-				Layout      = OverlayLayout.HoverReveal,
-				DisplayName = "Hover Reveal",
-				Description = "Shows only track info at rest; controls fade in on hover."
-			},
-			new() {
-				Layout      = OverlayLayout.IconStrip,
-				DisplayName = "Icon Strip",
-				Description = "Zero text — album art thumbnail plus control icon buttons."
-			},
-			new() {
-				Layout      = OverlayLayout.TextOnly,
-				DisplayName = "Text Only",
-				Description = "Pure text: controls and track name, artists label. No art."
-			},
-			new() {
-				Layout      = OverlayLayout.TextOnlyReversed,
-				DisplayName = "Text Only Reversed",
-				Description = "Pure text: track name, artists label, and controls. No art."
-			},
-			new() {
-				Layout      = OverlayLayout.MarqueeTicker,
-				DisplayName = "Marquee Ticker",
-				Description = "Scrolling track details ticker with a micro progress bar, no album art."
-			},
-			new() {
-				Layout      = OverlayLayout.ArcRing,
-				DisplayName = "Arc Ring",
-				Description = "Circular disc art with an arc progress ring."
-			},
-			new() {
-				Layout      = OverlayLayout.TopAccentStripe,
-				DisplayName = "Top Accent Stripe",
-				Description = "Thin progress accent stripe runs along the top edge of the overlay."
-			},
-			new() {
-				Layout      = OverlayLayout.BottomAccentStripe,
-				DisplayName = "Bottom Accent Stripe",
-				Description = "Thin progress accent stripe runs along the bottom edge of the overlay."
-			},
-			new() {
-				Layout      = OverlayLayout.TopAlbumAccentStripe,
-				DisplayName = "Top Album Accent Stripe",
-				Description = "Thin progress album accent stripe runs along the top edge of the overlay."
-			},
-			new() {
-				Layout      = OverlayLayout.AlbumTint,
-				DisplayName = "Album Tint",
-				Description = "Background tint adapts to the album's colours."
-			},
-			new() {
-				Layout      = OverlayLayout.AlbumTintProgress,
-				DisplayName = "Album Tint Progress",
-				Description = "Background tint adapts to the album's colours which acts as a progress bar."
-			},
-			new() {
-				Layout      = OverlayLayout.AccentAncientScroll,
-				DisplayName = "Accent Ancient Scroll",
-				Description = "Ancient scroll with accent-coloured rods, controls and track info."
-			},
-			new() {
-				Layout      = OverlayLayout.QueuePreview,
-				DisplayName = "Queue Preview",
-				Description = "Current plus two upcoming album arts in a diminishing stack with controls."
-			},
+			return OverlayLayout.CompactPill;
+		}
+
+		// 1. Try parsing directly as enum name (language-neutral format: "CompactPill")
+		if (Enum.TryParse<OverlayLayout>(value, ignoreCase: true, out var layout))
+		{
+			return layout;
+		}
+
+		// 2. Check legacy English display names (saved before localization)
+		var legacyLayout = value switch
+		{
+			"Compact Pill" => OverlayLayout.CompactPill,
+			"Centered Pill" => OverlayLayout.CenteredPill,
+			"Right Dock" => OverlayLayout.RightDock,
+			"Full Art Bar" => OverlayLayout.FullArtBar,
+			"Hover Reveal" => OverlayLayout.HoverReveal,
+			"Icon Strip" => OverlayLayout.IconStrip,
+			"Text Only" => OverlayLayout.TextOnly,
+			"Text Only Reversed" => OverlayLayout.TextOnlyReversed,
+			"Marquee Ticker" => OverlayLayout.MarqueeTicker,
+			"Arc Ring" => OverlayLayout.ArcRing,
+			"Top Accent Stripe" => OverlayLayout.TopAccentStripe,
+			"Bottom Accent Stripe" => OverlayLayout.BottomAccentStripe,
+			"Top Album Accent Stripe" => OverlayLayout.TopAlbumAccentStripe,
+			"Album Tint" => OverlayLayout.AlbumTint,
+			"Album Tint Progress" => OverlayLayout.AlbumTintProgress,
+			"Accent Ancient Scroll" => OverlayLayout.AccentAncientScroll,
+			"Queue Preview" => OverlayLayout.QueuePreview,
+			_ => (OverlayLayout?)null
 		};
+
+		if (legacyLayout.HasValue)
+		{
+			return legacyLayout.Value;
+		}
+
+		// 3. Check current localized DisplayNames (in case a localized string was saved)
+		var match = All.FirstOrDefault(item => string.Equals(item.DisplayName, value, StringComparison.OrdinalIgnoreCase));
+		if (match is not null)
+		{
+			return match.Layout;
+		}
+
+		// Fallback default
+		return OverlayLayout.CompactPill;
+	}
 }

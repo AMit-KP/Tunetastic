@@ -1,3 +1,4 @@
+using Tunetastic.Common.Services;
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
@@ -71,7 +72,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 
 	/// <inheritdoc/>
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
-		$"Add {(multiSelect ? "selected songs/tracks" : "this song/track")} to {playList} playlist";
+		base.BuildAddToPlaylistTooltip(multiSelect, playList);
 
 	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
 	// Forwarding shims so existing XAML event wiring keeps working unchanged.
@@ -100,7 +101,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	/// </remarks>
 	protected override async void OnNavigatedTo(NavigationEventArgs e)
 	{
-		ActualAlbumGroup.Text = (e.Parameter.ToString() == "Unknown" ? "Unknown Album" : e.Parameter.ToString());
+		ActualAlbumGroup.Text = (e.Parameter.ToString() == "Unknown" ? LocalizationService.GetString("Metadata_UnknownAlbum") : e.Parameter.ToString());
 		var animation = ConnectedAnimationService.GetForCurrentView().GetAnimation("AlbumHeaderAnimation");
 
 		if (animation != null)
@@ -238,7 +239,9 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	/// </returns>
 	private async Task UpdateListBasedOnViewStyle()
 	{
-		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		var selectedViewItem = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "View" && item.IsChecked);
+		var viewStyle = selectedViewItem?.Tag?.ToString() ?? (selectedViewItem?.Name == "ListViewStyle" ? "List View" : "Compact View");
+		var viewStyleDisplayText = selectedViewItem?.Text ?? viewStyle;
 		string? glyph = null;
 		switch (viewStyle)
 		{
@@ -257,7 +260,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		}
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AlbumDetailViewStyle)] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
-		ToolTipService.SetToolTip(ViewButton, viewStyle);
+		ToolTipService.SetToolTip(ViewButton, viewStyleDisplayText);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(selectedSong);
@@ -275,8 +278,12 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 	private async Task UpdateListBasedOnSorting()
 	{
 		var song = selectedSong;
-		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "SortBy" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Title";
-		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		var sortItem = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "SortBy" && item.IsChecked);
+		var orderItem = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Order" && item.IsChecked);
+		var sortBy = sortItem?.Tag?.ToString() ?? "Title";
+		var orderBy = orderItem?.Tag?.ToString() ?? "Ascending";
+		var sortDisplayName = sortItem?.Text ?? sortBy;
+		var orderDisplayName = orderItem?.Text ?? orderBy;
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;
@@ -302,16 +309,16 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 
 		var sortDropdownContent = new TextBlock();
-		sortDropdownContent.Inlines.Add(new Run { Text = "Sort By: " });
-		sortDropdownContent.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_SortBy_Label") });
+		sortDropdownContent.Inlines.Add(new Run { Text = sortDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
 
 		var orderDropdownTooltip = new TextBlock();
-		orderDropdownTooltip.Inlines.Add(new Run { Text = "The list is sorted by " });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = $" column in " });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = orderBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = " order." });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tooltip_SortedBy") });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = sortDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tooltip_InOrder") });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = orderDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tooltip_OrderSuffix") });
 
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
@@ -541,7 +548,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		if (playlist != null && song != null)
 		{
 			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-			GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToPlaylist", song.Title, playlist));
 		}
 	}
 
@@ -554,7 +561,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		if (playlist != null)
 		{
 			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
-			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Songs_AddedToPlaylist", songs.Count, playlist));
 		}
 	}
 
@@ -591,7 +598,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songData?.Title} added to queue.");
+		GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToQueue", songData?.Title ?? ""));
 	}
 
 	/// <summary>
@@ -626,11 +633,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 
 		if (songData != null)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
-									$"\nTitle: {songData.Title}" +
-									$"\nArtist: {songData.Artists}" +
-									$"\nAlbum: {songData.Album}" +
-									$"\nFile: {songData.Path}";
+			DeleteDialogText.Text = LocalizationService.FormatDeleteSingleSongMessage(songData.Title, songData.Artists, songData.Album, songData.Path);
 
 			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
@@ -644,11 +647,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					AlbumGroupSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Success("Song/Track deleted." +
-												$"\nTitle: {songData.Title}" +
-												$"\nArtist: {songData.Artists}" +
-												$"\nAlbum: {songData.Album}" +
-												$"\nFile: {songData.Path}");
+					GlobalNotification.Success(LocalizationService.FormatSongDeletedNotification(songData.Title, songData.Artists, songData.Album, songData.Path));
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -659,7 +658,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 			if (AlbumGroupSongs.Count <= 0)
 			{
 				App.Current.NavService.GoBack();
-				MainPage._instance?.RemovePageFromHistory(ActualAlbumGroup.Text == "Unknown Album" ? "Unknown" : ActualAlbumGroup.Text);
+				MainPage._instance?.RemovePageFromHistory((ActualAlbumGroup.Text == LocalizationService.GetString("Metadata_UnknownAlbum") || ActualAlbumGroup.Text == "Unknown Album") ? "Unknown" : ActualAlbumGroup.Text);
 			}
 		}
 	}
@@ -687,7 +686,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 			MoreButton.IsEnabled = false;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			SortAndViewButtonPanel.Visibility = Visibility.Collapsed;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn off multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOff"));
 			view.SelectionMode = ListViewSelectionMode.Multiple;
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
@@ -708,7 +707,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 			MoreButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			SortAndViewButtonPanel.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn on multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOn"));
 			view.SelectionMode = ListViewSelectionMode.Single;
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
@@ -742,7 +741,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} added to the queue.");
+		GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Queue_Added", songPaths.Count));
 	}
 
 	/// <summary>
@@ -763,7 +762,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 			songList.Add((Song)item);
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
+		DeleteDialogText.Text = LocalizationService.FormatPluralString("DeleteDialog_Confirm", songList.Count);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -782,7 +781,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_Deleted", songList.Count));
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -792,7 +791,7 @@ public sealed partial class AlbumDetailPage : SongListPageBase
 		if (AlbumGroupSongs.Count <= 0)
 		{
 			App.Current.NavService.GoBack();
-			MainPage._instance?.RemovePageFromHistory(ActualAlbumGroup.Text == "Unknown Album" ? "Unknown" : ActualAlbumGroup.Text);
+			MainPage._instance?.RemovePageFromHistory((ActualAlbumGroup.Text == LocalizationService.GetString("Metadata_UnknownAlbum") || ActualAlbumGroup.Text == "Unknown Album") ? "Unknown" : ActualAlbumGroup.Text);
 		}
 	}
 

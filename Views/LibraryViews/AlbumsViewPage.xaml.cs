@@ -1,3 +1,4 @@
+using Tunetastic.Common.Services;
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
@@ -105,7 +106,9 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		UpdateShimmerPlaceholderCount(new Size(ContentGrid.ActualWidth, ContentGrid.ActualHeight));
 		ShimmerRepeater.Visibility = Visibility.Visible;
 
-		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		var orderItem = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Order" && item.IsChecked);
+		var orderBy = orderItem?.Tag?.ToString() ?? "Ascending";
+		var orderDisplayName = orderItem?.Text ?? orderBy;
 		bool AscOrder = orderBy == "Ascending";
 
 		var groups = await DatabaseHelper.Instance.GetSongsGroupedByAlbum(AscOrder);
@@ -120,13 +123,13 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
-		sortDropdownContent.Inlines.Add(new Run { Text = "Order: " });
+		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Order_Label") });
 		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
 
 		var orderDropdownTooltip = new TextBlock();
-		orderDropdownTooltip.Inlines.Add(new Run { Text = "The tiles are sorted in " });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = orderBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = " order." });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tile_Tooltip_SortedBy") });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = orderDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tooltip_OrderSuffix") });
 
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
@@ -324,7 +327,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 																		 ascending: (localSettings.Values[nameof(LocalSave.AlbumDetailViewSortOrder)]?.ToString() ?? "Ascending") == "Ascending",
 																		 whereCondition: $"{SongProperty.Album.ToString()} = '{(albumModel.Album == "Unknown" ? "Unknown Album" : albumModel.Album).Replace("'", "''").Replace("\\", "\\\\").Replace("\"", "\\\"")}'");
 			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel.Album} added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_AlbumSongsAddedToPlaylist", songList.Count, albumModel?.Album ?? "", playlist));
 		}
 	}
 
@@ -341,7 +344,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		{
 			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songList.Select(s => s.Path).ToList());
 
-			GlobalNotification.Info($"All {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} of selected albums, added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_SelectedAlbumsAddedToPlaylist", songList.Count, playlist));
 		}
 	}
 
@@ -389,7 +392,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} {(songList.Count == 1 ? "song/track" : "songs/tracks")} of Album {albumModel?.Album} added to queue.");
+		GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_AlbumSongsAddedToQueue", songList.Count, albumModel?.Album ?? ""));
 	}
 
 	/// <summary>
@@ -417,7 +420,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 
 		if (songPaths?.Count > 0)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of Album {albumModel?.Album} from your system?";
+			DeleteDialogText.Text = LocalizationService.FormatPluralString("DeleteDialog_AlbumSongs", songPaths.Count, albumModel?.Album ?? string.Empty);
 
 			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
@@ -435,7 +438,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 				}
 				AlbumsGroup.Remove(albumModel!);
 				MusicPlayer.Instance.HandleAfterDelete();
-				GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of Album {albumModel?.Album} deleted.");
+				GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_AlbumSongsDeleted", songPaths.Count, albumModel?.Album ?? ""));
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 			{
@@ -470,7 +473,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 			MoreButton.Visibility = Visibility.Visible;
 			MoreButton.IsEnabled = false;
 			SortAndViewButtonPanel.Visibility = Visibility.Collapsed;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn off multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOff"));
 			AlbumTileView.SelectionMode = ListViewSelectionMode.Multiple;
 			AlbumTileView.IsItemClickEnabled = false;
 			AlbumTileView.IsMultiSelectCheckBoxEnabled = true;
@@ -489,7 +492,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		{
 			MoreButton.Visibility = Visibility.Collapsed;
 			SortAndViewButtonPanel.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn on multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOn"));
 			AlbumTileView.SelectionMode = ListViewSelectionMode.Single;
 			AlbumTileView.IsItemClickEnabled = true;
 			AlbumTileView.IsMultiSelectCheckBoxEnabled = false;
@@ -527,7 +530,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"All {songList.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected albums, added to queue.");
+		GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_SelectedAlbumsAddedToQueue", songList.Count));
 	}
 
 	/// <summary>
@@ -551,7 +554,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		List<string> songPaths = songList.Select(s => s.Path).ToList();
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songPaths.Count > 1 ? "these " + songPaths.Count + " songs/tracks" : "this song/track")} of selected albums from your system?";
+		DeleteDialogText.Text = LocalizationService.FormatPluralString("DeleteDialog_SelectedAlbums", songPaths.Count);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -577,7 +580,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 				AlbumTileView.Items.Remove(albumModel);
 
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Success($"All {songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} of selected albums deleted.");
+			GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_SelectedAlbumsDeleted", songPaths.Count));
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -655,7 +658,7 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 
 	/// <inheritdoc/>
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
-		$"Add {(multiSelect ? "selected groups" : "this group")} of songs/tracks to {playList} playlist";
+		base.BuildAddToPlaylistTooltip(multiSelect, playList);
 
 	private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e) => TileView_SelectionChanged(sender, e);
 
@@ -825,7 +828,9 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 	/// </remarks>
 	private void NavigationPanelEvaluate()
 	{
-		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Order" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Ascending";
+		var orderItem = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Order" && item.IsChecked);
+		var orderBy = orderItem?.Tag?.ToString() ?? "Ascending";
+		var orderDisplayName = orderItem?.Text ?? orderBy;
 		bool AscOrder = orderBy == "Ascending";
 
 		IOrderedEnumerable<string>? availableLetters = null;

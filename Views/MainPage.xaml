@@ -1,7 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:services="using:Tunetastic.Common.Services"
       xmlns:common="using:Tunetastic.Common"
       xmlns:controls="using:Tunetastic.Common.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -69,11 +70,7 @@
 						                         VerticalAlignment="Center"
 						                         Animate="False"
 						                         StrokeThickness="0">
-							<TextBlock Margin="0,0,0,0"
-							           VerticalAlignment="Center"
-							           FontWeight="ExtraBold"
-							           Style="{ThemeResource SubtitleTextBlockStyle}"
-							           Text="Tunetastic" />
+							<TextBlock Margin="0,0,0,0" VerticalAlignment="Center" FontWeight="ExtraBold" Style="{ThemeResource SubtitleTextBlockStyle}" Text="{services:Loc Key=AppTitle.Text}" />
 						</dev:TextBlockStrokeView>
 						<TextBlock x:Name="VersionInfo"
 						           Grid.Column="2"
@@ -85,6 +82,7 @@
 					</Grid>
 				</TitleBar.LeftHeader>
 				<AutoSuggestBox x:Name="SearchBox"
+				                x:Uid="SearchBox"
 				                Width="320"
 				                VerticalAlignment="Center"
 				                GotFocus="SearchBox_GotFocus"
@@ -161,12 +159,12 @@
 						        Content="{dev:FontIcon GlyphCode=E793,
 						                               FontSize=16}"
 						        Style="{ThemeResource SubtleButtonStyle}"
-						        ToolTipService.ToolTip="Toggle Theme" />
+						        ToolTipService.ToolTip="{services:Loc Key=ThemeButton_ToolTip}" />
 						<Button x:Name="volumeMuteButton"
 						        Grid.Column="1"
 						        Click="VolumeMuteButton_Click"
 						        Style="{ThemeResource SubtleButtonStyle}"
-						        ToolTipService.ToolTip="Mute">
+						        ToolTipService.ToolTip="{services:Loc Key=VolumeMuteButton_ToolTip}">
 							<FontIcon x:Name="VolumeButtonGlyph"
 							          Glyph="&#xE767;" />
 						</Button>
@@ -202,7 +200,7 @@
 			</NavigationView>
 		</Grid>
 		<TeachingTip x:Name="SearchTeachingTip"
-		             Title="Search tips"
+		             Title="{services:Loc Key=SearchBox_Tips.Title}"
 		             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 		             HeroContentPlacement="Bottom"
 		             PreferredPlacement="RightBottom"
@@ -222,8 +220,7 @@
 		      Height="Auto"
 		      HorizontalAlignment="Center"
 		      VerticalAlignment="Center">
-			<ContentDialog x:Name="SongInfo"
-			               Title="Song/Track Information"
+			<ContentDialog x:Name="SongInfo" x:Uid="SongInfoDialog_Window" Title="Song/Track Information"
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 			               CloseButtonText="Close"
 			               DefaultButton="Close"
@@ -234,8 +231,8 @@
 						<StackPanel VerticalAlignment="Center"
 						            Orientation="Horizontal"
 						            Spacing="10">
-							<TextBlock Text="Song/Track Information" />
-							<ContentControl Content="🎵 Has Lyrics"
+							<TextBlock Text="{services:Loc Key=SongInfo_DialogHeader}" />
+							<ContentControl x:Uid="SongInfo_HasLyrics" Content="🎵 Has Lyrics"
 							                Style="{StaticResource NewBadgeStyle}" />
 						</StackPanel>
 					</DataTemplate>
@@ -244,14 +241,14 @@
 						<StackPanel VerticalAlignment="Center"
 						            Orientation="Horizontal"
 						            Spacing="10">
-							<TextBlock Text="Song/Track Information" />
-							<ContentControl Content="🎵 Has Synced Lyrics"
+							<TextBlock Text="{services:Loc Key=SongInfo_DialogHeader}" />
+							<ContentControl x:Uid="SongInfo_HasSyncedLyrics" Content="🎵 Has Synced Lyrics"
 							                Style="{StaticResource NewBadgeStyle}" />
 						</StackPanel>
 					</DataTemplate>
 
 					<DataTemplate x:Key="DefaultTitleTemplate">
-						<TextBlock Text="Song/Track Information" />
+						<TextBlock Text="{services:Loc Key=SongInfo_DialogHeader}" />
 					</DataTemplate>
 				</ContentDialog.Resources>
 				<Grid RowSpacing="10">
@@ -281,10 +278,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Title:" />
+								<TextBlock x:Uid="SongInfo_TitleLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Title:" />
 								<TextBlock x:Name="SongTitle"
 								           Grid.Row="1"
 								           IsTextSelectionEnabled="True"
@@ -298,10 +292,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Artists:" />
+								<TextBlock x:Uid="SongInfo_ArtistsLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Artists:" />
 								<TextBlock x:Name="SongArtists"
 								           Grid.Row="1"
 								           IsTextSelectionEnabled="True"
@@ -315,10 +306,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Album:" />
+								<TextBlock x:Uid="SongInfo_AlbumLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Album:" />
 								<TextBlock x:Name="SongAlbum"
 								           Grid.Row="1"
 								           IsTextSelectionEnabled="True"
@@ -369,10 +357,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Genre:" />
+								<TextBlock x:Uid="SongInfo_GenreLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Genre:" />
 								<TextBlock x:Name="SongGenre"
 								           Grid.Row="1"
 								           IsTextSelectionEnabled="True"
@@ -386,10 +371,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Year:" />
+								<TextBlock x:Uid="SongInfo_YearLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Year:" />
 								<TextBlock x:Name="SongYear"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -401,10 +383,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Track:" />
+								<TextBlock x:Uid="SongInfo_TrackLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Track:" />
 								<TextBlock x:Name="SongTrack"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -427,10 +406,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Duration:" />
+								<TextBlock x:Uid="SongInfo_DurationLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Duration:" />
 								<TextBlock x:Name="SongDuration"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -442,10 +418,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Size:" />
+								<TextBlock x:Uid="SongInfo_SizeLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Size:" />
 								<TextBlock x:Name="SongSize"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -457,10 +430,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Added:" />
+								<TextBlock x:Uid="SongInfo_AddedLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Added:" />
 								<TextBlock x:Name="SongAdded"
 								           Grid.Row="1"
 								           MaxLines="1"
@@ -475,10 +445,7 @@
 								<RowDefinition Height="Auto" />
 								<RowDefinition Height="Auto" />
 							</Grid.RowDefinitions>
-							<TextBlock Grid.Row="0"
-							           FontWeight="ExtraBold"
-							           Style="{ThemeResource BodyTextBlockStyle}"
-							           Text="Path:" />
+							<TextBlock x:Uid="SongInfo_PathLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Path:" />
 							<Grid Grid.Row="1"
 							      ColumnSpacing="5">
 								<Grid.ColumnDefinitions>
@@ -499,7 +466,7 @@
 								        VerticalContentAlignment="Center"
 								        Click="OpenContainingFolderButton_Click"
 								        Style="{ThemeResource SubtleButtonStyle}"
-								        ToolTipService.ToolTip="Open Containing Folder">
+								        ToolTipService.ToolTip="{services:Loc Key=SongInfo_FolderButton_ToolTip}">
 									<FontIcon Glyph="&#xE8DA;" />
 								</Button>
 							</Grid>
@@ -519,10 +486,7 @@
 									<RowDefinition Height="Auto" />
 									<RowDefinition Height="Auto" />
 								</Grid.RowDefinitions>
-								<TextBlock Grid.Row="0"
-								           FontWeight="ExtraBold"
-								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Channel:" />
+								<TextBlock x:Uid="SongInfo_ChannelLabel" Grid.Row="0" FontWeight="ExtraBold" Style="{ThemeResource BodyTextBlockStyle}" Text="Channel:" />
 								<TextBlock x:Name="SongChannel"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -537,7 +501,7 @@
 								<TextBlock Grid.Row="0"
 								           FontWeight="ExtraBold"
 								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Bit rate:" />
+								           x:Uid="SongInfo_BitRate" Text="Bit rate:" />
 								<TextBlock x:Name="SongBitrate"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -552,7 +516,7 @@
 								<TextBlock Grid.Row="0"
 								           FontWeight="ExtraBold"
 								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Sample rate:" />
+								           x:Uid="SongInfo_SampleRate" Text="Sample rate:" />
 								<TextBlock x:Name="SongSampleRate"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -567,7 +531,7 @@
 								<TextBlock Grid.Row="0"
 								           FontWeight="ExtraBold"
 								           Style="{ThemeResource BodyTextBlockStyle}"
-								           Text="Codec Description:" />
+								           x:Uid="SongInfo_CodecDescription" Text="Codec Description:" />
 								<TextBlock x:Name="SongCodecDescription"
 								           Grid.Row="1"
 								           Style="{ThemeResource BodyTextBlockStyle}"
@@ -586,8 +550,7 @@
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Style="{ThemeResource BodyTextBlockStyle}">
-									<Run FontWeight="ExtraBold"
-									     Text="Played Count: " />
+									<Run FontWeight="ExtraBold" Text="{services:Loc Key=SongInfo_PlayedCount}" />
 									<Run x:Name="SongPlayCount" />
 								</TextBlock>
 							</Grid>
@@ -595,8 +558,7 @@
 								<TextBlock HorizontalAlignment="Left"
 								           VerticalAlignment="Center"
 								           Style="{ThemeResource BodyTextBlockStyle}">
-									<Run FontWeight="ExtraBold"
-									     Text="Last Played: " />
+									<Run FontWeight="ExtraBold" Text="{services:Loc Key=SongInfo_LastPlayed}" />
 									<Run x:Name="SongLastPlayed" />
 								</TextBlock>
 							</Grid>
@@ -608,17 +570,16 @@
 							        HorizontalContentAlignment="Center"
 							        VerticalContentAlignment="Center"
 							        Style="{ThemeResource SubtleButtonStyle}"
-							        ToolTipService.ToolTip="Clear">
+							        ToolTipService.ToolTip="{services:Loc Key=SongInfo_ClearButton_ToolTip}">
 								<FontIcon Glyph="&#xE894;" />
 								<Button.Flyout>
 									<Flyout>
 										<StackPanel Width="200"
 										            Spacing="5">
 											<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-											           Text="Are you sure you want to clear Play count and Last Played Date-Time?"
+											           x:Uid="SongInfo_ClearPrompt" Text="Are you sure you want to clear Play count and Last Played Date-Time?"
 											           TextWrapping="WrapWholeWords" />
-											<Button Click="ClearButton_Click"
-											        Content="Yes" />
+											<Button x:Uid="SongInfo_ClearConfirmYes" Click="ClearButton_Click" Content="Yes" />
 										</StackPanel>
 									</Flyout>
 								</Button.Flyout>
@@ -628,7 +589,7 @@
 				</Grid>
 			</ContentDialog>
 
-			<ContentDialog x:Name="EditSongInfo"
+			<ContentDialog x:Name="EditSongInfo" x:Uid="EditSongDialog_Window"
 			               Title="Edit Song/Track Info"
 			               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 			               CloseButtonText="Cancel"
@@ -647,10 +608,9 @@
 						<StackPanel Spacing="4">
 							<StackPanel Orientation="Horizontal"
 							            Spacing="8">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Cover Art" />
+								<TextBlock x:Uid="EditSong_CoverArt" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Cover Art" />
 								<ContentControl x:Name="CoverArtChanged"
-								                Content="CHANGED"
+								                Content="{services:Loc Key=Badge_Changed}"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
@@ -668,10 +628,7 @@
 										<FontIcon FontSize="36"
 										          Foreground="{ThemeResource TextFillColorTertiaryBrush}"
 										          Glyph="&#xE8B9;" />
-										<TextBlock HorizontalAlignment="Center"
-										           FontSize="12"
-										           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-										           Text="No artwork" />
+										<TextBlock x:Uid="EditSong_NoArtwork" HorizontalAlignment="Center" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}" Text="No artwork" />
 									</StackPanel>
 									<Image x:Name="CoverArtImage"
 									       Margin="6"
@@ -684,12 +641,12 @@
 									<ColumnDefinition Width="*" />
 									<ColumnDefinition Width="*" />
 								</Grid.ColumnDefinitions>
-								<Button x:Name="BrowseCoverArtButton"
+								<Button x:Name="BrowseCoverArtButton" x:Uid="EditSong_BrowseCover"
 								        Grid.Column="0"
 								        HorizontalAlignment="Stretch"
 								        Click="BrowseCoverArtButton_Click"
 								        Content="Browse new Cover art" />
-								<Button x:Name="RemoveCoverArtButton"
+								<Button x:Name="RemoveCoverArtButton" x:Uid="EditSong_RemoveCover"
 								        Grid.Column="1"
 								        HorizontalAlignment="Stretch"
 								        Click="RemoveCoverArtButton_Click"
@@ -700,14 +657,13 @@
 						<StackPanel Spacing="4">
 							<StackPanel Orientation="Horizontal"
 							            Spacing="8">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Title" />
+								<TextBlock x:Uid="EditSong_Title_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Title" />
 								<ContentControl x:Name="TitleChanged"
-								                Content="CHANGED"
+								                Content="{services:Loc Key=Badge_Changed}"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
-							<TextBox x:Name="TitleTextBox"
+							<TextBox x:Name="TitleTextBox" x:Uid="EditSong_Title_Box"
 							         PlaceholderText="Enter title"
 							         TextChanged="TitleTextBox_TextChanged"
 							         TextWrapping="Wrap" />
@@ -716,14 +672,13 @@
 						<StackPanel Spacing="4">
 							<StackPanel Orientation="Horizontal"
 							            Spacing="8">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Artist(s)" />
+								<TextBlock x:Uid="EditSong_Artists_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Artist(s)" />
 								<ContentControl x:Name="ArtistChanged"
-								                Content="CHANGED"
+								                Content="{services:Loc Key=Badge_Changed}"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
-							<controls:InlineSuggestBox x:Name="ArtistTextBox"
+							<controls:InlineSuggestBox x:Name="ArtistTextBox" x:Uid="EditSong_Artists_Box"
 							                           CaseSensitiveSuggestion="False"
 							                           GotFocus="ArtistTextBox_GotFocus"
 							                           LostFocus="ArtistTextBox_LostFocus"
@@ -736,7 +691,7 @@
 							                           TextWrapping="Wrap" />
 
 							<TeachingTip x:Name="ArtistTeachingTip"
-							             Title="Inline auto-suggestion for existing artists."
+							             Title="{services:Loc Key=EditSong_ArtistTip.Title}"
 							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 							             BackgroundSizing="InnerBorderEdge"
 							             HeroContentPlacement="Bottom"
@@ -762,15 +717,14 @@
 						<StackPanel Spacing="4">
 							<StackPanel Orientation="Horizontal"
 							            Spacing="8">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Album" />
+								<TextBlock x:Uid="EditSong_Album_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Album" />
 								<ContentControl x:Name="AlbumChanged"
-								                Content="CHANGED"
+								                Content="{services:Loc Key=Badge_Changed}"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
 
-							<controls:InlineSuggestBox x:Name="AlbumTextBox"
+							<controls:InlineSuggestBox x:Name="AlbumTextBox" x:Uid="EditSong_Album_Box"
 							                           CaseSensitiveSuggestion="False"
 							                           GotFocus="AlbumTextBox_GotFocus"
 							                           LostFocus="AlbumTextBox_LostFocus"
@@ -780,7 +734,7 @@
 							                           TextChanged="AlbumTextBox_TextChanged"
 							                           TextWrapping="Wrap" />
 							<TeachingTip x:Name="AlbumTeachingTip"
-							             Title="Inline auto-suggestion for existing albums."
+							             Title="{services:Loc Key=EditSong_AlbumTip.Title}"
 							             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 							             BackgroundSizing="InnerBorderEdge"
 							             HeroContentPlacement="Bottom"
@@ -808,14 +762,13 @@
 							            Spacing="4">
 								<StackPanel Orientation="Horizontal"
 								            Spacing="8">
-									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-									           Text="Genre" />
+									<TextBlock x:Uid="EditSong_Genre_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Genre" />
 									<ContentControl x:Name="GenreChanged"
-									                Content="CHANGED"
+									                Content="{services:Loc Key=Badge_Changed}"
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
-								<controls:InlineSuggestBox x:Name="GenreAutoSuggestBox"
+								<controls:InlineSuggestBox x:Name="GenreAutoSuggestBox" x:Uid="EditSong_Genre_Box"
 								                           CaseSensitiveSuggestion="False"
 								                           GotFocus="GenreAutoSuggestBox_GotFocus"
 								                           LostFocus="GenreAutoSuggestBox_LostFocus"
@@ -825,7 +778,7 @@
 								                           TextChanged="GenreAutoSuggestBox_TextChanged"
 								                           TextWrapping="Wrap" />
 								<TeachingTip x:Name="GenreTeachingTip"
-								             Title="Inline auto-suggestion for existing genres."
+								             Title="{services:Loc Key=EditSong_GenreTip.Title}"
 								             Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
 								             BackgroundSizing="InnerBorderEdge"
 								             HeroContentPlacement="Bottom"
@@ -846,14 +799,13 @@
 							            Spacing="4">
 								<StackPanel Orientation="Horizontal"
 								            Spacing="8">
-									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-									           Text="Year" />
+									<TextBlock x:Uid="EditSong_Year_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Year" />
 									<ContentControl x:Name="YearChanged"
-									                Content="CHANGED"
+									                Content="{services:Loc Key=Badge_Changed}"
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
-								<TextBox x:Name="YearNumberBox"
+								<TextBox x:Name="YearNumberBox" x:Uid="EditSong_Year_Box"
 								         MaxLength="4"
 								         PlaceholderText="Enter Year"
 								         TextChanged="YearNumberBox_TextChanged" />
@@ -863,14 +815,13 @@
 							            Spacing="4">
 								<StackPanel Orientation="Horizontal"
 								            Spacing="8">
-									<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-									           Text="Track" />
+									<TextBlock x:Uid="EditSong_Track_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Track" />
 									<ContentControl x:Name="TrackChanged"
-									                Content="CHANGED"
+									                Content="{services:Loc Key=Badge_Changed}"
 									                Style="{StaticResource NewBadgeStyle}"
 									                Visibility="Collapsed" />
 								</StackPanel>
-								<TextBox x:Name="TrackNumberBox"
+								<TextBox x:Name="TrackNumberBox" x:Uid="EditSong_Track_Box"
 								         MaxLength="4"
 								         PlaceholderText="Enter Track"
 								         TextChanged="TrackNumberBox_TextChanged" />
@@ -885,14 +836,13 @@
 							</Grid.RowDefinitions>
 							<StackPanel Orientation="Horizontal"
 							            Spacing="8">
-								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Lyrics" />
+								<TextBlock x:Uid="EditSong_Lyrics_Label" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="Lyrics" />
 								<ContentControl x:Name="LyricsChanged"
-								                Content="CHANGED"
+								                Content="{services:Loc Key=Badge_Changed}"
 								                Style="{StaticResource NewBadgeStyle}"
 								                Visibility="Collapsed" />
 							</StackPanel>
-							<TextBox x:Name="LyricsTextBox"
+							<TextBox x:Name="LyricsTextBox" x:Uid="EditSong_Lyrics_Box"
 							         Grid.Row="1"
 							         AcceptsReturn="True"
 							         AutomationProperties.Name="multi-line TextBox"
@@ -940,11 +890,8 @@
 					            Padding="24"
 					            Background="#0FFFFFFF"
 					            Spacing="10">
-						<TextBlock Margin="0,0,0,8"
-						           FontSize="20"
-						           FontWeight="SemiBold"
-						           Text="Create New Playlist" />
-						<TextBox x:Name="PlaylistNameBox"
+						<TextBlock x:Uid="PlaylistDialog_Header" Margin="0,0,0,8" FontSize="20" FontWeight="SemiBold" Text="Create New Playlist" />
+						<TextBox x:Name="PlaylistNameBox" x:Uid="PlaylistDialog_NameBox"
 						         KeyDown="PlaylistNameBox_KeyDown"
 						         PlaceholderText="Enter playlist name"
 						         TextChanged="OnPlaylistNameChanged" />
@@ -958,14 +905,11 @@
 							           Width="290"
 							           VerticalAlignment="Center"
 							           TextWrapping="WrapWholeWords">
-								<Run Text="You can also select an existing playlist file." />
+								<Run Text="{services:Loc Key=PlaylistDialog_DescLine1.Text}" />
 								<LineBreak />
-								<Run Text="Supported formats: M3U, M3U8, PLS, WPL, ZPL" />
+								<Run Text="{services:Loc Key=PlaylistDialog_DescLine2.Text}" />
 							</TextBlock>
-							<Button Width="100"
-							        Click="BrowseButton_Click"
-							        Content="Browse"
-							        Style="{StaticResource AccentButtonStyle}" />
+							<Button x:Uid="PlaylistDialog_BrowseButton" Width="100" Click="BrowseButton_Click" Content="Browse" Style="{StaticResource AccentButtonStyle}" />
 						</StackPanel>
 						<Border x:Name="PlaylistDropZone"
 						        MinHeight="96"
@@ -985,11 +929,10 @@
 								<FontIcon HorizontalAlignment="Center"
 								          FontSize="24"
 								          Glyph="&#xE8E5;" />
-								<TextBlock HorizontalAlignment="Center"
-								           Text="Drag &amp; drop a playlist file here" />
+								<TextBlock x:Uid="PlaylistDialog_DropZoneText" HorizontalAlignment="Center" Text="Drag &amp; drop a playlist file here" />
 							</StackPanel>
 						</Border>
-						<TextBlock x:Name="AddPlaylistSongsNote"
+						<TextBlock x:Name="AddPlaylistSongsNote" x:Uid="PlaylistDialog_SongsNote"
 						           Margin="0,8,0,0"
 						           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
 						           Text="The selected songs/tracks will be automatically added to this playlist."
@@ -1006,7 +949,7 @@
 								<ColumnDefinition Width="*" />
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
-							<Button x:Name="AddPlaylistCreateButton"
+							<Button x:Name="AddPlaylistCreateButton" x:Uid="PlaylistDialog_CreateButton"
 							        Grid.Column="0"
 							        HorizontalAlignment="Stretch"
 							        Click="AddPlaylistCreateButton_Click"
@@ -1015,8 +958,7 @@
 							        Style="{StaticResource AccentButtonStyle}" />
 							<Button Grid.Column="1"
 							        HorizontalAlignment="Stretch"
-							        Click="AddPlaylistCancelButton_Click"
-							        Content="Cancel" />
+							        x:Uid="PlaylistDialog_CancelButton" Click="AddPlaylistCancelButton_Click" Content="Cancel" />
 						</Grid>
 					</Border>
 				</Grid>

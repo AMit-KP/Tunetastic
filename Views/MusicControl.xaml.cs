@@ -85,7 +85,7 @@ public sealed partial class MusicControl : Page
 	/// </param>
 	public void FloatingPlayer(object? sender, bool e)
 	{
-		if (e || ViewModel.Title == "Please select a song")
+		if (e || string.IsNullOrEmpty(MusicPlayer.Instance.CurrentSong) || ViewModel.Title == "Please select a song" || ViewModel.Title == LocalizationService.GetString("MusicControl_PleaseSelectSong"))
 			FadeOutMusicControl();
 		else
 			FadeInMusicControl();

@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -113,28 +113,28 @@ public partial class MusicControlViewModel : ObservableRecipient
 		set => SetProperty(ref _repeatButtonStyle, value);
 	}
 
-	private string _toolTipTextPlayPause = "Play";
+	private string _toolTipTextPlayPause = LocalizationService.GetString("MusicControl_Play");
 	public string ToolTipTextPlayPause
 	{
 		get => _toolTipTextPlayPause;
 		set => SetProperty(ref _toolTipTextPlayPause, value);
 	}
 
-	private string _toolTipTextShuffleButton = "Shuffle Off";
+	private string _toolTipTextShuffleButton = LocalizationService.GetString("MusicControl_ShuffleOff");
 	public string ToolTipTextShuffleButton
 	{
 		get => _toolTipTextShuffleButton;
 		set => SetProperty(ref _toolTipTextShuffleButton, value);
 	}
 
-	private string _toolTipTextRepeatButton = "Repeat All";
+	private string _toolTipTextRepeatButton = LocalizationService.GetString("MusicControl_RepeatAll");
 	public string ToolTipTextRepeatButton
 	{
 		get => _toolTipTextRepeatButton;
 		set => SetProperty(ref _toolTipTextRepeatButton, value);
 	}
 
-	private string _title = "Please select a song";
+	private string _title = LocalizationService.GetString("MusicControl_IdleSongTitle");
 	public string Title
 	{
 		get => _title;
@@ -239,7 +239,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 				case PlaybackState.Paused:
 				case PlaybackState.Stopped:
 					FontIconPlayPause = "\uE768";
-					ToolTipTextPlayPause = "Play";
+					ToolTipTextPlayPause = LocalizationService.GetString("MusicControl_Play");
 
 					_playbackTracker.PausePlayback();
 					_vinylEffect?.Pause();
@@ -250,6 +250,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					MainPage._instance?.AnimateTitle(startAnimation: false);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Paused);
 					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"play_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
+					Play_Pause_Button.Tooltip = LocalizationService.GetString("MusicControl_Thumbnail_Play");
 					_overlayGrid?.SetPlayingState(isPlaying: false);
 
 					await Task.Delay(500);
@@ -263,7 +264,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 				case PlaybackState.Playing:
 					FontIconPlayPause = "\uE769";
-					ToolTipTextPlayPause = "Pause";
+					ToolTipTextPlayPause = LocalizationService.GetString("MusicControl_Pause");
 
 					_playbackTracker.StartPlayback();
 					_vinylEffect?.Resume();
@@ -274,6 +275,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 					MainPage._instance?.AnimateTitle(startAnimation: true);
 					TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Normal);
 					Play_Pause_Button.Icon = new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"pause_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico"));
+					Play_Pause_Button.Tooltip = LocalizationService.GetString("MusicControl_Thumbnail_Pause");
 					_overlayGrid?.SetPlayingState(isPlaying: true);
 
 					if (!_isRainbowActive)
@@ -527,7 +529,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	{
 		IsShuffleToggled = shuffleSaved ?? IsShuffleToggled;
 		_musicPlayer.ToggleShuffle(IsShuffleToggled ? ShuffleMode.On : ShuffleMode.Off);
-		ToolTipTextShuffleButton = IsShuffleToggled ? "Shuffle On" : "Shuffle Off";
+		ToolTipTextShuffleButton = LocalizationService.GetString(IsShuffleToggled ? "MusicControl_ShuffleOn" : "MusicControl_ShuffleOff");
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ShuffleStatus)] = IsShuffleToggled;
 
 		if (_overlayGrid is not null && _overlayGrid is QueuePreviewOverlay)
@@ -560,19 +562,19 @@ public partial class MusicControlViewModel : ObservableRecipient
 			case RepeatMode.All:
 				_musicPlayer.SetRepeatMode(RepeatMode.All);
 				RepeatButtonFontIcon = "\uE8EE";
-				ToolTipTextRepeatButton = "Repeat All";
+				ToolTipTextRepeatButton = LocalizationService.GetString("MusicControl_RepeatAll");
 				RepeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
 				break;
 			case RepeatMode.One:
 				_musicPlayer.SetRepeatMode(RepeatMode.One);
 				RepeatButtonFontIcon = "\uE8ED";
-				ToolTipTextRepeatButton = "Repeat One";
+				ToolTipTextRepeatButton = LocalizationService.GetString("MusicControl_RepeatOne");
 				RepeatButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
 				break;
 			case RepeatMode.None:
 				_musicPlayer.SetRepeatMode(RepeatMode.None);
 				RepeatButtonFontIcon = "\uF5E7";
-				ToolTipTextRepeatButton = "Repeat Off";
+				ToolTipTextRepeatButton = LocalizationService.GetString("MusicControl_RepeatOff");
 				RepeatButtonStyle = (Style)Application.Current.Resources["DefaultButtonStyle"];
 				break;
 		}
@@ -711,7 +713,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 	/// method is asynchronous but returns void, so exceptions may not be observed by callers.</remarks>
 	public async void ResetCurrentSongFloatingWindow()
 	{
-		Title = "Please select a song";
+		Title = LocalizationService.GetString("MusicControl_IdleSongTitle");
 		Artist = string.Empty;
 		Cover = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png");
 		await Task.Delay(50);
@@ -724,13 +726,13 @@ public partial class MusicControlViewModel : ObservableRecipient
 	private void SetupTaskbarThumbnailToolBar()
 	{
 		var prevButton = new ThumbnailToolBarButton(
-		new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"prev_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Previous");
+		new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"prev_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), LocalizationService.GetString("MusicControl_Thumbnail_Previous"));
 
 		Play_Pause_Button = new ThumbnailToolBarButton(
-		new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"{(_musicPlayer.IsPlaying ? "pause" : "play")}_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Play");
+		new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"{(_musicPlayer.IsPlaying ? "pause" : "play")}_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), LocalizationService.GetString("MusicControl_Thumbnail_Play"));
 
 		var nextButton = new ThumbnailToolBarButton(
-			new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"next_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), "Next");
+			new Icon(Path.Combine(AppContext.BaseDirectory, "Assets", "Fluent", $"next_{(App.Current.ThemeService.IsDark ? "light" : "dark")}.ico")), LocalizationService.GetString("MusicControl_Thumbnail_Next"));
 
 
 		prevButton.Click += async (s, e) => await PreviousSong();
@@ -789,7 +791,7 @@ public partial class MusicControlViewModel : ObservableRecipient
 
 	private void OverlayGridCreation(OverlayTheme actualTheme)
 	{
-		var overlay = OverlayLayoutCatalog.All.FirstOrDefault(item => item.DisplayName == (Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"))?.Layout;
+		var overlay = OverlayLayoutCatalog.FromSettingString(Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString());
 		_overlayGrid = OverlayFactory.Create(overlay, actualTheme);
 
 		if (_overlayGrid.RootGrid is not null)

@@ -123,13 +123,13 @@ public static class AutoScanService
 		{
 			ContentDialog dialog = new ContentDialog()
 			{
-				Title = "Auto Sync",
+				Title = LocalizationService.GetString("AutoSync_Title"),
 				RequestedTheme = App.Current.ThemeService.ActualTheme,
-				CloseButtonText = "Later",
-				PrimaryButtonText = "Open Settings",
+				CloseButtonText = LocalizationService.GetString("AutoSync_Later"),
+				PrimaryButtonText = LocalizationService.GetString("AutoSync_OpenSettings"),
 				Content = new TextBlock
 				{
-					Text = "A large number of file changes were detected. Please, do a full scan to sync libraries, otherwise the libraries will sync on app restart.",
+					Text = LocalizationService.GetString("AutoSync_Message"),
 					TextWrapping = TextWrapping.WrapWholeWords,
 					Margin = new Thickness(10)
 				},

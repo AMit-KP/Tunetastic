@@ -1,8 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <Page x:Class="Tunetastic.Views.MusicControl"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:services="using:Tunetastic.Common.Services"
       xmlns:controls="using:Tunetastic.Common.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -74,7 +75,7 @@
 					              ClickMode="Press"
 					              Command="{x:Bind ViewModel.RewindSongCommand}"
 					              CornerRadius="23"
-					              ToolTipService.ToolTip="1 sec Rewind"
+					              ToolTipService.ToolTip="{services:Loc Key=RewindButton_ToolTip}"
 					              Visibility="{x:Bind ViewModel.Forward_Rewind_Visibility, Mode=OneWay}">
 						<FontIcon Glyph="&#xEB9E;" />
 					</RepeatButton>
@@ -85,7 +86,7 @@
 					        Margin="5,0"
 					        Command="{x:Bind ViewModel.PreviousSongCommand}"
 					        CornerRadius="23"
-					        ToolTipService.ToolTip="Previos Track">
+					        ToolTipService.ToolTip="{services:Loc Key=PrevButton_ToolTip}">
 						<SymbolIcon Symbol="Previous" />
 					</Button>
 
@@ -107,7 +108,7 @@
 					        ClickMode="Press"
 					        Command="{x:Bind ViewModel.NextSongCommand}"
 					        CornerRadius="23"
-					        ToolTipService.ToolTip="Next Track">
+					        ToolTipService.ToolTip="{services:Loc Key=NextButton_ToolTip}">
 						<SymbolIcon Symbol="Next" />
 					</Button>
 
@@ -117,7 +118,7 @@
 					              Margin="5,0"
 					              Command="{x:Bind ViewModel.ForwardSongCommand}"
 					              CornerRadius="23"
-					              ToolTipService.ToolTip="1 sec Forward"
+					              ToolTipService.ToolTip="{services:Loc Key=ForwardButton_ToolTip}"
 					              Visibility="{x:Bind ViewModel.Forward_Rewind_Visibility, Mode=OneWay}">
 						<FontIcon Glyph="&#xEB9D;" />
 					</RepeatButton>

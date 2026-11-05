@@ -316,10 +316,10 @@ public class OverlayLayoutInfo
 	public OverlayLayout Layout { get; init; }
 
 	/// <summary>Human-readable name shown in the dropdown.</summary>
-	public string? DisplayName { get; init; }
+	public string DisplayName => Tunetastic.Common.Services.LocalizationService.GetString($"OverlayLayout_{Layout}_Name");
 
 	/// <summary>Short description shown as a subtitle or tooltip.</summary>
-	public string? Description { get; init; }
+	public string Description => Tunetastic.Common.Services.LocalizationService.GetString($"OverlayLayout_{Layout}_Desc");
 }
 
 /// <summary>

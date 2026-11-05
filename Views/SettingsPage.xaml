@@ -1,7 +1,8 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page x:Class="Tunetastic.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:services="using:Tunetastic.Common.Services"
       xmlns:common="using:Tunetastic.Common"
       xmlns:controls="using:Tunetastic.Common.Controls"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -27,6 +28,8 @@
 				</dev:SettingsCard.Header>
 				<ToggleSwitch Name="{x:Bind Extension}"
 				              IsOn="{x:Bind Enabled, Mode=TwoWay}"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="Ext_ToggleSwitch_OnToggled" />
 			</dev:SettingsCard>
 		</DataTemplate>
@@ -46,6 +49,7 @@
 				<FontIcon FontSize="{Binding ElementName=LibraryTextBlock, Path=FontSize}"
 				          Glyph="&#xE8F7;" />
 				<TextBlock x:Name="LibraryTextBlock"
+				           x:Uid="Settings_LibrarySection"
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Library &amp; PlayLists" />
 			</StackPanel>
@@ -53,17 +57,20 @@
 			<controls:AnimatedScanResultLabel />
 
 			<dev:SettingsExpander x:Name="LibraryFolders"
+			                      x:Uid="Settings_AllLibraries"
 			                      Description="Click to view libraries added"
 			                      Header="All Libraries"
 			                      ItemsSource="{x:Bind Libraries}">
-				<Button Click="AddNewFolder_ButtonClick"
+				<Button x:Uid="Settings_AddNewFolderButton"
+				        Click="AddNewFolder_ButtonClick"
 				        Content="Add New Folder" />
 
 				<dev:SettingsExpander.ItemTemplate>
 					<DataTemplate x:DataType="common:LibraryModel">
 						<dev:SettingsCard Description="{x:Bind Path}"
 						                  Header="{x:Bind Name}">
-							<Button Click="RemoveFolder_ButtonClick"
+							<Button x:Uid="Settings_RemoveFolderButton"
+							        Click="RemoveFolder_ButtonClick"
 							        CommandParameter="{x:Bind}"
 							        Content="Remove Folder" />
 						</dev:SettingsCard>
@@ -71,11 +78,12 @@
 				</dev:SettingsExpander.ItemTemplate>
 			</dev:SettingsExpander>
 
-			<dev:SettingsExpander x:Name="FileExt"
+			<dev:SettingsExpander x:Name="FileExt" x:Uid="Settings_FileExtensions"
 			                      Header="File Extensions"
 			                      ItemsSource="{x:Bind CategorizedFormats}">
 				<StackPanel>
 					<Button x:Name="ExtensionConfirmButton"
+					        x:Uid="Settings_ConfirmSelectionsButton"
 					        Click="ExtensionConfirmButton_Click"
 					        Content="Confirm Selections"
 					        Style="{ThemeResource AccentButtonStyle}"
@@ -108,13 +116,11 @@
 							<StackPanel Orientation="Horizontal"
 							            Spacing="10">
 								<ToggleSwitch IsOn="{x:Bind CategoryEnabled}"
-								              OffContent="Turn on all"
-								              OnContent="Turn off all"
+								              OffContent="{services:Loc Key=Settings_FormatCategory_TurnOnAll}"
+								              OnContent="{services:Loc Key=Settings_FormatCategory_TurnOffAll}"
 								              Tag="{x:Bind}"
 								              Toggled="ExtCatToggleSwitch_Toggled" />
-								<Button Click="ConfigureCategoryButton_Click"
-								        Content="Configure"
-								        Tag="{x:Bind}" />
+								<Button Click="ConfigureCategoryButton_Click" Content="{services:Loc Key=Settings_ConfigureCategoryButton.Content}" Tag="{x:Bind}" />
 							</StackPanel>
 						</dev:SettingsCard>
 					</DataTemplate>
@@ -122,6 +128,7 @@
 			</dev:SettingsExpander>
 
 			<dev:SettingsExpander x:Name="FullScan"
+			                      x:Uid="Settings_ScanLibraries"
 			                      Description="Clears all songs metadata and inserts completely new metadata. Preserves only Play Count, Last Played Time and Playlist additions for existing tracks/songs."
 			                      Header="Scan Libraries for Songs">
 
@@ -146,75 +153,102 @@
 							           Style="{ThemeResource BodyStrongTextBlockStyle}" />
 						</Grid>
 					</Grid>
-					<Button x:Name="FullScanButton"
+					<Button x:Name="FullScanButton" x:Uid="Settings_FullScanButton"
 					        Click="ScanButton_Click"
 					        Content="Full Scan" />
 				</StackPanel>
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard x:Name="IgnoreTrack"
+					<dev:SettingsCard x:Name="IgnoreTrack" x:Uid="Settings_IgnoreShortTracks"
 					                  Header="Ignore Short Tracks">
-						<NumberBox x:Name="IgnoretracksDuration"
+						<NumberBox x:Name="IgnoretracksDuration" x:Uid="Settings_ShortTracksDuration"
 						           Header="Duration"
 						           SmallChange="1"
 						           SpinButtonPlacementMode="Inline" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="If turned on, the app will ignore tracks that are already scanned once based on Title, Album, and Artist."
+					<dev:SettingsCard x:Uid="Settings_IgnoreDuplicateTracks"
+					                  Description="If turned on, the app will ignore tracks that are already scanned once based on Title, Album, and Artist."
 					                  Header="Ignore Duplicate Tracks">
 						<ToggleSwitch Name="IgnoreDup"
 						              IsOn="False"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 						              Toggled="IgnoreDup_Toggled" />
 					</dev:SettingsCard>
 
-					<dev:SettingsCard Description="Scans the library for tracks when the app starts. If turned on, it will increase the startup time."
+					<dev:SettingsCard x:Uid="Settings_FullScanAtStartup"
+					                  Description="Scans the library for tracks when the app starts. If turned on, it will increase the startup time."
 					                  Header="Full Scan At Startup">
 						<ToggleSwitch Name="ScanAtStart"
 						              IsOn="False"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 						              Toggled="ScanAtStart_Toggled" />
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
-			<dev:SettingsCard Description="Automatically keep your library in sync with changes on disk."
+			<dev:SettingsCard x:Uid="Settings_AutoSync"
+			                  Description="Automatically keep your library in sync with changes on disk."
 			                  Header="Auto Sync">
-				<ToggleSwitch Name="AutoSyncSwitch" />
+				<ToggleSwitch Name="AutoSyncSwitch"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 			</dev:SettingsCard>
 
-			<dev:SettingsCard Description="Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details."
+			<dev:SettingsCard x:Uid="Settings_CliOutputStyle"
+			                  Description="Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details."
 			                  Header="CLI Output Style">
 				<ComboBox x:Name="CLIOutputColor">
-					<ComboBoxItem Content="Colorful"
+					<ComboBoxItem x:Uid="CLIOutputColor_Colorful"
+					              Content="Colorful"
 					              Tag="True"
 					              ToolTipService.ToolTip="Enables rich ANSI colors, status badges, and inline code formatting for terminal output." />
-					<ComboBoxItem Content="Plain Text"
+					<ComboBoxItem x:Uid="CLIOutputColor_PlainText"
+					              Content="Plain Text"
 					              Tag="False"
 					              ToolTipService.ToolTip="Monochrome output without escape codes; ideal for redirecting to text files or minimal terminals." />
 				</ComboBox>
 			</dev:SettingsCard>
 
 			<dev:SettingsExpander x:Name="LibaryPlayListVisiblity"
+			                      x:Uid="Settings_LibrariesAndPlaylistsToShow"
 			                      Description="Select which Pre-defined Libraries and Playlists to show/hide on Navigation"
 			                      Header="Libraries and Playlists to show">
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard Header="Artists">
-						<ToggleSwitch x:Name="ArtistsToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowArtists" Header="Artists">
+						<ToggleSwitch x:Name="ArtistsToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Header="Albums">
-						<ToggleSwitch x:Name="AlbumsToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowAlbums" Header="Albums">
+						<ToggleSwitch x:Name="AlbumsToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Header="Genres">
-						<ToggleSwitch x:Name="GenresToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowGenres" Header="Genres">
+						<ToggleSwitch x:Name="GenresToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Header="Years">
-						<ToggleSwitch x:Name="YearsToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowYears" Header="Years">
+						<ToggleSwitch x:Name="YearsToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Header="Recently Added">
-						<ToggleSwitch x:Name="RecentlyAddedToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowRecentlyAdded" Header="Recently Added">
+						<ToggleSwitch x:Name="RecentlyAddedToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Header="Recently Played">
-						<ToggleSwitch x:Name="RecentlyPlayedToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowRecentlyPlayed" Header="Recently Played">
+						<ToggleSwitch x:Name="RecentlyPlayedToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Header="Most Played">
-						<ToggleSwitch x:Name="MostPlayedToggle" />
+					<dev:SettingsCard x:Uid="Settings_ShowMostPlayed" Header="Most Played">
+						<ToggleSwitch x:Name="MostPlayedToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
@@ -226,17 +260,21 @@
 				<FontIcon FontSize="{Binding ElementName=AudioTextBlock, Path=FontSize}"
 				          Glyph="&#xE8D6;" />
 				<TextBlock x:Name="AudioTextBlock"
+				           x:Uid="Settings_AudioSection"
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Audio &amp; Playback" />
 			</StackPanel>
-			<dev:SettingsExpander Description="Click to view all crossfade/fade settings."
+			<dev:SettingsExpander x:Uid="Settings_CrossfadeFade"
+			                      Description="Click to view all crossfade/fade settings."
 			                      Header="Crossfade/Fade">
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard x:Name="PlayPauseStopFadeCard"
+					<dev:SettingsCard x:Name="PlayPauseStopFadeCard" x:Uid="Settings_FadePlayPauseStop"
 					                  Header="Fade Play/Pause/Stop">
 						<StackPanel>
 							<ToggleSwitch x:Name="PlayPauseStopFadeSwitch"
 							              HorizontalAlignment="Right"
+							              OnContent="{services:Loc Key=ToggleSwitch_On}"
+							              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 							              Toggled="PlayPauseStopFadeSwitch_OnToggled" />
 							<Slider x:Name="PlayPauseStopFadeSlider"
 							        HorizontalAlignment="Right"
@@ -250,12 +288,14 @@
 							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
-					<dev:SettingsCard x:Name="AutoAdvanceCard"
+					<dev:SettingsCard x:Name="AutoAdvanceCard" x:Uid="Settings_AutoAdvanceCrossfading"
 					                  Header="Auto advance Crossfading"
 					                  Visibility="Collapsed">
 						<StackPanel>
 							<ToggleSwitch x:Name="AutoAdvanceSwitch"
 							              HorizontalAlignment="Right"
+							              OnContent="{services:Loc Key=ToggleSwitch_On}"
+							              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 							              Toggled="AutoAdvanceSwitch_OnToggled" />
 							<Slider x:Name="AutoAdvanceSlider"
 							        HorizontalAlignment="Right"
@@ -269,12 +309,14 @@
 							        TickPlacement="None" />
 						</StackPanel>
 					</dev:SettingsCard>
-					<dev:SettingsCard x:Name="ManualTrackChangeCard"
+					<dev:SettingsCard x:Name="ManualTrackChangeCard" x:Uid="Settings_ManualTrackChangeCrossfading"
 					                  Header="Manual Track Change Crossfading"
 					                  Visibility="Collapsed">
 						<StackPanel>
 							<ToggleSwitch x:Name="ManualTrackChangeSwitch"
 							              HorizontalAlignment="Right"
+							              OnContent="{services:Loc Key=ToggleSwitch_On}"
+							              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 							              Toggled="ManualTrackChangeSwitch_OnToggled" />
 							<Slider x:Name="ManualTrackChangeSlider"
 							        HorizontalAlignment="Right"
@@ -290,49 +332,73 @@
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
-			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when previous button is pressed."
+			<dev:SettingsCard x:Uid="Settings_PreviousRestartsTrack"
+			                  Description="When turned on, the app will restart the track that is currently playing when previous button is pressed."
 			                  Header="Previous button restarts the current track">
 				<ToggleSwitch x:Name="PreviousReset"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="PreviousReset_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will restart the track that is currently playing when it is selected again."
+			<dev:SettingsCard x:Uid="Settings_RestartTrackOnSelection"
+			                  Description="When turned on, the app will restart the track that is currently playing when it is selected again."
 			                  Header="Restart Track on Selection">
 				<ToggleSwitch x:Name="RestartTrackOnSelection"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="RestartTrackOnSelection_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will use the system volume control. When turned off, the app will use the Tunetastic app volume control."
+			<dev:SettingsCard x:Uid="Settings_UseSystemVolumeControl"
+			                  Description="When turned on, the app will use the system volume control. When turned off, the app will use the Tunetastic app volume control."
 			                  Header="Use System Volume Control">
 				<ToggleSwitch x:Name="UseSystemVolume"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="UseSystemVolume_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will pause the track that is currently playing when the volume is muted or became 0."
+			<dev:SettingsCard x:Uid="Settings_PauseOnMute"
+			                  Description="When turned on, the app will pause the track that is currently playing when the volume is muted or became 0."
 			                  Header="Pause on Mute">
 				<ToggleSwitch x:Name="PauseOnMute"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="PauseOnMute_OnToggled" />
 			</dev:SettingsCard>
 			<dev:SettingsCard x:Name="ResumeOnUnmuteSettings"
+			                  x:Uid="Settings_ResumeOnUnmute"
 			                  Description="When turned on, the app will resume the track that is currently playing when the volume is unmuted or increased more than 0. (It'll only trigger if pause happened because of Pause on Mute)"
 			                  Header="Resume on Unmute">
 				<ToggleSwitch x:Name="ResumeOnUnmute"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="ResumeOnUnmute_Toggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will start playing the track that was last playing."
+			<dev:SettingsCard x:Uid="Settings_AutoStartPlaying"
+			                  Description="When turned on, the app will start playing the track that was last playing."
 			                  Header="Auto-Start playing track when app starts">
 				<ToggleSwitch x:Name="AutoStart"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="AutoStart_OnToggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="When turned on, the app will show the forward and rewind buttons."
+			<dev:SettingsCard x:Uid="Settings_ForwardRewindButtons"
+			                  Description="When turned on, the app will show the forward and rewind buttons."
 			                  Header="Forward and Rewind Button Visibility">
 				<ToggleSwitch x:Name="ForwardRewindButtonVisibility"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="ForwardRewindButtonVisibility_Toggled" />
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="Defines the sign convention for [offset:] calculations. Select Official Standard for spec-compliant time subtraction (Timestamp - Offset) or Intuitive for straightforward addition (Timestamp + Offset)."
+			<dev:SettingsCard x:Uid="Settings_LrcOffsetStandard"
+			                  Description="Defines the sign convention for [offset:] calculations. Select Official Standard for spec-compliant time subtraction (Timestamp - Offset) or Intuitive for straightforward addition (Timestamp + Offset)."
 			                  Header="LRC Offset Standard">
 				<ComboBox x:Name="LRCOffsetStandard" Width="160">
-					<ComboBoxItem Content="Official Standard"
+					<ComboBoxItem x:Uid="LRCOffsetStandard_Official"
+					              Content="Official Standard"
 					              Tag="Official"
 					              ToolTipService.ToolTip="Follows the formal LRC specification. Positive values subtract time to display lyrics sooner (advancing them), while negative values delay lyrics. Recommended for compatibility with spec-compliant files." />
-					<ComboBoxItem Content="Intuitive/Logical"
+					<ComboBoxItem x:Uid="LRCOffsetStandard_Intuitive"
+					              Content="Intuitive/Logical"
 					              Tag="Intuitive"
 					              ToolTipService.ToolTip="Applies straightforward timestamp addition. Positive values add time to delay lyrics, while negative values shift lyrics earlier. Ideal if you expect + to push lyrics forward into the timeline." />
 				</ComboBox>
@@ -345,44 +411,59 @@
 				<FontIcon FontSize="{Binding ElementName=AppearanceTextBlock, Path=FontSize}"
 				          Glyph="&#xE790;" />
 				<TextBlock x:Name="AppearanceTextBlock"
+				           x:Uid="Settings_AppearanceSection"
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Appearance &amp; Behavior" />
 			</StackPanel>
 			<dev:SettingsCard x:Name="LanguageCard"
+			                  x:Uid="Settings_AppLanguage"
 			                  Description="Choose the display language for Tunetastic. Requires an app restart to take full effect."
 			                  Header="App language">
-				<ComboBox x:Name="AppLanguage" Width="170">
+				<ComboBox x:Name="AppLanguage" Width="200">
 					<ComboBoxItem Content="English"
 					              Tag="en-US" />
+					<ComboBoxItem Content="[ !!! Pseudo (qps-ploc) !!! ]"
+					              Tag="qps-ploc" />
 				</ComboBox>
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
+			<dev:SettingsCard x:Uid="Settings_AppTheme"
+			                  Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
 			                  Header="App theme">
 				<ComboBox x:Name="Theme">
-					<ComboBoxItem Content="Light"
+					<ComboBoxItem x:Uid="Theme_Light"
+					              Content="Light"
 					              Tag="Light" />
-					<ComboBoxItem Content="Dark"
+					<ComboBoxItem x:Uid="Theme_Dark"
+					              Content="Dark"
 					              Tag="Dark" />
-					<ComboBoxItem Content="Default"
+					<ComboBoxItem x:Uid="Theme_Default"
+					              Content="Default"
 					              Tag="Default" />
 				</ComboBox>
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
+			<dev:SettingsCard x:Uid="Settings_Material"
+			                  Description="Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options."
 			                  Header="Material">
 				<ComboBox x:Name="Backdrop">
-					<ComboBoxItem Content="Mica"
+					<ComboBoxItem x:Uid="Backdrop_Mica"
+					              Content="Mica"
 					              Tag="Mica" />
-					<ComboBoxItem Content="Mica Alt"
+					<ComboBoxItem x:Uid="Backdrop_MicaAlt"
+					              Content="Mica Alt"
 					              Tag="MicaAlt" />
-					<ComboBoxItem Content="Acrylic"
+					<ComboBoxItem x:Uid="Backdrop_Acrylic"
+					              Content="Acrylic"
 					              Tag="Acrylic" />
-					<ComboBoxItem Content="Acrylic Thin"
+					<ComboBoxItem x:Uid="Backdrop_AcrylicThin"
+					              Content="Acrylic Thin"
 					              Tag="AcrylicThin" />
-					<ComboBoxItem Content="Transparent"
+					<ComboBoxItem x:Uid="Backdrop_Transparent"
+					              Content="Transparent"
 					              Tag="Transparent" />
 				</ComboBox>
 			</dev:SettingsCard>
 			<dev:SettingsExpander x:Name="TintSettings"
+			                      x:Uid="Settings_TintColor"
 			                      Description="Add tint to your window to make your experience more personalized."
 			                      Header="Tint Color"
 			                      IsExpanded="True">
@@ -428,11 +509,12 @@
 				</dev:SettingsExpander.ItemsHeader>
 			</dev:SettingsExpander>
 			<dev:SettingsCard ActionIcon="{dev:BitmapIcon Source=Assets/Fluent/External.png}"
+			                  x:Uid="Settings_AccentColor"
 			                  Description="Sync your app’s color with your Windows accent color. You can open the Windows accent color setting by clicking this card."
 			                  Header="Accent color"
 			                  IsClickEnabled="True"
 			                  LaunchUri="ms-settings:colors" />
-			<dev:SettingsCard Header="Main Player Background Blur Intensity">
+			<dev:SettingsCard x:Uid="Settings_BlurIntensity" Header="Main Player Background Blur Intensity">
 				<Slider x:Name="MainPlayerBlurSlider"
 				        Maximum="10"
 				        Minimum="1"
@@ -441,12 +523,15 @@
 				        TickFrequency="1"
 				        TickPlacement="Inline" />
 			</dev:SettingsCard>
-			<dev:SettingsExpander Description="When turned on, starts a rainbow frame border around the app window."
+			<dev:SettingsExpander x:Uid="Settings_RainbowFrameBorder"
+			                      Description="When turned on, starts a rainbow frame border around the app window."
 			                      Header="Rainbow Frame Border">
 				<ToggleSwitch x:Name="RainbowToggle"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="RainbowToggle_OnToggled" />
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard x:Name="RainbowSpeed"
+					<dev:SettingsCard x:Name="RainbowSpeed" x:Uid="Settings_RainbowSpeed"
 					                  Header="Rainbow Speed">
 						<Slider x:Name="RainbowSpeedSlider"
 						        IsEnabledChanged="RainbowSpeedSlider_OnIsEnabledChanged"
@@ -457,40 +542,55 @@
 						        TickFrequency="1"
 						        TickPlacement="Inline" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="When turned on, The rainbow frame border will be applied only when there's a track in playing"
+					<dev:SettingsCard x:Uid="Settings_OnlyDuringPlayback"
+					                  Description="When turned on, The rainbow frame border will be applied only when there's a track in playing"
 					                  Header="Only during playback">
 						<ToggleSwitch x:Name="RainbowOnlyDuringPlayback"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 						              Toggled="RainbowOnlyDuringPlayback_OnToggled" />
 					</dev:SettingsCard>
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
-			<dev:SettingsCard Description="When turned on, the app will minimize to system tray when the window is closed."
+			<dev:SettingsCard x:Uid="Settings_MinimizeToSystemTray"
+			                  Description="When turned on, the app will minimize to system tray when the window is closed."
 			                  Header="Minimize the app to system tray">
 				<ToggleSwitch x:Name="MinimizeToTray"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="MinimizeToTray_OnToggled" />
 			</dev:SettingsCard>
 
-			<dev:SettingsCard Description="Choose the style of the system tray icon."
+			<dev:SettingsCard x:Uid="Settings_SystemTrayIconStyle"
+			                  Description="Choose the style of the system tray icon."
 			                  Header="System tray icon style">
 				<ComboBox x:Name="SystemTrayIconStyle" Width="180">
-					<ComboBoxItem Content="Full color"
+					<ComboBoxItem x:Uid="TrayIcon_FullColor"
+					              Content="Full color"
 					              Tag="FullColor" />
-					<ComboBoxItem Content="Monochrome (Auto)"
+					<ComboBoxItem x:Uid="TrayIcon_MonochromeAuto"
+					              Content="Monochrome (Auto)"
 					              Tag="MonochromeAuto" />
-					<ComboBoxItem Content="Dark"
+					<ComboBoxItem x:Uid="TrayIcon_Dark"
+					              Content="Dark"
 					              Tag="Dark" />
-					<ComboBoxItem Content="Light"
+					<ComboBoxItem x:Uid="TrayIcon_Light"
+					              Content="Light"
 					              Tag="Light" />
 				</ComboBox>
 			</dev:SettingsCard>
 
-			<dev:SettingsExpander Description="When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information."
+			<dev:SettingsExpander x:Uid="Settings_TaskbarOverlayControls"
+			                      Description="When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information."
 			                      Header="Taskbar Overlay Controls">
 				<ToggleSwitch x:Name="TaskBarOverlay"
+				              OnContent="{services:Loc Key=ToggleSwitch_On}"
+				              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 				              Toggled="TaskBarOverlay_Toggled" />
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard Description="The design of the taskbar overlay controls. If you have any control overlay design/style in mind, please let me know by creating GitHub Issue under About Section."
+					<dev:SettingsCard x:Uid="Settings_TaskbarOverlayDesign"
+					                  Description="The design of the taskbar overlay controls. If you have any control overlay design/style in mind, please let me know by creating GitHub Issue under About Section."
 					                  Header="Taskbar Overlay Design Catalog">
 						<ComboBox x:Name="TaskBarOverlayDesign"
 						          Width="210"
@@ -521,23 +621,30 @@
 
 						</ComboBox>
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="Determine the theme of the taskbar overlay controls."
+					<dev:SettingsCard x:Uid="Settings_TaskbarOverlayTheme"
+					                  Description="Determine the theme of the taskbar overlay controls."
 					                  Header="Taskbar Overlay Control Theme">
 						<ComboBox x:Name="TaskBarOverlayTheme">
-							<ComboBoxItem Content="Default"
+							<ComboBoxItem x:Uid="TaskbarOverlayTheme_Default"
+							              Content="Default"
 							              Tag="DefaultTBOL" />
-							<ComboBoxItem Content="Light"
+							<ComboBoxItem x:Uid="TaskbarOverlayTheme_Light"
+							              Content="Light"
 							              Tag="LightTBOL" />
-							<ComboBoxItem Content="Dark"
+							<ComboBoxItem x:Uid="TaskbarOverlayTheme_Dark"
+							              Content="Dark"
 							              Tag="DarkTBOL" />
 						</ComboBox>
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="Determine the position of the taskbar overlay controls."
+					<dev:SettingsCard x:Uid="Settings_TaskbarOverlaySide"
+					                  Description="Determine the position of the taskbar overlay controls."
 					                  Header="Taskbar Overlay Controls Side">
 						<ComboBox x:Name="TaskBarOverlayPosition">
-							<ComboBoxItem Content="Right"
+							<ComboBoxItem x:Uid="TaskbarOverlaySide_Right"
+							              Content="Right"
 							              Tag="RightTBOL" />
-							<ComboBoxItem Content="Left"
+							<ComboBoxItem x:Uid="TaskbarOverlaySide_Left"
+							              Content="Left"
 							              Tag="LeftTBOL" />
 						</ComboBox>
 					</dev:SettingsCard>
@@ -550,13 +657,13 @@
 			            Spacing="10">
 				<FontIcon FontSize="{Binding ElementName=AboutTextBlock, Path=FontSize}"
 				          Glyph="&#xE946;" />
-				<TextBlock x:Name="AboutTextBlock"
+				<TextBlock x:Name="AboutTextBlock" x:Uid="Settings_AboutSection"
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="About" />
 			</StackPanel>
 
 			<dev:SettingsExpander Description="Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that’s as unique, expressive and captivating as the music you love. 🎶"
-			                      Header="Tunetastic by AMit-KP"
+			                      x:Uid="Settings_AboutTunetastic" Header="Tunetastic by AMit-KP"
 			                      HeaderIcon="{dev:BitmapIcon Source=Assets/AppIcon.png}"
 			                      IsExpanded="False">
 				<StackPanel Orientation="Horizontal"
@@ -566,6 +673,7 @@
 					           IsTextSelectionEnabled="True"
 					           Text="{x:Bind dev:ProcessInfoHelper.VersionWithPrefix}" />
 					<dev:ProgressButton x:Name="CheckForUpdates"
+					                    x:Uid="Settings_CheckForUpdates_Button"
 					                    Width="180"
 					                    CheckedContent="Checking..."
 					                    Click="CheckForUpdates_Click"
@@ -574,19 +682,27 @@
 					                    ProgressRingVisibility="Visible" />
 				</StackPanel>
 				<dev:SettingsExpander.Items>
-					<dev:SettingsCard Description="When turned on, the app will automatically check for updates at startup."
+					<dev:SettingsCard x:Uid="Settings_CheckForUpdates"
+					                  Description="When turned on, the app will automatically check for updates at startup."
 					                  Header="Check for updates at startup">
 						<ToggleSwitch x:Name="CheckForUpdatesStartupToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 						              Toggled="CheckForUpdatesStartupToggle_Toggled" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="When turned on, the current app version will be shown on the title bar."
+					<dev:SettingsCard x:Uid="Settings_ShowVersionInfo"
+					                  Description="When turned on, the current app version will be shown on the title bar."
 					                  Header="Show version info on TitleBar">
 						<ToggleSwitch x:Name="VersionInfoToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}"
 						              Toggled="VersionInfoToggle_Toggled" />
 					</dev:SettingsCard>
-					<dev:SettingsCard Description="See what's new in this version"
+					<dev:SettingsCard x:Uid="Settings_WhatsNew"
+					                  Description="See what's new in this version"
 					                  Header="What's New">
 						<Button x:Name="WhatsNewButton"
+						        x:Uid="Settings_WhatsNewButton"
 						        Click="WhatsNewButton_Click"
 						        Content="View What's New" />
 					</dev:SettingsCard>
@@ -594,22 +710,22 @@
 					                  ContentAlignment="Left">
 						<StackPanel Orientation="Vertical"
 						            Spacing="8">
-							<TextBlock Text="Related Links" />
+							<TextBlock x:Uid="Settings_RelatedLinks" Text="Related Links" />
 							<StackPanel Orientation="Horizontal"
 							            Spacing="2">
 								<Image x:Name="SourceCodeImage"
 								       Height="30" />
-								<HyperlinkButton Content="Source Code"
+								<HyperlinkButton x:Uid="Settings_SourceCode" Content="Source Code"
 								                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
 								<TextBlock VerticalAlignment="Center"
 								           Foreground="{ThemeResource SystemColorDisabledTextColor}"
-								           Text="(Please, leave a star ⭐)" />
+								           x:Uid="Settings_LeaveAStar" Text="(Please, leave a star ⭐)" />
 							</StackPanel>
 							<StackPanel Orientation="Horizontal"
 							            Spacing="2">
 								<Image x:Name="MicrosoftStoreImage"
 								       Height="30" />
-								<HyperlinkButton Content="Microsoft Store Page"
+								<HyperlinkButton x:Uid="Settings_MicrosoftStore" Content="Microsoft Store Page"
 								                 NavigateUri="https://apps.microsoft.com/detail/9PCCNQZTD6PX?mode=full" />
 							</StackPanel>
 						</StackPanel>
@@ -617,46 +733,50 @@
 				</dev:SettingsExpander.Items>
 			</dev:SettingsExpander>
 
-			<dev:SettingsCard Description="Share your feedback by rating the app. Your input helps us improve features and deliver a better experience."
+			<dev:SettingsCard x:Uid="Settings_FeedbackRating"
+			                  Description="Share your feedback by rating the app. Your input helps us improve features and deliver a better experience."
 			                  Header="Feedback &amp; Rating">
 				<Button x:Name="RateThisAppButton"
+				        x:Uid="Settings_RateThisAppButton"
 				        Click="RateThisAppButton_Click"
 				        Content="⭐ Rate this app" />
 			</dev:SettingsCard>
 
-			<dev:SettingsCard Description="If you have any issues or suggestions for enhancements, please open an issue on GitHub."
+			<dev:SettingsCard x:Uid="Settings_IssuesEnhancements"
+			                  Description="If you have any issues or suggestions for enhancements, please open an issue on GitHub."
 			                  Header="Issues/Enhancements">
 				<Button x:Name="GitHubIssues"
+				        x:Uid="Settings_GitHubIssuesButton"
 				        Click="GitHubIssues_Click"
 				        Content="GitHub Issues" />
 			</dev:SettingsCard>
 
-			<dev:SettingsCard Description="Love tuning in? Buy me a coffee to keep the playback smooth and the updates rolling!"
+			<dev:SettingsCard x:Uid="Settings_SupportMyWork"
+			                  Description="Love tuning in? Buy me a coffee to keep the playback smooth and the updates rolling!"
 			                  Header="Support My Work">
 				<Button x:Name="BuyMeACoffee"
+				        x:Uid="Settings_BuyMeACoffeeButton"
 				        Click="BuyMeACoffee_Click"
 				        Content="Support Development ☕" />
 			</dev:SettingsCard>
 
 			<dev:SettingsCard x:Name="MusicDownloader_Panel"
+			                  x:Uid="Settings_EasterEggCard"
 			                  PointerPressed="MusicDownloader_Reveal"
 			                  ToolTipService.ToolTip="Click 5 times to reveal">
 				<dev:SettingsCard.Header>
 					<TextBlock>
-						<Run FontStyle="Italic"
-						     FontWeight="SemiBold"
-						     Text="&quot;Culture shouldn't exist only for those who can afford it&quot;" />
+						<Run FontStyle="Italic" FontWeight="SemiBold" Text="{services:Loc Key=MusicDownloader_Quote}" />
 						<LineBreak />
-						<Run Text="                                                       — by Arsi Hakita Patala" />
+						<Run Text="{services:Loc Key=MusicDownloader_Author}" />
 					</TextBlock>
 				</dev:SettingsCard.Header>
 				<dev:SettingsCard.Description>
 					<TextBlock x:Name="MusicDownloader_Description">
-						<Run Text="If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots." />
+						<Run Text="{services:Loc Key=MusicDownloader_Desc}" />
 					</TextBlock>
 				</dev:SettingsCard.Description>
-				<HyperlinkButton x:Name="MusicDownloadLink"
-				                 Content="Music Downloader"
+				<HyperlinkButton x:Name="MusicDownloadLink" Content="{services:Loc Key=MusicDownloader_Button}"
 				                 NavigateUri="https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1"
 				                 Visibility="Collapsed" />
 			</dev:SettingsCard>
@@ -668,12 +788,14 @@
 				<FontIcon FontSize="{Binding ElementName=DataManagementTextBlock, Path=FontSize}"
 				          Glyph="&#xE912;" />
 				<TextBlock x:Name="DataManagementTextBlock"
+				           x:Uid="Settings_DataManagementSection"
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Data Management" />
 			</StackPanel>
-			<dev:SettingsCard Description="Resets the play count to zero and clears the last played time for all songs."
+			<dev:SettingsCard x:Uid="Settings_ResetPlaybackHistory"
+			                  Description="Resets the play count to zero and clears the last played time for all songs."
 			                  Header="Reset Playback History">
-				<Button Content="Reset">
+				<Button x:Uid="Settings_ResetButton" Content="Reset">
 					<Button.Flyout>
 						<Flyout x:Name="ResetHistoryFlyout">
 							<Flyout.FlyoutPresenterStyle>
@@ -683,18 +805,19 @@
 							</Flyout.FlyoutPresenterStyle>
 							<StackPanel Spacing="5">
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Are you sure?" />
+								           x:Uid="Settings_AreYouSure" Text="Are you sure?" />
 								<Button Click="ResetHistoryConfirm_Click"
 								        Command="{x:Bind ViewModel.ResetHistoryCommand}"
-								        Content="Yes" />
+								        x:Uid="Settings_YesButton" Content="Yes" />
 							</StackPanel>
 						</Flyout>
 					</Button.Flyout>
 				</Button>
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="It will delete all saved data from Windows App Data. App will restart automatically."
+			<dev:SettingsCard x:Uid="Settings_ResetAllSettings"
+			                  Description="It will delete all saved data from Windows App Data. App will restart automatically."
 			                  Header="Reset All Saved Settings">
-				<Button Content="Reset">
+				<Button x:Uid="Settings_ResetButton" Content="Reset">
 					<Button.Flyout>
 						<Flyout>
 							<Flyout.FlyoutPresenterStyle>
@@ -704,9 +827,9 @@
 							</Flyout.FlyoutPresenterStyle>
 							<StackPanel Spacing="5">
 								<TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}"
-								           Text="Are you sure?" />
+								           x:Uid="Settings_AreYouSure" Text="Are you sure?" />
 								<Button Command="{x:Bind ViewModel.ResetCommand}"
-								        Content="Yes" />
+								        x:Uid="Settings_YesButton" Content="Yes" />
 							</StackPanel>
 						</Flyout>
 					</Button.Flyout>

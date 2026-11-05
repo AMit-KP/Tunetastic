@@ -1,51 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="metadata">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" />
-              </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
-              <xsd:attribute ref="xml:space" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="assembly">
-            <xsd:complexType>
-              <xsd:attribute name="alias" type="xsd:string" />
-              <xsd:attribute name="name" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-              <xsd:attribute ref="xml:space" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -58,10 +12,3048 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- App Header & Brand -->
   <data name="AppTitle.Text" xml:space="preserve">
     <value>Tunetastic</value>
-    <comment>Main application title</comment>
+    <comment>Title Bar -&gt; Center -&gt; Main Window Title</comment>
   </data>
-</root>
+  <data name="SearchBox.PlaceholderText" xml:space="preserve">
+    <value>Search songs, albums, artists...</value>
+    <comment>Title Bar -&gt; Center -&gt; Global Search AutoSuggestBox Placeholder</comment>
+  </data>
+  <data name="ThemeButton_ToolTip" xml:space="preserve">
+    <value>Toggle Theme</value>
+    <comment>Title Bar -&gt; Right Header -&gt; Quick Actions -&gt; Theme Toggle Button Tooltip</comment>
+  </data>
+  <data name="VolumeMuteButton_ToolTip" xml:space="preserve">
+    <value>Mute</value>
+    <comment>Title Bar -&gt; Right Header -&gt; Volume Controls -&gt; Mute/Unmute Button Tooltip</comment>
+  </data>
+  <data name="RewindButton_ToolTip" xml:space="preserve">
+    <value>1 sec Rewind</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Rewind Button Tooltip</comment>
+  </data>
+  <data name="PrevButton_ToolTip" xml:space="preserve">
+    <value>Previous Track</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Previous Track Button Tooltip</comment>
+  </data>
+  <data name="NextButton_ToolTip" xml:space="preserve">
+    <value>Next Track</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Next Track Button Tooltip</comment>
+  </data>
+  <data name="ForwardButton_ToolTip" xml:space="preserve">
+    <value>1 sec Forward</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Fast Forward Button Tooltip</comment>
+  </data>
+  <data name="MusicControl_PleaseSelectSong" xml:space="preserve">
+    <value>Please select a song</value>
+    <comment>Playback Bar -&gt; Left Info Panel -&gt; Song Title -&gt; Empty State Prompt</comment>
+  </data>
+  <data name="Nav_Player.Title" xml:space="preserve">
+    <value>Player</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Main Player -&gt; Item Title</comment>
+  </data>
+  <data name="Nav_Player.Content" xml:space="preserve">
+    <value>Player</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Main Player -&gt; Item Label</comment>
+  </data>
+  <data name="Nav_Library.Title" xml:space="preserve">
+    <value>Library</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Header Title</comment>
+  </data>
+  <data name="Nav_Library.Content" xml:space="preserve">
+    <value>Library</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Header</comment>
+  </data>
+  <data name="Nav_AllSongs.Title" xml:space="preserve">
+    <value>All Songs</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; All Songs Item Title</comment>
+  </data>
+  <data name="Nav_AllSongs.Content" xml:space="preserve">
+    <value>All Songs</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; All Songs Item</comment>
+  </data>
+  <data name="Nav_Artists.Title" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Artists Item Title</comment>
+  </data>
+  <data name="Nav_Artists.Content" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Artists Item</comment>
+  </data>
+  <data name="Nav_Albums.Title" xml:space="preserve">
+    <value>Albums</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Albums Item Title</comment>
+  </data>
+  <data name="Nav_Albums.Content" xml:space="preserve">
+    <value>Albums</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Albums Item</comment>
+  </data>
+  <data name="Nav_Genres.Title" xml:space="preserve">
+    <value>Genres</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Genres Item Title</comment>
+  </data>
+  <data name="Nav_Genres.Content" xml:space="preserve">
+    <value>Genres</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Genres Item</comment>
+  </data>
+  <data name="Nav_Years.Title" xml:space="preserve">
+    <value>Years</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Years Item Title</comment>
+  </data>
+  <data name="Nav_Years.Content" xml:space="preserve">
+    <value>Years</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Library Section -&gt; Years Item</comment>
+  </data>
+  <data name="Nav_Playlists.Title" xml:space="preserve">
+    <value>Playlists</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Header Title</comment>
+  </data>
+  <data name="Nav_Playlists.Content" xml:space="preserve">
+    <value>Playlists</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Header</comment>
+  </data>
+  <data name="Nav_RecentlyAdded.Title" xml:space="preserve">
+    <value>Recently Added</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Added Item Title</comment>
+  </data>
+  <data name="Nav_RecentlyAdded.Content" xml:space="preserve">
+    <value>Recently Added</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Added Item</comment>
+  </data>
+  <data name="Nav_RecentlyPlayed.Title" xml:space="preserve">
+    <value>Recently Played</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Played Item Title</comment>
+  </data>
+  <data name="Nav_RecentlyPlayed.Content" xml:space="preserve">
+    <value>Recently Played</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Recently Played Item</comment>
+  </data>
+  <data name="Nav_MostPlayed.Title" xml:space="preserve">
+    <value>Most Played</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Most Played Item Title</comment>
+  </data>
+  <data name="Nav_MostPlayed.Content" xml:space="preserve">
+    <value>Most Played</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Most Played Item</comment>
+  </data>
+  <data name="Nav_AddNewPlaylist.Title" xml:space="preserve">
+    <value>Add New Playlist</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Add Playlist Item Title</comment>
+  </data>
+  <data name="Nav_AddNewPlaylist.Content" xml:space="preserve">
+    <value>Add New Playlist</value>
+    <comment>Navigation Sidebar -&gt; Primary Menu -&gt; Playlists Section -&gt; Add Playlist Item</comment>
+  </data>
+  <data name="Nav_Queue.Title" xml:space="preserve">
+    <value>Queue</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Queue -&gt; Item Title</comment>
+  </data>
+  <data name="Nav_Queue.Content" xml:space="preserve">
+    <value>Queue</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Queue -&gt; Item Label</comment>
+  </data>
+  <data name="Nav_Settings.Title" xml:space="preserve">
+    <value>Settings</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Settings -&gt; Item Title</comment>
+  </data>
+  <data name="Nav_Settings.Content" xml:space="preserve">
+    <value>Settings</value>
+    <comment>Navigation Sidebar -&gt; Footer Menu -&gt; Settings -&gt; Item Label</comment>
+  </data>
+  <data name="AllSongsView_Title.Text" xml:space="preserve">
+    <value>All Songs</value>
+    <comment>Library -&gt; All Songs Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="AllSongsView_Title_ToolTip" xml:space="preserve">
+    <value>View and manage all songs in your library</value>
+    <comment>Library -&gt; All Songs Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="ArtistsView_Title.Text" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Library -&gt; Artists Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="ArtistsView_Title_ToolTip" xml:space="preserve">
+    <value>Browse music by artist</value>
+    <comment>Library -&gt; Artists Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="AlbumsView_Title.Text" xml:space="preserve">
+    <value>Albums</value>
+    <comment>Library -&gt; Albums Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="AlbumsView_Title_ToolTip" xml:space="preserve">
+    <value>Browse music by album</value>
+    <comment>Library -&gt; Albums Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="GenresView_Title.Text" xml:space="preserve">
+    <value>Genres</value>
+    <comment>Library -&gt; Genres Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="GenresView_Title_ToolTip" xml:space="preserve">
+    <value>Browse music by genre</value>
+    <comment>Library -&gt; Genres Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="YearsView_Title.Text" xml:space="preserve">
+    <value>Years</value>
+    <comment>Library -&gt; Years Page -&gt; Top Header -&gt; Page Title</comment>
+  </data>
+  <data name="YearsView_Title_ToolTip" xml:space="preserve">
+    <value>Browse music by release year</value>
+    <comment>Library -&gt; Years Page -&gt; Top Header -&gt; Page Title Tooltip</comment>
+  </data>
+  <data name="MultiSelectButton_ToolTip" xml:space="preserve">
+    <value>Turn on multi-select mode</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Multi-Select Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Sort_Title.Text" xml:space="preserve">
+    <value>Title</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Title" Option</comment>
+  </data>
+  <data name="Sort_Artists.Text" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Artists" Option</comment>
+  </data>
+  <data name="Sort_Album.Text" xml:space="preserve">
+    <value>Album</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Album" Option</comment>
+  </data>
+  <data name="Sort_Duration.Text" xml:space="preserve">
+    <value>Duration</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Duration" Option</comment>
+  </data>
+  <data name="Sort_Track.Text" xml:space="preserve">
+    <value>Track</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Track" Option</comment>
+  </data>
+  <data name="Sort_Year.Text" xml:space="preserve">
+    <value>Year</value>
+    <comment>Playlist -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; "Year" Option</comment>
+  </data>
+  <data name="Sort_Ascending.Text" xml:space="preserve">
+    <value>Ascending</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Ascending" Option</comment>
+  </data>
+  <data name="Sort_Descending.Text" xml:space="preserve">
+    <value>Descending</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Menu -&gt; "Descending" Option</comment>
+  </data>
+  <data name="SortOrder_Ascending.Text" xml:space="preserve">
+    <value>Ascending</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Indicator -&gt; Ascending Label</comment>
+  </data>
+  <data name="SortOrder_Descending.Text" xml:space="preserve">
+    <value>Descending</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Indicator -&gt; Descending Label</comment>
+  </data>
+  <data name="Sort_SortBy_Label" xml:space="preserve">
+    <value>Sort By: </value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Prefix Label</comment>
+  </data>
+  <data name="Sort_Order_Label" xml:space="preserve">
+    <value>Order: </value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Dropdown Button -&gt; Prefix Label</comment>
+  </data>
+  <data name="Sort_Tooltip_SortedBy" xml:space="preserve">
+    <value>The list is sorted by </value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Tooltip Prefix</comment>
+  </data>
+  <data name="Sort_Tooltip_InOrder" xml:space="preserve">
+    <value> column in </value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Tooltip Middle</comment>
+  </data>
+  <data name="Sort_Tooltip_OrderSuffix" xml:space="preserve">
+    <value> order.</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Tooltip Suffix</comment>
+  </data>
+  <data name="MaxLimit_Unlimited.Text" xml:space="preserve">
+    <value>Unlimited</value>
+    <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Menu -&gt; "Unlimited" Option</comment>
+  </data>
+  <data name="MaxLimit_Label" xml:space="preserve">
+    <value>Max Limit: </value>
+    <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Prefix Label</comment>
+  </data>
+  <data name="MaxLimit_Tooltip" xml:space="preserve">
+    <value>The maximum number of songs/tracks to display in the list: </value>
+    <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ViewStyle_List.Text" xml:space="preserve">
+    <value>List View</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; View Style Menu -&gt; "List View" Option</comment>
+  </data>
+  <data name="ViewStyle_Compact.Text" xml:space="preserve">
+    <value>Compact View</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; View Style Menu -&gt; "Compact View" Option</comment>
+  </data>
+  <data name="TimeStyle_Date.Text" xml:space="preserve">
+    <value>Exact Date Style</value>
+    <comment>Playlists (Recently Played/Added) -&gt; Top Action Bar -&gt; Time Style Menu -&gt; "Exact Date Style" Option</comment>
+  </data>
+  <data name="TimeStyle_Relative.Text" xml:space="preserve">
+    <value>Relative Time Style</value>
+    <comment>Playlists (Recently Played/Added) -&gt; Top Action Bar -&gt; Time Style Menu -&gt; "Relative Time Style" Option</comment>
+  </data>
+  <data name="PlayList_MoveSubItem.Text" xml:space="preserve">
+    <value>Move</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Move" Submenu -&gt; Header</comment>
+  </data>
+  <data name="PlayList_MoveToTop.Text" xml:space="preserve">
+    <value>Move to Top</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Top Item Label</comment>
+  </data>
+  <data name="PlayList_MoveUp.Text" xml:space="preserve">
+    <value>Move Up</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Up Item Label</comment>
+  </data>
+  <data name="PlayList_MoveDown.Text" xml:space="preserve">
+    <value>Move Down</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Down Item Label</comment>
+  </data>
+  <data name="PlayList_MoveToBottom.Text" xml:space="preserve">
+    <value>Move to Bottom</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Bottom Item Label</comment>
+  </data>
+  <data name="PlayList_Remove.Text" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Remove" Item -&gt; Text</comment>
+  </data>
+  <data name="Tooltip_Title" xml:space="preserve">
+    <value>Title: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Title Label</comment>
+  </data>
+  <data name="Tooltip_Artists" xml:space="preserve">
+    <value>Artists: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Artists Label</comment>
+  </data>
+  <data name="Tooltip_Album" xml:space="preserve">
+    <value>Album: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Album Label</comment>
+  </data>
+  <data name="Tooltip_Duration" xml:space="preserve">
+    <value>Duration: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Duration Label</comment>
+  </data>
+  <data name="Tooltip_Year" xml:space="preserve">
+    <value>Year: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Year Label</comment>
+  </data>
+  <data name="Tooltip_Track" xml:space="preserve">
+    <value>Track: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Track Number Label</comment>
+  </data>
+  <data name="Tooltip_DateAdded" xml:space="preserve">
+    <value>Date Added: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Added Label</comment>
+  </data>
+  <data name="Tooltip_TimeAdded" xml:space="preserve">
+    <value>Time Added: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Added Label</comment>
+  </data>
+  <data name="Tooltip_DatePlayed" xml:space="preserve">
+    <value>Date Played: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Played Label</comment>
+  </data>
+  <data name="Tooltip_TimePlayed" xml:space="preserve">
+    <value>Time Played: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Played Label</comment>
+  </data>
+  <data name="Tooltip_CountOfSongs" xml:space="preserve">
+    <value>Songs: </value>
+    <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Song Count Label</comment>
+  </data>
+  <data name="Tooltip_TotalDuration" xml:space="preserve">
+    <value>Total Duration: </value>
+    <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Total Duration Label</comment>
+  </data>
+  <data name="Tooltip_TimesPlayed" xml:space="preserve">
+    <value>Times Played: </value>
+    <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Times Played Label</comment>
+  </data>
+  <data name="SongInfoDialog.Title" xml:space="preserve">
+    <value>Song Information</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="SongInfoDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Open File Location</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="SongInfoDialog.CloseButtonText" xml:space="preserve">
+    <value>Close</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Close Button</comment>
+  </data>
+  <data name="SongInfo_TitleLabel.Text" xml:space="preserve">
+    <value>Title:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Title Label</comment>
+  </data>
+  <data name="SongInfo_ArtistsLabel.Text" xml:space="preserve">
+    <value>Artists:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Artists Label</comment>
+  </data>
+  <data name="SongInfo_AlbumLabel.Text" xml:space="preserve">
+    <value>Album:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Album Label</comment>
+  </data>
+  <data name="SongInfo_GenreLabel.Text" xml:space="preserve">
+    <value>Genre:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Genre Label</comment>
+  </data>
+  <data name="SongInfo_YearLabel.Text" xml:space="preserve">
+    <value>Year:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Year Label</comment>
+  </data>
+  <data name="SongInfo_TrackLabel.Text" xml:space="preserve">
+    <value>Track:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Track Label</comment>
+  </data>
+  <data name="SongInfo_DurationLabel.Text" xml:space="preserve">
+    <value>Duration:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Duration Label</comment>
+  </data>
+  <data name="SongInfo_AddedLabel.Text" xml:space="preserve">
+    <value>Date Added:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Date Added Label</comment>
+  </data>
+  <data name="SongInfo_SizeLabel.Text" xml:space="preserve">
+    <value>File Size:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Size Label</comment>
+  </data>
+  <data name="SongInfo_ChannelLabel.Text" xml:space="preserve">
+    <value>Audio Channels:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Channels Label</comment>
+  </data>
+  <data name="SongInfo_PathLabel.Text" xml:space="preserve">
+    <value>File Path:</value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Path Label</comment>
+  </data>
+  <data name="SongInfo_PlayedCount" xml:space="preserve">
+    <value>Played Count: </value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Play Count Label</comment>
+  </data>
+  <data name="SongInfo_LastPlayed" xml:space="preserve">
+    <value>Last Played: </value>
+    <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Last Played Label</comment>
+  </data>
+  <data name="SongInfo_FolderButton_ToolTip" xml:space="preserve">
+    <value>Open Containing Folder</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Open Containing Folder" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="PlaylistDialog_Header.Text" xml:space="preserve">
+    <value>Create New Playlist</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Title Bar Header</comment>
+  </data>
+  <data name="PlaylistDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>Playlist Name</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Name Input Box Placeholder</comment>
+  </data>
+  <data name="PlaylistDialog_DescLine1.Text" xml:space="preserve">
+    <value>You can also select an existing playlist file.</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Description Line 1</comment>
+  </data>
+  <data name="PlaylistDialog_DescLine2.Text" xml:space="preserve">
+    <value>Supported formats: M3U, M3U8, PLS, WPL, ZPL</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Description Line 2</comment>
+  </data>
+  <data name="PlaylistDialog_DropZoneText.Text" xml:space="preserve">
+    <value>Drag &amp; drop playlist file here, or</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Drop Zone Instruction</comment>
+  </data>
+  <data name="PlaylistDialog_BrowseButton.Content" xml:space="preserve">
+    <value>Browse File</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Drop Zone Browse Button</comment>
+  </data>
+  <data name="PlaylistDialog_SongsNote.Text" xml:space="preserve">
+    <value>Note: Selected song(s) will be automatically added to this new playlist.</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Note Banner</comment>
+  </data>
+  <data name="PlaylistDialog_CreateButton.Content" xml:space="preserve">
+    <value>Create</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Action Bar -&gt; Create Button</comment>
+  </data>
+  <data name="PlaylistDialog_CancelButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; "Create New Playlist" Overlay -&gt; Action Bar -&gt; Cancel Button</comment>
+  </data>
+  <data name="Duration_Hours_Singular" xml:space="preserve">
+    <value>{0} hour</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Hours Unit (Singular)</comment>
+  </data>
+  <data name="Duration_Hours_Plural" xml:space="preserve">
+    <value>{0} hours</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Hours Unit (Plural)</comment>
+  </data>
+  <data name="Duration_Minutes_Singular" xml:space="preserve">
+    <value>{0} min</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Minutes Unit (Singular)</comment>
+  </data>
+  <data name="Duration_Minutes_Plural" xml:space="preserve">
+    <value>{0} mins</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Minutes Unit (Plural)</comment>
+  </data>
+  <data name="Duration_Seconds_Singular" xml:space="preserve">
+    <value>{0} sec</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Seconds Unit (Singular)</comment>
+  </data>
+  <data name="Duration_Seconds_Plural" xml:space="preserve">
+    <value>{0} secs</value>
+    <comment>Formatting &amp; Time -&gt; Duration Converter -&gt; Seconds Unit (Plural)</comment>
+  </data>
+  <data name="Time_SecondsAgo_Singular" xml:space="preserve">
+    <value>{0} second ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Seconds Ago (Singular)</comment>
+  </data>
+  <data name="Time_SecondsAgo_Plural" xml:space="preserve">
+    <value>{0} seconds ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Seconds Ago (Plural)</comment>
+  </data>
+  <data name="Time_MinutesAgo_Singular" xml:space="preserve">
+    <value>{0} minute ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Minutes Ago (Singular)</comment>
+  </data>
+  <data name="Time_MinutesAgo_Plural" xml:space="preserve">
+    <value>{0} minutes ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Minutes Ago (Plural)</comment>
+  </data>
+  <data name="Time_HoursAgo_Singular" xml:space="preserve">
+    <value>{0} hour ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Hours Ago (Singular)</comment>
+  </data>
+  <data name="Time_HoursAgo_Plural" xml:space="preserve">
+    <value>{0} hours ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Hours Ago (Plural)</comment>
+  </data>
+  <data name="Time_DaysAgo_Singular" xml:space="preserve">
+    <value>{0} day ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Days Ago (Singular)</comment>
+  </data>
+  <data name="Time_DaysAgo_Plural" xml:space="preserve">
+    <value>{0} days ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Days Ago (Plural)</comment>
+  </data>
+  <data name="Time_WeeksAgo_Singular" xml:space="preserve">
+    <value>{0} week ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Weeks Ago (Singular)</comment>
+  </data>
+  <data name="Time_WeeksAgo_Plural" xml:space="preserve">
+    <value>{0} weeks ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Weeks Ago (Plural)</comment>
+  </data>
+  <data name="Time_YearsAgo_Singular" xml:space="preserve">
+    <value>{0} year ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Years Ago (Singular)</comment>
+  </data>
+  <data name="Time_YearsAgo_Plural" xml:space="preserve">
+    <value>{0} years ago</value>
+    <comment>Formatting &amp; Time -&gt; Relative Time Converter -&gt; Years Ago (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_Confirm_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Confirmation Prompt (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_Confirm_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Confirmation Prompt (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_Title_Singular" xml:space="preserve">
+    <value>Delete Song</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Window Title (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_Title_Plural" xml:space="preserve">
+    <value>Delete Songs</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Window Title (Plural)</comment>
+  </data>
+  <data name="Notification_Deleted_Singular" xml:space="preserve">
+    <value>{0} song deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Deletion Result (Singular)</comment>
+  </data>
+  <data name="Notification_Deleted_Plural" xml:space="preserve">
+    <value>{0} songs deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Deletion Result (Plural)</comment>
+  </data>
+  <data name="Notification_Queue_Added_Singular" xml:space="preserve">
+    <value>{0} song added to the queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Queue Addition Result (Singular)</comment>
+  </data>
+  <data name="Notification_Queue_Added_Plural" xml:space="preserve">
+    <value>{0} songs added to the queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Queue Addition Result (Plural)</comment>
+  </data>
+  <data name="Notification_Song_AddedToPlaylist" xml:space="preserve">
+    <value>{0} added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Track Added to Playlist</comment>
+  </data>
+  <data name="Notification_Songs_AddedToPlaylist_Singular" xml:space="preserve">
+    <value>{0} song added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Tracks Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_Songs_AddedToPlaylist_Plural" xml:space="preserve">
+    <value>{0} songs added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Tracks Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_Song_AddedToQueue" xml:space="preserve">
+    <value>{0} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Track Added to Queue</comment>
+  </data>
+  <data name="Notification_SongDeleted" xml:space="preserve">
+    <value>Song deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Song Deleted Notice</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of Album {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of Album {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of selected albums, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of selected albums, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of Album {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_AlbumSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of Album {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_AlbumSongsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of Album {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_AlbumSongsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of Album {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Album Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of selected albums, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of selected albums, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of selected albums deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedAlbumsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of selected albums deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Albums Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of Artist {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of Artist {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of selected artists, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of selected artists, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of Artist {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_ArtistSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of Artist {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_ArtistSongsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of Artist {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_ArtistSongsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of Artist {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Artist Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of selected artists, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of selected artists, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of selected artists deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedArtistsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of selected artists deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Artists Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of Genre {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of Genre {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of selected genres, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of selected genres, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of Genre {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_GenreSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of Genre {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_GenreSongsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of Genre {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_GenreSongsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of Genre {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Genre Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of selected genres, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedGenresAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of selected genres, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedGenresDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of selected genres deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedGenresDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of selected genres deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Genres Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of Year {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of Year {1} added to {2} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>All {0} song of selected years, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Playlist (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>All {0} songs of selected years, added to {1} playlist.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Playlist (Plural)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of Year {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_YearSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of Year {1} added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_YearSongsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of Year {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_YearSongsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of Year {1} deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Year Songs Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToQueue_Singular" xml:space="preserve">
+    <value>All {0} song of selected years, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Queue (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedYearsAddedToQueue_Plural" xml:space="preserve">
+    <value>All {0} songs of selected years, added to queue.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Added to Queue (Plural)</comment>
+  </data>
+  <data name="Notification_SelectedYearsDeleted_Singular" xml:space="preserve">
+    <value>All {0} song of selected years deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Deleted (Singular)</comment>
+  </data>
+  <data name="Notification_SelectedYearsDeleted_Plural" xml:space="preserve">
+    <value>All {0} songs of selected years deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Selected Years Deleted (Plural)</comment>
+  </data>
+  <data name="Notification_PlaylistDeleted" xml:space="preserve">
+    <value>{0} PlayList deleted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Playlist Deleted Notice</comment>
+  </data>
+  <data name="Notification_SongRemovedFromPlaylist" xml:space="preserve">
+    <value>Song/Track removed from {0}.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Single Song Removed From Playlist</comment>
+  </data>
+  <data name="Notification_SongsRemovedFromPlaylist_Singular" xml:space="preserve">
+    <value>{0} song removed from {1}.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Songs Removed (Singular)</comment>
+  </data>
+  <data name="Notification_SongsRemovedFromPlaylist_Plural" xml:space="preserve">
+    <value>{0} songs removed from {1}.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Multiple Songs Removed (Plural)</comment>
+  </data>
+  <data name="Notification_PlaylistSorted" xml:space="preserve">
+    <value>Playlist {0} sorted.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Playlist Sorted Notice</comment>
+  </data>
+  <data name="Notification_PlaylistRenamed" xml:space="preserve">
+    <value>Playlist renamed to {0}.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Playlist Renamed Notice</comment>
+  </data>
+  <data name="Settings_LibrarySection.Text" xml:space="preserve">
+    <value>Library Management</value>
+    <comment>Settings -&gt; Section 1 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AudioSection.Text" xml:space="preserve">
+    <value>Audio &amp; Playback</value>
+    <comment>Settings -&gt; Section 2 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AppearanceSection.Text" xml:space="preserve">
+    <value>Appearance &amp; Personalization</value>
+    <comment>Settings -&gt; Section 3 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AboutSection.Text" xml:space="preserve">
+    <value>About</value>
+    <comment>Settings -&gt; Section 4 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_DataManagementSection.Text" xml:space="preserve">
+    <value>Data Management</value>
+    <comment>Settings -&gt; Section 5 -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_AllLibraries.Header" xml:space="preserve">
+    <value>All Libraries</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_AllLibraries.Description" xml:space="preserve">
+    <value>Click to view libraries added</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_AddNewFolderButton.Content" xml:space="preserve">
+    <value>Add New Folder</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Add Folder Button</comment>
+  </data>
+  <data name="Settings_RemoveFolderButton.Content" xml:space="preserve">
+    <value>Remove Folder</value>
+    <comment>Settings -&gt; Library Management -&gt; "All Libraries" Expander -&gt; Folder Item -&gt; Remove Button</comment>
+  </data>
+  <data name="Settings_FileExtensions.Header" xml:space="preserve">
+    <value>File Extensions</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_ConfirmSelectionsButton.Content" xml:space="preserve">
+    <value>Confirm Selections</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Confirm Selections Button</comment>
+  </data>
+  <data name="Settings_ConfigureCategoryButton.Content" xml:space="preserve">
+    <value>Configure</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Configure Button</comment>
+  </data>
+  <data name="Settings_ScanLibraries.Header" xml:space="preserve">
+    <value>Scan Libraries for Songs</value>
+    <comment>Settings -&gt; Library Management -&gt; "Scan Libraries for Songs" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ScanLibraries.Description" xml:space="preserve">
+    <value>Clears all songs metadata and inserts completely new metadata. Preserves only Play Count, Last Played Time and Playlist additions for existing tracks/songs.</value>
+    <comment>Settings -&gt; Library Management -&gt; "Scan Libraries for Songs" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_FullScanButton.Content" xml:space="preserve">
+    <value>Full Scan</value>
+    <comment>Settings -&gt; Library Management -&gt; "Scan Libraries for Songs" Card -&gt; Action Button</comment>
+  </data>
+  <data name="Settings_IgnoreShortTracks.Header" xml:space="preserve">
+    <value>Ignore Short Tracks</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Short Tracks" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_ShortTracksDuration.Header" xml:space="preserve">
+    <value>Duration (seconds)</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Short Tracks" Expander -&gt; Duration Input Box</comment>
+  </data>
+  <data name="Settings_IgnoreDuplicateTracks.Header" xml:space="preserve">
+    <value>Ignore Duplicate Tracks</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Duplicate Tracks" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_IgnoreDuplicateTracks.Description" xml:space="preserve">
+    <value>If turned on, the app will ignore tracks that are already scanned once based on Title, Album, and Artist.</value>
+    <comment>Settings -&gt; Library Management -&gt; "Ignore Duplicate Tracks" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_FullScanAtStartup.Header" xml:space="preserve">
+    <value>Full Scan At Startup</value>
+    <comment>Settings -&gt; Library Management -&gt; "Full Scan At Startup" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_FullScanAtStartup.Description" xml:space="preserve">
+    <value>Scans the library for tracks when the app starts. If turned on, it will increase the startup time.</value>
+    <comment>Settings -&gt; Library Management -&gt; "Full Scan At Startup" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AutoSync.Header" xml:space="preserve">
+    <value>Auto Sync</value>
+    <comment>Settings -&gt; Library Management -&gt; "Auto Sync" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AutoSync.Description" xml:space="preserve">
+    <value>Automatically keep your library in sync with changes on disk.</value>
+    <comment>Settings -&gt; Library Management -&gt; "Auto Sync" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_CliOutputStyle.Header" xml:space="preserve">
+    <value>CLI Output Style</value>
+    <comment>Settings -&gt; Library Management -&gt; "CLI Output Style" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_CliOutputStyle.Description" xml:space="preserve">
+    <value>Controls visual formatting for terminal commands. Colorful mode displays ANSI colors, badges, and highlighted tags. Plain text restores unformatted monochrome text. Use 'tunetastic --help | Out-Host' for more details.</value>
+    <comment>Settings -&gt; Library Management -&gt; "CLI Output Style" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_LibrariesAndPlaylistsToShow.Header" xml:space="preserve">
+    <value>Libraries and Playlists to show</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_LibrariesAndPlaylistsToShow.Description" xml:space="preserve">
+    <value>Select which Pre-defined Libraries and Playlists to show/hide on Navigation</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_ShowArtists.Header" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Artists Toggle</comment>
+  </data>
+  <data name="Settings_ShowAlbums.Header" xml:space="preserve">
+    <value>Albums</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Albums Toggle</comment>
+  </data>
+  <data name="Settings_ShowGenres.Header" xml:space="preserve">
+    <value>Genres</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Genres Toggle</comment>
+  </data>
+  <data name="Settings_ShowYears.Header" xml:space="preserve">
+    <value>Years</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Years Toggle</comment>
+  </data>
+  <data name="Settings_ShowRecentlyAdded.Header" xml:space="preserve">
+    <value>Recently Added</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Recently Added Toggle</comment>
+  </data>
+  <data name="Settings_ShowRecentlyPlayed.Header" xml:space="preserve">
+    <value>Recently Played</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Recently Played Toggle</comment>
+  </data>
+  <data name="Settings_ShowMostPlayed.Header" xml:space="preserve">
+    <value>Most Played</value>
+    <comment>Settings -&gt; Library Management -&gt; "Libraries and Playlists to show" Expander -&gt; Show Most Played Toggle</comment>
+  </data>
+  <data name="Settings_CrossfadeFade.Header" xml:space="preserve">
+    <value>Crossfade/Fade</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_CrossfadeFade.Description" xml:space="preserve">
+    <value>Click to view all crossfade/fade settings.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_FadePlayPauseStop.Header" xml:space="preserve">
+    <value>Fade Play/Pause/Stop</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Fade Play/Pause/Stop Card</comment>
+  </data>
+  <data name="Settings_AutoAdvanceCrossfading.Header" xml:space="preserve">
+    <value>Auto advance Crossfading</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Auto Advance Card</comment>
+  </data>
+  <data name="Settings_ManualTrackChangeCrossfading.Header" xml:space="preserve">
+    <value>Manual Track Change Crossfading</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Crossfade/Fade" Expander -&gt; Manual Track Change Card</comment>
+  </data>
+  <data name="Settings_PreviousRestartsTrack.Header" xml:space="preserve">
+    <value>Previous button restarts the current track</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Previous button restarts the current track" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_PreviousRestartsTrack.Description" xml:space="preserve">
+    <value>When turned on, the app will restart the track that is currently playing when previous button is pressed.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Previous button restarts the current track" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_RestartTrackOnSelection.Header" xml:space="preserve">
+    <value>Restart Track on Selection</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Restart Track on Selection" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_RestartTrackOnSelection.Description" xml:space="preserve">
+    <value>When turned on, the app will restart the track that is currently playing when it is selected again.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Restart Track on Selection" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_UseSystemVolumeControl.Header" xml:space="preserve">
+    <value>Use System Volume Control</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Use System Volume Control" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_UseSystemVolumeControl.Description" xml:space="preserve">
+    <value>When turned on, the app will use the system volume control. When turned off, the app will use the Tunetastic app volume control.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Use System Volume Control" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_PauseOnMute.Header" xml:space="preserve">
+    <value>Pause on Mute</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Pause on Mute" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_PauseOnMute.Description" xml:space="preserve">
+    <value>When turned on, the app will pause the track that is currently playing when the volume is muted or became 0.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Pause on Mute" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ResumeOnUnmute.Header" xml:space="preserve">
+    <value>Resume on Unmute</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Resume on Unmute" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ResumeOnUnmute.Description" xml:space="preserve">
+    <value>When turned on, the app will resume the track that is currently playing when the volume is unmuted or increased more than 0. (It'll only trigger if pause happened because of Pause on Mute)</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Resume on Unmute" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AutoStartPlaying.Header" xml:space="preserve">
+    <value>Auto-Start playing track when app starts</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Auto-Start playing track when app starts" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AutoStartPlaying.Description" xml:space="preserve">
+    <value>When turned on, the app will start playing the track that was last playing.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Auto-Start playing track when app starts" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ForwardRewindButtons.Header" xml:space="preserve">
+    <value>Forward and Rewind Button Visibility</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Forward and Rewind Button Visibility" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ForwardRewindButtons.Description" xml:space="preserve">
+    <value>When turned on, the app will show the forward and rewind buttons.</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "Forward and Rewind Button Visibility" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_LrcOffsetStandard.Header" xml:space="preserve">
+    <value>LRC Offset Standard</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "LRC Offset Standard" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_LrcOffsetStandard.Description" xml:space="preserve">
+    <value>Defines the sign convention for [offset:] calculations. Select Official Standard for spec-compliant time subtraction (Timestamp - Offset) or Intuitive for straightforward addition (Timestamp + Offset).</value>
+    <comment>Settings -&gt; Audio &amp; Playback -&gt; "LRC Offset Standard" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AppLanguage.Header" xml:space="preserve">
+    <value>App language</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App language" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AppLanguage.Description" xml:space="preserve">
+    <value>Choose the display language for Tunetastic. Requires an app restart to take full effect.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App language" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_AppTheme.Header" xml:space="preserve">
+    <value>App theme</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App theme" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AppTheme.Description" xml:space="preserve">
+    <value>Select the theme that suits your mood and preference. You can choose from dark, light, or system themes.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "App theme" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_Material.Header" xml:space="preserve">
+    <value>Material</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Material" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_Material.Description" xml:space="preserve">
+    <value>Change the appearance of the backdrop material behind your app. You can choose from mica, acrylic, or transparent options.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Material" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_TintColor.Header" xml:space="preserve">
+    <value>Tint Color</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Tint Color" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_TintColor.Description" xml:space="preserve">
+    <value>Add tint to your window to make your experience more personalized.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Tint Color" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_AccentColor.Header" xml:space="preserve">
+    <value>Accent color</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Accent color" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_AccentColor.Description" xml:space="preserve">
+    <value>Sync your app's color with your Windows accent color. You can open the Windows accent color setting by clicking this card.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Accent color" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_BlurIntensity.Header" xml:space="preserve">
+    <value>Main Player Background Blur Intensity</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Main Player Background Blur Intensity" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_RainbowFrameBorder.Header" xml:space="preserve">
+    <value>Rainbow Frame Border</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_RainbowFrameBorder.Description" xml:space="preserve">
+    <value>When turned on, starts a rainbow frame border around the app window.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_RainbowSpeed.Header" xml:space="preserve">
+    <value>Rainbow Speed</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Speed Slider Header</comment>
+  </data>
+  <data name="Settings_OnlyDuringPlayback.Header" xml:space="preserve">
+    <value>Only during playback</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Playback Only Card Title</comment>
+  </data>
+  <data name="Settings_OnlyDuringPlayback.Description" xml:space="preserve">
+    <value>When turned on, The rainbow frame border will be applied only when there's a track in playing</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Rainbow Frame Border" Expander -&gt; Playback Only Card Description</comment>
+  </data>
+  <data name="Settings_MinimizeToSystemTray.Header" xml:space="preserve">
+    <value>Minimize the app to system tray</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Minimize the app to system tray" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_MinimizeToSystemTray.Description" xml:space="preserve">
+    <value>When turned on, the app will minimize to system tray when the window is closed.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Minimize the app to system tray" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_SystemTrayIconStyle.Header" xml:space="preserve">
+    <value>System tray icon style</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "System tray icon style" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_SystemTrayIconStyle.Description" xml:space="preserve">
+    <value>Choose the style of the system tray icon.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "System tray icon style" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayControls.Header" xml:space="preserve">
+    <value>Taskbar Overlay Controls</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayControls.Description" xml:space="preserve">
+    <value>When turned on, the app will show a taskbar overlay controls. Click the overlay to open the app. Hover over the overlay to see track/song information.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayDesign.Header" xml:space="preserve">
+    <value>Taskbar Overlay Design Catalog</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Design Catalog Card Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayDesign.Description" xml:space="preserve">
+    <value>The design of the taskbar overlay controls. If you have any control overlay design/style in mind, please let me know by creating GitHub Issue under About Section.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Design Catalog Card Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayTheme.Header" xml:space="preserve">
+    <value>Taskbar Overlay Control Theme</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Theme Card Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlayTheme.Description" xml:space="preserve">
+    <value>Determine the theme of the taskbar overlay controls.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Theme Card Description</comment>
+  </data>
+  <data name="Settings_TaskbarOverlaySide.Header" xml:space="preserve">
+    <value>Taskbar Overlay Controls Side</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Side Alignment Card Title</comment>
+  </data>
+  <data name="Settings_TaskbarOverlaySide.Description" xml:space="preserve">
+    <value>Determine the position of the taskbar overlay controls.</value>
+    <comment>Settings -&gt; Appearance &amp; Personalization -&gt; "Taskbar Overlay Controls" Expander -&gt; Side Alignment Card Description</comment>
+  </data>
+  <data name="Settings_AboutTunetastic.Header" xml:space="preserve">
+    <value>Tunetastic by AMit-KP</value>
+    <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Title</comment>
+  </data>
+  <data name="Settings_AboutTunetastic.Description" xml:space="preserve">
+    <value>Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that's as unique, expressive and captivating as the music you love. 🎶</value>
+    <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Description</comment>
+  </data>
+  <data name="Settings_CheckForUpdates.Header" xml:space="preserve">
+    <value>Check for updates at startup</value>
+    <comment>Settings -&gt; About -&gt; "Check for updates at startup" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_CheckForUpdates.Description" xml:space="preserve">
+    <value>When turned on, the app will automatically check for updates at startup.</value>
+    <comment>Settings -&gt; About -&gt; "Check for updates at startup" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ShowVersionInfo.Header" xml:space="preserve">
+    <value>Show version info on TitleBar</value>
+    <comment>Settings -&gt; About -&gt; "Show version info on TitleBar" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ShowVersionInfo.Description" xml:space="preserve">
+    <value>When turned on, the current app version will be shown on the title bar.</value>
+    <comment>Settings -&gt; About -&gt; "Show version info on TitleBar" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_WhatsNew.Header" xml:space="preserve">
+    <value>What's New</value>
+    <comment>Settings -&gt; About -&gt; "What's New" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_WhatsNew.Description" xml:space="preserve">
+    <value>See what's new in this version</value>
+    <comment>Settings -&gt; About -&gt; "What's New" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_WhatsNewButton.Content" xml:space="preserve">
+    <value>View What's New</value>
+    <comment>Settings -&gt; About -&gt; "What's New" Card -&gt; View Button</comment>
+  </data>
+  <data name="Settings_FeedbackRating.Header" xml:space="preserve">
+    <value>Feedback &amp; Rating</value>
+    <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_FeedbackRating.Description" xml:space="preserve">
+    <value>Share your feedback by rating the app. Your input helps us improve features and deliver a better experience.</value>
+    <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_RateThisAppButton.Content" xml:space="preserve">
+    <value>⭐ Rate this app</value>
+    <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Rate Button</comment>
+  </data>
+  <data name="Settings_IssuesEnhancements.Header" xml:space="preserve">
+    <value>Issues/Enhancements</value>
+    <comment>Settings -&gt; About -&gt; "Issues/Enhancements" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_IssuesEnhancements.Description" xml:space="preserve">
+    <value>If you have any issues or suggestions for enhancements, please open an issue on GitHub.</value>
+    <comment>Settings -&gt; About -&gt; "Issues/Enhancements" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_GitHubIssuesButton.Content" xml:space="preserve">
+    <value>GitHub Issues</value>
+    <comment>Settings Page -&gt; About Section -&gt; Issues Card -&gt; Open GitHub Issues Button</comment>
+  </data>
+  <data name="Settings_SupportMyWork.Header" xml:space="preserve">
+    <value>Support My Work</value>
+    <comment>Settings -&gt; About -&gt; "Support My Work" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_SupportMyWork.Description" xml:space="preserve">
+    <value>Love tuning in? Buy me a coffee to keep the playback smooth and the updates rolling!</value>
+    <comment>Settings -&gt; About -&gt; "Support My Work" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_BuyMeACoffeeButton.Content" xml:space="preserve">
+    <value>Support Development ☕</value>
+    <comment>Settings Page -&gt; About Section -&gt; Support Card -&gt; Donation Link Button</comment>
+  </data>
+  <data name="Settings_RelatedLinks.Text" xml:space="preserve">
+    <value>Related Links</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Header Label</comment>
+  </data>
+  <data name="Settings_SourceCode.Content" xml:space="preserve">
+    <value>Source Code</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Source Code Hyperlink</comment>
+  </data>
+  <data name="Settings_LeaveAStar.Text" xml:space="preserve">
+    <value>(Please, leave a star ⭐)</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Star Prompt Note</comment>
+  </data>
+  <data name="Settings_MicrosoftStore.Content" xml:space="preserve">
+    <value>Microsoft Store Page</value>
+    <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Microsoft Store Hyperlink</comment>
+  </data>
+  <data name="Settings_ResetPlaybackHistory.Header" xml:space="preserve">
+    <value>Reset Playback History</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset Playback History" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ResetPlaybackHistory.Description" xml:space="preserve">
+    <value>Resets the play count to zero and clears the last played time for all songs.</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset Playback History" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ResetAllSettings.Header" xml:space="preserve">
+    <value>Reset All Saved Settings</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset All Saved Settings" Card -&gt; Title</comment>
+  </data>
+  <data name="Settings_ResetAllSettings.Description" xml:space="preserve">
+    <value>It will delete all saved data from Windows App Data. App will restart automatically.</value>
+    <comment>Settings -&gt; Data Management -&gt; "Reset All Saved Settings" Card -&gt; Description</comment>
+  </data>
+  <data name="Settings_ResetButton.Content" xml:space="preserve">
+    <value>Reset</value>
+    <comment>Settings -&gt; Data Management -&gt; Reset Cards -&gt; Action Button</comment>
+  </data>
+  <data name="Settings_AreYouSure.Text" xml:space="preserve">
+    <value>Are you sure?</value>
+    <comment>Settings -&gt; Data Management -&gt; Reset Cards -&gt; Confirmation Flyout Warning Text</comment>
+  </data>
+  <data name="Settings_YesButton.Content" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Settings -&gt; Data Management -&gt; Reset Cards -&gt; Confirmation Flyout Confirm Button</comment>
+  </data>
+  <data name="Settings_PendingTagWrites_Singular" xml:space="preserve">
+    <value>You have pending tag writes to {0} file.</value>
+    <comment>Settings -&gt; Banner Warning -&gt; Pending Tag Writes (Singular)</comment>
+  </data>
+  <data name="Settings_PendingTagWrites_Plural" xml:space="preserve">
+    <value>You have pending tag writes to {0} files.</value>
+    <comment>Settings -&gt; Banner Warning -&gt; Pending Tag Writes (Plural)</comment>
+  </data>
+  <data name="Settings_Notify_PleaseFullScan" xml:space="preserve">
+    <value>Please do a Full Scan.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Library Full Scan Reminder</comment>
+  </data>
+  <data name="Settings_Notify_ErrorAddingFolder" xml:space="preserve">
+    <value>Error Adding the folder. Make sure the folder path doesn't contain any shortcuts. It's better to provide complete folder path.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Add Folder Error</comment>
+  </data>
+  <data name="Settings_Notify_AllLibrariesRemoved" xml:space="preserve">
+    <value>All libraries are removed. Please add atleast one.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; All Libraries Removed Warning</comment>
+  </data>
+  <data name="Settings_Notify_AtLeastOneFormat" xml:space="preserve">
+    <value>At least one format must be enabled</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Format Selection Warning</comment>
+  </data>
+  <data name="Settings_Notify_LanguageRestart" xml:space="preserve">
+    <value>The selected language will be applied when app restarts.</value>
+    <comment>Global Notifications -&gt; In-App Toast Banner -&gt; Language Change Notice</comment>
+  </data>
+  <data name="MusicDownloader_Quote" xml:space="preserve">
+    <value>Where words fail, music speaks.</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; Quote Text</comment>
+  </data>
+  <data name="MusicDownloader_Author" xml:space="preserve">
+    <value>- Hans Christian Andersen</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; Author Attribution</comment>
+  </data>
+  <data name="MusicDownloader_Desc" xml:space="preserve">
+    <value>Download songs, albums, playlists directly to your library.</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; Feature Description</comment>
+  </data>
+  <data name="MusicDownloader_Button" xml:space="preserve">
+    <value>Explore Tunetastic Downloader ⚡</value>
+    <comment>Settings -&gt; Easter Egg Panel -&gt; External Downloader Link Button</comment>
+  </data>
+  <data name="Action_Play.Text" xml:space="preserve">
+    <value>Play</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Play" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_Play_ToolTip" xml:space="preserve">
+    <value>Play this song/track</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Play" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_PlayGroup.Text" xml:space="preserve">
+    <value>Play</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Play" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_PlayGroup_ToolTip" xml:space="preserve">
+    <value>Play this group of songs/tracks</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Play" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_AddToPlaylist.Text" xml:space="preserve">
+    <value>Add to playlist</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Add to playlist" Submenu -&gt; Label</comment>
+  </data>
+  <data name="Action_AddToQueue.Text" xml:space="preserve">
+    <value>Add to queue</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_AddToQueue_ToolTip" xml:space="preserve">
+    <value>Add this song/track to the queue</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_AddToQueueGroup.Text" xml:space="preserve">
+    <value>Add to queue</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_AddToQueueGroup_ToolTip" xml:space="preserve">
+    <value>Add this group of songs/tracks to the queue</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_InfoTag.Text" xml:space="preserve">
+    <value>Info/Tag</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Info/Tag" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_DeleteTrack.Text" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_DeleteTrack_ToolTip" xml:space="preserve">
+    <value>Delete this song/track</value>
+    <comment>Library &amp; Playlists -&gt; Track Context Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="Action_DeleteGroup.Text" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="Action_DeleteGroup_ToolTip" xml:space="preserve">
+    <value>Delete this group of songs/tracks</value>
+    <comment>Library Views -&gt; Group Context Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_MultiSelect_ToolTip" xml:space="preserve">
+    <value>Turn on multi-select mode</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Multi-Select Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_ShuffleAndPlay_ToolTip" xml:space="preserve">
+    <value>Shuffle And Play All</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Shuffle &amp; Play All Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_PlayAll_ToolTip" xml:space="preserve">
+    <value>Play All</value>
+    <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Play All Button -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToPlaylist.Text" xml:space="preserve">
+    <value>Add to playlist</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Add to playlist" Submenu -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueue.Text" xml:space="preserve">
+    <value>Add to queue</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueue_ToolTip" xml:space="preserve">
+    <value>Add selected songs/tracks to the queue</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueueGroup.Text" xml:space="preserve">
+    <value>Add to queue</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_AddToQueueGroup_ToolTip" xml:space="preserve">
+    <value>Add selected groups of songs/tracks to the queue</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Add to queue" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_Delete.Text" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_Delete_ToolTip" xml:space="preserve">
+    <value>Delete selected songs/tracks</value>
+    <comment>Library &amp; Playlists -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="ActionBar_Multi_DeleteGroup.Text" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Label</comment>
+  </data>
+  <data name="ActionBar_Multi_DeleteGroup_ToolTip" xml:space="preserve">
+    <value>Delete selected groups of songs/tracks</value>
+    <comment>Library Views -&gt; Multi-Select Action Menu -&gt; "Delete" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="EmptyState_NoSongs.Text" xml:space="preserve">
+    <value>No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned.</value>
+    <comment>Library &amp; Playlists -&gt; Empty State -&gt; Informational Text</comment>
+  </data>
+  <data name="EmptyState_OpenSettings.Content" xml:space="preserve">
+    <value>Open Settings</value>
+    <comment>Library &amp; Playlists -&gt; Empty State -&gt; "Open Settings" Action Button -&gt; Label</comment>
+  </data>
+  <data name="EmptyState_PlaylistEmpty.Text" xml:space="preserve">
+    <value>Add some songs or tracks to this playlist to see them here.</value>
+    <comment>Playlists -&gt; Empty State -&gt; Informational Text</comment>
+  </data>
+  <data name="DeleteDialog_ConfirmDialog.Title" xml:space="preserve">
+    <value>Confirm Deletion</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="DeleteDialog_ConfirmDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; "Delete" Action Button -&gt; Label</comment>
+  </data>
+  <data name="DeleteDialog_ConfirmDialog.SecondaryButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="DeleteDialog_UndoneWarning.Text" xml:space="preserve">
+    <value>This action cannot be undone.</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Permanent Action Warning -&gt; Text</comment>
+  </data>
+  <data name="DeleteDialog_AlbumSongs_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of Album {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Album Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_AlbumSongs_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of Album {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Album Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedAlbums_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of selected albums from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Albums Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedAlbums_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of selected albums from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Albums Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_ArtistSongs_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of Artist {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Artist Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_ArtistSongs_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of Artist {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Artist Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedArtists_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of selected artists from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Artists Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedArtists_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of selected artists from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Artists Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_GenreSongs_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of Genre {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Genre Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_GenreSongs_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of Genre {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Genre Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedGenres_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of selected genres from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Genres Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedGenres_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of selected genres from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Genres Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_YearSongs_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of Year {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Year Songs Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_YearSongs_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of Year {1} from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Year Songs Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedYears_Singular" xml:space="preserve">
+    <value>Are you sure you want to delete this song/track of selected years from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Years Deletion Confirmation (Singular)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedYears_Plural" xml:space="preserve">
+    <value>Are you sure you want to delete these {0} songs/tracks of selected years from your system?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Songs Dialog -&gt; Selected Years Deletion Confirmation (Plural)</comment>
+  </data>
+  <data name="DeleteDialog_Playlist_Confirm" xml:space="preserve">
+    <value>Are you sure you want to delete {0} PlayList?</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Playlist Dialog -&gt; Playlist Deletion Confirmation Prompt</comment>
+  </data>
+  <data name="RecentlyPlayed_Title.Text" xml:space="preserve">
+    <value>Recently Played</value>
+    <comment>Playlists -&gt; Recently Played View -&gt; Page Header -&gt; Title</comment>
+  </data>
+  <data name="RecentlyPlayed_Title_ToolTip" xml:space="preserve">
+    <value>Recently Played songs/tracks will be displayed here</value>
+    <comment>Playlists -&gt; Recently Played View -&gt; Page Header -&gt; Tooltip</comment>
+  </data>
+  <data name="RecentlyAdded_Title.Text" xml:space="preserve">
+    <value>Recently Added</value>
+    <comment>Playlists -&gt; Recently Added View -&gt; Page Header -&gt; Title</comment>
+  </data>
+  <data name="RecentlyAdded_Title_ToolTip" xml:space="preserve">
+    <value>Recently Added or Modified songs/tracks will be displayed here</value>
+    <comment>Playlists -&gt; Recently Added View -&gt; Page Header -&gt; Tooltip</comment>
+  </data>
+  <data name="MostPlayed_Title.Text" xml:space="preserve">
+    <value>Mostly Played</value>
+    <comment>Playlists -&gt; Most Played View -&gt; Page Header -&gt; Title</comment>
+  </data>
+  <data name="MostPlayed_Title_ToolTip" xml:space="preserve">
+    <value>Mostly Played songs/tracks will be displayed here</value>
+    <comment>Playlists -&gt; Most Played View -&gt; Page Header -&gt; Tooltip</comment>
+  </data>
+  <data name="Breadcrumb_Albums.Text" xml:space="preserve">
+    <value>Albums</value>
+    <comment>Library -&gt; Album Detail View -&gt; Breadcrumb Navigation -&gt; "Albums" Link</comment>
+  </data>
+  <data name="Breadcrumb_Artists.Text" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Library -&gt; Artist Detail View -&gt; Breadcrumb Navigation -&gt; "Artists" Link</comment>
+  </data>
+  <data name="Breadcrumb_Genres.Text" xml:space="preserve">
+    <value>Genres</value>
+    <comment>Library -&gt; Genre Detail View -&gt; Breadcrumb Navigation -&gt; "Genres" Link</comment>
+  </data>
+  <data name="Breadcrumb_Years.Text" xml:space="preserve">
+    <value>Years</value>
+    <comment>Library -&gt; Year Detail View -&gt; Breadcrumb Navigation -&gt; "Years" Link</comment>
+  </data>
+  <data name="PlayList_ReorderButton_ToolTip" xml:space="preserve">
+    <value>Reorder playlist tracks</value>
+    <comment>Playlists -&gt; Top Action Bar -&gt; Reorder Tracks Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_SettingsButton_ToolTip" xml:space="preserve">
+    <value>Playlist Settings</value>
+    <comment>Playlist View -&gt; Header Action Bar -&gt; Settings Flyout -&gt; Playlist Settings Button Tooltip</comment>
+  </data>
+  <data name="PlayList_SortPlaylist.Text" xml:space="preserve">
+    <value>Sort Playlist</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Sort_PlayCount.Text" xml:space="preserve">
+    <value>Play Count</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; "Play Count" Option</comment>
+  </data>
+  <data name="PlayList_Sort_ModifiedTime.Text" xml:space="preserve">
+    <value>Modified Time</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Sort Playlist" Submenu -&gt; "Modified Time" Option</comment>
+  </data>
+  <data name="PlayList_RenamePlaylist.Text" xml:space="preserve">
+    <value>Rename Playlist</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Rename Playlist" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_ExportPlaylist.Text" xml:space="preserve">
+    <value>Export Playlist</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Export Playlist" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_DeletePlaylist.Text" xml:space="preserve">
+    <value>Delete Playlist</value>
+    <comment>Playlists -&gt; Playlist Settings Menu -&gt; "Delete Playlist" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Move.Text" xml:space="preserve">
+    <value>Move</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Move" Submenu -&gt; Label</comment>
+  </data>
+  <data name="PlayList_MoveToTop_ToolTip" xml:space="preserve">
+    <value>Move this track to the top of the playlist</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Top Item Tooltip</comment>
+  </data>
+  <data name="PlayList_MoveUp_ToolTip" xml:space="preserve">
+    <value>Move this track up by one position</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Up Item Tooltip</comment>
+  </data>
+  <data name="PlayList_MoveDown_ToolTip" xml:space="preserve">
+    <value>Move this track down by one position</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move Down Item Tooltip</comment>
+  </data>
+  <data name="PlayList_MoveToBottom_ToolTip" xml:space="preserve">
+    <value>Move this track to the bottom of the playlist</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Move Submenu -&gt; Move To Bottom Item Tooltip</comment>
+  </data>
+  <data name="PlayList_Remove_ToolTip" xml:space="preserve">
+    <value>Remove this song/track from the playlist</value>
+    <comment>Playlists -&gt; Track Context Menu -&gt; "Remove" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToTop.Text" xml:space="preserve">
+    <value>Move to Top</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Top" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToTop_ToolTip" xml:space="preserve">
+    <value>Move selected tracks to the top of the playlist</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Top" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveUp.Text" xml:space="preserve">
+    <value>Move Up</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Up" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveUp_ToolTip" xml:space="preserve">
+    <value>Move selected tracks up by one position</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Up" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveDown.Text" xml:space="preserve">
+    <value>Move Down</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Down" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveDown_ToolTip" xml:space="preserve">
+    <value>Move selected tracks down by one position</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move Down" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToBottom.Text" xml:space="preserve">
+    <value>Move to Bottom</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Bottom" Item -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_MoveToBottom_ToolTip" xml:space="preserve">
+    <value>Move selected tracks to the bottom of the playlist</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Move" Submenu -&gt; "Move to Bottom" Item -&gt; Tooltip</comment>
+  </data>
+  <data name="PlayList_Multi_Remove.Text" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Remove" Action -&gt; Label</comment>
+  </data>
+  <data name="PlayList_Multi_Remove_ToolTip" xml:space="preserve">
+    <value>Remove selected songs/tracks from the playlist</value>
+    <comment>Playlists -&gt; Multi-Select Action Menu -&gt; "Remove" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="ExportDialog_Window.Title" xml:space="preserve">
+    <value>Export</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="ExportDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>Export</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; "Export" Action Button -&gt; Label</comment>
+  </data>
+  <data name="ExportDialog_Window.SecondaryButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="ExportDialog_Notice.Text" xml:space="preserve">
+    <value>The playlist will be exported as choosen format and saved to Downloads folder.</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; Informational Notice -&gt; Text</comment>
+  </data>
+  <data name="ExportDialog_FileName.PlaceholderText" xml:space="preserve">
+    <value>Enter Playlist file name</value>
+    <comment>Popups &amp; Dialogs -&gt; Export Playlist Dialog -&gt; File Name Input -&gt; Placeholder</comment>
+  </data>
+  <data name="RenameDialog_Window.Title" xml:space="preserve">
+    <value>Rename Playlist</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="RenameDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>Rename</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; "Rename" Action Button -&gt; Label</comment>
+  </data>
+  <data name="RenameDialog_Window.SecondaryButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="RenameDialog_Name.PlaceholderText" xml:space="preserve">
+    <value>Enter new playlist name</value>
+    <comment>Popups &amp; Dialogs -&gt; Rename Playlist Dialog -&gt; Playlist Name Input -&gt; Placeholder</comment>
+  </data>
+  <data name="MusicControl_Play" xml:space="preserve">
+    <value>Play</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Play / Pause Button -&gt; Play State Tooltip</comment>
+  </data>
+  <data name="MusicControl_Pause" xml:space="preserve">
+    <value>Pause</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Play / Pause Button -&gt; Pause State Tooltip</comment>
+  </data>
+  <data name="MusicControl_ShuffleOn" xml:space="preserve">
+    <value>Shuffle On</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Shuffle Button -&gt; Enabled State Tooltip</comment>
+  </data>
+  <data name="MusicControl_ShuffleOff" xml:space="preserve">
+    <value>Shuffle Off</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Shuffle Button -&gt; Disabled State Tooltip</comment>
+  </data>
+  <data name="MusicControl_RepeatAll" xml:space="preserve">
+    <value>Repeat All</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Repeat Button -&gt; Repeat All Mode Tooltip</comment>
+  </data>
+  <data name="MusicControl_RepeatOne" xml:space="preserve">
+    <value>Repeat One</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Repeat Button -&gt; Repeat One Mode Tooltip</comment>
+  </data>
+  <data name="MusicControl_RepeatOff" xml:space="preserve">
+    <value>Repeat Off</value>
+    <comment>Playback Bar -&gt; Center Controls -&gt; Repeat Button -&gt; Repeat Off Mode Tooltip</comment>
+  </data>
+  <data name="MusicControl_IdleSongTitle" xml:space="preserve">
+    <value>Please select a song</value>
+    <comment>Playback Bar -&gt; Track Info -&gt; Idle Title Display -&gt; Text</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Previous" xml:space="preserve">
+    <value>Previous</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Previous Track Button -&gt; Tooltip</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Play" xml:space="preserve">
+    <value>Play</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Play Button -&gt; Tooltip</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Next" xml:space="preserve">
+    <value>Next</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Next Track Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_HoldToDecrease_ToolTip" xml:space="preserve">
+    <value>Hold to Decrease</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Decrease Offset Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_HoldToIncrease_ToolTip" xml:space="preserve">
+    <value>Hold to Increase</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Increase Offset Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_AcceptAndSave_ToolTip" xml:space="preserve">
+    <value>Accept and Save</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; "Accept and Save" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_SaveAsOffset.Content" xml:space="preserve">
+    <value>Save as offset metadata</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Offset Option Label</comment>
+  </data>
+  <data name="Lyrics_SaveAsOffset_ToolTip" xml:space="preserve">
+    <value>Save as offset metadata in the lrc file. Like [offset:±number].</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Offset Option Tooltip</comment>
+  </data>
+  <data name="Lyrics_SaveByModifying.Content" xml:space="preserve">
+    <value>Save by modifying timestamps</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Modify Timestamps Option Label</comment>
+  </data>
+  <data name="Lyrics_SaveByModifying_ToolTip" xml:space="preserve">
+    <value>Save by changing timestamps in the lrc file.</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; Save Options Flyout -&gt; Modify Timestamps Option Tooltip</comment>
+  </data>
+  <data name="Lyrics_Cancel_ToolTip" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Now Playing -&gt; Lyrics Sync Bar -&gt; "Cancel" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_AddToPlaylist_ToolTip" xml:space="preserve">
+    <value>Add to Playlist</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Add to Playlist" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_SongInfo_ToolTip" xml:space="preserve">
+    <value>Song/Track Info</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Song Information" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_ShowLyrics_ToolTip" xml:space="preserve">
+    <value>Show Lyrics</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Show Lyrics" Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_HideLyrics_ToolTip" xml:space="preserve">
+    <value>Hide Lyrics</value>
+    <comment>Now Playing -&gt; Top Controls Bar -&gt; "Hide Lyrics" Toggle Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_ToolTip" xml:space="preserve">
+    <value>Lyrics Menu</value>
+    <comment>Now Playing -&gt; Lyrics Action Bar -&gt; "Lyrics Menu" Dropdown Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Copy_ToolTip" xml:space="preserve">
+    <value>Copy the lyrics</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Copy Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Edit_ToolTip" xml:space="preserve">
+    <value>Edit the lyrics</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Edit Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Sync_ToolTip" xml:space="preserve">
+    <value>Syncronize the lyrics</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Synchronize Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Search_ToolTip" xml:space="preserve">
+    <value>Search for lyrics on internet</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Search Online" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_Clear_ToolTip" xml:space="preserve">
+    <value>Clear the existing lyrics</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Clear Lyrics" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_Menu_OpenLrc_ToolTip" xml:space="preserve">
+    <value>Open the lrc file</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Open LRC File" Action -&gt; Tooltip</comment>
+  </data>
+  <data name="Lyrics_EditDialog.Title" xml:space="preserve">
+    <value>Edit Lyrics</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="Lyrics_EditDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Save</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; "Save" Action Button -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_EditDialog.SecondaryButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_Libraries.Text" xml:space="preserve">
+    <value>Libraries</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Libraries" Stat -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_Folders.Text" xml:space="preserve">
+    <value>Folders</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Folders" Stat -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_Songs.Text" xml:space="preserve">
+    <value>Songs</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Songs" Stat -&gt; Label</comment>
+  </data>
+  <data name="ScanResult_LastScanned.Text" xml:space="preserve">
+    <value>Last scanned</value>
+    <comment>Status Bar -&gt; Scan Result Badge -&gt; "Last Scanned" Stat -&gt; Label</comment>
+  </data>
+  <data name="Tray_Open.Text" xml:space="preserve">
+    <value>Open</value>
+    <comment>System Tray -&gt; Context Menu -&gt; "Open" Item -&gt; Label</comment>
+  </data>
+  <data name="Tray_Exit.Text" xml:space="preserve">
+    <value>Exit</value>
+    <comment>System Tray -&gt; Context Menu -&gt; "Exit" Item -&gt; Label</comment>
+  </data>
+  <data name="AutoSync_Title" xml:space="preserve">
+    <value>Auto Sync</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="AutoSync_Message" xml:space="preserve">
+    <value>A large number of file changes were detected. Please, do a full scan to sync libraries, otherwise the libraries will sync on app restart.</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; Message Body -&gt; Text</comment>
+  </data>
+  <data name="AutoSync_OpenSettings" xml:space="preserve">
+    <value>Open Settings</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; "Open Settings" Action Button -&gt; Label</comment>
+  </data>
+  <data name="AutoSync_Later" xml:space="preserve">
+    <value>Later</value>
+    <comment>Popups &amp; Dialogs -&gt; Auto Sync Dialog -&gt; "Later" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfoDialog_Window.Title" xml:space="preserve">
+    <value>Song/Track Information</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="SongInfoDialog_Window.CloseButtonText" xml:space="preserve">
+    <value>Close</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Close" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfoDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>Edit Details</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Edit Details" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfo_HasLyrics.Content" xml:space="preserve">
+    <value>🎵 Has Lyrics</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Standard Lyrics</comment>
+  </data>
+  <data name="SongInfo_HasSyncedLyrics.Content" xml:space="preserve">
+    <value>🎵 Has Synced Lyrics</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Synced Lyrics</comment>
+  </data>
+  <data name="SongInfo_ClearButton_ToolTip" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Clear Playback Stats" Button -&gt; Tooltip</comment>
+  </data>
+  <data name="SongInfo_ClearPrompt.Text" xml:space="preserve">
+    <value>Are you sure you want to clear Play count and Last Played Date-Time?</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Clear Stats Confirmation -&gt; Text</comment>
+  </data>
+  <data name="SongInfo_ClearConfirmYes.Content" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Clear Stats Confirmation -&gt; "Yes" Button -&gt; Label</comment>
+  </data>
+  <data name="SongInfo_Label_Title.Text" xml:space="preserve">
+    <value>Title:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Title Label</comment>
+  </data>
+  <data name="SongInfo_Label_Artists.Text" xml:space="preserve">
+    <value>Artists:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Artists Label</comment>
+  </data>
+  <data name="SongInfo_Label_Album.Text" xml:space="preserve">
+    <value>Album:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Album Label</comment>
+  </data>
+  <data name="SongInfo_Label_Genre.Text" xml:space="preserve">
+    <value>Genre:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Genre Label</comment>
+  </data>
+  <data name="SongInfo_Label_Year.Text" xml:space="preserve">
+    <value>Year:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Year Label</comment>
+  </data>
+  <data name="SongInfo_Label_Track.Text" xml:space="preserve">
+    <value>Track:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Track Label</comment>
+  </data>
+  <data name="SongInfo_Label_Duration.Text" xml:space="preserve">
+    <value>Duration:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Duration Label</comment>
+  </data>
+  <data name="SongInfo_Label_Size.Text" xml:space="preserve">
+    <value>Size:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Size Label</comment>
+  </data>
+  <data name="SongInfo_Label_Added.Text" xml:space="preserve">
+    <value>Added:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Added Label</comment>
+  </data>
+  <data name="SongInfo_Label_Path.Text" xml:space="preserve">
+    <value>Path:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Path Label</comment>
+  </data>
+  <data name="SongInfo_Label_Channel.Text" xml:space="preserve">
+    <value>Channel:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Channel Label</comment>
+  </data>
+  <data name="SongInfo_Label_BitRate.Text" xml:space="preserve">
+    <value>Bit rate:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Bit Rate Label</comment>
+  </data>
+  <data name="SongInfo_Label_SampleRate.Text" xml:space="preserve">
+    <value>Sample rate:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Sample Rate Label</comment>
+  </data>
+  <data name="SongInfo_Label_CodecDescription.Text" xml:space="preserve">
+    <value>Codec Description:</value>
+    <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Codec Description Label</comment>
+  </data>
+  <data name="EditSongDialog_Window.Title" xml:space="preserve">
+    <value>Edit Song/Track Info</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Window Title</comment>
+  </data>
+  <data name="EditSongDialog_Window.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="EditSongDialog_Window.PrimaryButtonText" xml:space="preserve">
+    <value>Save</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; "Save" Action Button -&gt; Label</comment>
+  </data>
+  <data name="EditSong_CoverArt.Text" xml:space="preserve">
+    <value>Cover Art</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; Header</comment>
+  </data>
+  <data name="EditSong_NoArtwork.Text" xml:space="preserve">
+    <value>No artwork</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; Empty Artwork Notice</comment>
+  </data>
+  <data name="EditSong_BrowseCover.Content" xml:space="preserve">
+    <value>Browse new Cover art</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; "Browse New Cover Art" Button -&gt; Label</comment>
+  </data>
+  <data name="EditSong_RemoveCover.Content" xml:space="preserve">
+    <value>Remove Cover art</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Cover Art Section -&gt; "Remove Cover Art" Button -&gt; Label</comment>
+  </data>
+  <data name="EditSong_Title_Label.Text" xml:space="preserve">
+    <value>Title</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Title</comment>
+  </data>
+  <data name="EditSong_Title_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter title</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Title Placeholder</comment>
+  </data>
+  <data name="EditSong_Artists_Label.Text" xml:space="preserve">
+    <value>Artist(s)</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Artist(s)</comment>
+  </data>
+  <data name="EditSong_Artists_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter Artist Name(s)</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Artist Placeholder</comment>
+  </data>
+  <data name="EditSong_Album_Label.Text" xml:space="preserve">
+    <value>Album</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Album</comment>
+  </data>
+  <data name="EditSong_Album_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter Album Name</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Album Placeholder</comment>
+  </data>
+  <data name="EditSong_Genre_Label.Text" xml:space="preserve">
+    <value>Genre</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Genre</comment>
+  </data>
+  <data name="EditSong_Genre_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter genre</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Genre Placeholder</comment>
+  </data>
+  <data name="EditSong_Year_Label.Text" xml:space="preserve">
+    <value>Year</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Year</comment>
+  </data>
+  <data name="EditSong_Year_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter Year</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Year Placeholder</comment>
+  </data>
+  <data name="EditSong_Track_Label.Text" xml:space="preserve">
+    <value>Track</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Track</comment>
+  </data>
+  <data name="EditSong_Track_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter Track</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Track Placeholder</comment>
+  </data>
+  <data name="EditSong_Lyrics_Label.Text" xml:space="preserve">
+    <value>Lyrics</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Field Labels -&gt; Lyrics</comment>
+  </data>
+  <data name="EditSong_Lyrics_Box.PlaceholderText" xml:space="preserve">
+    <value>Enter Lyrics</value>
+    <comment>Popups &amp; Dialogs -&gt; Edit Song Information Dialog -&gt; Text Boxes -&gt; Lyrics Placeholder</comment>
+  </data>
+  <data name="CreatePlaylistDialog_Header.Text" xml:space="preserve">
+    <value>Create New Playlist</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Dialog Header -&gt; Title</comment>
+  </data>
+  <data name="CreatePlaylistDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>Enter playlist name</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Input Field -&gt; Placeholder</comment>
+  </data>
+  <data name="CreatePlaylistDialog_BrowseButton.Content" xml:space="preserve">
+    <value>Browse</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; "Browse" File Button -&gt; Label</comment>
+  </data>
+  <data name="CreatePlaylistDialog_DropZone.Text" xml:space="preserve">
+    <value>Drag &amp; drop a playlist file here</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Drop Target Zone -&gt; Guidance Text</comment>
+  </data>
+  <data name="CreatePlaylistDialog_AutoAddNotice.Text" xml:space="preserve">
+    <value>The selected songs/tracks will be automatically added to this playlist.</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; Auto-Add Notification -&gt; Text</comment>
+  </data>
+  <data name="CreatePlaylistDialog_CreateButton.Content" xml:space="preserve">
+    <value>Create</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; "Create" Action Button -&gt; Label</comment>
+  </data>
+  <data name="CreatePlaylistDialog_CancelButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Popups &amp; Dialogs -&gt; Create New Playlist Dialog -&gt; "Cancel" Action Button -&gt; Label</comment>
+  </data>
+  <data name="SearchBox_Tips.Title" xml:space="preserve">
+    <value>Search tips</value>
+    <comment>Title Bar -&gt; Center -&gt; Search Box -&gt; Search Tips Flyout Title</comment>
+  </data>
+  <data name="Notification_MinimizedToTray" xml:space="preserve">
+    <value>Minimized to system tray</value>
+    <comment>Main Window -&gt; System Tray -&gt; Notification Toast -&gt; Info Message</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_Title" xml:space="preserve">
+    <value>Restart Required</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Header Title</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_Content" xml:space="preserve">
+    <value>The display language has been updated. Please restart Tunetastic to apply the change across all screens.</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Description Message</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_RestartNow" xml:space="preserve">
+    <value>Restart Now</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="Settings_Dialog_RestartRequired_Later" xml:space="preserve">
+    <value>Later</value>
+    <comment>Settings Page -&gt; General Section -&gt; Restart Dialog -&gt; Close Button</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Title" xml:space="preserve">
+    <value>Scan Libraries</value>
+    <comment>Settings Page -&gt; Music Library Section -&gt; Scan Pending Writes Dialog -&gt; Header Title</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Message_Singular" xml:space="preserve">
+    <value>You have pending tag writes to {0} file. If you continue, it will revert to its original state.</value>
+    <comment>Settings -&gt; Library Management -&gt; Scan Button -&gt; Pending Writes Warning (Singular)</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Message_Plural" xml:space="preserve">
+    <value>You have pending tag writes to {0} files. If you continue, they will revert to their original state.</value>
+    <comment>Settings -&gt; Library Management -&gt; Scan Button -&gt; Pending Writes Warning (Plural)</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Continue" xml:space="preserve">
+    <value>Continue</value>
+    <comment>Settings Page -&gt; Music Library Section -&gt; Scan Pending Writes Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="Settings_Dialog_ScanPendingWrites_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Settings Page -&gt; Music Library Section -&gt; Scan Pending Writes Dialog -&gt; Cancel Button</comment>
+  </data>
+  <data name="Settings_Dialog_ConfigureExtensions_Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>Settings Page -&gt; File Formats Section -&gt; Category Extensions Dialog -&gt; Close Button</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Title" xml:space="preserve">
+    <value>Disable {0}</value>
+    <comment>Settings Page -&gt; Library Selection Section -&gt; Disable Playing Section Dialog -&gt; Header Title</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Message" xml:space="preserve">
+    <value>Music is currently playing from {0}. Disabling it will switch playback to All Songs.</value>
+    <comment>Settings -&gt; Customization -&gt; Navigation Item Toggle -&gt; Playback Migration Notice</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Continue" xml:space="preserve">
+    <value>Continue</value>
+    <comment>Settings Page -&gt; Library Selection Section -&gt; Disable Playing Section Dialog -&gt; Primary Action Button</comment>
+  </data>
+  <data name="Settings_Dialog_DisableSection_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Settings Page -&gt; Library Selection Section -&gt; Disable Playing Section Dialog -&gt; Cancel Button</comment>
+  </data>
+  <data name="PlaylistValidation_Empty" xml:space="preserve">
+    <value>Playlist name cannot be empty</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Empty Name Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_Reserved" xml:space="preserve">
+    <value>This name is reserved by the system</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; System Reserved Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_InvalidChars" xml:space="preserve">
+    <value>Name contains invalid characters: \ / : * ? " &lt; &gt; |</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Invalid Characters Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_EndingPeriod" xml:space="preserve">
+    <value>Name cannot end with a period</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Trailing Period Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_TooLong" xml:space="preserve">
+    <value>Name is too long</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Maximum Length Error Message</comment>
+  </data>
+  <data name="PlaylistValidation_AlreadyExists" xml:space="preserve">
+    <value>Playlist name already exists</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Name Validation -&gt; Duplicate Name Error Message</comment>
+  </data>
+  <data name="PlaylistImport_FilterLabel" xml:space="preserve">
+    <value>Playlist Files</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Picker -&gt; File Format Filter Label</comment>
+  </data>
+  <data name="PlaylistImport_PickerTitle" xml:space="preserve">
+    <value>Select Playlist File</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Picker -&gt; File Picker Window Title</comment>
+  </data>
+  <data name="PlaylistImport_DragDrop_Default" xml:space="preserve">
+    <value>Drop to import playlist</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Drop Zone -&gt; Active Dragging Caption</comment>
+  </data>
+  <data name="PlaylistImport_Error_Unsupported" xml:space="preserve">
+    <value>Not a supported playlist file</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; File Drop Zone -&gt; Unsupported File Error Message</comment>
+  </data>
+  <data name="PlaylistImport_Prompt_Question" xml:space="preserve">
+    <value>Do you want to import this playlist?</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Header Question</comment>
+  </data>
+  <data name="PlaylistImport_Label_Playlist" xml:space="preserve">
+    <value>Playlist:</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Playlist Path Label</comment>
+  </data>
+  <data name="PlaylistImport_Label_Tracks" xml:space="preserve">
+    <value>Tracks:</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Track Count Label</comment>
+  </data>
+  <data name="PlaylistImport_Summary_TracksFound" xml:space="preserve">
+    <value>{0} out of {1} found in library</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Tracks Match Summary</comment>
+  </data>
+  <data name="PlaylistImport_Button_Add" xml:space="preserve">
+    <value>Add Playlist</value>
+    <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Primary Add Action Button</comment>
+  </data>
+  <data name="Notification_PlaylistCreated" xml:space="preserve">
+    <value>{0} Playlist created.</value>
+    <comment>Main Window -&gt; Notification Toast -&gt; In-App Toast -&gt; Playlist Created Info Message</comment>
+  </data>
+  <data name="Notification_PlaylistAddedWithSongs_Singular" xml:space="preserve">
+    <value>{1} Playlist added with {0} song/track.</value>
+    <comment>Main Window -&gt; Notification Toast -&gt; In-App Toast -&gt; Playlist Added With One Song Message</comment>
+  </data>
+  <data name="Notification_PlaylistAddedWithSongs_Plural" xml:space="preserve">
+    <value>{1} Playlist added with {0} songs/tracks.</value>
+    <comment>Main Window -&gt; Notification Toast -&gt; In-App Toast -&gt; Playlist Added With Multiple Songs Message</comment>
+  </data>
+  <data name="SongInfo_Edit_ChangesListHeader_Singular" xml:space="preserve">
+    <value>The following change will be written to the file:</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Singular Header Message</comment>
+  </data>
+  <data name="SongInfo_Edit_ChangesListHeader_Plural" xml:space="preserve">
+    <value>The following changes will be written to the file:</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Plural Header Message</comment>
+  </data>
+  <data name="SongInfo_Edit_ConfirmPrompt" xml:space="preserve">
+    <value>Are you sure you want to make these changes?</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Confirmation Question</comment>
+  </data>
+  <data name="SongInfo_Edit_DialogTitle" xml:space="preserve">
+    <value>Confirm Changes</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Confirmation Dialog -&gt; Dialog Title</comment>
+  </data>
+  <data name="SongInfo_Edit_FileNotFound" xml:space="preserve">
+    <value>File not found: {0}</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Error Dialog -&gt; File Not Found Message</comment>
+  </data>
+  <data name="SongInfo_NoCoverArt" xml:space="preserve">
+    <value>No cover art</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Metadata Details -&gt; Missing Cover Art Placeholder</comment>
+  </data>
+  <data name="SongInfo_CoverArt" xml:space="preserve">
+    <value>Cover Art</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Metadata Details -&gt; Cover Art Field Label</comment>
+  </data>
+  <data name="SearchTip_CombinePrefix" xml:space="preserve">
+    <value>• Use </value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Prefix Text</comment>
+  </data>
+  <data name="SearchTip_CombineSuffix" xml:space="preserve">
+    <value> to combine terms — match results across title, artist, album, genre, and year together</value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Suffix Text</comment>
+  </data>
+  <data name="SearchTip_OrPrefix" xml:space="preserve">
+    <value>• Use </value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Prefix Text</comment>
+  </data>
+  <data name="SearchTip_OrSuffix" xml:space="preserve">
+    <value> to search for either term — results matching any one of them</value>
+    <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Suffix Text</comment>
+  </data>
+  <data name="ContextMenu_CreateNewPlaylist" xml:space="preserve">
+    <value>Create/Add New playlist</value>
+    <comment>All Song &amp; Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Create New Playlist Entry</comment>
+  </data>
+  <data name="ContextMenu_CreateNewPlaylist_Tooltip" xml:space="preserve">
+    <value>Create/Add a new playlist and add the selected songs/tracks to it.</value>
+    <comment>All Song &amp; Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Create New Playlist Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Song_Single" xml:space="preserve">
+    <value>Add this song/track to {0} playlist</value>
+    <comment>All Song Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Single Song Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Song_Multi" xml:space="preserve">
+    <value>Add selected songs/tracks to {0} playlist</value>
+    <comment>All Song Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Multiple Songs Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Group_Single" xml:space="preserve">
+    <value>Add this group of songs/tracks to {0} playlist</value>
+    <comment>All Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Single Group Tooltip</comment>
+  </data>
+  <data name="Tooltip_AddToPlaylist_Group_Multi" xml:space="preserve">
+    <value>Add selected groups of songs/tracks to {0} playlist</value>
+    <comment>All Tile Views -&gt; Context Menu -&gt; Add To Playlist Submenu -&gt; Multiple Groups Tooltip</comment>
+  </data>
+  <data name="EmptyState_Quote_1_Line1" xml:space="preserve">
+    <value>“Even silence is asking for royalties.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 1 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_1_Line2" xml:space="preserve">
+    <value>Add your tracks or this page starts selling ambient nothingness as NFTs.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 1 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_2_Line1" xml:space="preserve">
+    <value>“Currently vibing to the sound of disappointment.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 2 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_2_Line2" xml:space="preserve">
+    <value>Check your settings or this page starts humming passive-aggressively.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 2 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_3_Line1" xml:space="preserve">
+    <value>“Even your fridge hums more rhythm than this.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 3 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_3_Line2" xml:space="preserve">
+    <value>Add libraries before this page starts sampling appliance noises.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 3 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_4_Line1" xml:space="preserve">
+    <value>“The silence here is louder than your uncle’s political opinions.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 4 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_4_Line2" xml:space="preserve">
+    <value>Scan your tracks or this page starts hosting awkward family dinners.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 4 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_5_Line1" xml:space="preserve">
+    <value>“This page is auditioning for the role of ‘nothing.’”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 5 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_5_Line2" xml:space="preserve">
+    <value>Check your settings before it wins an Oscar for best invisible performance.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 5 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_6_Line1" xml:space="preserve">
+    <value>“It’s so quiet, I can hear your existential dread.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 6 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_6_Line2" xml:space="preserve">
+    <value>Scan your songs or this page starts narrating your inner monologue.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 6 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_7_Line1" xml:space="preserve">
+    <value>“Currently streaming: the sound of your hopes fading.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 7 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_7_Line2" xml:space="preserve">
+    <value>Add libraries before this page starts writing breakup songs about you.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 7 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_8_Line1" xml:space="preserve">
+    <value>“Even your ringtone has more musical ambition.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 8 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_8_Line2" xml:space="preserve">
+    <value>Scan your tracks or this page starts remixing notification sounds.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 8 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_9_Line1" xml:space="preserve">
+    <value>“The only thing playing here is your procrastination.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 9 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_9_Line2" xml:space="preserve">
+    <value>Add libraries before this page starts giving productivity advice.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 9 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_10_Line1" xml:space="preserve">
+    <value>“This page is so empty, it’s considering a career in minimalism.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 10 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_10_Line2" xml:space="preserve">
+    <value>Scan your songs or it starts selling inspirational posters.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 10 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_11_Line1" xml:space="preserve">
+    <value>“Even your cat walking across the keyboard made more noise.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 11 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_11_Line2" xml:space="preserve">
+    <value>Check your settings before this page starts meowing in Morse code.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 11 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_12_Line1" xml:space="preserve">
+    <value>“This is less ‘All Songs’ and more ‘Nope, None.’”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 12 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_12_Line2" xml:space="preserve">
+    <value>Scan your libraries or this page starts gaslighting your memory.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 12 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_13_Line1" xml:space="preserve">
+    <value>“It’s so quiet, I thought I was in a museum.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 13 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_13_Line2" xml:space="preserve">
+    <value>Add tracks before this page starts charging admission for silence.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 13 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_14_Line1" xml:space="preserve">
+    <value>“This page is currently starring in a silent film.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 14 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_14_Line2" xml:space="preserve">
+    <value>Scan your music or it starts winning awards for dramatic stillness.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 14 Line 2</comment>
+  </data>
+  <data name="EmptyState_Quote_15_Line1" xml:space="preserve">
+    <value>“Even your thoughts have a better beat.”</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 15 Line 1</comment>
+  </data>
+  <data name="EmptyState_Quote_15_Line2" xml:space="preserve">
+    <value>Check your settings before this page starts freestyle rapping your grocery list.</value>
+    <comment>Library &amp; Playlist Views -&gt; Empty State Screen -&gt; Inspirational Quote -&gt; Quote 15 Line 2</comment>
+  </data>
+  <data name="Button_Yes" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Common Controls -&gt; Dialog Buttons -&gt; Generic Action -&gt; Yes Confirmation Button</comment>
+  </data>
+  <data name="Button_No" xml:space="preserve">
+    <value>No</value>
+    <comment>Common Controls -&gt; Dialog Buttons -&gt; Generic Action -&gt; No Cancellation Button</comment>
+  </data>
+  <data name="ColumnHeader_Title" xml:space="preserve">
+    <value>Title</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Title Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Artists" xml:space="preserve">
+    <value>Artists</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Artists Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Album" xml:space="preserve">
+    <value>Album</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Album Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Duration" xml:space="preserve">
+    <value>Duration</value>
+    <comment>All Songs &amp; Playlist Views -&gt; Song Table -&gt; Header Row -&gt; Duration Column Header</comment>
+  </data>
+  <data name="ColumnHeader_Played" xml:space="preserve">
+    <value>Played</value>
+    <comment>Most Played View -&gt; Song Table -&gt; Header Row -&gt; Played Count Column Header</comment>
+  </data>
+  <data name="ColumnHeader_ModifiedOn" xml:space="preserve">
+    <value>Modified On</value>
+    <comment>Recently Added &amp; Played Views -&gt; Song Table -&gt; Header Row -&gt; Date Modified Column Header</comment>
+  </data>
+  <data name="PlayList_RemoveTrack.Text" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Action Items -&gt; Remove From Playlist Label</comment>
+  </data>
+  <data name="PlayList_RemoveTrack_ToolTip" xml:space="preserve">
+    <value>Remove this song/track from the playlist</value>
+    <comment>Playlist View -&gt; Track Context Menu -&gt; Action Items -&gt; Remove From Playlist Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveToTop.Text" xml:space="preserve">
+    <value>Move to Top</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected To Top Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveToTop_ToolTip" xml:space="preserve">
+    <value>Move selected tracks to the top of the playlist</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected To Top Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveUp.Text" xml:space="preserve">
+    <value>Move Up</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected Up Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveUp_ToolTip" xml:space="preserve">
+    <value>Move selected tracks up by one position</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Selected Up Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveDown.Text" xml:space="preserve">
+    <value>Move Down</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected Down Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveDown_ToolTip" xml:space="preserve">
+    <value>Move selected tracks down by one position</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Selected Down Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiMoveToBottom.Text" xml:space="preserve">
+    <value>Move to Bottom</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Submenu -&gt; Move Selected To Bottom Label</comment>
+  </data>
+  <data name="PlayList_MultiMoveToBottom_ToolTip" xml:space="preserve">
+    <value>Move selected tracks to the bottom of the playlist</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Move Selected To Bottom Tooltip</comment>
+  </data>
+  <data name="PlayList_MultiRemoveTrack.Text" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Action Items -&gt; Remove Selected Tracks Label</comment>
+  </data>
+  <data name="PlayList_MultiRemoveTrack_ToolTip" xml:space="preserve">
+    <value>Remove selected songs/tracks from the playlist</value>
+    <comment>Playlist View -&gt; Multi-Select Menu -&gt; Action Items -&gt; Remove Selected Tracks Tooltip</comment>
+  </data>
+  <data name="PlayList_Sort_Title.Text" xml:space="preserve">
+    <value>Title</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Title Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Artists.Text" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Artists Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Album.Text" xml:space="preserve">
+    <value>Album</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Album Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Year.Text" xml:space="preserve">
+    <value>Year</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Year Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Duration.Text" xml:space="preserve">
+    <value>Duration</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Duration Sort Submenu Label</comment>
+  </data>
+  <data name="PlayList_Sort_Track.Text" xml:space="preserve">
+    <value>Track</value>
+    <comment>Playlist View -&gt; Playlist Settings Flyout -&gt; Sort Playlist Submenu -&gt; Track Number Sort Submenu Label</comment>
+  </data>
+  <data name="ExportDialog_TextBox.PlaceholderText" xml:space="preserve">
+    <value>Enter Playlist file name</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Input Section -&gt; File Name Placeholder</comment>
+  </data>
+  <data name="ExportFormat_M3U8_ToolTip" xml:space="preserve">
+    <value>M3U UTF-8</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U8 Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_M3U_ToolTip" xml:space="preserve">
+    <value>MP3 URL</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_PLS_ToolTip" xml:space="preserve">
+    <value>Playlist File</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; PLS Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_WPL_ToolTip" xml:space="preserve">
+    <value>Windows Media Player Playlist</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; WPL Format Tooltip</comment>
+  </data>
+  <data name="ExportFormat_ZPL_ToolTip" xml:space="preserve">
+    <value>Zune Playlist</value>
+    <comment>Playlist View -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; ZPL Format Tooltip</comment>
+  </data>
+  <data name="RenamePlaylistDialog.Title" xml:space="preserve">
+    <value>Rename Playlist</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Dialog Window -&gt; Header Title</comment>
+  </data>
+  <data name="RenamePlaylistDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Rename</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Action Buttons -&gt; Primary Rename Button</comment>
+  </data>
+  <data name="RenamePlaylistDialog.SecondaryButtonText" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Action Buttons -&gt; Secondary Cancel Button</comment>
+  </data>
+  <data name="RenamePlaylistDialog_NameBox.PlaceholderText" xml:space="preserve">
+    <value>Enter new playlist name</value>
+    <comment>Playlist View -&gt; Rename Playlist Dialog -&gt; Input Section -&gt; Playlist Name Placeholder</comment>
+  </data>
+  <data name="CLIOutputColor_Colorful.Content" xml:space="preserve">
+    <value>Colorful</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Colorful Option Label</comment>
+  </data>
+  <data name="CLIOutputColor_Colorful_ToolTip" xml:space="preserve">
+    <value>Enables rich ANSI colors, status badges, and inline code formatting for terminal output.</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Colorful Option Tooltip</comment>
+  </data>
+  <data name="CLIOutputColor_PlainText.Content" xml:space="preserve">
+    <value>Plain Text</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Plain Text Option Label</comment>
+  </data>
+  <data name="CLIOutputColor_PlainText_ToolTip" xml:space="preserve">
+    <value>Monochrome output without escape codes; ideal for redirecting to text files or minimal terminals.</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; CLI Output Style Dropdown -&gt; Plain Text Option Tooltip</comment>
+  </data>
+  <data name="LRCOffsetStandard_Official.Content" xml:space="preserve">
+    <value>Official Standard</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Official Standard Option Label</comment>
+  </data>
+  <data name="LRCOffsetStandard_Official_ToolTip" xml:space="preserve">
+    <value>Follows the formal LRC specification. Positive values subtract time to display lyrics sooner (advancing them), while negative values delay lyrics. Recommended for compatibility with spec-compliant files.</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Official Standard Option Tooltip</comment>
+  </data>
+  <data name="LRCOffsetStandard_Intuitive.Content" xml:space="preserve">
+    <value>Intuitive/Logical</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Intuitive Option Label</comment>
+  </data>
+  <data name="LRCOffsetStandard_Intuitive_ToolTip" xml:space="preserve">
+    <value>Applies straightforward timestamp addition. Positive values add time to delay lyrics, while negative values shift lyrics earlier. Ideal if you expect + to push lyrics forward into the timeline.</value>
+    <comment>Settings Page -&gt; Lyrics Section -&gt; LRC Offset Standard Dropdown -&gt; Intuitive Option Tooltip</comment>
+  </data>
+  <data name="Theme_Light.Content" xml:space="preserve">
+    <value>Light</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; App Theme Dropdown -&gt; Light Theme Option</comment>
+  </data>
+  <data name="Theme_Dark.Content" xml:space="preserve">
+    <value>Dark</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; App Theme Dropdown -&gt; Dark Theme Option</comment>
+  </data>
+  <data name="Theme_Default.Content" xml:space="preserve">
+    <value>Default</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; App Theme Dropdown -&gt; Default Theme Option</comment>
+  </data>
+  <data name="Backdrop_Mica.Content" xml:space="preserve">
+    <value>Mica</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Mica Option</comment>
+  </data>
+  <data name="Backdrop_MicaAlt.Content" xml:space="preserve">
+    <value>Mica Alt</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Mica Alt Option</comment>
+  </data>
+  <data name="Backdrop_Acrylic.Content" xml:space="preserve">
+    <value>Acrylic</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Acrylic Option</comment>
+  </data>
+  <data name="Backdrop_AcrylicThin.Content" xml:space="preserve">
+    <value>Acrylic Thin</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Acrylic Thin Option</comment>
+  </data>
+  <data name="Backdrop_Transparent.Content" xml:space="preserve">
+    <value>Transparent</value>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Material Dropdown -&gt; Transparent Option</comment>
+  </data>
+  <data name="TrayIcon_FullColor.Content" xml:space="preserve">
+    <value>Full color</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Full Color Option</comment>
+  </data>
+  <data name="TrayIcon_MonochromeAuto.Content" xml:space="preserve">
+    <value>Monochrome (Auto)</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Monochrome Auto Option</comment>
+  </data>
+  <data name="TrayIcon_Dark.Content" xml:space="preserve">
+    <value>Dark</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Dark Option</comment>
+  </data>
+  <data name="TrayIcon_Light.Content" xml:space="preserve">
+    <value>Light</value>
+    <comment>Settings Page -&gt; System Tray Section -&gt; Icon Style Dropdown -&gt; Light Option</comment>
+  </data>
+  <data name="TaskbarOverlayTheme_Default.Content" xml:space="preserve">
+    <value>Default</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Theme Dropdown -&gt; Default Option</comment>
+  </data>
+  <data name="TaskbarOverlayTheme_Light.Content" xml:space="preserve">
+    <value>Light</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Theme Dropdown -&gt; Light Option</comment>
+  </data>
+  <data name="TaskbarOverlayTheme_Dark.Content" xml:space="preserve">
+    <value>Dark</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Theme Dropdown -&gt; Dark Option</comment>
+  </data>
+  <data name="TaskbarOverlaySide_Right.Content" xml:space="preserve">
+    <value>Right</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Position Dropdown -&gt; Right Side Option</comment>
+  </data>
+  <data name="TaskbarOverlaySide_Left.Content" xml:space="preserve">
+    <value>Left</value>
+    <comment>Settings Page -&gt; Taskbar Overlay Section -&gt; Position Dropdown -&gt; Left Side Option</comment>
+  </data>
+  <data name="Settings_CheckForUpdates_Button.Content" xml:space="preserve">
+    <value>Check for New Version</value>
+    <comment>Settings Page -&gt; About Section -&gt; App Version Card -&gt; Check For Updates Button</comment>
+  </data>
+  <data name="Settings_CheckForUpdates_Button.CheckedContent" xml:space="preserve">
+    <value>Checking...</value>
+    <comment>Settings Page -&gt; About Section -&gt; App Version Card -&gt; Check For Updates Loading State</comment>
+  </data>
+  <data name="Settings_EasterEggCard_ToolTip" xml:space="preserve">
+    <value>Click 5 times to reveal</value>
+    <comment>Settings Page -&gt; Secret Section -&gt; Downloader Card -&gt; Easter Egg Click Tooltip</comment>
+  </data>
+  <data name="SongInfo_DialogHeader" xml:space="preserve">
+    <value>Song/Track Information</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Header Section -&gt; Dialog Title Label</comment>
+  </data>
+  <data name="SongInfo_BitRate.Text" xml:space="preserve">
+    <value>Bit rate:</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Bit Rate Label</comment>
+  </data>
+  <data name="SongInfo_SampleRate.Text" xml:space="preserve">
+    <value>Sample rate:</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Sample Rate Label</comment>
+  </data>
+  <data name="SongInfo_CodecDescription.Text" xml:space="preserve">
+    <value>Codec Description:</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Codec Description Label</comment>
+  </data>
+  <data name="Badge_Changed" xml:space="preserve">
+    <value>CHANGED</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Edit Fields -&gt; Modified Field Badge</comment>
+  </data>
+  <data name="EditSong_ArtistTip.Title" xml:space="preserve">
+    <value>Inline auto-suggestion for existing artists.</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Editor -&gt; Artist Input Teaching Tip</comment>
+  </data>
+  <data name="EditSong_AlbumTip.Title" xml:space="preserve">
+    <value>Inline auto-suggestion for existing albums.</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Editor -&gt; Album Input Teaching Tip</comment>
+  </data>
+  <data name="EditSong_GenreTip.Title" xml:space="preserve">
+    <value>Inline auto-suggestion for existing genres.</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Tag Editor -&gt; Genre Input Teaching Tip</comment>
+  </data>
+  <data name="Settings_FormatCategory_TurnOnAll" xml:space="preserve">
+    <value>Turn on all</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Turn On All Extensions Toggle State</comment>
+  </data>
+  <data name="Settings_FormatCategory_TurnOffAll" xml:space="preserve">
+    <value>Turn off all</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Turn Off All Extensions Toggle State</comment>
+  </data>
+  <data name="ExportFormat_M3U8.Content" xml:space="preserve">
+    <value>M3U8</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U8 File Format Option</comment>
+  </data>
+  <data name="ExportFormat_M3U.Content" xml:space="preserve">
+    <value>M3U</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; M3U File Format Option</comment>
+  </data>
+  <data name="ExportFormat_PLS.Content" xml:space="preserve">
+    <value>PLS</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; PLS File Format Option</comment>
+  </data>
+  <data name="ExportFormat_WPL.Content" xml:space="preserve">
+    <value>WPL</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; WPL File Format Option</comment>
+  </data>
+  <data name="ExportFormat_ZPL.Content" xml:space="preserve">
+    <value>ZPL</value>
+    <comment>Playlists -&gt; Manage Playlist Flyout -&gt; Export Playlist Dialog -&gt; Format Dropdown -&gt; ZPL File Format Option</comment>
+  </data>
+  <data name="MaxLimit_50.Text" xml:space="preserve">
+    <value>50</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 50 Tracks Option</comment>
+  </data>
+  <data name="MaxLimit_100.Text" xml:space="preserve">
+    <value>100</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 100 Tracks Option</comment>
+  </data>
+  <data name="MaxLimit_200.Text" xml:space="preserve">
+    <value>200</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 200 Tracks Option</comment>
+  </data>
+  <data name="MaxLimit_500.Text" xml:space="preserve">
+    <value>500</value>
+    <comment>Playlists -&gt; Top Bar / Header -&gt; Max Limit Dropdown -&gt; 500 Tracks Option</comment>
+  </data>
+  <data name="Tooltip_MultiSelect_TurnOff" xml:space="preserve">
+    <value>Turn off multi-select mode</value>
+    <comment>Common -&gt; View Action Bar -&gt; Multi-Select Toggle Button -&gt; Turn Off Multi-Select Tooltip</comment>
+  </data>
+  <data name="Tooltip_MultiSelect_TurnOn" xml:space="preserve">
+    <value>Turn on multi-select mode</value>
+    <comment>Common -&gt; View Action Bar -&gt; Multi-Select Toggle Button -&gt; Turn On Multi-Select Tooltip</comment>
+  </data>
+  <data name="Sort_Tile_Tooltip_SortedBy" xml:space="preserve">
+    <value>The tiles are sorted in </value>
+    <comment>Common -&gt; View Action Bar -&gt; Sort Order Dropdown -&gt; Tile Sorting Tooltip Prefix</comment>
+  </data>
+  <data name="Tooltip_Reorder_Done" xml:space="preserve">
+    <value>Done reordering</value>
+    <comment>Playlists -&gt; Top Action Bar -&gt; Reorder Tracks Button -&gt; Finish Reordering Tooltip</comment>
+  </data>
+  <data name="Metadata_UnknownAlbum" xml:space="preserve">
+    <value>Unknown Album</value>
+    <comment>Library -&gt; Album Detail Page -&gt; Header -&gt; Fallback Album Name When Unset</comment>
+  </data>
+  <data name="Metadata_UnknownArtist" xml:space="preserve">
+    <value>Unknown Artist</value>
+    <comment>Library -&gt; Artist Detail Page -&gt; Header -&gt; Fallback Artist Name When Unset</comment>
+  </data>
+  <data name="Metadata_UnknownGenre" xml:space="preserve">
+    <value>Unknown Genre</value>
+    <comment>Library -&gt; Genre Detail Page -&gt; Header -&gt; Fallback Genre Name When Unset</comment>
+  </data>
+  <data name="Metadata_UnknownYear" xml:space="preserve">
+    <value>Unknown Year</value>
+    <comment>Library -&gt; Year Detail Page -&gt; Header -&gt; Fallback Year Name When Unset</comment>
+  </data>
+  <data name="SongInfo_LastPlayed_Never" xml:space="preserve">
+    <value>Never</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Song Info Panel -&gt; Last Played Field (Never Played Value)</comment>
+  </data>
+  <data name="SongInfo_DateTime_At" xml:space="preserve">
+    <value>{0} at {1}</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Song Info Panel -&gt; Date and Time Format Template ({0}=date, {1}=time)</comment>
+  </data>
+  <data name="Notification_FileInUse_PendingTagChanges" xml:space="preserve">
+    <value>File is in use. Tag changes will be applied upon exit.</value>
+    <comment>Main Window -&gt; Center Toast Notification -&gt; Tag Editor -&gt; File In Use Warning</comment>
+  </data>
+  <data name="EditSong_CoverArt_PickerTitle" xml:space="preserve">
+    <value>Select Cover Art</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Metadata Flyout -&gt; Cover Art File Picker Dialog Title</comment>
+  </data>
+  <data name="EditSong_CoverArt_PickerCommit" xml:space="preserve">
+    <value>Select Cover Art</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Metadata Flyout -&gt; Cover Art File Picker Commit Button</comment>
+  </data>
+  <data name="PlaylistImport_PickerCommit" xml:space="preserve">
+    <value>Import Playlist</value>
+    <comment>Playlists -&gt; Add Playlist Dialog -&gt; File Picker Dialog -&gt; Import Button Label</comment>
+  </data>
+  <data name="FolderPicker_AddFolderCommit" xml:space="preserve">
+    <value>Add Folder</value>
+    <comment>Settings -&gt; Library Management -&gt; "Add New Folder" Dialog -&gt; Folder Picker Commit Button</comment>
+  </data>
+  <data name="FileFilter_ImageFiles" xml:space="preserve">
+    <value>Image Files</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; Image Files (*.png, *.jpg, *.jpeg, *.bmp)</comment>
+  </data>
+  <data name="FileFilter_JpegImages" xml:space="preserve">
+    <value>JPEG Images</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; JPEG Images (*.jpg, *.jpeg)</comment>
+  </data>
+  <data name="FileFilter_PngImages" xml:space="preserve">
+    <value>PNG Images</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; PNG Images (*.png)</comment>
+  </data>
+  <data name="FileFilter_GifImages" xml:space="preserve">
+    <value>GIF Images</value>
+    <comment>Common -&gt; File Picker Dialog -&gt; File Type Filter -&gt; GIF Images (*.gif)</comment>
+  </data>
+  <data name="Update_Available_Title" xml:space="preserve">
+    <value>Update check</value>
+    <comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Title</comment>
+  </data>
+  <data name="Update_UpToDate_Message" xml:space="preserve">
+    <value>Your app is up to date.</value>
+    <comment>Settings -&gt; About Section -&gt; "Check for New Version" Button -&gt; Up To Date Success Message</comment>
+  </data>
+  <data name="Update_Installed_Title" xml:space="preserve">
+    <value>Update installed</value>
+    <comment>Settings -&gt; About Section -&gt; Update Notification -&gt; Title</comment>
+  </data>
+  <data name="Update_Installed_Message" xml:space="preserve">
+    <value>The update will apply next time you launch the app.</value>
+    <comment>Settings -&gt; About Section -&gt; Update Notification -&gt; Restart Notice Description</comment>
+  </data>
+  <data name="WhatsNew_PreviousReleases_Header" xml:space="preserve">
+    <value>Previous Releases</value>
+    <comment>Main Window -&gt; What's New Dialog -&gt; Expander -&gt; Previous Version Releases Group Header</comment>
+  </data>
+  <data name="Settings_RainbowSpeed_Current" xml:space="preserve">
+    <value>Current Rainbow frame border Speed: {0}</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Rainbow Frame Border -&gt; Rainbow Speed Description ({0}=speed)</comment>
+  </data>
+  <data name="Settings_RainbowSpeed_Disabled" xml:space="preserve">
+    <value>Rainbow frame border is disabled</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Rainbow Frame Border -&gt; Rainbow Speed Disabled Description</comment>
+  </data>
+  <data name="Settings_FileExtensions_Allowed" xml:space="preserve">
+    <value>File extensions allowed for scanning tracks: {0}</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Allowed Extensions Summary ({0}=extensions)</comment>
+  </data>
+  <data name="Settings_FileExtensions_None" xml:space="preserve">
+    <value>No file extensions enabled for scanning tracks</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; No Extensions Allowed Warning</comment>
+  </data>
+  <data name="Settings_MusicDownloader_BotRevealed" xml:space="preserve">
+    <value>Bot link revealed</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Button -&gt; Tooltip When Link Is Revealed</comment>
+  </data>
+  <data name="Settings_MusicDownloader_AlternativeDesc" xml:space="preserve">
+    <value>If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots.</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Section -&gt; Alternative Source Description</comment>
+  </data>
+  <data name="Settings_MusicDownloader_ClickToReveal_Singular" xml:space="preserve">
+    <value>Click {0} time to reveal</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Button -&gt; Tooltip Countdown Singular ({0}=clicks)</comment>
+  </data>
+  <data name="Settings_MusicDownloader_ClickToReveal_Plural" xml:space="preserve">
+    <value>Click {0} times to reveal</value>
+    <comment>Settings -&gt; About Section -&gt; Secret Music Downloader Button -&gt; Tooltip Countdown Plural ({0}=clicks)</comment>
+  </data>
+  <data name="Tooltip_PreviousTrack" xml:space="preserve">
+    <value>Previous song/track</value>
+    <comment>Overlay -&gt; Mini Player Controls -&gt; Previous Button -&gt; Tooltip</comment>
+  </data>
+  <data name="Tooltip_NextTrack" xml:space="preserve">
+    <value>Next song/track</value>
+    <comment>Overlay -&gt; Mini Player Controls -&gt; Next Button -&gt; Tooltip</comment>
+  </data>
+  <data name="EditSong_SuggestTip_Preview" xml:space="preserve">
+    <value>• Type and/or Press {0} to preview suggestions.</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Preview Instruction ({0}=Right Arrow (→))</comment>
+  </data>
+  <data name="EditSong_SuggestTip_Cycle" xml:space="preserve">
+    <value>• Press {0} / {1} to cycle suggestions.</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Cycle Instruction ({0}=Up (↑), {1}=Down (↓))</comment>
+  </data>
+  <data name="EditSong_SuggestTip_Accept" xml:space="preserve">
+    <value>• Press {0} to accept.</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Accept Instruction ({0}=Right Arrow (→))</comment>
+  </data>
+  <data name="EditSong_SuggestTip_MultipleArtists" xml:space="preserve">
+    <value>For multiple artists, separate with:</value>
+    <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Artist Suggestion Teaching Tip -&gt; Delimiter Legend Header</comment>
+  </data>
+  <data name="Key_RightArrow" xml:space="preserve">
+    <value>Right Arrow (→)</value>
+    <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Right Arrow Navigation Key</comment>
+  </data>
+  <data name="Key_Up" xml:space="preserve">
+    <value>Up (↑)</value>
+    <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Up Arrow Navigation Key</comment>
+  </data>
+  <data name="Key_Down" xml:space="preserve">
+    <value>Down (↓)</value>
+    <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Down Arrow Navigation Key</comment>
+  </data>
+  <data name="OverlayLayout_CompactPill_Name" xml:space="preserve">
+    <value>Compact Pill</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Compact Pill Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_CompactPill_Desc" xml:space="preserve">
+    <value>Rounded pill with art, track info and controls always visible.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Compact Pill Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_CenteredPill_Name" xml:space="preserve">
+    <value>Centered Pill</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Centered Pill Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_CenteredPill_Desc" xml:space="preserve">
+    <value>Controls positioned at the centre, art on the left and the track info on the right.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Centered Pill Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_RightDock_Name" xml:space="preserve">
+    <value>Right Dock</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Right Dock Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_RightDock_Desc" xml:space="preserve">
+    <value>Right-anchored strip with controls leading and track info trailing.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Right Dock Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_FullArtBar_Name" xml:space="preserve">
+    <value>Full Art Bar</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Full Art Bar Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_FullArtBar_Desc" xml:space="preserve">
+    <value>Album art bleeds full taskbar height; title, artist and progress bar beside it.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Full Art Bar Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_HoverReveal_Name" xml:space="preserve">
+    <value>Hover Reveal</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Hover Reveal Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_HoverReveal_Desc" xml:space="preserve">
+    <value>Shows only track info at rest; controls fade in on hover.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Hover Reveal Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_IconStrip_Name" xml:space="preserve">
+    <value>Icon Strip</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Icon Strip Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_IconStrip_Desc" xml:space="preserve">
+    <value>Zero text — album art thumbnail plus control icon buttons.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Icon Strip Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnly_Name" xml:space="preserve">
+    <value>Text Only</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnly_Desc" xml:space="preserve">
+    <value>Pure text: controls and track name, artists label. No art.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnlyReversed_Name" xml:space="preserve">
+    <value>Text Only Reversed</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Reversed Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TextOnlyReversed_Desc" xml:space="preserve">
+    <value>Pure text: track name, artists label, and controls. No art.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Text Only Reversed Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_MarqueeTicker_Name" xml:space="preserve">
+    <value>Marquee Ticker</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Marquee Ticker Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_MarqueeTicker_Desc" xml:space="preserve">
+    <value>Scrolling track details ticker with a micro progress bar, no album art.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Marquee Ticker Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_ArcRing_Name" xml:space="preserve">
+    <value>Arc Ring</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Arc Ring Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_ArcRing_Desc" xml:space="preserve">
+    <value>Circular disc art with an arc progress ring.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Arc Ring Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TopAccentStripe_Name" xml:space="preserve">
+    <value>Top Accent Stripe</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Accent Stripe Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TopAccentStripe_Desc" xml:space="preserve">
+    <value>Thin accent stripe at top edge, controls below.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Accent Stripe Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_BottomAccentStripe_Name" xml:space="preserve">
+    <value>Bottom Accent Stripe</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Bottom Accent Stripe Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_BottomAccentStripe_Desc" xml:space="preserve">
+    <value>Thin accent stripe at bottom edge, controls above.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Bottom Accent Stripe Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_TopAlbumAccentStripe_Name" xml:space="preserve">
+    <value>Top Album Accent Stripe</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Album Accent Stripe Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_TopAlbumAccentStripe_Desc" xml:space="preserve">
+    <value>Top stripe tinted to dominant album art palette colour.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Top Album Accent Stripe Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTint_Name" xml:space="preserve">
+    <value>Album Tint</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTint_Desc" xml:space="preserve">
+    <value>Full overlay tinted softly with dominant color from album art.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTintProgress_Name" xml:space="preserve">
+    <value>Album Tint Progress</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Progress Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_AlbumTintProgress_Desc" xml:space="preserve">
+    <value>Album tint background with dual-tone progress stripe.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Album Tint Progress Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_AccentAncientScroll_Name" xml:space="preserve">
+    <value>Accent Ancient Scroll</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Accent Ancient Scroll Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_AccentAncientScroll_Desc" xml:space="preserve">
+    <value>Parchment parchment gradient, serif-inspired layout style.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Accent Ancient Scroll Design (Description)</comment>
+  </data>
+  <data name="OverlayLayout_QueuePreview_Name" xml:space="preserve">
+    <value>Queue Preview</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Queue Preview Design (Name)</comment>
+  </data>
+  <data name="OverlayLayout_QueuePreview_Desc" xml:space="preserve">
+    <value>Compact view showing next 2 songs in the queue.</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Taskbar Overlay Controls -&gt; Taskbar Overlay Design Catalog -&gt; Queue Preview Design (Description)</comment>
+  </data>
+  <data name="FormatCategory_Lossy_Desc" xml:space="preserve">
+    <value>The most common everyday compressed audio formats</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Lossy Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_Lossless_Desc" xml:space="preserve">
+    <value>Formats that preserve full audio fidelity, popular for archiving and audiophile use</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Lossless Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessContainer_Desc" xml:space="preserve">
+    <value>Uncompressed audio wrapped in a structured container</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Lossless Container Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessLossyContainer_Desc" xml:space="preserve">
+    <value>Container or format able to hold either lossless or lossy encoded audio</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Dual Format Container Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessLossy_Desc" xml:space="preserve">
+    <value>Single format spanning both fully lossless and compressed variants</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Hybrid Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_LosslessLossyLegacy_Desc" xml:space="preserve">
+    <value>Legacy format spanning both compression types plus old telephony encodings</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; Legacy Audio Formats Description</comment>
+  </data>
+  <data name="FormatCategory_Container_Desc" xml:space="preserve">
+    <value>General multimedia containers primarily used for video/audio distribution</value>
+    <comment>Settings -&gt; Library Management -&gt; "File Extensions" Expander -&gt; Category Card -&gt; General Container Formats Description</comment>
+  </data>
+  <data name="TaskbarOverlay_DefaultTitle" xml:space="preserve">
+    <value>Song/Track Title</value>
+    <comment>Taskbar Overlay -&gt; Preview / Tooltip -&gt; Default Song Title Fallback -&gt; Text</comment>
+  </data>
+  <data name="TaskbarOverlay_DefaultArtist" xml:space="preserve">
+    <value>Artists</value>
+    <comment>Taskbar Overlay -&gt; Preview / Tooltip -&gt; Default Artist Name Fallback -&gt; Text</comment>
+  </data>
+  <data name="TaskbarOverlay_DefaultAlbum" xml:space="preserve">
+    <value>Album</value>
+    <comment>Taskbar Overlay -&gt; Preview / Tooltip -&gt; Default Album Name Fallback -&gt; Text</comment>
+  </data>
+  <data name="ToggleSwitch_On" xml:space="preserve">
+    <value>On</value>
+    <comment>Settings -&gt; Common -&gt; ToggleSwitch -&gt; On Label</comment>
+  </data>
+  <data name="ToggleSwitch_Off" xml:space="preserve">
+    <value>Off</value>
+    <comment>Settings -&gt; Common -&gt; ToggleSwitch -&gt; Off Label</comment>
+  </data>
+  <data name="MusicControl_Thumbnail_Pause" xml:space="preserve">
+    <value>Pause</value>
+    <comment>Taskbar Thumbnail Toolbar -&gt; Pause Button -&gt; Tooltip</comment>
+  </data>
+<data name="Common_DoYouWantToContinue" xml:space="preserve"><value>Do you want to continue?</value><comment>Common -&gt; Confirmation Dialog -&gt; Action Prompt</comment></data><data name="DeleteDialog_SingleSong_Question" xml:space="preserve"><value>Are you sure you want to delete this song/track from your system?</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Confirmation Question</comment></data><data name="DeleteDialog_Detail_Title" xml:space="preserve"><value>Title:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Title Detail Label</comment></data><data name="DeleteDialog_Detail_Artist" xml:space="preserve"><value>Artist:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Artist Detail Label</comment></data><data name="DeleteDialog_Detail_Album" xml:space="preserve"><value>Album:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Album Detail Label</comment></data><data name="DeleteDialog_Detail_File" xml:space="preserve"><value>File:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; File Path Detail Label</comment></data><data name="Notification_SongDeleted_Title" xml:space="preserve"><value>Song/Track deleted.</value><comment>Common -&gt; Toast Notification -&gt; Song Deleted Caption</comment></data><data name="Notification_SongRemovedFromPlaylist_Title" xml:space="preserve"><value>Song/Track removed from {0}.</value><comment>Playlists -&gt; Toast Notification -&gt; Song Removed Caption ({0}=playlist name)</comment></data><data name="Update_Available_Header" xml:space="preserve"><value>App update is available.</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Available Header</comment></data><data name="Update_Available_Instruction" xml:space="preserve"><value>Open Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Installation Instruction</comment></data></root>

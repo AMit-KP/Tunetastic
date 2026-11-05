@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Documents;
@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 using Tunetastic.Common.Services.TaskbarOverlay;
+using Tunetastic.Overlay;
 using Windows.Services.Store;
 using Windows.UI;
 
@@ -47,6 +48,9 @@ public sealed partial class SettingsPage : Page
 		ViewModel = App.GetService<SettingViewModel>();
 		this.InitializeComponent();
 
+		ApplyLocalizedToggleSwitchLabels();
+		this.Loaded += (s, e) => ApplyLocalizedToggleSwitchLabels();
+
 		LoadAppearanceAndBehaviourSettings();
 
 		_ = LoadLibrarySettings();
@@ -70,10 +74,37 @@ public sealed partial class SettingsPage : Page
 	/// </summary>
 	/// <param name="sender">The source of the event, typically the "Add New Folder" button.</param>
 	/// <param name="e">An instance of EventArgs containing the event data.</param>
+
+	private void ApplyLocalizedToggleSwitchLabels()
+	{
+		string onText = LocalizationService.GetString("ToggleSwitch_On");
+		string offText = LocalizationService.GetString("ToggleSwitch_Off");
+
+		ToggleSwitch?[] switches = [
+			IgnoreDup, ScanAtStart, AutoSyncSwitch,
+			ArtistsToggle, AlbumsToggle, GenresToggle, YearsToggle,
+			RecentlyAddedToggle, RecentlyPlayedToggle, MostPlayedToggle,
+			PlayPauseStopFadeSwitch, AutoAdvanceSwitch, ManualTrackChangeSwitch,
+			PreviousReset, RestartTrackOnSelection, UseSystemVolume,
+			PauseOnMute, ResumeOnUnmute, AutoStart, ForwardRewindButtonVisibility,
+			RainbowToggle, RainbowOnlyDuringPlayback, MinimizeToTray,
+			TaskBarOverlay, CheckForUpdatesStartupToggle, VersionInfoToggle
+		];
+
+		foreach (var sw in switches)
+		{
+			if (sw != null)
+			{
+				sw.OnContent = onText;
+				sw.OffContent = offText;
+			}
+		}
+	}
+
 	private async void AddNewFolder_ButtonClick(object sender, RoutedEventArgs e)
 	{
 		var picker = new FolderPicker((sender as Button)!.XamlRoot.ContentIslandEnvironment.AppWindowId);
-		picker.CommitButtonText = "Add Folder";
+		picker.CommitButtonText = LocalizationService.GetString("FolderPicker_AddFolderCommit");
 		picker.SuggestedStartLocation = PickerLocationId.MusicLibrary;
 
 		try
@@ -94,7 +125,7 @@ public sealed partial class SettingsPage : Page
 				Libraries?.AddRange(await DatabaseHelper.Instance.GetAllLibraries());
 
 				LibraryFolders.IsExpanded = true;
-				GlobalNotification.Info("Please do a Full Scan.");
+				GlobalNotification.Info(LocalizationService.GetString("Settings_Notify_PleaseFullScan"));
 
 				await Task.Delay(300);
 				FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);
@@ -102,7 +133,7 @@ public sealed partial class SettingsPage : Page
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Error Adding the folder. Make sure the folder path doesn't contain any shortcuts. It's better to provide complete folder path.");
+			GlobalNotification.Error(LocalizationService.GetString("Settings_Notify_ErrorAddingFolder"));
 		}
 	}
 
@@ -125,11 +156,11 @@ public sealed partial class SettingsPage : Page
 			if (Libraries.Count == 0)
 			{
 				AutoSyncSwitch.IsOn = false;
-				GlobalNotification.Warning("All libraries are removed. Please add atleast one.");
+				GlobalNotification.Warning(LocalizationService.GetString("Settings_Notify_AllLibrariesRemoved"));
 			}
 			else
 			{
-				GlobalNotification.Info("Please do a Full Scan.");
+				GlobalNotification.Info(LocalizationService.GetString("Settings_Notify_PleaseFullScan"));
 				await Task.Delay(300);
 				FullScanButton.Highlight(pulses: 3, pulseDurationMs: 1000);
 			}
@@ -172,9 +203,9 @@ public sealed partial class SettingsPage : Page
 		{
 			var dialog = new ContentDialog
 			{
-				Title = "Scan Libraries",
-				PrimaryButtonText = "Continue",
-				SecondaryButtonText = "Cancel",
+				Title = LocalizationService.GetString("Settings_Dialog_ScanPendingWrites_Title"),
+				PrimaryButtonText = LocalizationService.GetString("Settings_Dialog_ScanPendingWrites_Continue"),
+				SecondaryButtonText = LocalizationService.GetString("Settings_Dialog_ScanPendingWrites_Cancel"),
 				RequestedTheme = App.Current.ThemeService.ActualTheme,
 				DefaultButton = ContentDialogButton.Primary,
 
@@ -184,7 +215,7 @@ public sealed partial class SettingsPage : Page
 					{
 						new TextBlock
 						{
-							Text = $"You have pending tag writes to {pendingTasks.Count} of the file{(pendingTasks.Count > 1 ? "s" : "")}. If you continue, they will be back to original state.\n\nDo you want to continue?",
+							Text = $"{LocalizationService.FormatPluralString("Settings_Dialog_ScanPendingWrites_Message", pendingTasks.Count)}\n\n{LocalizationService.GetString("Common_DoYouWantToContinue")}",
 							TextWrapping = TextWrapping.WrapWholeWords
 						}
 					}
@@ -303,6 +334,21 @@ public sealed partial class SettingsPage : Page
 		ExtensionDescription();
 	}
 
+	private static string GetLocalizedCategoryDescription(string category, string fallback)
+	{
+		return category switch
+		{
+			"Lossy" => LocalizationService.GetString("FormatCategory_Lossy_Desc"),
+			"Lossless" => LocalizationService.GetString("FormatCategory_Lossless_Desc"),
+			"Lossless / Container" => LocalizationService.GetString("FormatCategory_LosslessContainer_Desc"),
+			"Lossless / Lossy / Container" => LocalizationService.GetString("FormatCategory_LosslessLossyContainer_Desc"),
+			"Lossless / Lossy" => LocalizationService.GetString("FormatCategory_LosslessLossy_Desc"),
+			"Lossless / Lossy / Legacy" => LocalizationService.GetString("FormatCategory_LosslessLossyLegacy_Desc"),
+			"Container" => LocalizationService.GetString("FormatCategory_Container_Desc"),
+			_ => fallback
+		};
+	}
+
 	private void RebuildCategorizedFormats()
 	{
 		var grouped = AllFormats
@@ -310,7 +356,7 @@ public sealed partial class SettingsPage : Page
 			.Select(g => new MusicFormatCategoryModel
 			{
 				Category = g.Key,
-				CategoryDescription = g.First().CategoryDescription,
+				CategoryDescription = GetLocalizedCategoryDescription(g.Key, g.First().CategoryDescription),
 				Items = new ObservableCollection<MusicFormatModel>(g)
 			}).ToList();
 
@@ -364,7 +410,7 @@ public sealed partial class SettingsPage : Page
 	{
 		var enabledExtensions = AllFormats.Where(f => f.Enabled).Select(f => f.Extension.TrimStart('.')).ToList();
 
-		var description = enabledExtensions.Any() ? $"File extensions allowed for scanning tracks: {string.Join(", ", enabledExtensions)}" : "No file extensions enabled for scanning tracks";
+		var description = enabledExtensions.Any() ? LocalizationService.FormatString("Settings_FileExtensions_Allowed", string.Join(", ", enabledExtensions)) : LocalizationService.GetString("Settings_FileExtensions_None");
 
 		FileExt.Description = description;
 	}
@@ -373,7 +419,7 @@ public sealed partial class SettingsPage : Page
 	{
 		if (AllFormats.All(f => !f.Enabled))
 		{
-			GlobalNotification.Warning("At least one format must be enabled");
+			GlobalNotification.Warning(LocalizationService.GetString("Settings_Notify_AtLeastOneFormat"));
 			return;
 		}
 
@@ -382,7 +428,7 @@ public sealed partial class SettingsPage : Page
 
 		ExtensionConfirmButton.Visibility = Visibility.Collapsed;
 
-		GlobalNotification.Info("Please do a Full Scan.");
+		GlobalNotification.Info(LocalizationService.GetString("Settings_Notify_PleaseFullScan"));
 		await Task.Delay(300);
 		FullScanButton.HighlightAndBringIntoView(pulses: 3, pulseDurationMs: 1000);
 	}
@@ -396,7 +442,7 @@ public sealed partial class SettingsPage : Page
 		{
 			XamlRoot = App.MainWindow.Content.XamlRoot,
 			RequestedTheme = App.Current.ThemeService.ActualTheme,
-			PrimaryButtonText = "Close",
+			PrimaryButtonText = LocalizationService.GetString("Settings_Dialog_ConfigureExtensions_Close"),
 			DefaultButton = ContentDialogButton.Primary,
 			MinWidth = 600,
 			Height = 600,
@@ -692,10 +738,10 @@ public sealed partial class SettingsPage : Page
 
 				var dialog = new ContentDialog
 				{
-					Title = "Restart Required",
-					Content = "The display language has been updated. Please restart Tunetastic to apply the change across all screens.",
-					PrimaryButtonText = "Restart Now",
-					CloseButtonText = "Later",
+					Title = LocalizationService.GetString("Settings_Dialog_RestartRequired_Title"),
+					Content = LocalizationService.GetString("Settings_Dialog_RestartRequired_Content"),
+					PrimaryButtonText = LocalizationService.GetString("Settings_Dialog_RestartRequired_RestartNow"),
+					CloseButtonText = LocalizationService.GetString("Settings_Dialog_RestartRequired_Later"),
 					DefaultButton = ContentDialogButton.Primary,
 					XamlRoot = this.XamlRoot
 				};
@@ -709,7 +755,7 @@ public sealed partial class SettingsPage : Page
 				}
 				else
 				{
-					GlobalNotification.Info("The selected language will be applied when app restarts.");
+					GlobalNotification.Info(LocalizationService.GetString("Settings_Notify_LanguageRestart"));
 				}
 			}
 		}
@@ -848,7 +894,7 @@ public sealed partial class SettingsPage : Page
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
 		SystemTrayIconStyle.SelectedItem = SystemTrayIconStyle.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.SystemTrayIconStyle)]?.ToString() ?? "MonochromeAuto"));
 		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
-		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.DisplayName == (localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"));
+		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.Layout == OverlayLayoutCatalog.FromSettingString(localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString())) ?? TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault();
 		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL"));
 
 		// TODO: set side options based on windows start position
@@ -1045,7 +1091,7 @@ public sealed partial class SettingsPage : Page
 	private void RainbowSpeedSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RainbowFrameSpeed)] = RainbowSpeedSlider.Value.ToString();
-		RainbowSpeed.Description = RainbowSpeedSlider.IsEnabled ? $"Current Rainbow frame border Speed: {RainbowSpeedSlider.Value}" : "Rainbow frame border is disabled";
+		RainbowSpeed.Description = RainbowSpeedSlider.IsEnabled ? LocalizationService.FormatString("Settings_RainbowSpeed_Current", RainbowSpeedSlider.Value) : LocalizationService.GetString("Settings_RainbowSpeed_Disabled");
 		if (RainbowSpeedSlider.IsEnabled)
 		{
 			var effectSpeed = int.Parse(RainbowSpeedSlider.Value.ToString());
@@ -1097,14 +1143,14 @@ public sealed partial class SettingsPage : Page
 
 		var dialog = new ContentDialog
 		{
-			Title = $"Disable {sectionName}",
-			PrimaryButtonText = "Continue",
-			CloseButtonText = "Cancel",
+			Title = LocalizationService.FormatString("Settings_Dialog_DisableSection_Title", sectionName),
+			PrimaryButtonText = LocalizationService.GetString("Settings_Dialog_DisableSection_Continue"),
+			CloseButtonText = LocalizationService.GetString("Settings_Dialog_DisableSection_Cancel"),
 			RequestedTheme = App.Current.ThemeService.ActualTheme,
 			DefaultButton = ContentDialogButton.Primary,
 			Content = new TextBlock
 			{
-				Text = $"Music is currently playing from {sectionName}. Disabling it will switch playback to All Songs.\n\nDo you want to continue?",
+				Text = $"{LocalizationService.FormatString("Settings_Dialog_DisableSection_Message", sectionName)}\n\n{LocalizationService.GetString("Common_DoYouWantToContinue")}",
 				TextWrapping = TextWrapping.WrapWholeWords
 			},
 			XamlRoot = this.Content?.XamlRoot ?? App.MainWindow.Content.XamlRoot
@@ -1421,7 +1467,7 @@ public sealed partial class SettingsPage : Page
 		{
 			CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 			CheckForUpdates.IsChecked = false;
-			await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
+			await MessageBox.ShowSuccessAsync(LocalizationService.GetString("Update_UpToDate_Message"), LocalizationService.GetString("Update_Available_Title"), buttons: MessageBoxButtons.OK);
 		}
 		else
 		{
@@ -1430,7 +1476,7 @@ public sealed partial class SettingsPage : Page
 			if (result.OverallState == StorePackageUpdateState.Completed)
 			{
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-				await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
+				await MessageBox.ShowInfoAsync(LocalizationService.GetString("Update_Installed_Title"), LocalizationService.GetString("Update_Installed_Message"));
 			}
 			else
 			{
@@ -1516,7 +1562,7 @@ public sealed partial class SettingsPage : Page
 	{
 		if (TaskBarOverlayDesign.SelectedItem is OverlayLayoutInfo layoutInfo)
 		{
-			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)] = layoutInfo.DisplayName;
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)] = layoutInfo.Layout.ToString();
 			TaskBarOverlayTheme.SelectedIndex = -1;
 			TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == BestOverlayThemeBasedOnLayout(layoutInfo.Layout));
 
@@ -1572,14 +1618,14 @@ public sealed partial class SettingsPage : Page
 		if (clickCounter == 0)
 		{
 			MusicDownloadLink.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(MusicDownloader_Panel, $"Bot link revealed");
+			ToolTipService.SetToolTip(MusicDownloader_Panel, LocalizationService.GetString("Settings_MusicDownloader_BotRevealed"));
 			MusicDownloader_Description.Inlines.Clear();
-			MusicDownloader_Description.Inlines.Add(new Run { Text = "If you are unable to access or purchase music through official storefronts, you can interact with community-hosted search tools or third-party bots." });
+			MusicDownloader_Description.Inlines.Add(new Run { Text = LocalizationService.GetString("Settings_MusicDownloader_AlternativeDesc") });
 			MusicDownloader_Description.Inlines.Add(new LineBreak());
 			MusicDownloader_Description.Inlines.Add(new Run { FontStyle = Windows.UI.Text.FontStyle.Italic, Text = "(Note: External third-party Telegram bot. Use at your own discretion.)" });
 		}
 		else
-			ToolTipService.SetToolTip(MusicDownloader_Panel, $"Click {clickCounter} times to reveal");
+			ToolTipService.SetToolTip(MusicDownloader_Panel, LocalizationService.FormatPluralString("Settings_MusicDownloader_ClickToReveal", clickCounter, clickCounter));
 	}
 
 	private void ResetHistoryConfirm_Click(object sender, RoutedEventArgs e)

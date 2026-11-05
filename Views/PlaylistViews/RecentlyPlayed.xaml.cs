@@ -1,3 +1,4 @@
+using Tunetastic.Common.Services;
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml.Documents;
@@ -94,7 +95,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	protected override List<string> EmptyLibraryMessages => GoToMessages;
 	/// <inheritdoc/>
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
-		$"Add {(multiSelect ? "selected songs/tracks" : "this song/track")} to {playList} playlist";
+		base.BuildAddToPlaylistTooltip(multiSelect, playList);
 
 	private void MenuFlyout_Opened(object sender, object e) => MenuFlyoutOpened(sender, e);
 
@@ -137,7 +138,9 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	/// </returns>
 	private async Task UpdateListBasedOnViewStyle()
 	{
-		var viewStyle = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "View" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "Compact View";
+		var selectedViewItem = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "View" && item.IsChecked);
+		var viewStyle = selectedViewItem?.Tag?.ToString() ?? (selectedViewItem?.Name == "ListViewStyle" ? "List View" : "Compact View");
+		var viewStyleDisplayText = selectedViewItem?.Text ?? viewStyle;
 		string? glyph = null;
 		switch (viewStyle)
 		{
@@ -156,7 +159,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 		}
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedSongViewStyle)] = viewStyle;
 		ViewButton.Content = new FontIcon() { Glyph = glyph };
-		ToolTipService.SetToolTip(ViewButton, viewStyle);
+		ToolTipService.SetToolTip(ViewButton, viewStyleDisplayText);
 		await ScrollToSong(selectedSong);       //somehow this doesn't work
 		await Task.Delay(500);
 		await ScrollToSong(selectedSong);
@@ -215,7 +218,9 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	private async Task UpdateListBasedOnMaxLimit()
 	{
 		var song = selectedSong;
-		var maxLimit = MaxLimit.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Limit" && item.IsChecked).Select(item => item.Text).FirstOrDefault() ?? "100";
+		var selectedLimitItem = MaxLimit.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Limit" && item.IsChecked);
+		var maxLimit = selectedLimitItem?.Tag?.ToString() ?? "100";
+		var maxLimitDisplayText = selectedLimitItem?.Text ?? maxLimit;
 
 		var newList = await DatabaseHelper.Instance.LoadSongsFromDB(SongProperty.DateLastPlayed, ascending: false, limit: maxLimit == "Unlimited" ? 0 : int.Parse(maxLimit), whereCondition: $"{SongProperty.DateLastPlayed.ToString()} NOT NULL");
 		RecentlyPlayedSongs.Clear();
@@ -223,12 +228,12 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 		newList = null;
 
 		var maxLimitDropDownContent = new TextBlock();
-		maxLimitDropDownContent.Inlines.Add(new Run { Text = "Max Limit: " });
-		maxLimitDropDownContent.Inlines.Add(new Run { Text = maxLimit, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		maxLimitDropDownContent.Inlines.Add(new Run { Text = LocalizationService.GetString("MaxLimit_Label") });
+		maxLimitDropDownContent.Inlines.Add(new Run { Text = maxLimitDisplayText, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 
 		var maxLimitDropDownTooltip = new TextBlock();
-		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = "The maximum number of songs/tracks to display in the list: " });
-		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = maxLimit, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("MaxLimit_Tooltip") });
+		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = maxLimitDisplayText, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		maxLimitDropDownTooltip.TextWrapping = TextWrapping.WrapWholeWords;
 
 		MaxLimitDropDown.Content = maxLimitDropDownContent;
@@ -407,7 +412,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 		if (playlist != null && song != null)
 		{
 			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-			GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToPlaylist", song.Title, playlist));
 		}
 	}
 
@@ -420,7 +425,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 		if (playlist != null)
 		{
 			await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songPaths);
-			GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Songs_AddedToPlaylist", songs.Count, playlist));
 		}
 	}
 
@@ -457,7 +462,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 		List<string> songPaths = new List<string> { songData?.Path ?? "" };
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songData?.Title} added to queue.");
+		GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToQueue", songData?.Title ?? ""));
 	}
 
 	/// <summary>
@@ -492,11 +497,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 
 		if (songData != null)
 		{
-			DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
-									$"\nTitle: {songData.Title}" +
-									$"\nArtist: {songData.Artists}" +
-									$"\nAlbum: {songData.Album}" +
-									$"\nFile: {songData.Path}";
+			DeleteDialogText.Text = LocalizationService.FormatDeleteSingleSongMessage(songData.Title, songData.Artists, songData.Album, songData.Path);
 
 			MainWindow._instance.WindowResizePermission(false);
 			var result = await DeleteDialog.ShowAsync();
@@ -510,11 +511,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 					await DatabaseHelper.Instance.DeleteSongFromDB(songData.Path);
 					RecentlyPlayedSongs.Remove(songData);
 					MusicPlayer.Instance.HandleAfterDelete();
-					GlobalNotification.Success("Song/Track deleted." +
-												$"\nTitle: {songData.Title}" +
-												$"\nArtist: {songData.Artists}" +
-												$"\nAlbum: {songData.Album}" +
-												$"\nFile: {songData.Path}");
+					GlobalNotification.Success(LocalizationService.FormatSongDeletedNotification(songData.Title, songData.Artists, songData.Album, songData.Path));
 				}
 			}
 			if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
@@ -548,7 +545,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 			MoreButton.IsEnabled = false;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			LimitAndViewButtonPanel.Visibility = Visibility.Collapsed;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn off multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOff"));
 			view.SelectionMode = ListViewSelectionMode.Multiple;
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
@@ -569,7 +566,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 			MoreButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			LimitAndViewButtonPanel.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn on multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOn"));
 			view.SelectionMode = ListViewSelectionMode.Single;
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
@@ -603,7 +600,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 
 		await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
 
-		GlobalNotification.Info($"{songPaths.Count} {(songPaths.Count > 1 ? "songs/tracks" : "song/track")} added to the queue.");
+		GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Queue_Added", songPaths.Count));
 	}
 
 	/// <summary>
@@ -624,7 +621,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 			songList.Add((Song)item);
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {(songList.Count > 1 ? "these" : "this")} {songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} from your system?";
+		DeleteDialogText.Text = LocalizationService.FormatPluralString("DeleteDialog_Confirm", songList.Count);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -643,7 +640,7 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 				}
 			}
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Success($"{songList.Count} {(songList.Count > 1 ? "songs/tracks" : "song/track")} deleted.");
+			GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_Deleted", songList.Count));
 		}
 		if (await DatabaseHelper.Instance.GetSongsCount() <= 0)
 		{
@@ -680,11 +677,13 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 	/// </remarks>
 	private void UpdateTimeStyle()
 	{
-		var timeStyle = TimeFieldStyle.Items.OfType<RadioMenuFlyoutItem>().Where(item => item.GroupName == "Time" && item.IsChecked).Select(item => item.Name).FirstOrDefault() ?? "RelativeTimeStyle";
+		var selectedTimeItem = TimeFieldStyle.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Time" && item.IsChecked);
+		var timeStyle = selectedTimeItem?.Tag?.ToString() ?? selectedTimeItem?.Name ?? "RelativeTimeStyle";
+		var timeStyleDisplayText = selectedTimeItem?.Text ?? (timeStyle == "RelativeTimeStyle" ? LocalizationService.GetString("TimeStyle_Relative.Text") : LocalizationService.GetString("TimeStyle_Date.Text"));
 		IsRelativeDisplayMode = timeStyle == "RelativeTimeStyle";
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.RecentlyPlayedSongTimeStyle)] = timeStyle;
 		TimeFieldType.Content = new FontIcon() { Glyph = IsRelativeDisplayMode ? "\uEC92" : "\uE787" };
-		ToolTipService.SetToolTip(TimeFieldType, IsRelativeDisplayMode ? "Relative Time Style" : "Date Style");
+		ToolTipService.SetToolTip(TimeFieldType, timeStyleDisplayText);
 	}
 
 	/// <summary>

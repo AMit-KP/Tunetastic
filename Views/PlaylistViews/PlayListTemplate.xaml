@@ -2,6 +2,7 @@
 <views:SongListPageBase x:Class="Tunetastic.Views.PlaylistViews.PlayListTemplate"
                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:services="using:Tunetastic.Common.Services"
                         xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
                         xmlns:common="using:Tunetastic.Common"
                         xmlns:controls="using:CommunityToolkit.WinUI.Controls"
@@ -17,79 +18,79 @@
 	<views:SongListPageBase.Resources>
 		<MenuFlyout x:Key="RightClickMenu"
 		            Opened="MenuFlyout_Opened">
-			<MenuFlyoutItem Click="MenuFlyoutItemPlay_OnClick"
-			                Text="Play"
-			                ToolTipService.ToolTip="Play this song/track">
+			<MenuFlyoutItem x:Uid="Action_Play" Click="MenuFlyoutItemPlay_OnClick"
+			                Text="{services:Loc Key=Action_Play.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=Action_Play_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE768;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
-			<MenuFlyoutSubItem x:Name="AddToPlaylist"
-			                   Text="Add to playlist">
+			<MenuFlyoutSubItem x:Name="AddToPlaylist" x:Uid="Action_AddToPlaylist"
+			                   Text="{services:Loc Key=Action_AddToPlaylist.Text}">
 				<MenuFlyoutSubItem.Icon>
 					<FontIcon Glyph="&#xE728;" />
 				</MenuFlyoutSubItem.Icon>
 			</MenuFlyoutSubItem>
-			<MenuFlyoutItem Click="MenuFlyoutItemAddToQueue_OnClick"
-			                Text="Add to queue"
-			                ToolTipService.ToolTip="Add this song/track to the queue">
+			<MenuFlyoutItem x:Uid="Action_AddToQueue" Click="MenuFlyoutItemAddToQueue_OnClick"
+			                Text="{services:Loc Key=Action_AddToQueue.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=Action_AddToQueue_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE84F;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
-			<MenuFlyoutSubItem Text="Move">
+			<MenuFlyoutSubItem Tag="Move" x:Uid="PlayList_MoveSubItem" Text="{services:Loc Key=PlayList_MoveSubItem.Text}">
 				<MenuFlyoutSubItem.Icon>
 					<FontIcon Glyph="&#xE7C2;" />
 				</MenuFlyoutSubItem.Icon>
-				<MenuFlyoutItem Click="MoveToTop_Click"
-				                Text="Move to Top"
-				                ToolTipService.ToolTip="Move this track to the top of the playlist">
+				<MenuFlyoutItem x:Uid="PlayList_MoveToTop" Click="MoveToTop_Click"
+				                Text="{services:Loc Key=PlayList_MoveToTop.Text}"
+				                ToolTipService.ToolTip="{services:Loc Key=PlayList_MoveToTop_ToolTip}">
 					<MenuFlyoutItem.Icon>
 						<FontIcon Glyph="&#xE898;" />
 					</MenuFlyoutItem.Icon>
 				</MenuFlyoutItem>
-				<MenuFlyoutItem Click="MoveUp_Click"
-				                Text="Move Up"
-				                ToolTipService.ToolTip="Move this track up by one position">
+				<MenuFlyoutItem x:Uid="PlayList_MoveUp" Click="MoveUp_Click"
+				                Text="{services:Loc Key=PlayList_MoveUp.Text}"
+				                ToolTipService.ToolTip="{services:Loc Key=PlayList_MoveUp_ToolTip}">
 					<MenuFlyoutItem.Icon>
 						<FontIcon Glyph="&#xE74A;" />
 					</MenuFlyoutItem.Icon>
 				</MenuFlyoutItem>
-				<MenuFlyoutItem Click="MoveDown_Click"
-				                Text="Move Down"
-				                ToolTipService.ToolTip="Move this track down by one position">
+				<MenuFlyoutItem x:Uid="PlayList_MoveDown" Click="MoveDown_Click"
+				                Text="{services:Loc Key=PlayList_MoveDown.Text}"
+				                ToolTipService.ToolTip="{services:Loc Key=PlayList_MoveDown_ToolTip}">
 					<MenuFlyoutItem.Icon>
 						<FontIcon Glyph="&#xE74B;" />
 					</MenuFlyoutItem.Icon>
 				</MenuFlyoutItem>
-				<MenuFlyoutItem Click="MoveToBottom_Click"
-				                Text="Move to Bottom"
-				                ToolTipService.ToolTip="Move this track to the bottom of the playlist">
+				<MenuFlyoutItem x:Uid="PlayList_MoveToBottom" Click="MoveToBottom_Click"
+				                Text="{services:Loc Key=PlayList_MoveToBottom.Text}"
+				                ToolTipService.ToolTip="{services:Loc Key=PlayList_MoveToBottom_ToolTip}">
 					<MenuFlyoutItem.Icon>
 						<FontIcon Glyph="&#xE896;" />
 					</MenuFlyoutItem.Icon>
 				</MenuFlyoutItem>
 			</MenuFlyoutSubItem>
 			<MenuFlyoutSeparator />
-			<MenuFlyoutItem Click="MenuFlyoutItemInfoTag_OnClick"
-			                Text="Info/Tag">
+			<MenuFlyoutItem x:Uid="Action_InfoTag" Click="MenuFlyoutItemInfoTag_OnClick"
+			                Text="{services:Loc Key=Action_InfoTag.Text}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE946;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
-			<MenuFlyoutItem Click="MenuFlyoutItemRemove_OnClick"
-			                Text="Remove"
-			                ToolTipService.ToolTip="Remove this song/track from the playlist">
+			<MenuFlyoutItem x:Uid="PlayList_RemoveTrack" Click="MenuFlyoutItemRemove_OnClick"
+			                Text="{services:Loc Key=PlayList_RemoveTrack.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=PlayList_RemoveTrack_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xECC9;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
-			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
-			                Text="Delete"
-			                ToolTipService.ToolTip="Delete this song/track">
+			<MenuFlyoutItem x:Uid="Action_DeleteTrack" Click="MenuFlyoutItemDelete_OnClick"
+			                Text="{services:Loc Key=Action_DeleteTrack.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=Action_DeleteTrack_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE74D;" />
 				</MenuFlyoutItem.Icon>
@@ -122,29 +123,29 @@
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
-				<ToggleButton x:Name="ReorderButton"
+				<ToggleButton x:Name="ReorderButton" x:Uid="PlayList_ReorderButton"
 				              Click="ReorderButton_Click"
-				              ToolTipService.ToolTip="Reorder playlist tracks">
+				              ToolTipService.ToolTip="{services:Loc Key=PlayList_ReorderButton_ToolTip}">
 					<FontIcon Glyph="&#xE70F;" />
 				</ToggleButton>
-				<ToggleButton x:Name="MultiSelectButton"
+				<ToggleButton x:Name="MultiSelectButton" x:Uid="ActionBar_MultiSelect"
 				              Click="MultiSelectButton_Click"
-				              ToolTipService.ToolTip="Turn on multi-select mode">
+				              ToolTipService.ToolTip="{services:Loc Key=ActionBar_MultiSelect_ToolTip}">
 					<FontIcon Glyph="&#xE73A;" />
 				</ToggleButton>
 				<StackPanel x:Name="PlayAllButtonStackPanel"
 				            Orientation="Horizontal"
 				            Spacing="5">
-					<Button x:Name="ShuffleAndPlay"
+					<Button x:Name="ShuffleAndPlay" x:Uid="ActionBar_ShuffleAndPlay"
 					        HorizontalAlignment="Right"
 					        Click="ShuffleAndPlayButton_OnClick"
-					        ToolTipService.ToolTip="Shuffle And Play All">
+					        ToolTipService.ToolTip="{services:Loc Key=ActionBar_ShuffleAndPlay_ToolTip}">
 						<FontIcon Glyph="&#xE8B1;" />
 					</Button>
-					<Button x:Name="PlayAll"
+					<Button x:Name="PlayAll" x:Uid="ActionBar_PlayAll"
 					        HorizontalAlignment="Right"
 					        Click="PlayAllButton_OnClick"
-					        ToolTipService.ToolTip="Play All">
+					        ToolTipService.ToolTip="{services:Loc Key=ActionBar_PlayAll_ToolTip}">
 						<FontIcon Glyph="&#xF5B0;" />
 					</Button>
 				</StackPanel>
@@ -156,7 +157,7 @@
 							<RadioMenuFlyoutItem x:Name="ListViewStyle"
 							                     Click="ViewButton_OnClick"
 							                     GroupName="View"
-							                     Text="List View">
+							                     Tag="List View" x:Uid="ViewStyle_List" Text="{services:Loc Key=ViewStyle_List.Text}">
 								<RadioMenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE8FD;" />
 								</RadioMenuFlyoutItem.Icon>
@@ -164,7 +165,7 @@
 							<RadioMenuFlyoutItem x:Name="CompactViewStyle"
 							                     Click="ViewButton_OnClick"
 							                     GroupName="View"
-							                     Text="Compact View">
+							                     Tag="Compact View" x:Uid="ViewStyle_Compact" Text="{services:Loc Key=ViewStyle_Compact.Text}">
 								<RadioMenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE71D;" />
 								</RadioMenuFlyoutItem.Icon>
@@ -172,99 +173,99 @@
 						</MenuFlyout>
 					</DropDownButton.Flyout>
 				</DropDownButton>
-				<Button x:Name="SettingsButton">
+				<Button x:Name="SettingsButton" x:Uid="PlayList_SettingsButton"
+				        ToolTipService.ToolTip="{services:Loc Key=PlayList_SettingsButton_ToolTip}">
 					<FontIcon Glyph="&#xE713;" />
 					<Button.Flyout>
 						<MenuFlyout x:Name="Settings"
-						            Placement="BottomEdgeAlignedRight"
-						            ToolTipService.ToolTip="Playlist Settings">
-							<MenuFlyoutSubItem x:Name="SortPlayList"
-							                   Text="Sort Playlist">
+						            Placement="BottomEdgeAlignedRight">
+							<MenuFlyoutSubItem x:Name="SortPlayList" x:Uid="PlayList_SortPlaylist"
+							                   Text="{services:Loc Key=PlayList_SortPlaylist.Text}">
 								<MenuFlyoutSubItem.Icon>
 									<FontIcon Glyph="&#xE8CB;" />
 								</MenuFlyoutSubItem.Icon>
-								<MenuFlyoutSubItem Text="Title">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_Title" Text="{services:Loc Key=PlayList_Sort_Title.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="TitleAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="TitleDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Artists">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_Artists" Text="{services:Loc Key=PlayList_Sort_Artists.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="ArtistsAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="ArtistsDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Album">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_Album" Text="{services:Loc Key=PlayList_Sort_Album.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="AlbumAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="AlbumDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Year">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_Year" Text="{services:Loc Key=PlayList_Sort_Year.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="YearAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="YearDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Duration">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_Duration" Text="{services:Loc Key=PlayList_Sort_Duration.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="DurationAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="DurationDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Track">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_Track" Text="{services:Loc Key=PlayList_Sort_Track.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="TrackAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="TrackDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Play Count">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_PlayCount" Text="{services:Loc Key=PlayList_Sort_PlayCount.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="PlayCountAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="PlayCountDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
-								<MenuFlyoutSubItem Text="Modified Time">
+								<MenuFlyoutSubItem x:Uid="PlayList_Sort_ModifiedTime" Text="{services:Loc Key=PlayList_Sort_ModifiedTime.Text}">
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="ModifiedTimeAsc"
-									                Text="Ascending" />
+									                Text="{services:Loc Key=Sort_Ascending.Text}" />
 									<MenuFlyoutItem Click="SortPlayList_Click"
 									                Tag="ModifiedTimeDesc"
-									                Text="Descending" />
+									                Text="{services:Loc Key=Sort_Descending.Text}" />
 								</MenuFlyoutSubItem>
 							</MenuFlyoutSubItem>
 							<MenuFlyoutSeparator />
 							<MenuFlyoutItem Click="RenamePlayList_Click"
-							                Text="Rename Playlist">
+							                x:Uid="PlayList_RenamePlaylist" Text="{services:Loc Key=PlayList_RenamePlaylist.Text}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE8AC;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
 							<MenuFlyoutItem x:Name="ExportPlayList"
 							                Click="ExportPlayList_Click"
-							                Text="Export Playlist">
+							                x:Uid="PlayList_ExportPlaylist" Text="{services:Loc Key=PlayList_ExportPlaylist.Text}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xEDE1;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
 							<MenuFlyoutSeparator />
-							<MenuFlyoutItem Click="DeletePlayList_Click"
-							                Text="Delete Playlist">
+							<MenuFlyoutItem x:Uid="PlayList_DeletePlaylist" Click="DeletePlayList_Click"
+							                Text="{services:Loc Key=PlayList_DeletePlaylist.Text}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE74D;" />
 								</MenuFlyoutItem.Icon>
@@ -279,63 +280,63 @@
 						<MenuFlyout x:Name="More"
 						            Opened="MenuFlyout_Opened"
 						            Placement="BottomEdgeAlignedRight">
-							<MenuFlyoutSubItem Text="Add to playlist">
+							<MenuFlyoutSubItem x:Uid="ActionBar_Multi_AddToPlaylist" Text="{services:Loc Key=ActionBar_Multi_AddToPlaylist.Text}">
 								<MenuFlyoutSubItem.Icon>
 									<FontIcon Glyph="&#xE728;" />
 								</MenuFlyoutSubItem.Icon>
 							</MenuFlyoutSubItem>
-							<MenuFlyoutItem Click="MenuFlyoutMultiItemAddToQueue_OnClick"
-							                Text="Add to queue"
-							                ToolTipService.ToolTip="Add selected songs/tracks to the queue">
+							<MenuFlyoutItem x:Uid="ActionBar_Multi_AddToQueue" Click="MenuFlyoutMultiItemAddToQueue_OnClick"
+							                Text="{services:Loc Key=ActionBar_Multi_AddToQueue.Text}"
+							                ToolTipService.ToolTip="{services:Loc Key=ActionBar_Multi_AddToQueue_ToolTip}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE84F;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
 							<MenuFlyoutSeparator />
-							<MenuFlyoutSubItem Text="Move">
+							<MenuFlyoutSubItem Tag="Move" x:Uid="PlayList_MoveSubItem" Text="{services:Loc Key=PlayList_MoveSubItem.Text}">
 								<MenuFlyoutSubItem.Icon>
 									<FontIcon Glyph="&#xE7C2;" />
 								</MenuFlyoutSubItem.Icon>
-								<MenuFlyoutItem Click="MoveMultiToTop_Click"
-								                Text="Move to Top"
-								                ToolTipService.ToolTip="Move selected tracks to the top of the playlist">
+								<MenuFlyoutItem x:Uid="PlayList_MultiMoveToTop" Click="MoveMultiToTop_Click"
+								                Text="{services:Loc Key=PlayList_MultiMoveToTop.Text}"
+								                ToolTipService.ToolTip="{services:Loc Key=PlayList_MultiMoveToTop_ToolTip}">
 									<MenuFlyoutItem.Icon>
 										<FontIcon Glyph="&#xE898;" />
 									</MenuFlyoutItem.Icon>
 								</MenuFlyoutItem>
-								<MenuFlyoutItem Click="MoveMultiUp_Click"
-								                Text="Move Up"
-								                ToolTipService.ToolTip="Move selected tracks up by one position">
+								<MenuFlyoutItem x:Uid="PlayList_MultiMoveUp" Click="MoveMultiUp_Click"
+								                Text="{services:Loc Key=PlayList_MultiMoveUp.Text}"
+								                ToolTipService.ToolTip="{services:Loc Key=PlayList_MultiMoveUp_ToolTip}">
 									<MenuFlyoutItem.Icon>
 										<FontIcon Glyph="&#xE74A;" />
 									</MenuFlyoutItem.Icon>
 								</MenuFlyoutItem>
-								<MenuFlyoutItem Click="MoveMultiDown_Click"
-								                Text="Move Down"
-								                ToolTipService.ToolTip="Move selected tracks down by one position">
+								<MenuFlyoutItem x:Uid="PlayList_MultiMoveDown" Click="MoveMultiDown_Click"
+								                Text="{services:Loc Key=PlayList_MultiMoveDown.Text}"
+								                ToolTipService.ToolTip="{services:Loc Key=PlayList_MultiMoveDown_ToolTip}">
 									<MenuFlyoutItem.Icon>
 										<FontIcon Glyph="&#xE74B;" />
 									</MenuFlyoutItem.Icon>
 								</MenuFlyoutItem>
-								<MenuFlyoutItem Click="MoveMultiToBottom_Click"
-								                Text="Move to Bottom"
-								                ToolTipService.ToolTip="Move selected tracks to the bottom of the playlist">
+								<MenuFlyoutItem x:Uid="PlayList_MultiMoveToBottom" Click="MoveMultiToBottom_Click"
+								                Text="{services:Loc Key=PlayList_MultiMoveToBottom.Text}"
+								                ToolTipService.ToolTip="{services:Loc Key=PlayList_MultiMoveToBottom_ToolTip}">
 									<MenuFlyoutItem.Icon>
 										<FontIcon Glyph="&#xE896;" />
 									</MenuFlyoutItem.Icon>
 								</MenuFlyoutItem>
 							</MenuFlyoutSubItem>
 							<MenuFlyoutSeparator />
-							<MenuFlyoutItem Click="MenuFlyoutMultiItemRemove_OnClick"
-							                Text="Remove"
-							                ToolTipService.ToolTip="Remove selected songs/tracks from the playlist">
+							<MenuFlyoutItem x:Uid="PlayList_MultiRemoveTrack" Click="MenuFlyoutMultiItemRemove_OnClick"
+							                Text="{services:Loc Key=PlayList_MultiRemoveTrack.Text}"
+							                ToolTipService.ToolTip="{services:Loc Key=PlayList_MultiRemoveTrack_ToolTip}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xECC9;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
-							<MenuFlyoutItem Click="MenuFlyoutMultiItemDelete_OnClick"
-							                Text="Delete"
-							                ToolTipService.ToolTip="Delete selected songs/tracks">
+							<MenuFlyoutItem x:Uid="ActionBar_Multi_Delete" Click="MenuFlyoutMultiItemDelete_OnClick"
+							                Text="{services:Loc Key=ActionBar_Multi_Delete.Text}"
+							                ToolTipService.ToolTip="{services:Loc Key=ActionBar_Multi_Delete_ToolTip}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE74D;" />
 								</MenuFlyoutItem.Icon>
@@ -351,7 +352,7 @@
 			            VerticalAlignment="Center"
 			            Orientation="Vertical"
 			            Spacing="30"
-			            ToolTipService.ToolTip="No songs or tracks found. Please, check your settings to ensure your libraries are added and songs/tracks have been scanned."
+			            ToolTipService.ToolTip="{services:Loc Key=EmptyState_NoSongs.Text}"
 			            Visibility="Visible">
 				<TextBlock x:Name="GoToSettingsTextBlock"
 				           HorizontalAlignment="Center"
@@ -360,15 +361,12 @@
 				           Style="{ThemeResource SubtitleTextBlockStyle}"
 				           TextAlignment="Center"
 				           TextWrapping="WrapWholeWords" />
-				<Button HorizontalAlignment="Center"
-				        VerticalAlignment="Center"
-				        Click="GotoSettigsButton_Click"
-				        Content="Open Settings" />
+				<Button x:Uid="EmptyState_OpenSettings" HorizontalAlignment="Center" VerticalAlignment="Center" Click="GotoSettigsButton_Click" Content="Open Settings" />
 			</StackPanel>
 			<Grid x:Name="NoResultsGrid"
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center"
-			      ToolTipService.ToolTip="Add some songs or tracks to this playlist to see them here."
+			      ToolTipService.ToolTip="{services:Loc Key=EmptyState_PlaylistEmpty.Text}"
 			      Visibility="Collapsed">
 				<TextBlock x:Name="NoResultsTextBlock"
 				           HorizontalAlignment="Center"
@@ -410,7 +408,7 @@
 			      Height="Auto"
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center">
-				<ContentDialog x:Name="DeleteDialog"
+				<ContentDialog x:Name="DeleteDialog" x:Uid="DeleteDialog_ConfirmDialog"
 				               Title="Confirm Deletion"
 				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 				               DefaultButton="Secondary"
@@ -421,9 +419,7 @@
 						<TextBlock x:Name="DeleteDialogText"
 						           Style="{ThemeResource BodyTextBlockStyle}"
 						           TextWrapping="WrapWholeWords" />
-						<TextBlock Foreground="Red"
-						           Style="{ThemeResource BodyStrongTextBlockStyle}"
-						           Text="This action cannot be undone."
+						<TextBlock x:Uid="DeleteDialog_UndoneWarning" Foreground="Red" Style="{ThemeResource BodyStrongTextBlockStyle}" Text="This action cannot be undone."
 						           TextWrapping="WrapWholeWords" />
 					</StackPanel>
 				</ContentDialog>
@@ -432,7 +428,7 @@
 			      Height="Auto"
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center">
-				<ContentDialog x:Name="ExportDialog"
+				<ContentDialog x:Name="ExportDialog" x:Uid="ExportDialog_Window"
 				               Title="Export"
 				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 				               DefaultButton="Primary"
@@ -441,26 +437,27 @@
 				               Visibility="Visible">
 					<StackPanel Orientation="Vertical"
 					            Spacing="10">
-						<TextBlock Text="The playlist will be exported as choosen format and saved to Downloads folder."
+						<TextBlock x:Uid="ExportDialog_Notice" Text="The playlist will be exported as choosen format and saved to Downloads folder."
 						           TextWrapping="WrapWholeWords" />
 						<StackPanel Orientation="Horizontal"
 						            Spacing="10">
 							<TextBox x:Name="ExportTextBox"
+							         x:Uid="ExportDialog_TextBox"
 							         Width="380"
 							         PlaceholderText="Enter Playlist file name"
 							         TextChanged="OnPlaylistExportNameChanged" />
 							<ComboBox x:Name="ExportFormat"
 							          Width="100"
 							          SelectedIndex="0">
-								<ComboBoxItem Content="M3U8"
+								<ComboBoxItem x:Uid="ExportFormat_M3U8" Content="M3U8"
 								              ToolTipService.ToolTip="M3U UTF-8" />
-								<ComboBoxItem Content="M3U"
+								<ComboBoxItem x:Uid="ExportFormat_M3U" Content="M3U"
 								              ToolTipService.ToolTip="MP3 URL" />
-								<ComboBoxItem Content="PLS"
+								<ComboBoxItem x:Uid="ExportFormat_PLS" Content="PLS"
 								              ToolTipService.ToolTip="Playlist File" />
-								<ComboBoxItem Content="WPL"
+								<ComboBoxItem x:Uid="ExportFormat_WPL" Content="WPL"
 								              ToolTipService.ToolTip="Windows Media Player Playlist" />
-								<ComboBoxItem Content="ZPL"
+								<ComboBoxItem x:Uid="ExportFormat_ZPL" Content="ZPL"
 								              ToolTipService.ToolTip="Zune Playlist" />
 							</ComboBox>
 						</StackPanel>
@@ -476,6 +473,7 @@
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center">
 				<ContentDialog x:Name="RenamePlaylistDialog"
+				               x:Uid="RenamePlaylistDialog"
 				               Title="Rename Playlist"
 				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 				               DefaultButton="Primary"
@@ -485,6 +483,7 @@
 				               Visibility="Collapsed">
 					<StackPanel>
 						<TextBox x:Name="PlaylistNameBox"
+						         x:Uid="RenamePlaylistDialog_NameBox"
 						         PlaceholderText="Enter new playlist name"
 						         TextChanged="OnPlaylistNameChanged" />
 						<TextBlock x:Name="ErrorMessage"
@@ -533,20 +532,20 @@
 							                    Margin="12,0,0,0"
 							                    ColumnSpacing="10">
 								<controls:DataColumn DesiredWidth="40" />
-								<controls:DataColumn Content="Title"
+								<controls:DataColumn Content="{services:Loc Key=ColumnHeader_Title}"
 								                     DesiredWidth="350"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-								<controls:DataColumn Content="Artists"
+								<controls:DataColumn Content="{services:Loc Key=ColumnHeader_Artists}"
 								                     DesiredWidth="*"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 								<controls:DataColumn DesiredWidth="*">
 									<TextBlock FontWeight="Bold"
 									           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-									           Text="Album" />
+									           Text="{services:Loc Key=ColumnHeader_Album}" />
 								</controls:DataColumn>
-								<controls:DataColumn Content="Duration"
+								<controls:DataColumn Content="{services:Loc Key=ColumnHeader_Duration}"
 								                     DesiredWidth="120"
 								                     FontWeight="Bold"
 								                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
@@ -588,7 +587,7 @@
 										<ToolTipService.ToolTip>
 											<TextBlock TextTrimming="CharacterEllipsis"
 											           TextWrapping="WrapWholeWords">
-												<Run Text="Title: " />
+												<Run Text="{services:Loc Key=Tooltip_Title}" />
 												<Run FontWeight="Bold"
 												     Text="{x:Bind Title}" />
 											</TextBlock>
@@ -601,7 +600,7 @@
 										<ToolTipService.ToolTip>
 											<TextBlock TextTrimming="CharacterEllipsis"
 											           TextWrapping="WrapWholeWords">
-												<Run Text="Artists: " />
+												<Run Text="{services:Loc Key=Tooltip_Artists}" />
 												<Run FontWeight="Bold"
 												     Text="{x:Bind Artists}" />
 											</TextBlock>
@@ -614,7 +613,7 @@
 										<ToolTipService.ToolTip>
 											<TextBlock TextTrimming="CharacterEllipsis"
 											           TextWrapping="WrapWholeWords">
-												<Run Text="Album: " />
+												<Run Text="{services:Loc Key=Tooltip_Album}" />
 												<Run FontWeight="Bold"
 												     Text="{x:Bind Album}" />
 											</TextBlock>
@@ -627,7 +626,7 @@
 									           TextTrimming="CharacterEllipsis">
 										<ToolTipService.ToolTip>
 											<TextBlock>
-												<Run Text="Duration: " />
+												<Run Text="{services:Loc Key=Tooltip_Duration}" />
 												<Run FontWeight="Bold"
 												     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
 											</TextBlock>
@@ -733,7 +732,7 @@
 												<ToolTipService.ToolTip>
 													<TextBlock TextTrimming="CharacterEllipsis"
 													           TextWrapping="WrapWholeWords">
-														<Run Text="Title: " />
+														<Run Text="{services:Loc Key=Tooltip_Title}" />
 														<Run FontWeight="Bold"
 														     Text="{x:Bind Title}" />
 													</TextBlock>
@@ -749,7 +748,7 @@
 												<ToolTipService.ToolTip>
 													<TextBlock TextTrimming="CharacterEllipsis"
 													           TextWrapping="WrapWholeWords">
-														<Run Text="Artists: " />
+														<Run Text="{services:Loc Key=Tooltip_Artists}" />
 														<Run FontWeight="Bold"
 														     Text="{x:Bind Artists}" />
 													</TextBlock>
@@ -765,7 +764,7 @@
 												<ToolTipService.ToolTip>
 													<TextBlock TextTrimming="CharacterEllipsis"
 													           TextWrapping="WrapWholeWords">
-														<Run Text="Album: " />
+														<Run Text="{services:Loc Key=Tooltip_Album}" />
 														<Run FontWeight="Bold"
 														     Text="{x:Bind Album}" />
 													</TextBlock>
@@ -791,7 +790,7 @@
 										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}">
 											<ToolTipService.ToolTip>
 												<TextBlock>
-													<Run Text="Duration: " />
+													<Run Text="{services:Loc Key=Tooltip_Duration}" />
 													<Run FontWeight="Bold"
 													     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
 												</TextBlock>
@@ -806,7 +805,7 @@
 										           Text="{x:Bind Year}">
 											<ToolTipService.ToolTip>
 												<TextBlock>
-													<Run Text="Year: " />
+													<Run Text="{services:Loc Key=Tooltip_Year}" />
 													<Run FontWeight="Bold"
 													     Text="{x:Bind Year}" />
 												</TextBlock>

@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
@@ -242,7 +242,7 @@ public sealed partial class MainPlayerPage : Page
 		coverArtImagePixelHeight = 500;
 		UpdateCoverArtSize();
 		CoverArtImage.Source = BGbitmapImage;
-		Title.Text = "Please select a song";
+		Title.Text = LocalizationService.GetString("MusicControl_PleaseSelectSong");
 		MusicInfoButton.Visibility = Visibility.Collapsed;
 		AddToPlaylistButton.Visibility = Visibility.Collapsed;
 		_externalLrcPath = null;
@@ -426,10 +426,10 @@ public sealed partial class MainPlayerPage : Page
 
 		var createNewMenu = new MenuFlyoutItem
 		{
-			Text = "Create/Add New playlist",
+			Text = LocalizationService.GetString("ContextMenu_CreateNewPlaylist"),
 			Icon = new FontIcon { Glyph = "\uF8AA" }
 		};
-		ToolTipService.SetToolTip(createNewMenu, "Create/Add a new playlist and add this song/track to it.");
+		ToolTipService.SetToolTip(createNewMenu, LocalizationService.GetString("ContextMenu_CreateNewPlaylist_Tooltip"));
 		createNewMenu.Click += NewPlaylist_Click;
 		AddToPlaylistFlyout.Items.Add(createNewMenu);
 
@@ -445,7 +445,7 @@ public sealed partial class MainPlayerPage : Page
 				Text = playList,
 				Icon = new FontIcon { Glyph = "\uE728" }
 			};
-			ToolTipService.SetToolTip(menuItem, $"Add this song/track to {playList} playlist");
+			ToolTipService.SetToolTip(menuItem, LocalizationService.FormatString("Tooltip_AddToPlaylist_Song_Single", playList));
 			menuItem.Click += AddToPlaylist_Click;
 			AddToPlaylistFlyout.Items.Add(menuItem);
 		}

@@ -134,27 +134,13 @@ public class CenteredPillOverlay : OverlayBase
 	}
 
 	/// <summary>
-	/// Updates the tooltip text with the provided track information.
+	/// Updates the tooltip text with track information.
 	/// </summary>
-	/// <param name="title">The title of the track.</param>
-	/// <param name="artist">The artist of the track.</param>
-	/// <param name="album">The album of the track.</param>
-	private void UpdateToolTipText(string title = "Song/Track Title", string artist = "Artists", string album = "Album")
+	/// <param name="title">Track title.</param>
+	/// <param name="artist">Artist name.</param>
+	/// <param name="album">Album name.</param>
+	private void UpdateToolTipText(string? title = null, string? artist = null, string? album = null)
 	{
-		if (_toolTipText is null) return;
-
-		_toolTipText.Inlines.Clear();
-		_toolTipText.Inlines.Add(new Run { Text = "Title: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		_toolTipText.Inlines.Add(new Run { Text = title, FontStyle = Windows.UI.Text.FontStyle.Italic });
-		_toolTipText.Inlines.Add(new LineBreak());
-		_toolTipText.Inlines.Add(new LineBreak());
-
-		_toolTipText.Inlines.Add(new Run { Text = "Artists: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		_toolTipText.Inlines.Add(new Run { Text = artist, FontStyle = Windows.UI.Text.FontStyle.Italic });
-		_toolTipText.Inlines.Add(new LineBreak());
-		_toolTipText.Inlines.Add(new LineBreak());
-
-		_toolTipText.Inlines.Add(new Run { Text = "Album: ", FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		_toolTipText.Inlines.Add(new Run { Text = album, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		UpdateToolTipTextBlock(_toolTipText, title, artist, album);
 	}
 }

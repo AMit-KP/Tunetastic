@@ -1,4 +1,5 @@
-﻿using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Shapes;
@@ -59,7 +60,7 @@ public abstract class OverlayBase
 		if (PlayPauseButton?.Content is FontIcon icon)
 		{
 			icon.Glyph = isPlaying ? "\uE769" : "\uE768"; // Pause : Play
-			ToolTipService.SetToolTip(PlayPauseButton, isPlaying ? "Pause" : "Play");
+			ToolTipService.SetToolTip(PlayPauseButton, isPlaying ? Tunetastic.Common.Services.LocalizationService.GetString("MusicControl_Pause") : Tunetastic.Common.Services.LocalizationService.GetString("MusicControl_Play"));
 		}
 	}
 
@@ -225,7 +226,7 @@ public abstract class OverlayBase
 			: Color.FromArgb(255, 15, 15, 20));
 
 		PlayPauseButton = MakeIconButton("\uE768", size, fg); // Play glyph default
-		ToolTipService.SetToolTip(PlayPauseButton, "Play");
+		ToolTipService.SetToolTip(PlayPauseButton, Tunetastic.Common.Services.LocalizationService.GetString("MusicControl_Play"));
 		return PlayPauseButton;
 	}
 
@@ -238,7 +239,7 @@ public abstract class OverlayBase
 	protected Button MakePrevButton(double size = 13, Color? foreground = null)
 	{
 		PreviousButton = MakeIconButton("\uE892", size, foreground); // Previous track
-		ToolTipService.SetToolTip(PreviousButton, "Previous song/track");
+		ToolTipService.SetToolTip(PreviousButton, Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_PreviousTrack"));
 		return PreviousButton;
 	}
 
@@ -251,21 +252,22 @@ public abstract class OverlayBase
 	protected Button MakeNextButton(double size = 13, Color? foreground = null)
 	{
 		NextButton = MakeIconButton("\uE893", size, foreground); // Next track
-		ToolTipService.SetToolTip(NextButton, "Next song/track");
+		ToolTipService.SetToolTip(NextButton, Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_NextTrack"));
 		return NextButton;
 	}
 
 	/// <summary>
 	/// Creates a TextBlock styled as a track title.
 	/// </summary>
-	/// <param name="text">The text content. Default is "Track Title".</param>
+	/// <param name="text">The text content. Default is localized default track title.</param>
 	/// <param name="maxWidth">The maximum width of the text block. Default is 100.</param>
 	/// <returns>A configured TextBlock control.</returns>
-	protected TextBlock MakeTitleText(string text = "Track Title", double maxWidth = 100)
+	protected TextBlock MakeTitleText(string? text = null, double maxWidth = 100)
 	{
+		string defaultTitle = Tunetastic.Common.Services.LocalizationService.GetString("TaskbarOverlay_DefaultTitle");
 		return new TextBlock
 		{
-			Text = text,
+			Text = string.IsNullOrEmpty(text) || text == "Track Title" ? defaultTitle : text,
 			FontSize = 11,
 			FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
 			Foreground = new SolidColorBrush(Text),
@@ -279,14 +281,15 @@ public abstract class OverlayBase
 	/// <summary>
 	/// Creates a TextBlock styled as an artist / subtitle.
 	/// </summary>
-	/// <param name="text">The text content. Default is "Artist Name".</param>
+	/// <param name="text">The text content. Default is localized default artist name.</param>
 	/// <param name="maxWidth">The maximum width of the text block. Default is 100.</param>
 	/// <returns>A configured TextBlock control.</returns>
-	protected TextBlock MakeSubText(string text = "Artist Name", double maxWidth = 100)
+	protected TextBlock MakeSubText(string? text = null, double maxWidth = 100)
 	{
+		string defaultArtist = Tunetastic.Common.Services.LocalizationService.GetString("TaskbarOverlay_DefaultArtist");
 		return new TextBlock
 		{
-			Text = text,
+			Text = string.IsNullOrEmpty(text) || text == "Artist Name" ? defaultArtist : text,
 			FontSize = 9,
 			Foreground = new SolidColorBrush(SubText),
 			VerticalAlignment = VerticalAlignment.Center,
@@ -294,6 +297,36 @@ public abstract class OverlayBase
 			MaxWidth = maxWidth,
 			TextTrimming = TextTrimming.CharacterEllipsis,
 		};
+	}
+
+	/// <summary>
+	/// Updates the tooltip text block with localized track information.
+	/// </summary>
+	protected void UpdateToolTipTextBlock(TextBlock? toolTipText, string? title = null, string? artist = null, string? album = null)
+	{
+		if (toolTipText is null) return;
+
+		string defaultTitle = Tunetastic.Common.Services.LocalizationService.GetString("TaskbarOverlay_DefaultTitle");
+		string defaultArtist = Tunetastic.Common.Services.LocalizationService.GetString("TaskbarOverlay_DefaultArtist");
+		string defaultAlbum = Tunetastic.Common.Services.LocalizationService.GetString("TaskbarOverlay_DefaultAlbum");
+
+		string displayTitle = string.IsNullOrWhiteSpace(title) || title == "Song/Track Title" ? defaultTitle : title;
+		string displayArtist = string.IsNullOrWhiteSpace(artist) || artist == "Artists" ? defaultArtist : artist;
+		string displayAlbum = string.IsNullOrWhiteSpace(album) || album == "Album" ? defaultAlbum : album;
+
+		toolTipText.Inlines.Clear();
+		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_Title"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		toolTipText.Inlines.Add(new Run { Text = displayTitle, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		toolTipText.Inlines.Add(new LineBreak());
+		toolTipText.Inlines.Add(new LineBreak());
+
+		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_Artists"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		toolTipText.Inlines.Add(new Run { Text = displayArtist, FontStyle = Windows.UI.Text.FontStyle.Italic });
+		toolTipText.Inlines.Add(new LineBreak());
+		toolTipText.Inlines.Add(new LineBreak());
+
+		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_Album"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		toolTipText.Inlines.Add(new Run { Text = displayAlbum, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 
 	/// <summary>

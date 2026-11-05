@@ -243,7 +243,7 @@ public static class WhatsNewService
 
 				var expander = new Expander
 				{
-					Header = "Previous Releases",
+					Header = LocalizationService.GetString("WhatsNew_PreviousReleases_Header"),
 					HorizontalAlignment = HorizontalAlignment.Stretch,
 					HorizontalContentAlignment = HorizontalAlignment.Stretch,
 					IsExpanded = false,
