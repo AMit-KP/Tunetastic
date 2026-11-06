@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   set-base:
+    if: github.event.pull_request.head.ref != 'stats-update'
     runs-on: ubuntu-latest
     steps:
       - name: Set base branch based on head branch
@@ -19,6 +20,11 @@ jobs:
             const pr = context.payload.pull_request;
             const headRef = pr.head.ref;
             const currentBase = pr.base.ref;
+
+            if (headRef === 'stats-update') {
+              core.info('Automated stats update PR. No change needed.');
+              return;
+            }
 
             // Only internal PRs from the repo's own Development branch target master.
             // All fork PRs and other branches must target Development.
