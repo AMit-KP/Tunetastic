@@ -1,3 +1,4 @@
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.Windows.ApplicationModel.Resources;
@@ -328,6 +329,7 @@ public static class LocalizationService
 	/// </summary>
 	public static void AddFormattedInlinesFromTemplate(TextBlock target, string template, params InlineArg[] args)
 	{
+		target.TextWrapping = TextWrapping.WrapWholeWords;
 		int lastIndex = 0;
 		var matches = System.Text.RegularExpressions.Regex.Matches(template, @"\{(\d+)\}");
 		foreach (System.Text.RegularExpressions.Match match in matches)

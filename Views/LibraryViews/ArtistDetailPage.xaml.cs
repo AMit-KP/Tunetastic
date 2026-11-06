@@ -321,7 +321,11 @@ public sealed partial class ArtistDetailPage : SongListPageBase
 		sortDropdownContent.Inlines.Add(new Run { Text = sortDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
 
-		var orderDropdownTooltip = new TextBlock();
+		var orderDropdownTooltip = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
 		LocalizationService.AddFormattedInlines(
 			orderDropdownTooltip,
 			"Sort_Tooltip_SortedBy",

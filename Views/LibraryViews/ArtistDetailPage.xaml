@@ -393,7 +393,8 @@
 								           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}"
 								           TextTrimming="CharacterEllipsis">
 									<ToolTipService.ToolTip>
-										<TextBlock>
+										<TextBlock TextTrimming="CharacterEllipsis"
+										           TextWrapping="WrapWholeWords">
 											<Run Text="{services:Loc Key=Tooltip_Duration}" />
 											<Run FontWeight="Bold"
 											     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
@@ -541,7 +542,8 @@
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
 										           Text="{x:Bind Duration, Converter={StaticResource DurationConverter}}">
 											<ToolTipService.ToolTip>
-												<TextBlock>
+												<TextBlock TextTrimming="CharacterEllipsis"
+												           TextWrapping="WrapWholeWords">
 													<Run Text="{services:Loc Key=Tooltip_Duration}" />
 													<Run FontWeight="Bold"
 													     Text="{x:Bind Duration, Converter={StaticResource DurationToFullTimeConverter}}" />
@@ -556,7 +558,8 @@
 										           Style="{ThemeResource BodyStrongTextBlockStyle}"
 										           Text="{x:Bind Year}">
 											<ToolTipService.ToolTip>
-												<TextBlock>
+												<TextBlock TextTrimming="CharacterEllipsis"
+												           TextWrapping="WrapWholeWords">
 													<Run Text="{services:Loc Key=Tooltip_Year}" />
 													<Run FontWeight="Bold"
 													     Text="{x:Bind Year}" />

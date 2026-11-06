@@ -1,4 +1,4 @@
-﻿using Tunetastic.Common.Services;
+using Tunetastic.Common.Services;
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
@@ -257,14 +257,17 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 		sortDropdownContent.Inlines.Add(new Run { Text = sortDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
 
-		var orderDropdownTooltip = new TextBlock();
+		var orderDropdownTooltip = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
 		LocalizationService.AddFormattedInlines(
 			orderDropdownTooltip,
 			"Sort_Tooltip_SortedBy",
 			new LocalizationService.InlineArg(sortDisplayName, Microsoft.UI.Text.FontWeights.Bold),
 			new LocalizationService.InlineArg(orderDisplayName, Microsoft.UI.Text.FontWeights.Bold)
 		);
-		orderDropdownTooltip.TextWrapping = TextWrapping.WrapWholeWords;
 
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
