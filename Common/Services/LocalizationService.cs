@@ -153,16 +153,170 @@ public static class LocalizationService
 		return string.Format(template, args);
 	}
 
+	private static readonly HashSet<string> s_fieldKeys = new(StringComparer.OrdinalIgnoreCase)
+	{
+		"Tooltip_Title",
+		"Tooltip_Artists",
+		"Tooltip_Album",
+		"Tooltip_Duration",
+		"Tooltip_Year",
+		"Tooltip_Track",
+		"Tooltip_DateAdded",
+		"Tooltip_TimeAdded",
+		"Tooltip_DatePlayed",
+		"Tooltip_TimePlayed",
+		"Tooltip_CountOfSongs",
+		"Tooltip_TotalDuration",
+		"Tooltip_TimesPlayed",
+		"SongInfo_PlayedCount",
+		"SongInfo_LastPlayed",
+		"Sort_SortBy_Label",
+		"Sort_Order_Label",
+		"MaxLimit_Label",
+		"MaxLimit_Tooltip",
+		"PlaylistImport_Label_Playlist",
+		"PlaylistImport_Label_Tracks",
+		"DeleteDialog_Detail_Title",
+		"DeleteDialog_Detail_Artist",
+		"DeleteDialog_Detail_Album",
+		"DeleteDialog_Detail_File",
+	};
+
+	/// <summary>
+	/// Returns true if the resource key represents a metadata field or label that requires a locale-aware colon/delimiter.
+	/// </summary>
+	public static bool IsFieldKey(string? key) => !string.IsNullOrEmpty(key) && s_fieldKeys.Contains(key);
+
+	/// <summary>
+	/// Returns the BCP-47 language tag of the currently active language (e.g. "en-US", "fr-FR", "ja-JP", "qps-ploc").
+	/// </summary>
+	public static string CurrentLanguage
+	{
+		get
+		{
+			string overrideLang = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride;
+			if (!string.IsNullOrEmpty(overrideLang))
+			{
+				return overrideLang;
+			}
+			var languages = Windows.Globalization.ApplicationLanguages.Languages;
+			if (languages != null && languages.Count > 0)
+			{
+				return languages[0];
+			}
+			return System.Globalization.CultureInfo.CurrentUICulture.Name;
+		}
+	}
+
+	/// <summary>
+	/// Formats a resolved field label string and its value according to target language typographic rules:
+	/// - French (fr): Non-breaking space before colon ("Label : Value")
+	/// - CJK (ja, zh): Full-width colon ("Label：Value")
+	/// - RTL (ar, he, fa, ur): Directional isolation markers
+	/// - Standard (en and others): Standard colon ("Label: Value")
+	/// </summary>
+	public static string FormatFieldValue(string label, string value)
+	{
+		string lang = CurrentLanguage;
+
+		if (lang.StartsWith("fr", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"{label}\u00A0: {value}";
+		}
+		if (lang.StartsWith("ja", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"{label}：{value}";
+		}
+		if (lang.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("he", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("fa", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("ur", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"\u2068{label}: {value}\u2069";
+		}
+
+		return $"{label}: {value}";
+	}
+
+	/// <summary>
+	/// Formats a localized field label (by key) and its value according to target language typographic rules.
+	/// </summary>
+	public static string FormatField(string labelKey, string value)
+	{
+		string label = GetString(labelKey);
+		return FormatFieldValue(label, value);
+	}
+
+	/// <summary>
+	/// Formats a field label with its delimiter suffix (without trailing value), e.g. for dropdown prefixes or Run inlines:
+	/// - French: "Label : "
+	/// - CJK: "Label："
+	/// - RTL: "\u2068Label:\u2069 "
+	/// - Standard: "Label: "
+	/// </summary>
+	public static string FormatFieldLabel(string labelKey)
+	{
+		string label = GetString(labelKey);
+		string lang = CurrentLanguage;
+
+		if (lang.StartsWith("fr", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"{label}\u00A0: ";
+		}
+		if (lang.StartsWith("ja", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"{label}：";
+		}
+		if (lang.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("he", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("fa", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("ur", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"\u2068{label}:\u2069 ";
+		}
+
+		return $"{label}: ";
+	}
+
+	/// <summary>
+	/// Formats a localized key name with its directional glyph symbol in parentheses according to target language typographic rules:
+	/// - CJK (ja, zh): Full-width parentheses ("Key（→）")
+	/// - RTL (ar, he, fa, ur): Directional isolation markers ("\u2068Key (→)\u2069")
+	/// - Standard: "Key (→)"
+	/// </summary>
+	public static string FormatKeyWithGlyph(string keyNameKey, string glyph)
+	{
+		string keyName = GetString(keyNameKey);
+		string lang = CurrentLanguage;
+
+		if (lang.StartsWith("ja", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"{keyName}（{glyph}）";
+		}
+		if (lang.StartsWith("ar", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("he", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("fa", StringComparison.OrdinalIgnoreCase) ||
+		    lang.StartsWith("ur", StringComparison.OrdinalIgnoreCase))
+		{
+			return $"\u2068{keyName} ({glyph})\u2069";
+		}
+
+		return $"{keyName} ({glyph})";
+	}
+
 	/// <summary>
 	/// Formats the confirmation message displayed when deleting a single song from the library or playlist.
 	/// </summary>
 	public static string FormatDeleteSingleSongMessage(string? title, string? artists, string? album, string? path)
 	{
 		return $"{GetString("DeleteDialog_SingleSong_Question")}\n\n" +
-		       $"{GetString("DeleteDialog_Detail_Title")} {title ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_Artist")} {artists ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_Album")} {album ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_File")} {path ?? string.Empty}";
+		       $"{FormatField("DeleteDialog_Detail_Title", title ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_Artist", artists ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_Album", album ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_File", path ?? string.Empty)}";
 	}
 
 	/// <summary>
@@ -171,10 +325,10 @@ public static class LocalizationService
 	public static string FormatSongDeletedNotification(string? title, string? artists, string? album, string? path)
 	{
 		return $"{GetString("Notification_SongDeleted_Title")}\n" +
-		       $"{GetString("DeleteDialog_Detail_Title")} {title ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_Artist")} {artists ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_Album")} {album ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_File")} {path ?? string.Empty}";
+		       $"{FormatField("DeleteDialog_Detail_Title", title ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_Artist", artists ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_Album", album ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_File", path ?? string.Empty)}";
 	}
 
 	/// <summary>
@@ -183,10 +337,10 @@ public static class LocalizationService
 	public static string FormatSongRemovedFromPlaylistNotification(string playlistName, string? title, string? artists, string? album, string? path)
 	{
 		return $"{FormatString("Notification_SongRemovedFromPlaylist_Title", playlistName)}\n" +
-		       $"{GetString("DeleteDialog_Detail_Title")} {title ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_Artist")} {artists ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_Album")} {album ?? string.Empty}\n" +
-		       $"{GetString("DeleteDialog_Detail_File")} {path ?? string.Empty}";
+		       $"{FormatField("DeleteDialog_Detail_Title", title ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_Artist", artists ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_Album", album ?? string.Empty)}\n" +
+		       $"{FormatField("DeleteDialog_Detail_File", path ?? string.Empty)}";
 	}
 
 	/// <summary>

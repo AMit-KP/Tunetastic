@@ -281,14 +281,14 @@ public sealed partial class MainPage : Page
 	{
 		SearchTeachingTipContent.Inlines.Clear();
 
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_CombinePrefix") });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.GetString("SearchTip_CombinePrefix")} " });
 		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "+" });
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_CombineSuffix") });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = $" {LocalizationService.GetString("SearchTip_CombineSuffix")}" });
 		SearchTeachingTipContent.Inlines.Add(new LineBreak());
 
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_OrPrefix") });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.GetString("SearchTip_OrPrefix")} " });
 		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = ";" });
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("SearchTip_OrSuffix") });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = $" {LocalizationService.GetString("SearchTip_OrSuffix")}" });
 
 		SearchTeachingTip.IsOpen = true;
 	}
@@ -964,11 +964,11 @@ public sealed partial class MainPage : Page
 		AddPlaylistDialogDescription.Inlines.Clear();
 		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = LocalizationService.GetString("PlaylistImport_Prompt_Question") });
 		AddPlaylistDialogDescription.Inlines.Add(new LineBreak());
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = LocalizationService.GetString("PlaylistImport_Label_Playlist") });
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {path}" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = LocalizationService.FormatFieldLabel("PlaylistImport_Label_Playlist") });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = path });
 		AddPlaylistDialogDescription.Inlines.Add(new LineBreak());
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = LocalizationService.GetString("PlaylistImport_Label_Tracks") });
-		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = $" {LocalizationService.FormatString("PlaylistImport_Summary_TracksFound", songList.Count, totalcount)}" });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { FontWeight = Microsoft.UI.Text.FontWeights.Bold, Text = LocalizationService.FormatFieldLabel("PlaylistImport_Label_Tracks") });
+		AddPlaylistDialogDescription.Inlines.Add(new Run() { Text = LocalizationService.FormatString("PlaylistImport_Summary_TracksFound", songList.Count, totalcount) });
 
 		PlaylistNameBox.Text = name;
 		AddPlaylistCreateButton.Content = LocalizationService.GetString("PlaylistImport_Button_Add");
@@ -1837,11 +1837,11 @@ ShowEditSongInfo:
 	private void AlbumTextBox_GotFocus(object sender, RoutedEventArgs e)
 	{
 		AlbumTeachingTipContent.Inlines.Clear();
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.GetString("Key_RightArrow")) });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.FormatKeyWithGlyph("Key_RightArrow", "→"))}" });
 		AlbumTeachingTipContent.Inlines.Add(new LineBreak());
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.GetString("Key_Up"), LocalizationService.GetString("Key_Down")) });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.FormatKeyWithGlyph("Key_Up", "↑"), LocalizationService.FormatKeyWithGlyph("Key_Down", "↓"))}" });
 		AlbumTeachingTipContent.Inlines.Add(new LineBreak());
-		AlbumTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.GetString("Key_RightArrow")) });
+		AlbumTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.FormatKeyWithGlyph("Key_RightArrow", "→"))}" });
 		AlbumTeachingTip.IsOpen = true;
 	}
 
@@ -1853,11 +1853,11 @@ ShowEditSongInfo:
 	private void GenreAutoSuggestBox_GotFocus(object sender, RoutedEventArgs e)
 	{
 		GenreTeachingTipContent.Inlines.Clear();
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.GetString("Key_RightArrow")) });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.FormatKeyWithGlyph("Key_RightArrow", "→"))}" });
 		GenreTeachingTipContent.Inlines.Add(new LineBreak());
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.GetString("Key_Up"), LocalizationService.GetString("Key_Down")) });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.FormatKeyWithGlyph("Key_Up", "↑"), LocalizationService.FormatKeyWithGlyph("Key_Down", "↓"))}" });
 		GenreTeachingTipContent.Inlines.Add(new LineBreak());
-		GenreTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.GetString("Key_RightArrow")) });
+		GenreTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.FormatKeyWithGlyph("Key_RightArrow", "→"))}" });
 		GenreTeachingTip.IsOpen = true;
 	}
 
@@ -1874,11 +1874,11 @@ ShowEditSongInfo:
 			.ToList();
 
 		ArtistTeachingTipContent.Inlines.Clear();
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.GetString("Key_RightArrow")) });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Preview", LocalizationService.FormatKeyWithGlyph("Key_RightArrow", "→"))}" });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.GetString("Key_Up"), LocalizationService.GetString("Key_Down")) });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Cycle", LocalizationService.FormatKeyWithGlyph("Key_Up", "↑"), LocalizationService.FormatKeyWithGlyph("Key_Down", "↓"))}" });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
-		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.GetString("Key_RightArrow")) });
+		ArtistTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.FormatString("EditSong_SuggestTip_Accept", LocalizationService.FormatKeyWithGlyph("Key_RightArrow", "→"))}" });
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 		ArtistTeachingTipContent.Inlines.Add(new LineBreak());
 		ArtistTeachingTipContent.Inlines.Add(new Run { Text = LocalizationService.GetString("EditSong_SuggestTip_MultipleArtists") });

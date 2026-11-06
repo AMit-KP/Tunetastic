@@ -245,11 +245,11 @@
     <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Indicator -&gt; Descending Label</comment>
   </data>
   <data name="Sort_SortBy_Label" xml:space="preserve">
-    <value>[ !!! Šööŕţ Ḃý:  !!! ]</value>
+    <value>[ !!! Šööŕţ Ḃý !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Prefix Label</comment>
   </data>
   <data name="Sort_Order_Label" xml:space="preserve">
-    <value>[ !!! Óŕðééŕ:  !!! ]</value>
+    <value>[ !!! Óŕðééŕ !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Dropdown Button -&gt; Prefix Label</comment>
   </data>
   <data name="Sort_Tooltip_SortedBy" xml:space="preserve">
@@ -269,11 +269,11 @@
     <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Menu -&gt; "Unlimited" Option</comment>
   </data>
   <data name="MaxLimit_Label" xml:space="preserve">
-    <value>[ !!! Ṁääẋ Łïïɱïïţ:  !!! ]</value>
+    <value>[ !!! Ṁääẋ Łïïɱïïţ !!! ]</value>
     <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Prefix Label</comment>
   </data>
   <data name="MaxLimit_Tooltip" xml:space="preserve">
-    <value>[ !!! Ţĥéé ɱääẋïïɱúúɱ ñúúɱḅééŕ ööƒ šööñĝš/ţŕääĉķš ţöö ðïïšþłääý ïïñ ţĥéé łïïšţ:  !!! ]</value>
+    <value>[ !!! Ţĥéé ɱääẋïïɱúúɱ ñúúɱḅééŕ ööƒ šööñĝš/ţŕääĉķš ţöö ðïïšþłääý ïïñ ţĥéé łïïšţ !!! ]</value>
     <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Tooltip</comment>
   </data>
   <data name="ViewStyle_List.Text" xml:space="preserve">
@@ -317,55 +317,55 @@
     <comment>Playlists -&gt; Track Context Menu -&gt; "Remove" Item -&gt; Text</comment>
   </data>
   <data name="Tooltip_Title" xml:space="preserve">
-    <value>[ !!! Ţïïţłéé:  !!! ]</value>
+    <value>[ !!! Ţïïţłéé !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Title Label</comment>
   </data>
   <data name="Tooltip_Artists" xml:space="preserve">
-    <value>[ !!! Áŕţïïšţš:  !!! ]</value>
+    <value>[ !!! Áŕţïïšţš !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Artists Label</comment>
   </data>
   <data name="Tooltip_Album" xml:space="preserve">
-    <value>[ !!! Áłḅúúɱ:  !!! ]</value>
+    <value>[ !!! Áłḅúúɱ !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Album Label</comment>
   </data>
   <data name="Tooltip_Duration" xml:space="preserve">
-    <value>[ !!! Ðúúŕääţïïööñ:  !!! ]</value>
+    <value>[ !!! Ðúúŕääţïïööñ !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Duration Label</comment>
   </data>
   <data name="Tooltip_Year" xml:space="preserve">
-    <value>[ !!! Ýééääŕ:  !!! ]</value>
+    <value>[ !!! Ýééääŕ !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Year Label</comment>
   </data>
   <data name="Tooltip_Track" xml:space="preserve">
-    <value>[ !!! Ţŕääĉķ:  !!! ]</value>
+    <value>[ !!! Ţŕääĉķ !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Track Number Label</comment>
   </data>
   <data name="Tooltip_DateAdded" xml:space="preserve">
-    <value>[ !!! Ðääţéé Áððééð:  !!! ]</value>
+    <value>[ !!! Ðääţéé Áððééð !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Added Label</comment>
   </data>
   <data name="Tooltip_TimeAdded" xml:space="preserve">
-    <value>[ !!! Ţïïɱéé Áððééð:  !!! ]</value>
+    <value>[ !!! Ţïïɱéé Áððééð !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Added Label</comment>
   </data>
   <data name="Tooltip_DatePlayed" xml:space="preserve">
-    <value>[ !!! Ðääţéé Þłääýééð:  !!! ]</value>
+    <value>[ !!! Ðääţéé Þłääýééð !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Played Label</comment>
   </data>
   <data name="Tooltip_TimePlayed" xml:space="preserve">
-    <value>[ !!! Ţïïɱéé Þłääýééð:  !!! ]</value>
+    <value>[ !!! Ţïïɱéé Þłääýééð !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Played Label</comment>
   </data>
   <data name="Tooltip_CountOfSongs" xml:space="preserve">
-    <value>[ !!! Šööñĝš:  !!! ]</value>
+    <value>[ !!! Šööñĝš !!! ]</value>
     <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Song Count Label</comment>
   </data>
   <data name="Tooltip_TotalDuration" xml:space="preserve">
-    <value>[ !!! Ţööţääł Ðúúŕääţïïööñ:  !!! ]</value>
+    <value>[ !!! Ţööţääł Ðúúŕääţïïööñ !!! ]</value>
     <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Total Duration Label</comment>
   </data>
   <data name="Tooltip_TimesPlayed" xml:space="preserve">
-    <value>[ !!! Ţïïɱééš Þłääýééð:  !!! ]</value>
+    <value>[ !!! Ţïïɱééš Þłääýééð !!! ]</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Times Played Label</comment>
   </data>
   <data name="SongInfoDialog.Title" xml:space="preserve">
@@ -381,55 +381,55 @@
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Close Button</comment>
   </data>
   <data name="SongInfo_TitleLabel.Text" xml:space="preserve">
-    <value>[ !!! Ţïïţłéé: !!! ]</value>
+    <value>[ !!! Ţïïţłéé !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Title Label</comment>
   </data>
   <data name="SongInfo_ArtistsLabel.Text" xml:space="preserve">
-    <value>[ !!! Áŕţïïšţš: !!! ]</value>
+    <value>[ !!! Áŕţïïšţš !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Artists Label</comment>
   </data>
   <data name="SongInfo_AlbumLabel.Text" xml:space="preserve">
-    <value>[ !!! Áłḅúúɱ: !!! ]</value>
+    <value>[ !!! Áłḅúúɱ !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Album Label</comment>
   </data>
   <data name="SongInfo_GenreLabel.Text" xml:space="preserve">
-    <value>[ !!! Ĝééñŕéé: !!! ]</value>
+    <value>[ !!! Ĝééñŕéé !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Genre Label</comment>
   </data>
   <data name="SongInfo_YearLabel.Text" xml:space="preserve">
-    <value>[ !!! Ýééääŕ: !!! ]</value>
+    <value>[ !!! Ýééääŕ !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Year Label</comment>
   </data>
   <data name="SongInfo_TrackLabel.Text" xml:space="preserve">
-    <value>[ !!! Ţŕääĉķ: !!! ]</value>
+    <value>[ !!! Ţŕääĉķ !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Track Label</comment>
   </data>
   <data name="SongInfo_DurationLabel.Text" xml:space="preserve">
-    <value>[ !!! Ðúúŕääţïïööñ: !!! ]</value>
+    <value>[ !!! Ðúúŕääţïïööñ !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Duration Label</comment>
   </data>
   <data name="SongInfo_AddedLabel.Text" xml:space="preserve">
-    <value>[ !!! Ðääţéé Áððééð: !!! ]</value>
+    <value>[ !!! Ðääţéé Áððééð !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Date Added Label</comment>
   </data>
   <data name="SongInfo_SizeLabel.Text" xml:space="preserve">
-    <value>[ !!! Ƒïïłéé Šïïžéé: !!! ]</value>
+    <value>[ !!! Ƒïïłéé Šïïžéé !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Size Label</comment>
   </data>
   <data name="SongInfo_ChannelLabel.Text" xml:space="preserve">
-    <value>[ !!! Áúúðïïöö Ĉĥääññééłš: !!! ]</value>
+    <value>[ !!! Áúúðïïöö Ĉĥääññééłš !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Channels Label</comment>
   </data>
   <data name="SongInfo_PathLabel.Text" xml:space="preserve">
-    <value>[ !!! Ƒïïłéé Þääţĥ: !!! ]</value>
+    <value>[ !!! Ƒïïłéé Þääţĥ !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Path Label</comment>
   </data>
   <data name="SongInfo_PlayedCount" xml:space="preserve">
-    <value>[ !!! Þłääýééð Ĉööúúñţ:  !!! ]</value>
+    <value>[ !!! Þłääýééð Ĉööúúñţ !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Play Count Label</comment>
   </data>
   <data name="SongInfo_LastPlayed" xml:space="preserve">
-    <value>[ !!! Łääšţ Þłääýééð:  !!! ]</value>
+    <value>[ !!! Łääšţ Þłääýééð !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Last Played Label</comment>
   </data>
   <data name="SongInfo_FolderButton_ToolTip" xml:space="preserve">
@@ -1149,7 +1149,7 @@
     <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Title</comment>
   </data>
   <data name="Settings_AboutTunetastic.Description" xml:space="preserve">
-    <value>[ !!! Ţúúñééţääšţïïĉ ïïš ää ñééẋţ ĝééñ ɱúúšïïĉ þłääýééŕ ƒööŕ Ŵïïñðööŵš 11 ţĥääţ ḅłééñðš šłééééķ ðééšïïĝñ ääñð ðééééþ þééŕšööñääłïïžääţïïööñ, ţúúŕñïïñĝ ýööúúŕ łïïḅŕääŕý ïïñţöö ääñ ééẋþééŕïïééñĉéé ţĥääţ'š ääš úúñïïǫúúéé, ééẋþŕééššïïṽéé ääñð ĉääþţïïṽääţïïñĝ ääš ţĥéé ɱúúšïïĉ ýööúú łööṽéé. 🎶 !!! ]</value>
+    <value>[ !!! Ţúúñééţääšţïïĉ ïïš ää ñééẋţ ĝééñ ɱúúšïïĉ þłääýééŕ ƒööŕ Ŵïïñðööŵš 11 ţĥääţ ḅłééñðš šłééééķ ðééšïïĝñ ääñð ðééééþ þééŕšööñääłïïžääţïïööñ, ţúúŕñïïñĝ ýööúúŕ łïïḅŕääŕý ïïñţöö ääñ ééẋþééŕïïééñĉéé ţĥääţ'š ääš úúñïïǫúúéé, ééẋþŕééššïïṽéé ääñð ĉääþţïïṽääţïïñĝ ääš ţĥéé ɱúúšïïĉ ýööúú łööṽéé. !!! ]</value>
     <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Description</comment>
   </data>
   <data name="Settings_CheckForUpdates.Header" xml:space="preserve">
@@ -1188,8 +1188,8 @@
     <value>[ !!! Šĥääŕéé ýööúúŕ ƒééééðḅääĉķ ḅý ŕääţïïñĝ ţĥéé ääþþ. Ýööúúŕ ïïñþúúţ ĥééłþš úúš ïïɱþŕööṽéé ƒééääţúúŕééš ääñð ðééłïïṽééŕ ää ḅééţţééŕ ééẋþééŕïïééñĉéé. !!! ]</value>
     <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Description</comment>
   </data>
-  <data name="Settings_RateThisAppButton.Content" xml:space="preserve">
-    <value>[ !!! ⭐ Ŕääţéé ţĥïïš ääþþ !!! ]</value>
+  <data name="Settings_RateThisAppButton" xml:space="preserve">
+    <value>[ !!! Ŕääţéé ţĥïïš ääþþ !!! ]</value>
     <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Rate Button</comment>
   </data>
   <data name="Settings_IssuesEnhancements.Header" xml:space="preserve">
@@ -1212,8 +1212,8 @@
     <value>[ !!! Łööṽéé ţúúñïïñĝ ïïñ? Ḃúúý ɱéé ää ĉööƒƒéééé ţöö ķééééþ ţĥéé þłääýḅääĉķ šɱööööţĥ ääñð ţĥéé úúþðääţééš ŕööłłïïñĝ! !!! ]</value>
     <comment>Settings -&gt; About -&gt; "Support My Work" Card -&gt; Description</comment>
   </data>
-  <data name="Settings_BuyMeACoffeeButton.Content" xml:space="preserve">
-    <value>[ !!! Šûƥƥôřť Ðévéľôƥméñť ☕ !!! ]</value>
+  <data name="Settings_BuyMeACoffeeButton" xml:space="preserve">
+    <value>[ !!! Šûƥƥôřť Ðévéľôƥméñť !!! ]</value>
     <comment>Settings Page -&gt; About Section -&gt; Support Card -&gt; Donation Link Button</comment>
   </data>
   <data name="Settings_RelatedLinks.Text" xml:space="preserve">
@@ -1224,8 +1224,8 @@
     <value>[ !!! Šööúúŕĉéé Ĉööðéé !!! ]</value>
     <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Source Code Hyperlink</comment>
   </data>
-  <data name="Settings_LeaveAStar.Text" xml:space="preserve">
-    <value>[ !!! (Þłééääšéé, łééääṽéé ää šţääŕ ⭐) !!! ]</value>
+  <data name="Settings_LeaveAStar" xml:space="preserve">
+    <value>[ !!! Þłééääšéé, łééääṽéé ää šţääŕ !!! ]</value>
     <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Star Prompt Note</comment>
   </data>
   <data name="Settings_MicrosoftStore.Content" xml:space="preserve">
@@ -1301,7 +1301,7 @@
     <comment>Settings -&gt; Easter Egg Panel -&gt; Feature Description</comment>
   </data>
   <data name="MusicDownloader_Button" xml:space="preserve">
-    <value>[ !!! Éẋþłööŕéé Ţúúñééţääšţïïĉ Ðööŵñłööääðééŕ ⚡ !!! ]</value>
+    <value>[ !!! Éẋþłööŕéé Ţúúñééţääšţïïĉ Ðööŵñłööääðééŕ !!! ]</value>
     <comment>Settings -&gt; Easter Egg Panel -&gt; External Downloader Link Button</comment>
   </data>
   <data name="Action_Play.Text" xml:space="preserve">
@@ -1860,12 +1860,12 @@
     <value>[!!! Éđïţ Ðéţáïℓš !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Edit Details" Action Button -&gt; Label</comment>
   </data>
-  <data name="SongInfo_HasLyrics.Content" xml:space="preserve">
-    <value>[!!! 🎵 Ħáš Łýřïçš !!!]</value>
+  <data name="SongInfo_HasLyrics" xml:space="preserve">
+    <value>[!!! Ħáš Łýřïçš !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Standard Lyrics</comment>
   </data>
-  <data name="SongInfo_HasSyncedLyrics.Content" xml:space="preserve">
-    <value>[!!! 🎵 Ħáš Šýñçéđ Łýřïçš !!!]</value>
+  <data name="SongInfo_HasSyncedLyrics" xml:space="preserve">
+    <value>[!!! Ħáš Šýñçéđ Łýřïçš !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Synced Lyrics</comment>
   </data>
   <data name="SongInfo_ClearButton_ToolTip" xml:space="preserve">
@@ -1881,59 +1881,59 @@
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Clear Stats Confirmation -&gt; "Yes" Button -&gt; Label</comment>
   </data>
   <data name="SongInfo_Label_Title.Text" xml:space="preserve">
-    <value>[!!! Ťïţℓé: !!!]</value>
+    <value>[!!! Ťïţℓé !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Title Label</comment>
   </data>
   <data name="SongInfo_Label_Artists.Text" xml:space="preserve">
-    <value>[!!! Åřţïšţš: !!!]</value>
+    <value>[!!! Åřţïšţš !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Artists Label</comment>
   </data>
   <data name="SongInfo_Label_Album.Text" xml:space="preserve">
-    <value>[!!! Åℓḅúɱ: !!!]</value>
+    <value>[!!! Åℓḅúɱ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Album Label</comment>
   </data>
   <data name="SongInfo_Label_Genre.Text" xml:space="preserve">
-    <value>[!!! Ĝéñřé: !!!]</value>
+    <value>[!!! Ĝéñřé !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Genre Label</comment>
   </data>
   <data name="SongInfo_Label_Year.Text" xml:space="preserve">
-    <value>[!!! Ýéář: !!!]</value>
+    <value>[!!! Ýéář !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Year Label</comment>
   </data>
   <data name="SongInfo_Label_Track.Text" xml:space="preserve">
-    <value>[!!! Ťřáçḳ: !!!]</value>
+    <value>[!!! Ťřáçḳ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Track Label</comment>
   </data>
   <data name="SongInfo_Label_Duration.Text" xml:space="preserve">
-    <value>[!!! Ðúřáţïôñ: !!!]</value>
+    <value>[!!! Ðúřáţïôñ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Duration Label</comment>
   </data>
   <data name="SongInfo_Label_Size.Text" xml:space="preserve">
-    <value>[!!! Šïžé: !!!]</value>
+    <value>[!!! Šïžé !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Size Label</comment>
   </data>
   <data name="SongInfo_Label_Added.Text" xml:space="preserve">
-    <value>[!!! Åđđéđ: !!!]</value>
+    <value>[!!! Åđđéđ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Added Label</comment>
   </data>
   <data name="SongInfo_Label_Path.Text" xml:space="preserve">
-    <value>[!!! Þáţĥ: !!!]</value>
+    <value>[!!! Þáţĥ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Path Label</comment>
   </data>
   <data name="SongInfo_Label_Channel.Text" xml:space="preserve">
-    <value>[!!! Çĥáññéℓ: !!!]</value>
+    <value>[!!! Çĥáññéℓ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Channel Label</comment>
   </data>
   <data name="SongInfo_Label_BitRate.Text" xml:space="preserve">
-    <value>[!!! Ḃïţ řáţé: !!!]</value>
+    <value>[!!! Ḃïţ řáţé !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Bit Rate Label</comment>
   </data>
   <data name="SongInfo_Label_SampleRate.Text" xml:space="preserve">
-    <value>[!!! Šáɱþℓé řáţé: !!!]</value>
+    <value>[!!! Šáɱþℓé řáţé !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Sample Rate Label</comment>
   </data>
   <data name="SongInfo_Label_CodecDescription.Text" xml:space="preserve">
-    <value>[!!! Çôđéç Ðéšçřïþţïôñ: !!!]</value>
+    <value>[!!! Çôđéç Ðéšçřïþţïôñ !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Codec Description Label</comment>
   </data>
   <data name="EditSongDialog_Window.Title" xml:space="preserve">
@@ -2157,11 +2157,11 @@
     <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Header Question</comment>
   </data>
   <data name="PlaylistImport_Label_Playlist" xml:space="preserve">
-    <value>[ !!! Ƥľáŷľíšť: !!! ]</value>
+    <value>[ !!! Ƥľáŷľíšť !!! ]</value>
     <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Playlist Path Label</comment>
   </data>
   <data name="PlaylistImport_Label_Tracks" xml:space="preserve">
-    <value>[ !!! Ťřáçķš: !!! ]</value>
+    <value>[ !!! Ťřáçķš !!! ]</value>
     <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Track Count Label</comment>
   </data>
   <data name="PlaylistImport_Summary_TracksFound" xml:space="preserve">
@@ -2213,19 +2213,19 @@
     <comment>Main Window -&gt; Song Info Panel -&gt; Metadata Details -&gt; Cover Art Field Label</comment>
   </data>
   <data name="SearchTip_CombinePrefix" xml:space="preserve">
-    <value>[ !!! • Ûšé  !!! ]</value>
+    <value>[ !!! Ûšé !!! ]</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Prefix Text</comment>
   </data>
   <data name="SearchTip_CombineSuffix" xml:space="preserve">
-    <value>[ !!!  ťô çômƀíñé ťéřmš — máťçĥ řéšûľťš áçřôšš ťíťľé, ářťíšť, áľƀûm, ĝéñřé, áñď ŷéář ťôĝéťĥéř !!! ]</value>
+    <value>[ !!! ťô çômƀíñé ťéřmš — máťçĥ řéšûľťš áçřôšš ťíťľé, ářťíšť, áľƀûm, ĝéñřé, áñď ŷéář ťôĝéťĥéř !!! ]</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Suffix Text</comment>
   </data>
   <data name="SearchTip_OrPrefix" xml:space="preserve">
-    <value>[ !!! • Ûšé  !!! ]</value>
+    <value>[ !!! Ûšé !!! ]</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Prefix Text</comment>
   </data>
   <data name="SearchTip_OrSuffix" xml:space="preserve">
-    <value>[ !!!  ťô šéářçĥ ƒôř éíťĥéř ťéřm — řéšûľťš máťçĥíñĝ áñŷ ôñé ôƒ ťĥém !!! ]</value>
+    <value>[ !!! ťô šéářçĥ ƒôř éíťĥéř ťéřm — řéšûľťš máťçĥíñĝ áñŷ ôñé ôƒ ťĥém !!! ]</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Suffix Text</comment>
   </data>
   <data name="ContextMenu_CreateNewPlaylist" xml:space="preserve">
@@ -2633,15 +2633,15 @@
     <comment>Main Window -&gt; Song Info Panel -&gt; Header Section -&gt; Dialog Title Label</comment>
   </data>
   <data name="SongInfo_BitRate.Text" xml:space="preserve">
-    <value>[ !!! Ɓíť řáťé: !!! ]</value>
+    <value>[ !!! Ɓíť řáťé !!! ]</value>
     <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Bit Rate Label</comment>
   </data>
   <data name="SongInfo_SampleRate.Text" xml:space="preserve">
-    <value>[ !!! Šámƥľé řáťé: !!! ]</value>
+    <value>[ !!! Šámƥľé řáťé !!! ]</value>
     <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Sample Rate Label</comment>
   </data>
   <data name="SongInfo_CodecDescription.Text" xml:space="preserve">
-    <value>[ !!! Ĉôďéç Ðéšçříƥťíôñ: !!! ]</value>
+    <value>[ !!! Ĉôďéç Ðéšçříƥťíôñ !!! ]</value>
     <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Codec Description Label</comment>
   </data>
   <data name="Badge_Changed" xml:space="preserve">
@@ -2841,15 +2841,15 @@
     <comment>Overlay -&gt; Mini Player Controls -&gt; Next Button -&gt; Tooltip</comment>
   </data>
   <data name="EditSong_SuggestTip_Preview" xml:space="preserve">
-    <value>[!!! • Ťýþé áñđ/ôř Þřéšš {0} ţô þřéṽïéŵ šúğğéšţïôñš. !!!]</value>
+    <value>[!!! Ťýþé áñđ/ôř Þřéšš {0} ţô þřéṽïéŵ šúğğéšţïôñš. !!!]</value>
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Preview Instruction ({0}=Right Arrow (→))</comment>
   </data>
   <data name="EditSong_SuggestTip_Cycle" xml:space="preserve">
-    <value>[!!! • Þřéšš {0} / {1} ţô çýçℓé šúğğéšţïôñš. !!!]</value>
+    <value>[!!! Þřéšš {0} / {1} ţô çýçℓé šúğğéšţïôñš. !!!]</value>
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Cycle Instruction ({0}=Up (↑), {1}=Down (↓))</comment>
   </data>
   <data name="EditSong_SuggestTip_Accept" xml:space="preserve">
-    <value>[!!! • Þřéšš {0} ţô áççéþţ. !!!]</value>
+    <value>[!!! Þřéšš {0} ţô áççéþţ. !!!]</value>
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Accept Instruction ({0}=Right Arrow (→))</comment>
   </data>
   <data name="EditSong_SuggestTip_MultipleArtists" xml:space="preserve">
@@ -2857,15 +2857,15 @@
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Artist Suggestion Teaching Tip -&gt; Delimiter Legend Header</comment>
   </data>
   <data name="Key_RightArrow" xml:space="preserve">
-    <value>[!!! Řïğĥţ Åřřôŵ (→) !!!]</value>
+    <value>[!!! Řïğĥţ Åřřôŵ !!!]</value>
     <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Right Arrow Navigation Key</comment>
   </data>
   <data name="Key_Up" xml:space="preserve">
-    <value>[!!! Ûþ (↑) !!!]</value>
+    <value>[!!! Ûþ !!!]</value>
     <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Up Arrow Navigation Key</comment>
   </data>
   <data name="Key_Down" xml:space="preserve">
-    <value>[!!! Ðôŵñ (↓) !!!]</value>
+    <value>[!!! Ðôŵñ !!!]</value>
     <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Down Arrow Navigation Key</comment>
   </data>
   <data name="OverlayLayout_CompactPill_Name" xml:space="preserve">
@@ -3056,4 +3056,14 @@
     <value>[ !!! Þáúšé !!! ]</value>
     <comment>Taskbar Thumbnail Toolbar -&gt; Pause Button -&gt; Tooltip</comment>
   </data>
-<data name="Common_DoYouWantToContinue" xml:space="preserve"><value>[ !!! Đô ýôú ẅáñţ ţô çôñţïñúé? !!! ]</value><comment>Common -&gt; Confirmation Dialog -&gt; Action Prompt</comment></data><data name="DeleteDialog_SingleSong_Question" xml:space="preserve"><value>[ !!! Ářé ýôú šúřé ýôú ẅáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ƒřôɱ ýôúř šýšţéɱ? !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Confirmation Question</comment></data><data name="DeleteDialog_Detail_Title" xml:space="preserve"><value>[ !!! Ţïţℓé: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Title Detail Label</comment></data><data name="DeleteDialog_Detail_Artist" xml:space="preserve"><value>[ !!! Ářţïšţ: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Artist Detail Label</comment></data><data name="DeleteDialog_Detail_Album" xml:space="preserve"><value>[ !!! Áłḅúɱ: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Album Detail Label</comment></data><data name="DeleteDialog_Detail_File" xml:space="preserve"><value>[ !!! Fïℓé: !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; File Path Detail Label</comment></data><data name="Notification_SongDeleted_Title" xml:space="preserve"><value>[ !!! Šôñğ/Ţřáçḳ đéℓéţéđ. !!! ]</value><comment>Common -&gt; Toast Notification -&gt; Song Deleted Caption</comment></data><data name="Notification_SongRemovedFromPlaylist_Title" xml:space="preserve"><value>[ !!! Šôñğ/Ţřáçḳ řéɱôṽéđ ƒřôɱ {0}. !!! ]</value><comment>Playlists -&gt; Toast Notification -&gt; Song Removed Caption ({0}=playlist name)</comment></data><data name="Update_Available_Header" xml:space="preserve"><value>[ !!! Áþþ úþđáţé ïš áṽáïℓáḅℓé. !!! ]</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Available Header</comment></data><data name="Update_Available_Instruction" xml:space="preserve"><value>[ !!! Ôþéñ Šéţţïñğš. Čℓïçḳ 'Čĥéçḳ ƒôř Ñéẅ Ṽéřšïôñ' úñđéř Áḅôúţ šéçţïôñ ţô ïñšţáℓℓ ïţ. Ôř ôþéñ Mïçřôšôƒţ Šţôřé ţô ïñšţáℓℓ ïţ. !!! ]</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Installation Instruction</comment></data></root>
+<data name="Common_DoYouWantToContinue" xml:space="preserve"><value>[ !!! Đô ýôú ẅáñţ ţô çôñţïñúé? !!! ]</value><comment>Common -&gt; Confirmation Dialog -&gt; Action Prompt</comment></data>
+  <data name="DeleteDialog_SingleSong_Question" xml:space="preserve"><value>[ !!! Ářé ýôú šúřé ýôú ẅáñţ ţô đéℓéţé ţĥïš šôñğ/ţřáçḳ ƒřôɱ ýôúř šýšţéɱ? !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Confirmation Question</comment></data>
+  <data name="DeleteDialog_Detail_Title" xml:space="preserve"><value>[ !!! Ţïţℓé !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Title Detail Label</comment></data>
+  <data name="DeleteDialog_Detail_Artist" xml:space="preserve"><value>[ !!! Ářţïšţ !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Artist Detail Label</comment></data>
+  <data name="DeleteDialog_Detail_Album" xml:space="preserve"><value>[ !!! Áłḅúɱ !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Album Detail Label</comment></data>
+  <data name="DeleteDialog_Detail_File" xml:space="preserve"><value>[ !!! Fïℓé !!! ]</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; File Path Detail Label</comment></data>
+  <data name="Notification_SongDeleted_Title" xml:space="preserve"><value>[ !!! Šôñğ/Ţřáçḳ đéℓéţéđ. !!! ]</value><comment>Common -&gt; Toast Notification -&gt; Song Deleted Caption</comment></data>
+  <data name="Notification_SongRemovedFromPlaylist_Title" xml:space="preserve"><value>[ !!! Šôñğ/Ţřáçḳ řéɱôṽéđ ƒřôɱ {0}. !!! ]</value><comment>Playlists -&gt; Toast Notification -&gt; Song Removed Caption ({0}=playlist name)</comment></data>
+  <data name="Update_Available_Header" xml:space="preserve"><value>[ !!! Áþþ úþđáţé ïš áṽáïℓáḅℓé. !!! ]</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Available Header</comment></data>
+  <data name="Update_Available_Instruction" xml:space="preserve"><value>[ !!! Ôþéñ Šéţţïñğš. Čℓïçḳ 'Čĥéçḳ ƒôř Ñéẅ Ṽéřšïôñ' úñđéř Áḅôúţ šéçţïôñ ţô ïñšţáℓℓ ïţ. Ôř ôþéñ Mïçřôšôƒţ Šţôřé ţô ïñšţáℓℓ ïţ. !!! ]</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Installation Instruction</comment></data>
+</root>

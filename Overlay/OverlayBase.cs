@@ -315,17 +315,17 @@ public abstract class OverlayBase
 		string displayAlbum = string.IsNullOrWhiteSpace(album) || album == "Album" ? defaultAlbum : album;
 
 		toolTipText.Inlines.Clear();
-		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_Title"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.FormatFieldLabel("Tooltip_Title"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		toolTipText.Inlines.Add(new Run { Text = displayTitle, FontStyle = Windows.UI.Text.FontStyle.Italic });
 		toolTipText.Inlines.Add(new LineBreak());
 		toolTipText.Inlines.Add(new LineBreak());
 
-		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_Artists"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.FormatFieldLabel("Tooltip_Artists"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		toolTipText.Inlines.Add(new Run { Text = displayArtist, FontStyle = Windows.UI.Text.FontStyle.Italic });
 		toolTipText.Inlines.Add(new LineBreak());
 		toolTipText.Inlines.Add(new LineBreak());
 
-		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.GetString("Tooltip_Album"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
+		toolTipText.Inlines.Add(new Run { Text = Tunetastic.Common.Services.LocalizationService.FormatFieldLabel("Tooltip_Album"), FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		toolTipText.Inlines.Add(new Run { Text = displayAlbum, FontStyle = Windows.UI.Text.FontStyle.Italic });
 	}
 

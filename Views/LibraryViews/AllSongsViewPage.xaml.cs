@@ -253,7 +253,7 @@ public sealed partial class AllSongsViewPage : SongListPageBase
 		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
-		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_SortBy_Label") });
+		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.FormatFieldLabel("Sort_SortBy_Label") });
 		sortDropdownContent.Inlines.Add(new Run { Text = sortDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
 

@@ -123,8 +123,8 @@ public sealed partial class AlbumsViewPage : TileListPageBase
 		NavigationPanelEvaluate();
 
 		var sortDropdownContent = new TextBlock();
-		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Order_Label") });
-		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
+		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.FormatFieldLabel("Sort_Order_Label") });
+		sortDropdownContent.Inlines.Add(new Run { Text = AscOrder ? "⬆️" : "⬇️" });
 
 		var orderDropdownTooltip = new TextBlock();
 		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tile_Tooltip_SortedBy") });

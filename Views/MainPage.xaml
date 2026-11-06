@@ -232,8 +232,21 @@
 						            Orientation="Horizontal"
 						            Spacing="10">
 							<TextBlock Text="{services:Loc Key=SongInfo_DialogHeader}" />
-							<ContentControl x:Uid="SongInfo_HasLyrics" Content="🎵 Has Lyrics"
-							                Style="{StaticResource NewBadgeStyle}" />
+							<Border Padding="8,3,8,4"
+							        HorizontalAlignment="Left"
+							        VerticalAlignment="Center"
+							        Background="{ThemeResource AccentFillColorDefaultBrush}"
+							        CornerRadius="13">
+								<StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+									<TextBlock Text="🎵" FontSize="10" VerticalAlignment="Center" />
+									<TextBlock CharacterSpacing="50"
+									           FontSize="10"
+									           FontWeight="Bold"
+									           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+									           Text="{services:Loc Key=SongInfo_HasLyrics}"
+									           VerticalAlignment="Center" />
+								</StackPanel>
+							</Border>
 						</StackPanel>
 					</DataTemplate>
 
@@ -242,8 +255,21 @@
 						            Orientation="Horizontal"
 						            Spacing="10">
 							<TextBlock Text="{services:Loc Key=SongInfo_DialogHeader}" />
-							<ContentControl x:Uid="SongInfo_HasSyncedLyrics" Content="🎵 Has Synced Lyrics"
-							                Style="{StaticResource NewBadgeStyle}" />
+							<Border Padding="8,3,8,4"
+							        HorizontalAlignment="Left"
+							        VerticalAlignment="Center"
+							        Background="{ThemeResource AccentFillColorDefaultBrush}"
+							        CornerRadius="13">
+								<StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+									<TextBlock Text="🎵" FontSize="10" VerticalAlignment="Center" />
+									<TextBlock CharacterSpacing="50"
+									           FontSize="10"
+									           FontWeight="Bold"
+									           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+									           Text="{services:Loc Key=SongInfo_HasSyncedLyrics}"
+									           VerticalAlignment="Center" />
+								</StackPanel>
+							</Border>
 						</StackPanel>
 					</DataTemplate>
 

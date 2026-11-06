@@ -718,8 +718,9 @@
 								<HyperlinkButton x:Uid="Settings_SourceCode" Content="Source Code"
 								                 NavigateUri="https://github.com/AMit-KP/Tunetastic" />
 								<TextBlock VerticalAlignment="Center"
-								           Foreground="{ThemeResource SystemColorDisabledTextColor}"
-								           x:Uid="Settings_LeaveAStar" Text="(Please, leave a star ⭐)" />
+								           Foreground="{ThemeResource SystemColorDisabledTextColor}">
+									<Run Text="(" /><Run Text="{services:Loc Key=Settings_LeaveAStar}" /><Run Text=" ⭐)" />
+								</TextBlock>
 							</StackPanel>
 							<StackPanel Orientation="Horizontal"
 							            Spacing="2">
@@ -737,9 +738,12 @@
 			                  Description="Share your feedback by rating the app. Your input helps us improve features and deliver a better experience."
 			                  Header="Feedback &amp; Rating">
 				<Button x:Name="RateThisAppButton"
-				        x:Uid="Settings_RateThisAppButton"
-				        Click="RateThisAppButton_Click"
-				        Content="⭐ Rate this app" />
+				        Click="RateThisAppButton_Click">
+					<StackPanel Orientation="Horizontal" Spacing="6">
+						<TextBlock Text="⭐" VerticalAlignment="Center" />
+						<TextBlock Text="{services:Loc Key=Settings_RateThisAppButton}" VerticalAlignment="Center" />
+					</StackPanel>
+				</Button>
 			</dev:SettingsCard>
 
 			<dev:SettingsCard x:Uid="Settings_IssuesEnhancements"
@@ -755,9 +759,12 @@
 			                  Description="Love tuning in? Buy me a coffee to keep the playback smooth and the updates rolling!"
 			                  Header="Support My Work">
 				<Button x:Name="BuyMeACoffee"
-				        x:Uid="Settings_BuyMeACoffeeButton"
-				        Click="BuyMeACoffee_Click"
-				        Content="Support Development ☕" />
+				        Click="BuyMeACoffee_Click">
+					<StackPanel Orientation="Horizontal" Spacing="6">
+						<TextBlock Text="{services:Loc Key=Settings_BuyMeACoffeeButton}" VerticalAlignment="Center" />
+						<TextBlock Text="☕" VerticalAlignment="Center" />
+					</StackPanel>
+				</Button>
 			</dev:SettingsCard>
 
 			<dev:SettingsCard x:Name="MusicDownloader_Panel"
@@ -776,9 +783,14 @@
 						<Run Text="{services:Loc Key=MusicDownloader_Desc}" />
 					</TextBlock>
 				</dev:SettingsCard.Description>
-				<HyperlinkButton x:Name="MusicDownloadLink" Content="{services:Loc Key=MusicDownloader_Button}"
+				<HyperlinkButton x:Name="MusicDownloadLink"
 				                 NavigateUri="https://t.me/MusicsHuntersbot?start=_tgr_qQ7b1WQ1NmM1"
-				                 Visibility="Collapsed" />
+				                 Visibility="Collapsed">
+					<StackPanel Orientation="Horizontal" Spacing="6">
+						<TextBlock Text="{services:Loc Key=MusicDownloader_Button}" VerticalAlignment="Center" />
+						<TextBlock Text="⚡" VerticalAlignment="Center" />
+					</StackPanel>
+				</HyperlinkButton>
 			</dev:SettingsCard>
 
 			<!--  Data Management  -->

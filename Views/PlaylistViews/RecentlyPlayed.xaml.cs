@@ -228,11 +228,11 @@ public sealed partial class RecentlyPlayed : SongListPageBase
 		newList = null;
 
 		var maxLimitDropDownContent = new TextBlock();
-		maxLimitDropDownContent.Inlines.Add(new Run { Text = LocalizationService.GetString("MaxLimit_Label") });
+		maxLimitDropDownContent.Inlines.Add(new Run { Text = LocalizationService.FormatFieldLabel("MaxLimit_Label") });
 		maxLimitDropDownContent.Inlines.Add(new Run { Text = maxLimitDisplayText, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 
 		var maxLimitDropDownTooltip = new TextBlock();
-		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("MaxLimit_Tooltip") });
+		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = LocalizationService.FormatFieldLabel("MaxLimit_Tooltip") });
 		maxLimitDropDownTooltip.Inlines.Add(new Run { Text = maxLimitDisplayText, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		maxLimitDropDownTooltip.TextWrapping = TextWrapping.WrapWholeWords;
 

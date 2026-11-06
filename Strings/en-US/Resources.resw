@@ -245,11 +245,11 @@
     <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Indicator -&gt; Descending Label</comment>
   </data>
   <data name="Sort_SortBy_Label" xml:space="preserve">
-    <value>Sort By: </value>
+    <value>Sort By</value>
     <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Sort Dropdown Button -&gt; Prefix Label</comment>
   </data>
   <data name="Sort_Order_Label" xml:space="preserve">
-    <value>Order: </value>
+    <value>Order</value>
     <comment>Library &amp; Playlists -&gt; Top Action Bar -&gt; Order Dropdown Button -&gt; Prefix Label</comment>
   </data>
   <data name="Sort_Tooltip_SortedBy" xml:space="preserve">
@@ -269,11 +269,11 @@
     <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Menu -&gt; "Unlimited" Option</comment>
   </data>
   <data name="MaxLimit_Label" xml:space="preserve">
-    <value>Max Limit: </value>
+    <value>Max Limit</value>
     <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Prefix Label</comment>
   </data>
   <data name="MaxLimit_Tooltip" xml:space="preserve">
-    <value>The maximum number of songs/tracks to display in the list: </value>
+    <value>The maximum number of songs/tracks to display in the list</value>
     <comment>Playlists (Recently Played/Added, Most Played) -&gt; Top Action Bar -&gt; Max Limit Dropdown Button -&gt; Tooltip</comment>
   </data>
   <data name="ViewStyle_List.Text" xml:space="preserve">
@@ -317,55 +317,55 @@
     <comment>Playlists -&gt; Track Context Menu -&gt; "Remove" Item -&gt; Text</comment>
   </data>
   <data name="Tooltip_Title" xml:space="preserve">
-    <value>Title: </value>
+    <value>Title</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Title Label</comment>
   </data>
   <data name="Tooltip_Artists" xml:space="preserve">
-    <value>Artists: </value>
+    <value>Artists</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Artists Label</comment>
   </data>
   <data name="Tooltip_Album" xml:space="preserve">
-    <value>Album: </value>
+    <value>Album</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Album Label</comment>
   </data>
   <data name="Tooltip_Duration" xml:space="preserve">
-    <value>Duration: </value>
+    <value>Duration</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Duration Label</comment>
   </data>
   <data name="Tooltip_Year" xml:space="preserve">
-    <value>Year: </value>
+    <value>Year</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Year Label</comment>
   </data>
   <data name="Tooltip_Track" xml:space="preserve">
-    <value>Track: </value>
+    <value>Track</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Track Number Label</comment>
   </data>
   <data name="Tooltip_DateAdded" xml:space="preserve">
-    <value>Date Added: </value>
+    <value>Date Added</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Added Label</comment>
   </data>
   <data name="Tooltip_TimeAdded" xml:space="preserve">
-    <value>Time Added: </value>
+    <value>Time Added</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Added Label</comment>
   </data>
   <data name="Tooltip_DatePlayed" xml:space="preserve">
-    <value>Date Played: </value>
+    <value>Date Played</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Date Played Label</comment>
   </data>
   <data name="Tooltip_TimePlayed" xml:space="preserve">
-    <value>Time Played: </value>
+    <value>Time Played</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Time Played Label</comment>
   </data>
   <data name="Tooltip_CountOfSongs" xml:space="preserve">
-    <value>Songs: </value>
+    <value>Songs</value>
     <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Song Count Label</comment>
   </data>
   <data name="Tooltip_TotalDuration" xml:space="preserve">
-    <value>Total Duration: </value>
+    <value>Total Duration</value>
     <comment>Library -&gt; Album/Artist/Genre/Year Tile -&gt; Hover Card -&gt; Total Duration Label</comment>
   </data>
   <data name="Tooltip_TimesPlayed" xml:space="preserve">
-    <value>Times Played: </value>
+    <value>Times Played</value>
     <comment>Library &amp; Playlists -&gt; Song Item -&gt; Hover Card -&gt; Times Played Label</comment>
   </data>
   <data name="SongInfoDialog.Title" xml:space="preserve">
@@ -381,55 +381,55 @@
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Close Button</comment>
   </data>
   <data name="SongInfo_TitleLabel.Text" xml:space="preserve">
-    <value>Title:</value>
+    <value>Title</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Title Label</comment>
   </data>
   <data name="SongInfo_ArtistsLabel.Text" xml:space="preserve">
-    <value>Artists:</value>
+    <value>Artists</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Artists Label</comment>
   </data>
   <data name="SongInfo_AlbumLabel.Text" xml:space="preserve">
-    <value>Album:</value>
+    <value>Album</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Album Label</comment>
   </data>
   <data name="SongInfo_GenreLabel.Text" xml:space="preserve">
-    <value>Genre:</value>
+    <value>Genre</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Genre Label</comment>
   </data>
   <data name="SongInfo_YearLabel.Text" xml:space="preserve">
-    <value>Year:</value>
+    <value>Year</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Year Label</comment>
   </data>
   <data name="SongInfo_TrackLabel.Text" xml:space="preserve">
-    <value>Track:</value>
+    <value>Track</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Track Label</comment>
   </data>
   <data name="SongInfo_DurationLabel.Text" xml:space="preserve">
-    <value>Duration:</value>
+    <value>Duration</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Duration Label</comment>
   </data>
   <data name="SongInfo_AddedLabel.Text" xml:space="preserve">
-    <value>Date Added:</value>
+    <value>Date Added</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Date Added Label</comment>
   </data>
   <data name="SongInfo_SizeLabel.Text" xml:space="preserve">
-    <value>File Size:</value>
+    <value>File Size</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Size Label</comment>
   </data>
   <data name="SongInfo_ChannelLabel.Text" xml:space="preserve">
-    <value>Audio Channels:</value>
+    <value>Audio Channels</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Channels Label</comment>
   </data>
   <data name="SongInfo_PathLabel.Text" xml:space="preserve">
-    <value>File Path:</value>
+    <value>File Path</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; File Path Label</comment>
   </data>
   <data name="SongInfo_PlayedCount" xml:space="preserve">
-    <value>Played Count: </value>
+    <value>Played Count</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Play Count Label</comment>
   </data>
   <data name="SongInfo_LastPlayed" xml:space="preserve">
-    <value>Last Played: </value>
+    <value>Last Played</value>
     <comment>Popups &amp; Dialogs -&gt; "Song Information" Dialog -&gt; Metadata Field -&gt; Last Played Label</comment>
   </data>
   <data name="SongInfo_FolderButton_ToolTip" xml:space="preserve">
@@ -1149,7 +1149,7 @@
     <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Title</comment>
   </data>
   <data name="Settings_AboutTunetastic.Description" xml:space="preserve">
-    <value>Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that's as unique, expressive and captivating as the music you love. 🎶</value>
+    <value>Tunetastic is a next gen music player for Windows 11 that blends sleek design and deep personalization, turning your library into an experience that's as unique, expressive and captivating as the music you love.</value>
     <comment>Settings -&gt; About -&gt; "Tunetastic by AMit-KP" Expander -&gt; Description</comment>
   </data>
   <data name="Settings_CheckForUpdates.Header" xml:space="preserve">
@@ -1188,8 +1188,8 @@
     <value>Share your feedback by rating the app. Your input helps us improve features and deliver a better experience.</value>
     <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Description</comment>
   </data>
-  <data name="Settings_RateThisAppButton.Content" xml:space="preserve">
-    <value>⭐ Rate this app</value>
+  <data name="Settings_RateThisAppButton" xml:space="preserve">
+    <value>Rate this app</value>
     <comment>Settings -&gt; About -&gt; "Feedback &amp; Rating" Card -&gt; Rate Button</comment>
   </data>
   <data name="Settings_IssuesEnhancements.Header" xml:space="preserve">
@@ -1212,8 +1212,8 @@
     <value>Love tuning in? Buy me a coffee to keep the playback smooth and the updates rolling!</value>
     <comment>Settings -&gt; About -&gt; "Support My Work" Card -&gt; Description</comment>
   </data>
-  <data name="Settings_BuyMeACoffeeButton.Content" xml:space="preserve">
-    <value>Support Development ☕</value>
+  <data name="Settings_BuyMeACoffeeButton" xml:space="preserve">
+    <value>Support Development</value>
     <comment>Settings Page -&gt; About Section -&gt; Support Card -&gt; Donation Link Button</comment>
   </data>
   <data name="Settings_RelatedLinks.Text" xml:space="preserve">
@@ -1224,8 +1224,8 @@
     <value>Source Code</value>
     <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Source Code Hyperlink</comment>
   </data>
-  <data name="Settings_LeaveAStar.Text" xml:space="preserve">
-    <value>(Please, leave a star ⭐)</value>
+  <data name="Settings_LeaveAStar" xml:space="preserve">
+    <value>Please, leave a star</value>
     <comment>Settings -&gt; About -&gt; "Related Links" Card -&gt; Star Prompt Note</comment>
   </data>
   <data name="Settings_MicrosoftStore.Content" xml:space="preserve">
@@ -1301,7 +1301,7 @@
     <comment>Settings -&gt; Easter Egg Panel -&gt; Feature Description</comment>
   </data>
   <data name="MusicDownloader_Button" xml:space="preserve">
-    <value>Explore Tunetastic Downloader ⚡</value>
+    <value>Explore Tunetastic Downloader</value>
     <comment>Settings -&gt; Easter Egg Panel -&gt; External Downloader Link Button</comment>
   </data>
   <data name="Action_Play.Text" xml:space="preserve">
@@ -1860,12 +1860,12 @@
     <value>Edit Details</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; "Edit Details" Action Button -&gt; Label</comment>
   </data>
-  <data name="SongInfo_HasLyrics.Content" xml:space="preserve">
-    <value>🎵 Has Lyrics</value>
+  <data name="SongInfo_HasLyrics" xml:space="preserve">
+    <value>Has Lyrics</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Standard Lyrics</comment>
   </data>
-  <data name="SongInfo_HasSyncedLyrics.Content" xml:space="preserve">
-    <value>🎵 Has Synced Lyrics</value>
+  <data name="SongInfo_HasSyncedLyrics" xml:space="preserve">
+    <value>Has Synced Lyrics</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Lyrics Indicator Badge -&gt; Synced Lyrics</comment>
   </data>
   <data name="SongInfo_ClearButton_ToolTip" xml:space="preserve">
@@ -1881,59 +1881,59 @@
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Clear Stats Confirmation -&gt; "Yes" Button -&gt; Label</comment>
   </data>
   <data name="SongInfo_Label_Title.Text" xml:space="preserve">
-    <value>Title:</value>
+    <value>Title</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Title Label</comment>
   </data>
   <data name="SongInfo_Label_Artists.Text" xml:space="preserve">
-    <value>Artists:</value>
+    <value>Artists</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Artists Label</comment>
   </data>
   <data name="SongInfo_Label_Album.Text" xml:space="preserve">
-    <value>Album:</value>
+    <value>Album</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Album Label</comment>
   </data>
   <data name="SongInfo_Label_Genre.Text" xml:space="preserve">
-    <value>Genre:</value>
+    <value>Genre</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Genre Label</comment>
   </data>
   <data name="SongInfo_Label_Year.Text" xml:space="preserve">
-    <value>Year:</value>
+    <value>Year</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Year Label</comment>
   </data>
   <data name="SongInfo_Label_Track.Text" xml:space="preserve">
-    <value>Track:</value>
+    <value>Track</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Track Label</comment>
   </data>
   <data name="SongInfo_Label_Duration.Text" xml:space="preserve">
-    <value>Duration:</value>
+    <value>Duration</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Duration Label</comment>
   </data>
   <data name="SongInfo_Label_Size.Text" xml:space="preserve">
-    <value>Size:</value>
+    <value>Size</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Size Label</comment>
   </data>
   <data name="SongInfo_Label_Added.Text" xml:space="preserve">
-    <value>Added:</value>
+    <value>Added</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Added Label</comment>
   </data>
   <data name="SongInfo_Label_Path.Text" xml:space="preserve">
-    <value>Path:</value>
+    <value>Path</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Path Label</comment>
   </data>
   <data name="SongInfo_Label_Channel.Text" xml:space="preserve">
-    <value>Channel:</value>
+    <value>Channel</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Channel Label</comment>
   </data>
   <data name="SongInfo_Label_BitRate.Text" xml:space="preserve">
-    <value>Bit rate:</value>
+    <value>Bit rate</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Bit Rate Label</comment>
   </data>
   <data name="SongInfo_Label_SampleRate.Text" xml:space="preserve">
-    <value>Sample rate:</value>
+    <value>Sample rate</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Sample Rate Label</comment>
   </data>
   <data name="SongInfo_Label_CodecDescription.Text" xml:space="preserve">
-    <value>Codec Description:</value>
+    <value>Codec Description</value>
     <comment>Popups &amp; Dialogs -&gt; Song Information Dialog -&gt; Metadata Fields -&gt; Codec Description Label</comment>
   </data>
   <data name="EditSongDialog_Window.Title" xml:space="preserve">
@@ -2157,11 +2157,11 @@
     <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Header Question</comment>
   </data>
   <data name="PlaylistImport_Label_Playlist" xml:space="preserve">
-    <value>Playlist:</value>
+    <value>Playlist</value>
     <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Playlist Path Label</comment>
   </data>
   <data name="PlaylistImport_Label_Tracks" xml:space="preserve">
-    <value>Tracks:</value>
+    <value>Tracks</value>
     <comment>Main Window -&gt; Add Playlist Dialog -&gt; Import Confirmation -&gt; Track Count Label</comment>
   </data>
   <data name="PlaylistImport_Summary_TracksFound" xml:space="preserve">
@@ -2213,19 +2213,19 @@
     <comment>Main Window -&gt; Song Info Panel -&gt; Metadata Details -&gt; Cover Art Field Label</comment>
   </data>
   <data name="SearchTip_CombinePrefix" xml:space="preserve">
-    <value>• Use </value>
+    <value>Use</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Prefix Text</comment>
   </data>
   <data name="SearchTip_CombineSuffix" xml:space="preserve">
-    <value> to combine terms — match results across title, artist, album, genre, and year together</value>
+    <value>to combine terms — match results across title, artist, album, genre, and year together</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Combine Suffix Text</comment>
   </data>
   <data name="SearchTip_OrPrefix" xml:space="preserve">
-    <value>• Use </value>
+    <value>Use</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Prefix Text</comment>
   </data>
   <data name="SearchTip_OrSuffix" xml:space="preserve">
-    <value> to search for either term — results matching any one of them</value>
+    <value>to search for either term — results matching any one of them</value>
     <comment>Main Window -&gt; Top Search Bar -&gt; Search Syntax Tip -&gt; Search Either Suffix Text</comment>
   </data>
   <data name="ContextMenu_CreateNewPlaylist" xml:space="preserve">
@@ -2633,15 +2633,15 @@
     <comment>Main Window -&gt; Song Info Panel -&gt; Header Section -&gt; Dialog Title Label</comment>
   </data>
   <data name="SongInfo_BitRate.Text" xml:space="preserve">
-    <value>Bit rate:</value>
+    <value>Bit rate</value>
     <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Bit Rate Label</comment>
   </data>
   <data name="SongInfo_SampleRate.Text" xml:space="preserve">
-    <value>Sample rate:</value>
+    <value>Sample rate</value>
     <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Sample Rate Label</comment>
   </data>
   <data name="SongInfo_CodecDescription.Text" xml:space="preserve">
-    <value>Codec Description:</value>
+    <value>Codec Description</value>
     <comment>Main Window -&gt; Song Info Panel -&gt; Technical Details -&gt; Codec Description Label</comment>
   </data>
   <data name="Badge_Changed" xml:space="preserve">
@@ -2841,15 +2841,15 @@
     <comment>Overlay -&gt; Mini Player Controls -&gt; Next Button -&gt; Tooltip</comment>
   </data>
   <data name="EditSong_SuggestTip_Preview" xml:space="preserve">
-    <value>• Type and/or Press {0} to preview suggestions.</value>
+    <value>Type and/or Press {0} to preview suggestions.</value>
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Preview Instruction ({0}=Right Arrow (→))</comment>
   </data>
   <data name="EditSong_SuggestTip_Cycle" xml:space="preserve">
-    <value>• Press {0} / {1} to cycle suggestions.</value>
+    <value>Press {0} / {1} to cycle suggestions.</value>
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Cycle Instruction ({0}=Up (↑), {1}=Down (↓))</comment>
   </data>
   <data name="EditSong_SuggestTip_Accept" xml:space="preserve">
-    <value>• Press {0} to accept.</value>
+    <value>Press {0} to accept.</value>
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Suggestion Box Teaching Tip -&gt; Accept Instruction ({0}=Right Arrow (→))</comment>
   </data>
   <data name="EditSong_SuggestTip_MultipleArtists" xml:space="preserve">
@@ -2857,15 +2857,15 @@
     <comment>Main Window -&gt; Right Sidebar -&gt; Edit Song Tag Editor -&gt; Artist Suggestion Teaching Tip -&gt; Delimiter Legend Header</comment>
   </data>
   <data name="Key_RightArrow" xml:space="preserve">
-    <value>Right Arrow (→)</value>
+    <value>Right Arrow</value>
     <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Right Arrow Navigation Key</comment>
   </data>
   <data name="Key_Up" xml:space="preserve">
-    <value>Up (↑)</value>
+    <value>Up</value>
     <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Up Arrow Navigation Key</comment>
   </data>
   <data name="Key_Down" xml:space="preserve">
-    <value>Down (↓)</value>
+    <value>Down</value>
     <comment>Common -&gt; Keyboard Shortcut Key Label -&gt; Down Arrow Navigation Key</comment>
   </data>
   <data name="OverlayLayout_CompactPill_Name" xml:space="preserve">
@@ -3056,4 +3056,14 @@
     <value>Pause</value>
     <comment>Taskbar Thumbnail Toolbar -&gt; Pause Button -&gt; Tooltip</comment>
   </data>
-<data name="Common_DoYouWantToContinue" xml:space="preserve"><value>Do you want to continue?</value><comment>Common -&gt; Confirmation Dialog -&gt; Action Prompt</comment></data><data name="DeleteDialog_SingleSong_Question" xml:space="preserve"><value>Are you sure you want to delete this song/track from your system?</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Confirmation Question</comment></data><data name="DeleteDialog_Detail_Title" xml:space="preserve"><value>Title:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Title Detail Label</comment></data><data name="DeleteDialog_Detail_Artist" xml:space="preserve"><value>Artist:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Artist Detail Label</comment></data><data name="DeleteDialog_Detail_Album" xml:space="preserve"><value>Album:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Album Detail Label</comment></data><data name="DeleteDialog_Detail_File" xml:space="preserve"><value>File:</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; File Path Detail Label</comment></data><data name="Notification_SongDeleted_Title" xml:space="preserve"><value>Song/Track deleted.</value><comment>Common -&gt; Toast Notification -&gt; Song Deleted Caption</comment></data><data name="Notification_SongRemovedFromPlaylist_Title" xml:space="preserve"><value>Song/Track removed from {0}.</value><comment>Playlists -&gt; Toast Notification -&gt; Song Removed Caption ({0}=playlist name)</comment></data><data name="Update_Available_Header" xml:space="preserve"><value>App update is available.</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Available Header</comment></data><data name="Update_Available_Instruction" xml:space="preserve"><value>Open Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Installation Instruction</comment></data></root>
+<data name="Common_DoYouWantToContinue" xml:space="preserve"><value>Do you want to continue?</value><comment>Common -&gt; Confirmation Dialog -&gt; Action Prompt</comment></data>
+  <data name="DeleteDialog_SingleSong_Question" xml:space="preserve"><value>Are you sure you want to delete this song/track from your system?</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Confirmation Question</comment></data>
+  <data name="DeleteDialog_Detail_Title" xml:space="preserve"><value>Title</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Title Detail Label</comment></data>
+  <data name="DeleteDialog_Detail_Artist" xml:space="preserve"><value>Artist</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Artist Detail Label</comment></data>
+  <data name="DeleteDialog_Detail_Album" xml:space="preserve"><value>Album</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; Album Detail Label</comment></data>
+  <data name="DeleteDialog_Detail_File" xml:space="preserve"><value>File</value><comment>Common -&gt; Delete Confirmation Dialog -&gt; Single Song -&gt; File Path Detail Label</comment></data>
+  <data name="Notification_SongDeleted_Title" xml:space="preserve"><value>Song/Track deleted.</value><comment>Common -&gt; Toast Notification -&gt; Song Deleted Caption</comment></data>
+  <data name="Notification_SongRemovedFromPlaylist_Title" xml:space="preserve"><value>Song/Track removed from {0}.</value><comment>Playlists -&gt; Toast Notification -&gt; Song Removed Caption ({0}=playlist name)</comment></data>
+  <data name="Update_Available_Header" xml:space="preserve"><value>App update is available.</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Available Header</comment></data>
+  <data name="Update_Available_Instruction" xml:space="preserve"><value>Open Settings. Click 'Check for New Version' under About section to install it. Or open Microsoft Store to install it.</value><comment>Main Window -&gt; App Startup -&gt; Update Dialog -&gt; Update Installation Instruction</comment></data>
+</root>
