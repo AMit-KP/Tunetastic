@@ -110,7 +110,7 @@ public sealed partial class MainPage : Page
 		navService?.Initialize(NavView, NavFrame, NavigationPageMappings.PageDictionary)
 				   .ConfigureDefaultPage(typeof(MainPlayerPage))
 				   .ConfigureSettingsPage(typeof(SettingsPage))
-				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json", resourceManager, resourceContext)
+				   .ConfigureJsonFile("Assets/NavViewMenu/AppData.json", OrderItemsType.None, resourceManager, resourceContext)
 				   .ConfigureTitleBar(AppTitleBar);
 		LocalizeNavSettings();
 		NavView.Loaded += (_, _) => LocalizeNavSettings();

@@ -1,11 +1,8 @@
-﻿{
+{
   "$schema": "https://raw.githubusercontent.com/Ghost1372/DevWinUI/refs/heads/main/AppData.Schema.json",
   "Groups": [
     {
       "UniqueId": "Tunetastic.Views.MainPlayerPage",
-      "Title": "Player",
-      "UsexUid": true,
-      "LocalizeId": "Nav_Player",
       "IconGlyph": "E8D6",
       "ShowItemsWithoutGroup": true,
       "Items": [
