@@ -134,9 +134,11 @@ public sealed partial class YearsViewPage : TileListPageBase
 		sortDropdownContent.Inlines.Add(new Run { Text = AscOrder ? "⬆️" : "⬇️" });
 
 		var orderDropdownTooltip = new TextBlock();
-		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tile_Tooltip_SortedBy") });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = orderDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = LocalizationService.GetString("Sort_Tooltip_OrderSuffix") });
+		LocalizationService.AddFormattedInlines(
+			orderDropdownTooltip,
+			"Sort_Tile_Tooltip_SortedBy",
+			new LocalizationService.InlineArg(orderDisplayName, Microsoft.UI.Text.FontWeights.Bold)
+		);
 
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);

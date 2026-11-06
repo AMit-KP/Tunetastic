@@ -281,14 +281,20 @@ public sealed partial class MainPage : Page
 	{
 		SearchTeachingTipContent.Inlines.Clear();
 
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.GetString("SearchTip_CombinePrefix")} " });
-		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = "+" });
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = $" {LocalizationService.GetString("SearchTip_CombineSuffix")}" });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = "• " });
+		LocalizationService.AddFormattedInlines(
+			SearchTeachingTipContent,
+			"SearchTip_Combine",
+			new LocalizationService.InlineArg("+", Microsoft.UI.Text.FontWeights.SemiBold)
+		);
 		SearchTeachingTipContent.Inlines.Add(new LineBreak());
 
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = $"• {LocalizationService.GetString("SearchTip_OrPrefix")} " });
-		SearchTeachingTipContent.Inlines.Add(new Run { FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Text = ";" });
-		SearchTeachingTipContent.Inlines.Add(new Run { Text = $" {LocalizationService.GetString("SearchTip_OrSuffix")}" });
+		SearchTeachingTipContent.Inlines.Add(new Run { Text = "• " });
+		LocalizationService.AddFormattedInlines(
+			SearchTeachingTipContent,
+			"SearchTip_Or",
+			new LocalizationService.InlineArg(";", Microsoft.UI.Text.FontWeights.SemiBold)
+		);
 
 		SearchTeachingTip.IsOpen = true;
 	}

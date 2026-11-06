@@ -1622,7 +1622,7 @@ public sealed partial class SettingsPage : Page
 			MusicDownloader_Description.Inlines.Clear();
 			MusicDownloader_Description.Inlines.Add(new Run { Text = LocalizationService.GetString("Settings_MusicDownloader_AlternativeDesc") });
 			MusicDownloader_Description.Inlines.Add(new LineBreak());
-			MusicDownloader_Description.Inlines.Add(new Run { FontStyle = Windows.UI.Text.FontStyle.Italic, Text = "(Note: External third-party Telegram bot. Use at your own discretion.)" });
+			MusicDownloader_Description.Inlines.Add(new Run { FontStyle = Windows.UI.Text.FontStyle.Italic, Text = LocalizationService.GetString("Settings_MusicDownloader_ThirdPartyNote") });
 		}
 		else
 			ToolTipService.SetToolTip(MusicDownloader_Panel, LocalizationService.FormatPluralString("Settings_MusicDownloader_ClickToReveal", clickCounter, clickCounter));

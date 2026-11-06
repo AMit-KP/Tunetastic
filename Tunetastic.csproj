@@ -38,8 +38,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/AMit-KP/Tunetastic.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.83.48.3999</AssemblyVersion>
-    <FileVersion>1.83.48.3999</FileVersion>
+    <AssemblyVersion>1.83.50.4001</AssemblyVersion>
+    <FileVersion>1.83.50.4001</FileVersion>
     <ShouldCreateLogs>True</ShouldCreateLogs>
     <AdvancedSettingsExpanded>False</AdvancedSettingsExpanded>
     <UpdateAssemblyVersion>False</UpdateAssemblyVersion>

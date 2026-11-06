@@ -1,4 +1,7 @@
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.Windows.ApplicationModel.Resources;
+using Windows.UI.Text;
 
 namespace Tunetastic.Common.Services;
 
@@ -305,6 +308,55 @@ public static class LocalizationService
 		}
 
 		return $"{keyName} ({glyph})";
+	}
+
+	public readonly record struct InlineArg(string Text, Windows.UI.Text.FontWeight? FontWeight = null, Windows.UI.Text.FontStyle? FontStyle = null);
+
+	/// <summary>
+	/// Parses a localized format string containing placeholders ({0}, {1}, etc.) and populates a TextBlock's Inlines,
+	/// applying custom formatting (such as Bold) to the substituted values while allowing target language grammars
+	/// to position the values in natural sentence order.
+	/// </summary>
+	public static void AddFormattedInlines(TextBlock target, string key, params InlineArg[] args)
+	{
+		string template = GetString(key);
+		AddFormattedInlinesFromTemplate(target, template, args);
+	}
+
+	/// <summary>
+	/// Parses a raw template string containing placeholders ({0}, {1}, etc.) and populates a TextBlock's Inlines.
+	/// </summary>
+	public static void AddFormattedInlinesFromTemplate(TextBlock target, string template, params InlineArg[] args)
+	{
+		int lastIndex = 0;
+		var matches = System.Text.RegularExpressions.Regex.Matches(template, @"\{(\d+)\}");
+		foreach (System.Text.RegularExpressions.Match match in matches)
+		{
+			if (match.Index > lastIndex)
+			{
+				target.Inlines.Add(new Run { Text = template.Substring(lastIndex, match.Index - lastIndex) });
+			}
+
+			if (int.TryParse(match.Groups[1].Value, out int argIndex) && argIndex >= 0 && argIndex < args.Length)
+			{
+				var arg = args[argIndex];
+				var run = new Run { Text = arg.Text };
+				if (arg.FontWeight.HasValue) run.FontWeight = arg.FontWeight.Value;
+				if (arg.FontStyle.HasValue) run.FontStyle = arg.FontStyle.Value;
+				target.Inlines.Add(run);
+			}
+			else
+			{
+				target.Inlines.Add(new Run { Text = match.Value });
+			}
+
+			lastIndex = match.Index + match.Length;
+		}
+
+		if (lastIndex < template.Length)
+		{
+			target.Inlines.Add(new Run { Text = template.Substring(lastIndex) });
+		}
 	}
 
 	/// <summary>
