@@ -1,8 +1,18 @@
 name: CodeQL
 
 on:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - 'Assets/**'
+      - 'docs/**'
+      - '**/*.md'
   pull_request:
     branches: [ "master", "Development" ]
+    paths-ignore:
+      - 'Assets/**'
+      - 'docs/**'
+      - '**/*.md'
   schedule:
     # Every Sunday 06:00 UTC. The first step skips alternate weeks,
     # so the scheduled scan effectively runs every 2 weeks.
@@ -14,6 +24,7 @@ permissions:
 
 jobs:
   analyze:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'stats-update'
     runs-on: windows-latest
     permissions:
       contents: read
