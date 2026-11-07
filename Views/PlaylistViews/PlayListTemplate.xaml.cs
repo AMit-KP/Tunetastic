@@ -221,7 +221,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 
 		if (sender is MenuFlyout menu)
 		{
-			var moveSubItem = menu.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault(item => item.Tag?.ToString() == "Move" || item.Text == "Move");
+			var moveSubItem = menu.Items.OfType<MenuFlyoutSubItem>().FirstOrDefault(item => item.Tag?.ToString() == "Move");
 			if (moveSubItem != null && moveSubItem.Items.Count >= 4)
 			{
 				if ((menu.Target as FrameworkElement)?.DataContext is Song song)
@@ -1244,7 +1244,7 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		{
 			_ when string.IsNullOrWhiteSpace(name) => LocalizationService.GetString("PlaylistValidation_Empty"),
 			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => LocalizationService.GetString("PlaylistValidation_Reserved"),
-			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => LocalizationService.GetString("PlaylistValidation_InvalidChars"),
 			_ when name.EndsWith(" ") || name.EndsWith(".") => LocalizationService.GetString("PlaylistValidation_EndingPeriod"),
 			_ when name.Length > 255 => LocalizationService.GetString("PlaylistValidation_TooLong"),
 			_ when playLists != null && playLists.Contains(name) => LocalizationService.GetString("PlaylistValidation_AlreadyExists"),
@@ -1317,13 +1317,13 @@ public sealed partial class PlayListTemplate : SongListPageBase
 		{
 			_ when string.IsNullOrWhiteSpace(name) => LocalizationService.GetString("PlaylistValidation_Empty"),
 			_ when new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }.Contains(name.ToUpper()) => LocalizationService.GetString("PlaylistValidation_Reserved"),
-			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => "Name contains invalid characters: \\ / : * ? \" < > |",
+			_ when name.Any(c => Path.GetInvalidFileNameChars().Contains(c)) => LocalizationService.GetString("PlaylistValidation_InvalidChars"),
 			_ when name.EndsWith(" ") || name.EndsWith(".") => LocalizationService.GetString("PlaylistValidation_EndingPeriod"),
 			_ when name.Length > maxlength => LocalizationService.GetString("PlaylistValidation_TooLong"),
-			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate) => "Name cannot contain emojis or special symbols.",
-			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.OtherSymbol) => "Name cannot contain emojis or special symbols.",
-			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control) => "Name cannot contain emojis or special symbols.",
-			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.PrivateUse) => "Name cannot contain emojis or special symbols.",
+			_ when name.Any(c => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate ||
+			                     CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.OtherSymbol ||
+			                     CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Control ||
+			                     CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.PrivateUse) => LocalizationService.GetString("PlaylistValidation_NoEmojis"),
 			_ when playLists != null && playLists.Contains(name) => LocalizationService.GetString("PlaylistValidation_AlreadyExists"),
 			_ => ""
 		};

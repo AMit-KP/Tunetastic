@@ -310,7 +310,7 @@ public sealed partial class SettingsPage : Page
 		{
 			numberBox.Value = 0;
 		}
-		IgnoreTrack.Description = $"Tracks are ignored if they are less than {numberBox?.Value} seconds";
+		IgnoreTrack.Description = LocalizationService.FormatPluralString("Settings_IgnoreShortTracks_Description", (int)(numberBox?.Value ?? 0));
 
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)] = numberBox?.Value;
 	});
@@ -535,7 +535,7 @@ public sealed partial class SettingsPage : Page
 	private void PlayPauseStopFadeSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.PlayPauseStopFadeValue)] = PlayPauseStopFadeSlider.Value;
-		PlayPauseStopFadeCard.Description = PlayPauseStopFadeSlider.IsEnabled ? $"The music will fade in/out on Play/Pause/Stop. Fade Time: {PlayPauseStopFadeSlider.Value} ms" : "The music will not fade in/out on Play/Pause/Stop.";
+		PlayPauseStopFadeCard.Description = PlayPauseStopFadeSlider.IsEnabled ? LocalizationService.FormatString("Settings_FadePlayPauseStop_EnabledDescription", PlayPauseStopFadeSlider.Value) : LocalizationService.GetString("Settings_FadePlayPauseStop_DisabledDescription");
 	}
 
 	/// <summary>
@@ -584,7 +584,7 @@ public sealed partial class SettingsPage : Page
 	private void AutoAdvanceSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.AutoAdvanceValue)] = AutoAdvanceSlider.Value;
-		AutoAdvanceCard.Description = AutoAdvanceSlider.IsEnabled ? $"When the track ends and the next track starts automatically, the music will crossfade between tracks. Crossfade Time: {AutoAdvanceSlider.Value} ms" : "When the track ends and the next track starts automatically, the music will not crossfade between tracks.";
+		AutoAdvanceCard.Description = AutoAdvanceSlider.IsEnabled ? LocalizationService.FormatString("Settings_AutoAdvance_EnabledDescription", AutoAdvanceSlider.Value) : LocalizationService.GetString("Settings_AutoAdvance_DisabledDescription");
 	}
 
 	/// <summary>
@@ -626,7 +626,7 @@ public sealed partial class SettingsPage : Page
 	private void ManualTrackChangeSlider_OnValueChanged(object sender, RangeBaseValueChangedEventArgs? e)
 	{
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.ManualTrackChangeValue)] = ManualTrackChangeSlider.Value;
-		ManualTrackChangeCard.Description = ManualTrackChangeSlider.IsEnabled ? $"When you change the track manually, the music will crossfade between tracks. Crossfade Time: {ManualTrackChangeSlider.Value} ms" : "When you change the track manually, the music will not crossfade between tracks.";
+		ManualTrackChangeCard.Description = ManualTrackChangeSlider.IsEnabled ? LocalizationService.FormatString("Settings_ManualTrackChange_EnabledDescription", ManualTrackChangeSlider.Value) : LocalizationService.GetString("Settings_ManualTrackChange_DisabledDescription");
 	}
 
 	/// <summary>
@@ -933,7 +933,8 @@ public sealed partial class SettingsPage : Page
 
 		ScanAtStart.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.ScanAtStartup)]?.ToString() ?? "false");
 
-		IgnoreTrack.Description = $"Tracks are ignored if they are less than {localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0"} seconds";
+		int ignoreDuration = int.TryParse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString(), out int dur) ? dur : 0;
+		IgnoreTrack.Description = LocalizationService.FormatPluralString("Settings_IgnoreShortTracks_Description", ignoreDuration);
 
 		IgnoretracksDuration.Value = double.Parse(localSettings.Values[nameof(LocalSave.IgnoreTracksBelowDuration)]?.ToString() ?? "0");
 

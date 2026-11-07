@@ -210,13 +210,17 @@ public abstract partial class TunetasticPageBase : Page
 	/// <summary>Displays a random empty-library quip from <see cref="EmptyLibraryMessages"/> next to the settings prompt.</summary>
 	protected void AddGoToSettingsMessage()
 	{
-		var (line1, line2) = LocalizationService.GetRandomEmptyLibraryQuote();
+		var messages = EmptyLibraryMessages;
+		if (messages.Count == 0) return;
+
+		string message = messages[Random.Shared.Next(messages.Count)];
+		var lines = message.Split('\n');
 
 		var textBlock = RequiredControl<TextBlock>("GoToSettingsTextBlock");
 		textBlock.Inlines.Clear();
 		textBlock.Inlines.Add(new Run
 		{
-			Text = line1,
+			Text = lines[0],
 			FontStyle = Windows.UI.Text.FontStyle.Italic
 		});
 
@@ -224,7 +228,7 @@ public abstract partial class TunetasticPageBase : Page
 
 		textBlock.Inlines.Add(new Run
 		{
-			Text = line2
+			Text = lines[1]
 		});
 	}
 

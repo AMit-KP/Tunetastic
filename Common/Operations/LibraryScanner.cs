@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Windows.Storage;
+using Tunetastic.Common.Services;
 
 namespace Tunetastic.Common.Operations;
 
@@ -59,7 +60,7 @@ public class LibraryScanner
 		await _scanTask;
 
 		foreach (var failed in failedFiles)
-			GlobalNotification.Error($"Failed to read metadata for:\n{failed}");
+			GlobalNotification.Error(LocalizationService.FormatString("Notification_ReadMetadataFailed", failed));
 
 		switch (type)
 		{
@@ -200,9 +201,9 @@ public class LibraryScanner
 				// database while another process writes), and deleting everything destroys data that the
 				// scan never touched. Leave the previous library and thumbnail covers in place and report the failure.
 				thumbnailSession.Rollback();
-				await RefreshAutoScanResultMessage(message: "Library scan failed; kept the existing library.");
+				await RefreshAutoScanResultMessage(message: LocalizationService.GetString("Notification_LibraryScanFailedKeptExisting"));
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-				return ("Error", "Library scan failed; kept the existing library.", failedFiles.ToList());
+				return ("Error", LocalizationService.GetString("Notification_LibraryScanFailedKeptExisting"), failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
@@ -217,7 +218,7 @@ public class LibraryScanner
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
-			return ("Success", "Library scan completed.\nLibraries: " + librariesCount + "\nFolders: " + foldersCount + "\nSongs/Tracks: " + songsCount, failedFiles.ToList());
+			return ("Success", LocalizationService.FormatString("Notification_LibraryScanCompleted_Details", librariesCount, foldersCount, songsCount), failedFiles.ToList());
 		}
 		else
 		{
@@ -225,9 +226,9 @@ public class LibraryScanner
 			CoverImageConverter.ClearCache();
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			await DatabaseHelper.Instance.WipeFileScanMeta();
-			await RefreshAutoScanResultMessage(0, "No libraries found");
+			await RefreshAutoScanResultMessage(0, LocalizationService.GetString("Notification_NoLibrariesFound_Short"));
 			TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-			return ("Warning", "No libraries found. Please add atleast one library.", new List<string>());
+			return ("Warning", LocalizationService.GetString("Notification_NoLibrariesFound_AddOne"), new List<string>());
 		}
 	}
 
@@ -385,7 +386,7 @@ public class LibraryScanner
 		{
 			if (!Directory.Exists(folder))
 			{
-				GlobalNotification.Error("Library folder not found: " + folder + "\n Folder might be removed/renamed from system.");
+				GlobalNotification.Error(LocalizationService.FormatString("Notification_LibraryFolderNotFound", folder));
 			}
 			else
 			{

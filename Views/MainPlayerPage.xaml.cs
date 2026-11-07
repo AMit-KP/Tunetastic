@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Tunetastic.Common.Services;
 using Tunetastic.Views.LibraryViews;
 using Windows.Media;
 using Windows.Storage;
@@ -199,7 +200,7 @@ public sealed partial class MainPlayerPage : Page
 								lyricsText = externalContent;
 								ShowLyricsButton.Visibility = Visibility.Visible;
 								LyricMenuOptions(embeddedLyrics: false);
-								GlobalNotification.Info("Discovered external .lrc file:\n" + _externalLrcPath);
+								GlobalNotification.Info(LocalizationService.FormatString("Notification_ExternalLrcDiscovered", _externalLrcPath));
 							}
 							else
 							{
@@ -216,20 +217,20 @@ public sealed partial class MainPlayerPage : Page
 					else
 					{
 						if (notify)
-							GlobalNotification.Error("Could not find track/song:\n" + songPath);
+							GlobalNotification.Error(LocalizationService.FormatString("Notification_TrackNotFoundWithPath", songPath));
 					}
 				}
 			}
 			else
 			{
 				if (notify)
-					GlobalNotification.Error("No tracks/songs found in library.");
+					GlobalNotification.Error(LocalizationService.GetString("Notification_NoTracksFoundInLibrary"));
 			}
 		}
 		catch (Exception)
 		{
 			if (notify)
-				GlobalNotification.Error("Could not load track/song.");
+				GlobalNotification.Error(LocalizationService.GetString("Notification_CouldNotLoadTrack"));
 		}
 
 		if (MusicPlayer.Instance.SMTC != null)
@@ -488,7 +489,7 @@ public sealed partial class MainPlayerPage : Page
 		if (track != null)
 		{
 			await DatabaseHelper.Instance.AddSongToPlaylist(playlist, track.Path);
-			GlobalNotification.Info($"{track.Title} added to {playlist} playlist.");
+			GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToPlaylist", track.Title, playlist));
 		}
 	}
 
@@ -952,7 +953,7 @@ public sealed partial class MainPlayerPage : Page
 					catch (IOException)
 					{
 						await DatabaseHelper.Instance.AddPendingTagWrite(songPath, pendingLyrics: 1);
-						GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+						GlobalNotification.Warning(LocalizationService.GetString("Notification_FileInUse_PendingTagChanges"));
 					}
 					await UpdateUI();
 				}
@@ -974,7 +975,7 @@ public sealed partial class MainPlayerPage : Page
 		if (!string.IsNullOrEmpty(_externalLrcPath) && File.Exists(_externalLrcPath))
 			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_externalLrcPath) { UseShellExecute = true });
 		else
-			GlobalNotification.Error("Could not find external .lrc file.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_ExternalLrcNotFound"));
 	}
 
 	private void LyricMenuOptions(bool embeddedLyrics)
@@ -1066,7 +1067,7 @@ public sealed partial class MainPlayerPage : Page
 			songData.Lyrics = newlyricsText;
 			await DatabaseHelper.Instance.InsertMultipleSongs(new List<Song> { songData });
 			await DatabaseHelper.Instance.AddPendingTagWrite(songData.Path, pendingLyrics: 1);
-			GlobalNotification.Warning("File is in use. Tag changes will be applied upon exit.");
+			GlobalNotification.Warning(LocalizationService.GetString("Notification_FileInUse_PendingTagChanges"));
 		}
 
 	}

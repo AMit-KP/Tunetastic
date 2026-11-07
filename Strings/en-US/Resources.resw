@@ -3054,4 +3054,269 @@
     <value>(Note: External third-party Telegram bot. Use at your own discretion.)</value>
     <comment>Settings -&gt; About -&gt; Music Downloader -&gt; Third-Party Disclaimer Note</comment>
   </data>
-</root>
+  <data name="Notification_AutoScan_FailedChanges_Singular" xml:space="preserve">
+    <value>{0} change could not be applied. See the messages above.</value>
+    <comment>Library Auto Scan -&gt; Failed Changes Count Singular</comment>
+  </data>
+  <data name="Notification_AutoScan_FailedChanges_Plural" xml:space="preserve">
+    <value>{0} changes could not be applied. See the messages above.</value>
+    <comment>Library Auto Scan -&gt; Failed Changes Count Plural</comment>
+  </data>
+  <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Singular" xml:space="preserve">
+    <value>Stopped after {0} song could not be played.
+If files were moved or deleted, rescan your library.</value>
+    <comment>Music Player -&gt; Playback Stopped Consecutive Failures Singular</comment>
+  </data>
+  <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Plural" xml:space="preserve">
+    <value>Stopped after {0} songs in a row could not be played.
+If files were moved or deleted, rescan your library.</value>
+    <comment>Music Player -&gt; Playback Stopped Consecutive Failures Plural</comment>
+  </data>
+  <data name="Notification_MusicPlayer_SkippedUnplayable_Singular" xml:space="preserve">
+    <value>Skipped {0} song that could not be played.</value>
+    <comment>Music Player -&gt; Skipped Unplayable Songs Singular</comment>
+  </data>
+  <data name="Notification_MusicPlayer_SkippedUnplayable_Plural" xml:space="preserve">
+    <value>Skipped {0} songs that could not be played.</value>
+    <comment>Music Player -&gt; Skipped Unplayable Songs Plural</comment>
+  </data>
+  <data name="Settings_IgnoreShortTracks_Description_Singular" xml:space="preserve">
+    <value>Tracks are ignored if they are less than {0} second</value>
+    <comment>Settings -&gt; Library Management -&gt; Ignore Short Tracks Card Description Singular</comment>
+  </data>
+  <data name="Settings_IgnoreShortTracks_Description_Plural" xml:space="preserve">
+    <value>Tracks are ignored if they are less than {0} seconds</value>
+    <comment>Settings -&gt; Library Management -&gt; Ignore Short Tracks Card Description Plural</comment>
+  </data>
+  <data name="Notification_LibraryScanCompleted_Details" xml:space="preserve">
+    <value>Library scan completed.
+Libraries: {0}
+Folders: {1}
+Songs/Tracks: {2}</value>
+    <comment>Library Scanner -&gt; Scan Completed Details ({0}=libraries, {1}=folders, {2}=songs)</comment>
+  </data>
+  <data name="Notification_ExternalLrcDiscovered" xml:space="preserve">
+    <value>Discovered external .lrc file:
+{0}</value>
+    <comment>Main Player -&gt; Discovered External Lrc File Toast ({0}=lrc path)</comment>
+  </data>
+  <data name="Notification_TrackNotFoundWithPath" xml:space="preserve">
+    <value>Could not find track/song:
+{0}</value>
+    <comment>Main Player -&gt; Track Not Found Toast ({0}=track path)</comment>
+  </data>
+  <data name="Notification_NoTracksFoundInLibrary" xml:space="preserve">
+    <value>No tracks/songs found in library.</value>
+    <comment>Main Player -&gt; Empty Library Toast</comment>
+  </data>
+  <data name="Notification_CouldNotLoadTrack" xml:space="preserve">
+    <value>Could not load track/song.</value>
+    <comment>Main Player -&gt; Load Track Error Toast</comment>
+  </data>
+  <data name="Notification_ExternalLrcNotFound" xml:space="preserve">
+    <value>Could not find external .lrc file.</value>
+    <comment>Main Player -&gt; Lyrics -&gt; External Lrc Not Found Toast</comment>
+  </data>
+  <data name="Notification_PlaybackHistoryReset" xml:space="preserve">
+    <value>Playback history reset successfully.</value>
+    <comment>Settings -&gt; Playback History Reset Success Toast</comment>
+  </data>
+  <data name="Notification_CouldNotLoadPreviousSong" xml:space="preserve">
+    <value>Could not load previous song.</value>
+    <comment>Music Player -&gt; Load Previous Track Error Toast</comment>
+  </data>
+  <data name="Notification_CouldNotLoadNextSong" xml:space="preserve">
+    <value>Could not load next song.</value>
+    <comment>Music Player -&gt; Load Next Track Error Toast</comment>
+  </data>
+  <data name="Notification_QueueStarted" xml:space="preserve">
+    <value>Queue started.</value>
+    <comment>Music Player -&gt; Queue Started Toast</comment>
+  </data>
+  <data name="Notification_QueueEnded" xml:space="preserve">
+    <value>Queue ended.</value>
+    <comment>Music Player -&gt; Queue Ended Toast</comment>
+  </data>
+  <data name="Notification_MusicFolderUnavailable" xml:space="preserve">
+    <value>Music folder is not available:
+{0}
+Reconnect it and try again.</value>
+    <comment>Music Player -&gt; Folder Unavailable Toast ({0}=folder path)</comment>
+  </data>
+  <data name="Notification_CouldNotLoadSongWithPath" xml:space="preserve">
+    <value>Could not load song:
+{0}</value>
+    <comment>Music Player -&gt; Load Song With Path Error Toast ({0}=song path)</comment>
+  </data>
+  <data name="Notification_MetadataUpdated" xml:space="preserve">
+    <value>Updated metadata for:
+{0}</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Updated Success Toast ({0}=path)</comment>
+  </data>
+  <data name="Notification_MetadataUpdateFailed" xml:space="preserve">
+    <value>Failed to update metadata for:
+{0}</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Update Failed Toast ({0}=path)</comment>
+  </data>
+  <data name="Notification_AutoScan_Scanning" xml:space="preserve">
+    <value>Scanning for changes please wait...</value>
+    <comment>Library Auto Scan -&gt; Scanning Changes Info Toast</comment>
+  </data>
+  <data name="Notification_AutoScan_UpdateEntryFailed" xml:space="preserve">
+    <value>Couldn't update the library entry for:
+{0}
+{1}</value>
+    <comment>Library Auto Scan -&gt; Update Entry Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_AutoScan_RemoveMissingFailed" xml:space="preserve">
+    <value>Couldn't remove the missing tracks from the library.
+{0}</value>
+    <comment>Library Auto Scan -&gt; Remove Missing Failed Toast ({0}=error)</comment>
+  </data>
+  <data name="Notification_AutoScan_AddNewFailed" xml:space="preserve">
+    <value>Couldn't add the new or changed tracks to the library.
+{0}</value>
+    <comment>Library Auto Scan -&gt; Add New Failed Toast ({0}=error)</comment>
+  </data>
+  <data name="Notification_AutoScan_InSync" xml:space="preserve">
+    <value>All libraries are in sync</value>
+    <comment>Library Auto Scan -&gt; All Libraries In Sync Success Toast</comment>
+  </data>
+  <data name="Notification_ReadMetadataFailed" xml:space="preserve">
+    <value>Failed to read metadata for:
+{0}</value>
+    <comment>Library Scanner -&gt; Read Metadata Failed Toast ({0}=file path)</comment>
+  </data>
+  <data name="Notification_LibraryScanFailedKeptExisting" xml:space="preserve">
+    <value>Library scan failed; kept the existing library.</value>
+    <comment>Library Scanner -&gt; Scan Failed Kept Existing Status Message</comment>
+  </data>
+  <data name="Notification_NoLibrariesFound_Short" xml:space="preserve">
+    <value>No libraries found</value>
+    <comment>Library Scanner -&gt; No Libraries Found Short Status Message</comment>
+  </data>
+  <data name="Notification_NoLibrariesFound_AddOne" xml:space="preserve">
+    <value>No libraries found. Please add atleast one library.</value>
+    <comment>Library Scanner -&gt; No Libraries Found Add One Warning Toast</comment>
+  </data>
+  <data name="Notification_LibraryFolderNotFound" xml:space="preserve">
+    <value>Library folder not found: {0}
+ Folder might be removed/renamed from system.</value>
+    <comment>Library Scanner -&gt; Folder Not Found Toast ({0}=folder path)</comment>
+  </data>
+  <data name="Notification_Playlist_UnsupportedFormat" xml:space="preserve">
+    <value>Unsupported playlist format.</value>
+    <comment>Playlist Importer -&gt; Unsupported Format Toast</comment>
+  </data>
+  <data name="Notification_Playlist_ExportFailed" xml:space="preserve">
+    <value>Failed to export playlist.</value>
+    <comment>Playlist Importer -&gt; Export Failed Toast</comment>
+  </data>
+  <data name="Notification_Playlist_ExportSuccess" xml:space="preserve">
+    <value>Playlist exported to: {0}</value>
+    <comment>Playlist Importer -&gt; Export Success Toast ({0}=file path)</comment>
+  </data>
+  <data name="Notification_Playlist_FileNotFound" xml:space="preserve">
+    <value>Playlist file {0} not found.</value>
+    <comment>Playlist Importer -&gt; File Not Found Toast ({0}=file path)</comment>
+  </data>
+  <data name="Notification_Playlist_NoValidTracks" xml:space="preserve">
+    <value>No valid tracks found in the playlist.</value>
+    <comment>Playlist Importer -&gt; No Valid Tracks Toast</comment>
+  </data>
+  <data name="Notification_Playlist_ImportFailed" xml:space="preserve">
+    <value>Failed to import playlist.</value>
+    <comment>Playlist Importer -&gt; Import Failed Toast</comment>
+  </data>
+  <data name="Notification_AutoScan_DoFullScanFirst" xml:space="preserve">
+    <value>Do a Full Scan atleast once with a folder that contains music.</value>
+    <comment>Auto Scan Service -&gt; Full Scan First Error Toast</comment>
+  </data>
+  <data name="Notification_AutoScan_NoMusicFound" xml:space="preserve">
+    <value>Auto scan was enabled but no music was found. Please run a full scan with a folder that contains music.</value>
+    <comment>Auto Scan Service -&gt; No Music Found Warning Toast</comment>
+  </data>
+  <data name="Notification_DatabaseBusyLookupFailed" xml:space="preserve">
+    <value>The music library database stayed busy, so the lookup for '{0}' could not complete. Close other apps using Tunetastic data and try again.</value>
+    <comment>Database Helper -&gt; Database Busy Lookup Error Toast ({0}=path)</comment>
+  </data>
+  <data name="Notification_Watcher_TrackMovedFileFailed" xml:space="preserve">
+    <value>Couldn't track the moved file:
+{0}
+{1}</value>
+    <comment>Library Watcher Service -&gt; Move File Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_Watcher_AddNewFileFailed" xml:space="preserve">
+    <value>Couldn't add the new file to the library:
+{0}
+{1}</value>
+    <comment>Library Watcher Service -&gt; Add File Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_Watcher_RefreshEntryFailed" xml:space="preserve">
+    <value>Couldn't refresh the library entry for:
+{0}
+{1}</value>
+    <comment>Library Watcher Service -&gt; Refresh Entry Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_Watcher_AutoScanPassFailed" xml:space="preserve">
+    <value>An automatic scan pass failed.
+{0}</value>
+    <comment>Library Watcher Service -&gt; Auto Scan Pass Failed Toast ({0}=error)</comment>
+  </data>
+  <data name="Settings_FadePlayPauseStop_EnabledDescription" xml:space="preserve">
+    <value>The music will fade in/out on Play/Pause/Stop. Fade Time: {0} ms</value>
+    <comment>Settings -&gt; Playback -&gt; Fade Play/Pause/Stop Card Description Enabled ({0}=milliseconds)</comment>
+  </data>
+  <data name="Settings_FadePlayPauseStop_DisabledDescription" xml:space="preserve">
+    <value>The music will not fade in/out on Play/Pause/Stop.</value>
+    <comment>Settings -&gt; Playback -&gt; Fade Play/Pause/Stop Card Description Disabled</comment>
+  </data>
+  <data name="Settings_AutoAdvance_EnabledDescription" xml:space="preserve">
+    <value>When the track ends and the next track starts automatically, the music will crossfade between tracks. Crossfade Time: {0} ms</value>
+    <comment>Settings -&gt; Playback -&gt; Auto Advance Card Description Enabled ({0}=milliseconds)</comment>
+  </data>
+  <data name="Settings_AutoAdvance_DisabledDescription" xml:space="preserve">
+    <value>When the track ends and the next track starts automatically, the music will not crossfade between tracks.</value>
+    <comment>Settings -&gt; Playback -&gt; Auto Advance Card Description Disabled</comment>
+  </data>
+  <data name="Settings_ManualTrackChange_EnabledDescription" xml:space="preserve">
+    <value>When you change the track manually, the music will crossfade between tracks. Crossfade Time: {0} ms</value>
+    <comment>Settings -&gt; Playback -&gt; Manual Track Change Card Description Enabled ({0}=milliseconds)</comment>
+  </data>
+  <data name="Settings_ManualTrackChange_DisabledDescription" xml:space="preserve">
+    <value>When you change the track manually, the music will not crossfade between tracks.</value>
+    <comment>Settings -&gt; Playback -&gt; Manual Track Change Card Description Disabled</comment>
+  </data>
+  <data name="PlaylistValidation_NoEmojis" xml:space="preserve">
+    <value>Name cannot contain emojis or special symbols.</value>
+    <comment>Playlists -&gt; Create/Rename/Import -&gt; Validation Error: No Emojis or Special Symbols</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_Field" xml:space="preserve">
+    <value>Field</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Column Header: Field</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_Before" xml:space="preserve">
+    <value>Before</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Column Header: Before</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_After" xml:space="preserve">
+    <value>After</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Column Header: After</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_Removed" xml:space="preserve">
+    <value>Removed</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Value Placeholder: Removed</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_NoValue" xml:space="preserve">
+    <value>No {0}</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Placeholder: No Value ({0}=field name)</comment>
+  </data>
+  <data name="WhatsNew_Dialog_Title" xml:space="preserve">
+    <value>What's New in v{0}</value>
+    <comment>What's New Dialog -&gt; Modal Dialog Title ({0}=version)</comment>
+  </data>
+  <data name="WhatsNew_Dialog_Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>What's New Dialog -&gt; Close Button Text</comment>
+  </data>
+  </root>

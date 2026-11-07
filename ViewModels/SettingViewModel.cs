@@ -1,4 +1,5 @@
 ﻿using Windows.Storage;
+using Tunetastic.Common.Services;
 
 namespace Tunetastic.ViewModels;
 
@@ -12,7 +13,7 @@ public partial class SettingViewModel : ObservableObject
 	public async Task ResetHistory()
 	{
 		await DatabaseHelper.Instance.ResetAllPlaybackHistory();
-		GlobalNotification.Success("Playback history reset successfully.");
+		GlobalNotification.Success(LocalizationService.GetString("Notification_PlaybackHistoryReset"));
 	}
 
 	/// <summary>

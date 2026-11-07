@@ -682,7 +682,7 @@ public class MusicPlayer
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Could not load previous song.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_CouldNotLoadPreviousSong"));
 			await Next();
 		}
 	}
@@ -705,7 +705,7 @@ public class MusicPlayer
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Could not load next song.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_CouldNotLoadNextSong"));
 		}
 	}
 
@@ -738,13 +738,13 @@ public class MusicPlayer
 				// Take the song off the queue before trying it, so a song that fails isn't picked again.
 				await DatabaseHelper.Instance.ClearFromQueue();
 				bool loaded = await TryLoadSong(queuedPath, play, fadeType);
-				if (!SongQueue) GlobalNotification.Info("Queue started.");
+				if (!SongQueue) GlobalNotification.Info(LocalizationService.GetString("Notification_QueueStarted"));
 				SongQueue = true;
 				return new AdvanceResult(loaded, queuedPath);
 			}
 			else
 			{
-				if (SongQueue) GlobalNotification.Info("Queue ended.");
+				if (SongQueue) GlobalNotification.Info(LocalizationService.GetString("Notification_QueueEnded"));
 				SongQueue = false;
 			}
 
@@ -891,14 +891,14 @@ public class MusicPlayer
 				if (unavailableFolder != null)
 				{
 					Pause();
-					NotifyOnce($"Music folder is not available:\n{unavailableFolder}\nReconnect it and try again.", warning: false);
+					NotifyOnce(LocalizationService.FormatString("Notification_MusicFolderUnavailable", unavailableFolder), warning: false);
 					return;
 				}
 
 				if (skipped.Count >= MaxSongsToSkip)
 				{
 					Pause();
-					NotifyOnce($"Stopped after {skipped.Count} songs in a row could not be played.\nIf files were moved or deleted, rescan your library.", warning: false);
+					NotifyOnce(LocalizationService.FormatPluralString("Notification_MusicPlayer_StoppedConsecutiveFailed", skipped.Count), warning: false);
 					return;
 				}
 
@@ -921,9 +921,9 @@ public class MusicPlayer
 			if (token.IsCancellationRequested) return;
 
 			if (skipped.Count == 1)
-				NotifyOnce(skipped[0] != null ? $"Could not load song:\n{skipped[0]}" : "Could not load next song.", warning: false);
+				NotifyOnce(skipped[0] is { } path ? LocalizationService.FormatString("Notification_CouldNotLoadSongWithPath", path) : LocalizationService.GetString("Notification_CouldNotLoadNextSong"), warning: false);
 			else
-				NotifyOnce($"Skipped {skipped.Count} songs that could not be played.", warning: true);
+				NotifyOnce(LocalizationService.FormatPluralString("Notification_MusicPlayer_SkippedUnplayable", skipped.Count), warning: true);
 		}
 		finally
 		{
@@ -1192,9 +1192,9 @@ public class MusicPlayer
 				}
 			}
 			if (success)
-				GlobalNotification.Success($"Updated metadata for:\n{path}");
+				GlobalNotification.Success(LocalizationService.FormatString("Notification_MetadataUpdated", path));
 			else
-				GlobalNotification.Error($"Failed to update metadata for:\n{path}");
+				GlobalNotification.Error(LocalizationService.FormatString("Notification_MetadataUpdateFailed", path));
 
 			await DatabaseHelper.Instance.DeletePendingTagWrite(path);
 		}

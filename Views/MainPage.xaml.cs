@@ -1064,13 +1064,19 @@ public sealed partial class MainPage : Page
 				string text = content?.ToString() ?? "";
 				bool isPlaceholder = false;
 
+				string removedText = LocalizationService.GetString("SongInfo_Edit_TagChanges_Removed");
+				string noCoverText = LocalizationService.GetString("SongInfo_NoCoverArt");
+				string coverArtField = LocalizationService.GetString("SongInfo_CoverArt");
+
 				if (string.IsNullOrWhiteSpace(text))
 				{
 					isPlaceholder = true;
-					text = isAfter ? "Removed" : (field == "Cover Art" ? "No cover art" : $"No {field.ToLower()}");
+					text = isAfter ? removedText : (field == coverArtField ? noCoverText : LocalizationService.FormatString("SongInfo_Edit_TagChanges_NoValue", field));
 				}
-				else if (text.Equals("No cover art", StringComparison.OrdinalIgnoreCase) ||
+				else if (text.Equals(noCoverText, StringComparison.OrdinalIgnoreCase) ||
+						 text.Equals("No cover art", StringComparison.OrdinalIgnoreCase) ||
 						 text.Equals("No cover", StringComparison.OrdinalIgnoreCase) ||
+						 text.Equals(removedText, StringComparison.OrdinalIgnoreCase) ||
 						 text.Equals("Removed", StringComparison.OrdinalIgnoreCase))
 				{
 					isPlaceholder = true;
@@ -1096,9 +1102,9 @@ public sealed partial class MainPage : Page
 		}
 
 		table.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-		AddCell(0, 0, "Field", header: true);
-		AddCell(0, 1, "Before", header: true);
-		AddCell(0, 2, "After", header: true);
+		AddCell(0, 0, LocalizationService.GetString("SongInfo_Edit_TagChanges_Field"), header: true);
+		AddCell(0, 1, LocalizationService.GetString("SongInfo_Edit_TagChanges_Before"), header: true);
+		AddCell(0, 2, LocalizationService.GetString("SongInfo_Edit_TagChanges_After"), header: true);
 
 		for (int i = 0; i < changes.Count; i++)
 		{
@@ -1260,28 +1266,28 @@ ShowEditSongInfo:
 					{
 						object before = _hasOriginalCover
 							? CreateCoverArtPreview(bitmapImage)
-							: "No cover art";
+							: LocalizationService.GetString("SongInfo_NoCoverArt");
 
 						object after = _frontCoverArtPath is not null
 							? CreateCoverArtPreview(CoverArtImage.Source)
-							: "Removed";
+							: LocalizationService.GetString("SongInfo_Edit_TagChanges_Removed");
 
-						changes.Add(("Cover Art", before, after));
+						changes.Add((LocalizationService.GetString("SongInfo_CoverArt"), before, after));
 					}
 					if (TitleChanged.Visibility == Visibility.Visible)
-						changes.Add(("Title", songData.Title, TitleTextBox.Text));
+						changes.Add((LocalizationService.GetString("SongInfo_Label_Title.Text"), songData.Title, TitleTextBox.Text));
 					if (ArtistChanged.Visibility == Visibility.Visible)
-						changes.Add(("Artist", songData.Artists, ArtistTextBox.Text));
+						changes.Add((LocalizationService.GetString("SongInfo_Label_Artists.Text"), songData.Artists, ArtistTextBox.Text));
 					if (AlbumChanged.Visibility == Visibility.Visible)
-						changes.Add(("Album", songData.Album, AlbumTextBox.Text));
+						changes.Add((LocalizationService.GetString("SongInfo_Label_Album.Text"), songData.Album, AlbumTextBox.Text));
 					if (GenreChanged.Visibility == Visibility.Visible)
-						changes.Add(("Genre", songData.Genre, GenreAutoSuggestBox.Text));
+						changes.Add((LocalizationService.GetString("SongInfo_Label_Genre.Text"), songData.Genre, GenreAutoSuggestBox.Text));
 					if (YearChanged.Visibility == Visibility.Visible)
-						changes.Add(("Year", songData.Year, YearNumberBox.Text));
+						changes.Add((LocalizationService.GetString("SongInfo_Label_Year.Text"), songData.Year, YearNumberBox.Text));
 					if (TrackChanged.Visibility == Visibility.Visible)
-						changes.Add(("Track", songData.Track > 0 ? songData.Track.Value.ToString() : "", TrackNumberBox.Text));
+						changes.Add((LocalizationService.GetString("SongInfo_Label_Track.Text"), songData.Track > 0 ? songData.Track.Value.ToString() : "", TrackNumberBox.Text));
 					if (LyricsChanged.Visibility == Visibility.Visible)
-						changes.Add(("Lyrics", songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
+						changes.Add((LocalizationService.GetString("SongInfo_HasLyrics"), songData.Lyrics ?? "", LyricsTextBox.Text ?? ""));
 
 					var content = changes.Count > 0
 						? new StackPanel

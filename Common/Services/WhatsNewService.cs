@@ -262,7 +262,7 @@ public static class WhatsNewService
 			});
 			titlePanel.Children.Add(new TextBlock
 			{
-				Text = $"What's New in v{targetVersion.TrimStart('v', 'V')}",
+				Text = LocalizationService.FormatString("WhatsNew_Dialog_Title", targetVersion.TrimStart('v', 'V')),
 				Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"],
 				VerticalAlignment = VerticalAlignment.Center
 			});
@@ -271,7 +271,7 @@ public static class WhatsNewService
 			{
 				Title = titlePanel,
 				RequestedTheme = App.Current.ThemeService.ActualTheme,
-				CloseButtonText = "Close",
+				CloseButtonText = LocalizationService.GetString("WhatsNew_Dialog_Close"),
 				DefaultButton = ContentDialogButton.Close,
 				Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
 				Content = new ScrollViewer

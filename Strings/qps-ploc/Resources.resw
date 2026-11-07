@@ -3054,4 +3054,269 @@
     <value>[!!! (Ñôţé: Éẋţéřñáℓ ţĥïřđ-þářţŷ Ťéℓéğřáɱ ḅôţ. Ûšé áţ ýôúř ôẅñ đïšçřéţïôñ.) !!!]</value>
     <comment>Settings -&gt; About -&gt; Music Downloader -&gt; Third-Party Disclaimer Note</comment>
   </data>
-</root>
+  <data name="Notification_AutoScan_FailedChanges_Singular" xml:space="preserve">
+    <value>[ !!! {0} çĥáñĝé çôûľď ñôť ƀé áƥƥľíéď. Šéé ťĥé ɱéššáĝéš áƀôṽé. !!! ]</value>
+    <comment>Library Auto Scan -&gt; Failed Changes Count Singular</comment>
+  </data>
+  <data name="Notification_AutoScan_FailedChanges_Plural" xml:space="preserve">
+    <value>[ !!! {0} çĥáñĝéš çôûľď ñôť ƀé áƥƥľíéď. Šéé ťĥé ɱéššáĝéš áƀôṽé. !!! ]</value>
+    <comment>Library Auto Scan -&gt; Failed Changes Count Plural</comment>
+  </data>
+  <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Singular" xml:space="preserve">
+    <value>[ !!! Šťôƥƥéď áƒťéř {0} šôñĝ çôûľď ñôť ƀé ƥľáŷéď.
+Íƒ ƒíľéš ŵéřé ɱôṽéď ôř ďéľéťéď, řéšçáñ ŷôûř ľíƀřářŷ. !!! ]</value>
+    <comment>Music Player -&gt; Playback Stopped Consecutive Failures Singular</comment>
+  </data>
+  <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Plural" xml:space="preserve">
+    <value>[ !!! Šťôƥƥéď áƒťéř {0} šôñĝš íñ á řôŵ çôûľď ñôť ƀé ƥľáŷéď.
+Íƒ ƒíľéš ŵéřé ɱôṽéď ôř ďéľéťéď, řéšçáñ ŷôûř ľíƀřářŷ. !!! ]</value>
+    <comment>Music Player -&gt; Playback Stopped Consecutive Failures Plural</comment>
+  </data>
+  <data name="Notification_MusicPlayer_SkippedUnplayable_Singular" xml:space="preserve">
+    <value>[ !!! Šķíƥƥéď {0} šôñĝ ťĥáť çôûľď ñôť ƀé ƥľáŷéď. !!! ]</value>
+    <comment>Music Player -&gt; Skipped Unplayable Songs Singular</comment>
+  </data>
+  <data name="Notification_MusicPlayer_SkippedUnplayable_Plural" xml:space="preserve">
+    <value>[ !!! Šķíƥƥéď {0} šôñĝš ťĥáť çôûľď ñôť ƀé ƥľáŷéď. !!! ]</value>
+    <comment>Music Player -&gt; Skipped Unplayable Songs Plural</comment>
+  </data>
+  <data name="Settings_IgnoreShortTracks_Description_Singular" xml:space="preserve">
+    <value>[ !!! Ťřáçķš ářé íĝñôřéď íƒ ťĥéŷ ářé ľéšš ťĥáñ {0} šéçôñď !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; Ignore Short Tracks Card Description Singular</comment>
+  </data>
+  <data name="Settings_IgnoreShortTracks_Description_Plural" xml:space="preserve">
+    <value>[ !!! Ťřáçķš ářé íĝñôřéď íƒ ťĥéŷ ářé ľéšš ťĥáñ {0} šéçôñďš !!! ]</value>
+    <comment>Settings -&gt; Library Management -&gt; Ignore Short Tracks Card Description Plural</comment>
+  </data>
+  <data name="Notification_LibraryScanCompleted_Details" xml:space="preserve">
+    <value>[ !!! Ľíƀřářŷ šçáñ çôɱƥľéťéď.
+Ľíƀřáříéš: {0}
+Ƒôľďéřš: {1}
+Šôñĝš/Ťřáçķš: {2} !!! ]</value>
+    <comment>Library Scanner -&gt; Scan Completed Details ({0}=libraries, {1}=folders, {2}=songs)</comment>
+  </data>
+  <data name="Notification_ExternalLrcDiscovered" xml:space="preserve">
+    <value>[ !!! Ďíšçôṽéřéď éẋťéřñáľ .ľřç ƒíľé:
+{0} !!! ]</value>
+    <comment>Main Player -&gt; Discovered External Lrc File Toast ({0}=lrc path)</comment>
+  </data>
+  <data name="Notification_TrackNotFoundWithPath" xml:space="preserve">
+    <value>[ !!! Ĉôûľď ñôť ƒíñď ťřáçķ/šôñĝ:
+{0} !!! ]</value>
+    <comment>Main Player -&gt; Track Not Found Toast ({0}=track path)</comment>
+  </data>
+  <data name="Notification_NoTracksFoundInLibrary" xml:space="preserve">
+    <value>[ !!! Ñô ťřáçķš/šôñĝš ƒôûñď íñ ľíƀřářŷ. !!! ]</value>
+    <comment>Main Player -&gt; Empty Library Toast</comment>
+  </data>
+  <data name="Notification_CouldNotLoadTrack" xml:space="preserve">
+    <value>[ !!! Ĉôûľď ñôť ľôáď ťřáçķ/šôñĝ. !!! ]</value>
+    <comment>Main Player -&gt; Load Track Error Toast</comment>
+  </data>
+  <data name="Notification_ExternalLrcNotFound" xml:space="preserve">
+    <value>[ !!! Ĉôûľď ñôť ƒíñď éẋťéřñáľ .ľřç ƒíľé. !!! ]</value>
+    <comment>Main Player -&gt; Lyrics -&gt; External Lrc Not Found Toast</comment>
+  </data>
+  <data name="Notification_PlaybackHistoryReset" xml:space="preserve">
+    <value>[ !!! Ƥľáŷƀáçķ ĥíšťôřŷ řéšéť šûççéššƒûľľŷ. !!! ]</value>
+    <comment>Settings -&gt; Playback History Reset Success Toast</comment>
+  </data>
+  <data name="Notification_CouldNotLoadPreviousSong" xml:space="preserve">
+    <value>[ !!! Ĉôûľď ñôť ľôáď ƥřéṽíôûš šôñĝ. !!! ]</value>
+    <comment>Music Player -&gt; Load Previous Track Error Toast</comment>
+  </data>
+  <data name="Notification_CouldNotLoadNextSong" xml:space="preserve">
+    <value>[ !!! Ĉôûľď ñôť ľôáď ñéẋť šôñĝ. !!! ]</value>
+    <comment>Music Player -&gt; Load Next Track Error Toast</comment>
+  </data>
+  <data name="Notification_QueueStarted" xml:space="preserve">
+    <value>[ !!! Ǫûéûé šťářťéď. !!! ]</value>
+    <comment>Music Player -&gt; Queue Started Toast</comment>
+  </data>
+  <data name="Notification_QueueEnded" xml:space="preserve">
+    <value>[ !!! Ǫûéûé éñďéď. !!! ]</value>
+    <comment>Music Player -&gt; Queue Ended Toast</comment>
+  </data>
+  <data name="Notification_MusicFolderUnavailable" xml:space="preserve">
+    <value>[ !!! Ṁûšíç ƒôľďéř íš ñôť áṽáíľáƀľé:
+{0}
+Řéçôññéçť íť áñď ťřŷ áĝáíñ. !!! ]</value>
+    <comment>Music Player -&gt; Folder Unavailable Toast ({0}=folder path)</comment>
+  </data>
+  <data name="Notification_CouldNotLoadSongWithPath" xml:space="preserve">
+    <value>[ !!! Ĉôûľď ñôť ľôáď šôñĝ:
+{0} !!! ]</value>
+    <comment>Music Player -&gt; Load Song With Path Error Toast ({0}=song path)</comment>
+  </data>
+  <data name="Notification_MetadataUpdated" xml:space="preserve">
+    <value>[ !!! Ûƥďáťéď ɱéťáďáťá ƒôř:
+{0} !!! ]</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Updated Success Toast ({0}=path)</comment>
+  </data>
+  <data name="Notification_MetadataUpdateFailed" xml:space="preserve">
+    <value>[ !!! Ƒáíľéď ťô ûƥďáťé ɱéťáďáťá ƒôř:
+{0} !!! ]</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Update Failed Toast ({0}=path)</comment>
+  </data>
+  <data name="Notification_AutoScan_Scanning" xml:space="preserve">
+    <value>[ !!! Šçáññíñĝ ƒôř çĥáñĝéš ƥľéášé ŵáíť... !!! ]</value>
+    <comment>Library Auto Scan -&gt; Scanning Changes Info Toast</comment>
+  </data>
+  <data name="Notification_AutoScan_UpdateEntryFailed" xml:space="preserve">
+    <value>[ !!! Ĉôûľďñ'ť ûƥďáťé ťĥé ľíƀřářŷ éñťřŷ ƒôř:
+{0}
+{1} !!! ]</value>
+    <comment>Library Auto Scan -&gt; Update Entry Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_AutoScan_RemoveMissingFailed" xml:space="preserve">
+    <value>[ !!! Ĉôûľďñ'ť řéɱôṽé ťĥé ɱíššíñĝ ťřáçķš ƒřôɱ ťĥé ľíƀřářŷ.
+{0} !!! ]</value>
+    <comment>Library Auto Scan -&gt; Remove Missing Failed Toast ({0}=error)</comment>
+  </data>
+  <data name="Notification_AutoScan_AddNewFailed" xml:space="preserve">
+    <value>[ !!! Ĉôûľďñ'ť áďď ťĥé ñéŵ ôř çĥáñĝéď ťřáçķš ťô ťĥé ľíƀřářŷ.
+{0} !!! ]</value>
+    <comment>Library Auto Scan -&gt; Add New Failed Toast ({0}=error)</comment>
+  </data>
+  <data name="Notification_AutoScan_InSync" xml:space="preserve">
+    <value>[ !!! Âľľ ľíƀřáříéš ářé íñ šŷñç !!! ]</value>
+    <comment>Library Auto Scan -&gt; All Libraries In Sync Success Toast</comment>
+  </data>
+  <data name="Notification_ReadMetadataFailed" xml:space="preserve">
+    <value>[ !!! Ƒáíľéď ťô řéáď ɱéťáďáťá ƒôř:
+{0} !!! ]</value>
+    <comment>Library Scanner -&gt; Read Metadata Failed Toast ({0}=file path)</comment>
+  </data>
+  <data name="Notification_LibraryScanFailedKeptExisting" xml:space="preserve">
+    <value>[ !!! Ľíƀřářŷ šçáñ ƒáíľéď; ķéƥť ťĥé éẋíšťíñĝ ľíƀřářŷ. !!! ]</value>
+    <comment>Library Scanner -&gt; Scan Failed Kept Existing Status Message</comment>
+  </data>
+  <data name="Notification_NoLibrariesFound_Short" xml:space="preserve">
+    <value>[ !!! Ñô ľíƀřáříéš ƒôûñď !!! ]</value>
+    <comment>Library Scanner -&gt; No Libraries Found Short Status Message</comment>
+  </data>
+  <data name="Notification_NoLibrariesFound_AddOne" xml:space="preserve">
+    <value>[ !!! Ñô ľíƀřáříéš ƒôûñď. Ƥľéášé áďď áťľéášť ôñé ľíƀřářŷ. !!! ]</value>
+    <comment>Library Scanner -&gt; No Libraries Found Add One Warning Toast</comment>
+  </data>
+  <data name="Notification_LibraryFolderNotFound" xml:space="preserve">
+    <value>[ !!! Ľíƀřářŷ ƒôľďéř ñôť ƒôûñď: {0}
+ Ƒôľďéř ɱíĝĥť ƀé řéɱôṽéď/řéñáɱéď ƒřôɱ šŷšťéɱ. !!! ]</value>
+    <comment>Library Scanner -&gt; Folder Not Found Toast ({0}=folder path)</comment>
+  </data>
+  <data name="Notification_Playlist_UnsupportedFormat" xml:space="preserve">
+    <value>[ !!! Ûñšûƥƥôřťéď ƥľáŷľíšť ƒôřɱáť. !!! ]</value>
+    <comment>Playlist Importer -&gt; Unsupported Format Toast</comment>
+  </data>
+  <data name="Notification_Playlist_ExportFailed" xml:space="preserve">
+    <value>[ !!! Ƒáíľéď ťô éẋƥôřť ƥľáŷľíšť. !!! ]</value>
+    <comment>Playlist Importer -&gt; Export Failed Toast</comment>
+  </data>
+  <data name="Notification_Playlist_ExportSuccess" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť éẋƥôřťéď ťô: {0} !!! ]</value>
+    <comment>Playlist Importer -&gt; Export Success Toast ({0}=file path)</comment>
+  </data>
+  <data name="Notification_Playlist_FileNotFound" xml:space="preserve">
+    <value>[ !!! Ƥľáŷľíšť ƒíľé {0} ñôť ƒôûñď. !!! ]</value>
+    <comment>Playlist Importer -&gt; File Not Found Toast ({0}=file path)</comment>
+  </data>
+  <data name="Notification_Playlist_NoValidTracks" xml:space="preserve">
+    <value>[ !!! Ñô ṽáľíď ťřáçķš ƒôûñď íñ ťĥé ƥľáŷľíšť. !!! ]</value>
+    <comment>Playlist Importer -&gt; No Valid Tracks Toast</comment>
+  </data>
+  <data name="Notification_Playlist_ImportFailed" xml:space="preserve">
+    <value>[ !!! Ƒáíľéď ťô íɱƥôřť ƥľáŷľíšť. !!! ]</value>
+    <comment>Playlist Importer -&gt; Import Failed Toast</comment>
+  </data>
+  <data name="Notification_AutoScan_DoFullScanFirst" xml:space="preserve">
+    <value>[ !!! Ďô á Ƒûľľ Šçáñ áťľéášť ôñçé ŵíťĥ á ƒôľďéř ťĥáť çôñťáíñš ɱûšíç. !!! ]</value>
+    <comment>Auto Scan Service -&gt; Full Scan First Error Toast</comment>
+  </data>
+  <data name="Notification_AutoScan_NoMusicFound" xml:space="preserve">
+    <value>[ !!! Âûťô šçáñ ŵáš éñáƀľéď ƀûť ñô ɱûšíç ŵáš ƒôûñď. Ƥľéášé řûñ á ƒûľľ šçáñ ŵíťĥ á ƒôľďéř ťĥáť çôñťáíñš ɱûšíç. !!! ]</value>
+    <comment>Auto Scan Service -&gt; No Music Found Warning Toast</comment>
+  </data>
+  <data name="Notification_DatabaseBusyLookupFailed" xml:space="preserve">
+    <value>[ !!! Ťĥé ɱûšíç ľíƀřářŷ ďáťáƀášé šťáŷéď ƀûšŷ, šô ťĥé ľôôķûƥ ƒôř '{0}' çôûľď ñôť çôɱƥľéťé. Ĉľôšé ôťĥéř áƥƥš ûšíñĝ Ťûñéťášťíç ďáťá áñď ťřŷ áĝáíñ. !!! ]</value>
+    <comment>Database Helper -&gt; Database Busy Lookup Error Toast ({0}=path)</comment>
+  </data>
+  <data name="Notification_Watcher_TrackMovedFileFailed" xml:space="preserve">
+    <value>[ !!! Ĉôûľďñ'ť ťřáçķ ťĥé ɱôṽéď ƒíľé:
+{0}
+{1} !!! ]</value>
+    <comment>Library Watcher Service -&gt; Move File Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_Watcher_AddNewFileFailed" xml:space="preserve">
+    <value>[ !!! Ĉôûľďñ'ť áďď ťĥé ñéŵ ƒíľé ťô ťĥé ľíƀřářŷ:
+{0}
+{1} !!! ]</value>
+    <comment>Library Watcher Service -&gt; Add File Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_Watcher_RefreshEntryFailed" xml:space="preserve">
+    <value>[ !!! Ĉôûľďñ'ť řéƒřéšĥ ťĥé ľíƀřářŷ éñťřŷ ƒôř:
+{0}
+{1} !!! ]</value>
+    <comment>Library Watcher Service -&gt; Refresh Entry Failed Toast ({0}=path, {1}=error)</comment>
+  </data>
+  <data name="Notification_Watcher_AutoScanPassFailed" xml:space="preserve">
+    <value>[ !!! Âñ áûťôɱáťíç šçáñ ƥášš ƒáíľéď.
+{0} !!! ]</value>
+    <comment>Library Watcher Service -&gt; Auto Scan Pass Failed Toast ({0}=error)</comment>
+  </data>
+  <data name="Settings_FadePlayPauseStop_EnabledDescription" xml:space="preserve">
+    <value>[ !!! Ťĥé ɱûšíç ŵíľľ ƒáďé íñ/ôûť ôñ Ƥľáŷ/Ƥáûšé/Šťôƥ. Ƒáďé Ťíɱé: {0} ɱš !!! ]</value>
+    <comment>Settings -&gt; Playback -&gt; Fade Play/Pause/Stop Card Description Enabled ({0}=milliseconds)</comment>
+  </data>
+  <data name="Settings_FadePlayPauseStop_DisabledDescription" xml:space="preserve">
+    <value>[ !!! Ťĥé ɱûšíç ŵíľľ ñôť ƒáďé íñ/ôûť ôñ Ƥľáŷ/Ƥáûšé/Šťôƥ. !!! ]</value>
+    <comment>Settings -&gt; Playback -&gt; Fade Play/Pause/Stop Card Description Disabled</comment>
+  </data>
+  <data name="Settings_AutoAdvance_EnabledDescription" xml:space="preserve">
+    <value>[ !!! Ŵĥéñ ťĥé ťřáçķ éñďš áñď ťĥé ñéẋť ťřáçķ šťářťš áûťôɱáťíçáľľŷ, ťĥé ɱûšíç ŵíľľ çřôššƒáďé ƀéťŵééñ ťřáçķš. Ĉřôššƒáďé Ťíɱé: {0} ɱš !!! ]</value>
+    <comment>Settings -&gt; Playback -&gt; Auto Advance Card Description Enabled ({0}=milliseconds)</comment>
+  </data>
+  <data name="Settings_AutoAdvance_DisabledDescription" xml:space="preserve">
+    <value>[ !!! Ŵĥéñ ťĥé ťřáçķ éñďš áñď ťĥé ñéẋť ťřáçķ šťářťš áûťôɱáťíçáľľŷ, ťĥé ɱûšíç ŵíľľ ñôť çřôššƒáďé ƀéťŵééñ ťřáçķš. !!! ]</value>
+    <comment>Settings -&gt; Playback -&gt; Auto Advance Card Description Disabled</comment>
+  </data>
+  <data name="Settings_ManualTrackChange_EnabledDescription" xml:space="preserve">
+    <value>[ !!! Ŵĥéñ ŷôû çĥáñĝé ťĥé ťřáçķ ɱáñûáľľŷ, ťĥé ɱûšíç ŵíľľ çřôššƒáďé ƀéťŵééñ ťřáçķš. Ĉřôššƒáďé Ťíɱé: {0} ɱš !!! ]</value>
+    <comment>Settings -&gt; Playback -&gt; Manual Track Change Card Description Enabled ({0}=milliseconds)</comment>
+  </data>
+  <data name="Settings_ManualTrackChange_DisabledDescription" xml:space="preserve">
+    <value>[ !!! Ŵĥéñ ŷôû çĥáñĝé ťĥé ťřáçķ ɱáñûáľľŷ, ťĥé ɱûšíç ŵíľľ ñôť çřôššƒáďé ƀéťŵééñ ťřáçķš. !!! ]</value>
+    <comment>Settings -&gt; Playback -&gt; Manual Track Change Card Description Disabled</comment>
+  </data>
+  <data name="PlaylistValidation_NoEmojis" xml:space="preserve">
+    <value>[ !!! Ñáɱé çáññôť çôñťáíñ éɱôĵíš ôř šƥéçíáľ šŷɱƀôľš. !!! ]</value>
+    <comment>Playlists -&gt; Create/Rename/Import -&gt; Validation Error: No Emojis or Special Symbols</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_Field" xml:space="preserve">
+    <value>[ !!! Ƒíéľď !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Column Header: Field</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_Before" xml:space="preserve">
+    <value>[ !!! Ɓéƒôřé !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Column Header: Before</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_After" xml:space="preserve">
+    <value>[ !!! Âƒťéř !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Column Header: After</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_Removed" xml:space="preserve">
+    <value>[ !!! Řéɱôṽéď !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Value Placeholder: Removed</comment>
+  </data>
+  <data name="SongInfo_Edit_TagChanges_NoValue" xml:space="preserve">
+    <value>[ !!! Ñô {0} !!! ]</value>
+    <comment>Main Window -&gt; Song Info Panel -&gt; Edit Tag Confirmation Table -&gt; Placeholder: No Value ({0}=field name)</comment>
+  </data>
+  <data name="WhatsNew_Dialog_Title" xml:space="preserve">
+    <value>[ !!! Ŵĥáť'š Ñéŵ íñ ṽ{0} !!! ]</value>
+    <comment>What's New Dialog -&gt; Modal Dialog Title ({0}=version)</comment>
+  </data>
+  <data name="WhatsNew_Dialog_Close" xml:space="preserve">
+    <value>[ !!! Ĉľôšé !!! ]</value>
+    <comment>What's New Dialog -&gt; Close Button Text</comment>
+  </data>
+  </root>

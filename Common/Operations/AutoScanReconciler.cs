@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Tunetastic.Common.Services;
 
 namespace Tunetastic.Common.Operations;
 
@@ -33,7 +34,7 @@ public static class AutoScanReconciler
 			return;
 
 		if (showNotification)
-			GlobalNotification.Info("Scanning for changes please wait...");
+			GlobalNotification.Info(LocalizationService.GetString("Notification_AutoScan_Scanning"));
 
 		var effectiveRoots = LibraryScanner.ComputeEffectiveRoots(libraries);
 		var extensions = await LibraryScanner.GetEnabledExtensions();
@@ -77,7 +78,7 @@ public static class AutoScanReconciler
 				// A single failing file must not abort the pass: that would also skip the deletions,
 				// the new files, the folder recount and the notification below.
 				failedChanges++;
-				GlobalNotification.Error($"Couldn't update the library entry for:\n{oldPath}\n{ex.Message}");
+				GlobalNotification.Error(LocalizationService.FormatString("Notification_AutoScan_UpdateEntryFailed", oldPath, ex.Message));
 			}
 		}
 
@@ -91,7 +92,7 @@ public static class AutoScanReconciler
 			catch (Exception ex)
 			{
 				failedChanges++;
-				GlobalNotification.Error($"Couldn't remove the missing tracks from the library.\n{ex.Message}");
+				GlobalNotification.Error(LocalizationService.FormatString("Notification_AutoScan_RemoveMissingFailed", ex.Message));
 			}
 		}
 
@@ -107,7 +108,7 @@ public static class AutoScanReconciler
 		catch (Exception ex)
 		{
 			failedChanges++;
-			GlobalNotification.Error($"Couldn't add the new or changed tracks to the library.\n{ex.Message}");
+			GlobalNotification.Error(LocalizationService.FormatString("Notification_AutoScan_AddNewFailed", ex.Message));
 		}
 
 		// onDisk holds every extension-matching file currently on disk — the same set a full scan counts —
@@ -117,9 +118,9 @@ public static class AutoScanReconciler
 		if (showNotification)
 		{
 			if (failedChanges > 0)
-				GlobalNotification.Warning($"{failedChanges} change(s) could not be applied. See the messages above.");
+				GlobalNotification.Warning(LocalizationService.FormatPluralString("Notification_AutoScan_FailedChanges", failedChanges));
 			else
-				GlobalNotification.Success("All libraries are in sync");
+				GlobalNotification.Success(LocalizationService.GetString("Notification_AutoScan_InSync"));
 		}
 	}
 

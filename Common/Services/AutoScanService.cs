@@ -42,7 +42,7 @@ public static class AutoScanService
 
 		if (trackedMeta.Count == 0)
 		{
-			GlobalNotification.Error("Do a Full Scan atleast once with a folder that contains music.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_AutoScan_DoFullScanFirst"));
 			return false;
 		}
 
@@ -98,7 +98,7 @@ public static class AutoScanService
 		var trackedMeta = await DatabaseHelper.Instance.GetAllFileScanMeta();
 		if (trackedMeta.Count == 0)
 		{
-			GlobalNotification.Warning("Auto scan was enabled but no music was found. Please run a full scan with a folder that contains music.");
+			GlobalNotification.Warning(LocalizationService.GetString("Notification_AutoScan_NoMusicFound"));
 			await DisableAutoScan();
 			return;
 		}

@@ -901,7 +901,7 @@ public class DatabaseHelper
 				if (attempt >= maxAttempts)
 				{
 					if (MainWindow._instance is not null)
-						GlobalNotification.Error($"The music library database stayed busy, so the lookup for '{path}' could not complete. Close other apps using Tunetastic data and try again.");
+						GlobalNotification.Error(LocalizationService.FormatString("Notification_DatabaseBusyLookupFailed", path));
 					return null;
 				}
 				await Task.Delay(TimeSpan.FromMilliseconds(40));

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Xml.Linq;
+using Tunetastic.Common.Services;
 
 namespace Tunetastic.Common.Operations;
 
@@ -49,16 +50,16 @@ public static class ImportExportPlaylist
 		}
 		catch (NotSupportedException)
 		{
-			GlobalNotification.Error("Unsupported playlist format.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_Playlist_UnsupportedFormat"));
 			return;
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Failed to export playlist.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_Playlist_ExportFailed"));
 			return;
 		}
 
-		GlobalNotification.Success($"Playlist exported to: {fullPath}");
+		GlobalNotification.Success(LocalizationService.FormatString("Notification_Playlist_ExportSuccess", fullPath));
 	}
 
 	/// <summary>
@@ -181,7 +182,7 @@ public static class ImportExportPlaylist
 		try
 		{
 			if (!File.Exists(filePath))
-				GlobalNotification.Error($"Playlist file {filePath} not found.");
+				GlobalNotification.Error(LocalizationService.FormatString("Notification_Playlist_FileNotFound", filePath));
 
 			List<string> allTracks = new();
 			await Task.Run(() =>
@@ -190,7 +191,7 @@ public static class ImportExportPlaylist
 			});
 
 			if (allTracks.Count == 0)
-				GlobalNotification.Error("No valid tracks found in the playlist.");
+				GlobalNotification.Error(LocalizationService.GetString("Notification_Playlist_NoValidTracks"));
 
 			var filteredTracks = await DatabaseHelper.Instance.FilterExistingSongs(allTracks);
 
@@ -199,7 +200,7 @@ public static class ImportExportPlaylist
 		}
 		catch (Exception)
 		{
-			GlobalNotification.Error("Failed to import playlist.");
+			GlobalNotification.Error(LocalizationService.GetString("Notification_Playlist_ImportFailed"));
 			return ("", 0, new List<string>());
 		}
 	}
