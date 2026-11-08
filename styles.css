@@ -175,22 +175,33 @@ body {
 }
 
 .brand-icon {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, #00d2ff, #0078d4, #7928ca);
+  background: linear-gradient(135deg, rgba(96, 205, 255, 0.18) 0%, rgba(167, 139, 250, 0.22) 100%), #111726;
+  border: 1px solid rgba(96, 205, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
   box-shadow: 0 4px 18px var(--accent-cyan-glow);
   z-index: 2;
   position: relative;
-  transition: transform var(--transition-fast);
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  padding: 5px;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(96, 205, 255, 0.4));
 }
 
 .brand:hover .brand-icon {
-  transform: rotate(-6deg) scale(1.05);
+  transform: rotate(-6deg) scale(1.08);
+  border-color: rgba(96, 205, 255, 0.65);
+  box-shadow: 0 6px 24px rgba(96, 205, 255, 0.5);
 }
 
 .brand-pulse {

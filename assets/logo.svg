@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cosmicBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c1220" />
+      <stop offset="50%" stop-color="#141d33" />
+      <stop offset="100%" stop-color="#090d16" />
+    </linearGradient>
+    <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60cdff" />
+      <stop offset="50%" stop-color="#a78bfa" />
+      <stop offset="100%" stop-color="#00f5d4" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#60cdff" flood-opacity="0.25"/>
+    </filter>
+    <clipPath id="squircle">
+      <rect x="32" y="32" width="448" height="448" rx="100" ry="100"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Outer Fluent Glass Squircle Container -->
+  <rect x="32" y="32" width="448" height="448" rx="100" ry="100" fill="url(#cosmicBg)" stroke="url(#neonGlow)" stroke-width="4" filter="url(#shadow)"/>
+  
+  <!-- Tunetastic Official Logo Glyph -->
+  <g clip-path="url(#squircle)">
+    <image href="logo-dark.png" x="80" y="80" width="352" height="352" preserveAspectRatio="xMidYMid meet"/>
+  </g>
+</svg>
+
