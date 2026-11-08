@@ -102,11 +102,23 @@
     "hi-IN": { name: "Hindi", native: "हिन्दी", country: "in" },
     "ja-JP": { name: "Japanese", native: "日本語", country: "jp" },
     "ru-RU": { name: "Russian", native: "Русский", country: "ru" },
-    "pt-BR": { name: "Portuguese (Brazil)", native: "Português", country: "br" },
+    "pt-BR": { name: "Portuguese", native: "Português", country: "br" },
     "it-IT": { name: "Italian", native: "Italiano", country: "it" },
-    "zh-CN": { name: "Chinese (Simplified)", native: "简体中文", country: "cn" },
+    "zh-CN": { name: "Chinese", native: "简体中文", country: "cn" },
     "ar-SA": { name: "Arabic", native: "العربية", country: "sa", rtl: true }
   };
+
+  function formatLanguageDisplayName(meta, langCode) {
+    if (!meta) return langCode || '';
+    const native = meta.native ? meta.native.trim() : '';
+    const name = meta.name ? meta.name.trim() : '';
+    const code = meta.code || langCode || '';
+
+    if (native && name && native.toLowerCase() !== name.toLowerCase()) {
+      return `${native} (${name})`;
+    }
+    return native || name || code;
+  }
 
   function resolveLanguageMeta(code) {
     if (!code || code === 'qps-ploc' || code.toLowerCase().includes('ploc')) return null;
@@ -298,8 +310,8 @@
         <div class="card-top-profile">
           <span class="flag-box">${meta.flagHtml || ICONS.globe}</span>
           <div class="card-lang-titles">
-            <span class="card-lang-name">${escapeHtml(meta.name)}</span>
-            <span class="card-lang-native">${escapeHtml(meta.native)} • ${lang.code}</span>
+            <span class="card-lang-name" title="${escapeHtml(formatLanguageDisplayName(meta, lang.code))}">${escapeHtml(formatLanguageDisplayName(meta, lang.code))}</span>
+            <span class="card-lang-native">${escapeHtml(lang.code)}</span>
           </div>
           <span class="studio-pill ${pillClass}">
             ${pillText}
@@ -350,9 +362,10 @@
     const flagBox = document.getElementById('current-lang-flag');
     if (flagBox) flagBox.innerHTML = meta.flagHtml || ICONS.globe;
 
-    document.getElementById('current-lang-name').textContent = meta.name;
+    const fullTitle = formatLanguageDisplayName(meta, langCode);
+    document.getElementById('current-lang-name').textContent = fullTitle;
     document.getElementById('current-lang-code').textContent = langCode;
-    document.getElementById('current-lang-native').textContent = meta.native;
+    document.getElementById('current-lang-native').textContent = `Official Locale Workspace • ${langCode}`;
 
     if (meta.rtl) {
       document.body.classList.add('rtl-mode');
@@ -867,7 +880,7 @@
     }
 
     const meta = resolveLanguageMeta(currentLang) || { name: currentLang };
-    document.getElementById('modal-submit-lang').textContent = meta.name;
+    document.getElementById('modal-submit-lang').textContent = formatLanguageDisplayName(meta, currentLang);
     document.getElementById('modal-submit-count').textContent = count;
     document.getElementById('submit-author-input').value = localStorage.getItem('tunetastic_author') || '';
 
@@ -984,7 +997,7 @@
           <div class="card-header">
             <div>
               <span class="card-key-pill">${escapeHtml(item.key)}</span>
-              <span class="studio-pill" style="margin-left: 8px;">${escapeHtml(langMeta.name)} (${item.language})</span>
+              <span class="studio-pill" style="margin-left: 8px;">${escapeHtml(formatLanguageDisplayName(langMeta, item.language))} • ${item.language}</span>
             </div>
             <button class="btn btn-sm btn-primary-gradient admin-approve-btn" data-lang="${item.language}" data-key="${item.key}">
               ${ICONS.check} Approve Selected
