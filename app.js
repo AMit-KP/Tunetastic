@@ -27,6 +27,27 @@
   }
 
   const SESSION_ID = getOrCreateSessionId();
+
+  // SVG Icons Replacement (Zero Emojis)
+  const ICONS = {
+    check: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.5 3.5 6.5-7"/></svg>`,
+    checkCircle: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="7"/><path d="M5 8.2l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    globe: `<svg class="svg-icon svg-globe" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="7"/><path d="M1 8h14M8 1c2.2 2 3.5 4.3 3.5 7s-1.3 5-3.5 7c-2.2-2-3.5-4.3-3.5-7s1.3-5 3.5-7z"/></svg>`,
+    edit: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M11.5 1.5l3 3L5 14H2v-3l9.5-9.5z"/></svg>`,
+    clock: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="7"/><path d="M8 4v4.5l3 1.5" stroke-linecap="round"/></svg>`,
+    layers: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1L1 5l7 4 7-4-7-4zM1 8.5l7 4 7-4M1 12l7 4 7-4"/></svg>`,
+    bulb: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5c0 2 1.2 3.4 2.2 4.5h4.6c1-1.1 2.2-2.5 2.2-4.5A4.5 4.5 0 0 0 8 1.5zM6 13h4M6.5 14.5h3"/></svg>`,
+    lock: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M12 6V4a4 4 0 0 0-8 0v2H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6h-2zM6 4a2 2 0 1 1 4 0v2H6V4zm2 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>`,
+    sparkle: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 0l1.8 5.2L15 7l-5.2 1.8L8 14l-1.8-5.2L1 7l5.2-1.8L8 0z"/></svg>`,
+    copy: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3a1.5 1.5 0 0 0-1.5-1.5H3A1.5 1.5 0 0 0 1.5 3v6.5A1.5 1.5 0 0 0 3 11h2"/></svg>`,
+    comment: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 3a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5.5L2 14.5V3z"/></svg>`,
+    alert: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M7.1 1.5c.4-.7 1.4-.7 1.8 0l6.7 11.6c.4.7-.1 1.6-.9 1.6H1.3c-.8 0-1.3-.9-.9-1.6L7.1 1.5zM8 5a.8.8 0 0 0-.8.8v3.4a.8.8 0 0 0 1.6 0V5.8A.8.8 0 0 0 8 5zm0 6.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"/></svg>`,
+    search: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5" stroke-linecap="round"/></svg>`,
+    rocket: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg>`,
+    arrowLeft: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13L5 8l5-5"/></svg>`,
+    arrowRight: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>`
+  };
+
   let catalog = null;
   let currentLang = null;
   let currentFilter = 'all';
@@ -271,11 +292,11 @@
       if (pct === 100) { gradStart = '#00f5d4'; gradEnd = '#10b981'; }
 
       const pillClass = pct === 100 ? 'pill-approved' : (pct > 0 ? 'pill-translated' : 'pill-missing');
-      const pillText = pct === 100 ? '✓ Complete' : `${left} left`;
+      const pillText = pct === 100 ? 'Complete' : `${left} left`;
 
       card.innerHTML = `
         <div class="card-top-profile">
-          <span class="flag-box">${meta.flagHtml || '🌐'}</span>
+          <span class="flag-box">${meta.flagHtml || ICONS.globe}</span>
           <div class="card-lang-titles">
             <span class="card-lang-name">${escapeHtml(meta.name)}</span>
             <span class="card-lang-native">${escapeHtml(meta.native)} • ${lang.code}</span>
@@ -306,7 +327,7 @@
 
         <div class="card-stats-footer">
           <span><strong>${count}</strong> of ${total} strings</span>
-          <span class="action-chip">Translate <span class="action-arrow">→</span></span>
+          <span class="action-chip">Translate <span class="action-arrow">${ICONS.arrowRight}</span></span>
         </div>
       `;
 
@@ -325,9 +346,9 @@
     searchQuery = '';
     if (searchInput) searchInput.value = '';
 
-    const meta = resolveLanguageMeta(langCode) || { name: langCode, native: langCode, flagHtml: '🌐' };
+    const meta = resolveLanguageMeta(langCode) || { name: langCode, native: langCode, flagHtml: ICONS.globe };
     const flagBox = document.getElementById('current-lang-flag');
-    if (flagBox) flagBox.innerHTML = meta.flagHtml || '🌐';
+    if (flagBox) flagBox.innerHTML = meta.flagHtml || ICONS.globe;
 
     document.getElementById('current-lang-name').textContent = meta.name;
     document.getElementById('current-lang-code').textContent = langCode;
@@ -491,7 +512,7 @@
     if (pageItems.length === 0) {
       cardsContainer.innerHTML = `
         <div style="text-align: center; padding: 48px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
-          🔍 No strings match your current filter or search query.
+          ${ICONS.search} No strings match your current filter or search query.
         </div>
       `;
       return;
@@ -507,27 +528,27 @@
       const approvedEntry = liveStatus.approved ? liveStatus.approved[item.key] : null;
       const proposalMeta = liveStatus.proposals ? liveStatus.proposals[item.key] : null;
 
-      let statusPill = `<span class="studio-pill" style="opacity: 0.6;">🟢 Available</span>`;
+      let statusPill = `<span class="studio-pill" style="opacity: 0.6;">${ICONS.checkCircle} Available</span>`;
       let isLockedByOther = false;
 
       if (approvedEntry) {
-        statusPill = `<span class="studio-pill pill-approved">🟣 Approved (by ${escapeHtml(approvedEntry.contributor)})</span>`;
+        statusPill = `<span class="studio-pill pill-approved">${ICONS.check} Approved (by ${escapeHtml(approvedEntry.contributor)})</span>`;
       } else if (translation && translation.trim()) {
-        statusPill = `<span class="studio-pill pill-translated">⚪ Translated</span>`;
+        statusPill = `<span class="studio-pill pill-translated">${ICONS.check} Translated</span>`;
       } else if (lock === 'mine') {
-        statusPill = `<span class="studio-pill pill-draft-mine">📝 Your Draft</span>`;
+        statusPill = `<span class="studio-pill pill-draft-mine">${ICONS.edit} Your Draft</span>`;
       } else if (lock === 'other') {
-        statusPill = `<span class="studio-pill pill-draft-other">🟡 In Progress (Other)</span>`;
+        statusPill = `<span class="studio-pill pill-draft-other">${ICONS.clock} In Progress (Other)</span>`;
         isLockedByOther = true;
       } else if (proposalMeta && proposalMeta.count > 0) {
-        statusPill = `<span class="studio-pill pill-submitted">⏳ Proposals (${proposalMeta.count})</span>`;
+        statusPill = `<span class="studio-pill pill-submitted">${ICONS.layers} Proposals (${proposalMeta.count})</span>`;
       }
 
       // Suggest Button Slot state
       const isFull = proposalMeta && proposalMeta.isFull;
       const suggestBtnHtml = isFull 
-        ? `<button class="btn-suggest" disabled title="Max 10 community suggestions reached">🔒 Max (10/10)</button>`
-        : `<button class="btn-suggest" data-key="${item.key}">💡 Suggest Alternative</button>`;
+        ? `<button class="btn-suggest" disabled title="Max 10 community suggestions reached">${ICONS.lock} Max (10/10)</button>`
+        : `<button class="btn-suggest" data-key="${item.key}">${ICONS.bulb} Suggest Alternative</button>`;
 
       const card = document.createElement('div');
       card.className = `studio-card ${item.isHumor ? 'humor-card' : ''}`;
@@ -539,7 +560,7 @@
             <span class="key-badge-mono">${escapeHtml(item.key)}</span>
             ${statusPill}
             ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
-            ${item.isHumor ? `<span class="studio-pill pill-humor">🎭 Quip</span>` : ''}
+            ${item.isHumor ? `<span class="studio-pill pill-humor">${ICONS.sparkle} Quip</span>` : ''}
           </div>
           <div class="card-header-actions">
             ${suggestBtnHtml}
@@ -550,10 +571,10 @@
           <div class="editor-column">
             <div class="column-header">
               <span>English Source</span>
-              <button class="copy-mini-btn" data-copy="${escapeHtml(item.source)}">📋 Copy</button>
+              <button class="copy-mini-btn" data-copy="${escapeHtml(item.source)}">${ICONS.copy} Copy</button>
             </div>
             <div class="source-display-box">${escapeHtml(item.source)}</div>
-            ${item.comment ? `<div style="font-size: 11.5px; color: var(--text-tertiary); margin-top: 5px;">💬 ${escapeHtml(item.comment)}</div>` : ''}
+            ${item.comment ? `<div style="font-size: 11.5px; color: var(--text-tertiary); margin-top: 5px;">${ICONS.comment} ${escapeHtml(item.comment)}</div>` : ''}
           </div>
 
           <div class="editor-column">
@@ -571,7 +592,7 @@
             ` : ''}
 
             <div class="token-missing-alert" id="token-warning-${item.key}" style="display: ${tokenStatus.isValid ? 'none' : 'flex'}; margin-top: 6px;">
-              ⚠️ Missing placeholder token: <strong>${tokenStatus.missing.join(', ')}</strong>
+              ${ICONS.alert} Missing placeholder token: <strong>${tokenStatus.missing.join(', ')}</strong>
             </div>
           </div>
         </div>
@@ -596,9 +617,9 @@
       if (copyBtn) {
         copyBtn.onclick = () => {
           navigator.clipboard.writeText(item.source);
-          copyBtn.textContent = '✓ Copied!';
+          copyBtn.innerHTML = `${ICONS.check} Copied!`;
           copyBtn.classList.add('copied');
-          setTimeout(() => { copyBtn.textContent = '📋 Copy'; copyBtn.classList.remove('copied'); }, 2000);
+          setTimeout(() => { copyBtn.innerHTML = `${ICONS.copy} Copy`; copyBtn.classList.remove('copied'); }, 2000);
         };
       }
 
@@ -626,7 +647,7 @@
             } else {
               if (tokenWarn) {
                 tokenWarn.style.display = 'flex';
-                tokenWarn.innerHTML = `⚠️ Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
+                tokenWarn.innerHTML = `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
               }
               if (tokenBadge) tokenBadge.className = 'studio-pill pill-error';
             }
@@ -930,7 +951,7 @@
       if (pendingItems.length === 0) {
         container.innerHTML = `
           <div style="text-align: center; padding: 48px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
-            🎉 The review queue is completely clear! No community proposals are pending review.
+            ${ICONS.checkCircle} The review queue is completely clear! No community proposals are pending review.
           </div>
         `;
         return;
@@ -966,7 +987,7 @@
               <span class="studio-pill" style="margin-left: 8px;">${escapeHtml(langMeta.name)} (${item.language})</span>
             </div>
             <button class="btn btn-sm btn-primary-gradient admin-approve-btn" data-lang="${item.language}" data-key="${item.key}">
-              ✅ Approve Selected
+              ${ICONS.check} Approve Selected
             </button>
           </div>
 
@@ -1020,7 +1041,7 @@
 
             if (aRes.ok) {
               card.style.opacity = '0.5';
-              card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">✅ Approved! Key "${item.key}" is staged in Cloudflare. Click "Sync Approved to Git" when ready to create a PR.</div>`;
+              card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">${ICONS.check} Approved! Key "${item.key}" is staged in Cloudflare. Click "Sync Approved to Git" when ready to create a PR.</div>`;
               showToast(`Approved "${item.key}"!`);
             } else {
               alert("Failed to approve.");
@@ -1068,11 +1089,11 @@
       if (res.ok) {
         resultBanner.style.display = 'block';
         resultBanner.innerHTML = `
-          <h4 style="color: var(--status-success); margin-bottom: 6px;">🎉 Pull Request #${data.pr_number} Successfully Opened!</h4>
+          <h4 style="color: var(--status-success); margin-bottom: 6px;">${ICONS.checkCircle} Pull Request #${data.pr_number} Successfully Opened!</h4>
           <p style="font-size: 13.5px; margin-bottom: 10px;">
             A dedicated sync branch <code>${data.branch}</code> was created and populated with your approved translations.
           </p>
-          <a href="${data.pr_url}" target="_blank" rel="noopener">👉 View and Merge PR #${data.pr_number} on GitHub</a>
+          <a href="${data.pr_url}" target="_blank" rel="noopener">View and Merge PR #${data.pr_number} on GitHub ${ICONS.arrowRight}</a>
         `;
         showToast("Pull Request created on GitHub!");
         loadAdminQueue();
@@ -1083,7 +1104,7 @@
       alert("Error triggering sync PR: " + err.message);
     } finally {
       prBtn.disabled = false;
-      prBtn.innerHTML = `<span class="btn-icon">🚀</span> Sync Approved to Git (Create PR)`;
+      prBtn.innerHTML = `<span class="btn-icon">${ICONS.rocket}</span> Sync Approved to Git (Create PR)`;
     }
   }
 
