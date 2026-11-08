@@ -241,41 +241,72 @@
     if (!catalog || !catalog.languages) return;
 
     const langs = Object.values(catalog.languages).filter(l => l.code !== 'qps-ploc');
+    const badge = document.getElementById('lang-counter-badge');
+    if (badge) badge.textContent = `${langs.length} Locales Active`;
 
-    langs.forEach(lang => {
+    langs.forEach((lang, index) => {
       const meta = resolveLanguageMeta(lang.code) || lang;
-      const pct = lang.progressPct || 0;
-      const count = lang.translatedCount || 0;
+      const localTrans = getAllLocalTranslations(lang.code) || {};
+      const localDoneCount = Object.keys(localTrans).length;
+      const count = Math.max(lang.translatedCount || 0, localDoneCount);
       const total = lang.totalCount || catalog.totalStrings || 828;
-
-      const radius = 22;
-      const circumference = 2 * Math.PI * radius;
-      const strokeOffset = circumference - (pct / 100) * circumference;
+      const pct = Math.min(100, Math.round((count / total) * 100));
+      const left = Math.max(0, total - count);
 
       const card = document.createElement('div');
-      card.className = 'lang-card';
+      card.className = 'lang-card-item lang-card';
+      card.style.setProperty('--i', index);
       card.onclick = () => { window.location.hash = `#translate/${lang.code}`; };
 
+      // High-resolution SVG Donut Calculations (r=40, circumference = 251.327)
+      const r = 40;
+      const circ = 2 * Math.PI * r;
+      const offset = circ * (1 - pct / 100);
+
+      // Color stop selection based on %
+      let gradStart = '#ef4444';
+      let gradEnd = '#f59e0b';
+      if (pct >= 30) { gradStart = '#f59e0b'; gradEnd = '#60cdff'; }
+      if (pct >= 70) { gradStart = '#60cdff'; gradEnd = '#00f5d4'; }
+      if (pct === 100) { gradStart = '#00f5d4'; gradEnd = '#10b981'; }
+
+      const pillClass = pct === 100 ? 'pill-approved' : (pct > 0 ? 'pill-translated' : 'pill-missing');
+      const pillText = pct === 100 ? '✓ Complete' : `${left} left`;
+
       card.innerHTML = `
-        <div class="lang-card-header">
-          <div class="lang-badge-flag">${meta.flagHtml || '🌐'}</div>
-          <div class="progress-ring-container">
-            <svg class="progress-ring" width="56" height="56" viewBox="0 0 56 56">
-              <circle class="ring-track" cx="28" cy="28" r="${radius}" fill="none" stroke-width="4"></circle>
-              <circle class="ring-fill" cx="28" cy="28" r="${radius}" fill="none" stroke-width="4"
-                style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${strokeOffset};">
-              </circle>
-            </svg>
-            <span class="ring-pct-text">${pct}%</span>
+        <div class="card-top-profile">
+          <span class="flag-box">${meta.flagHtml || '🌐'}</span>
+          <div class="card-lang-titles">
+            <span class="card-lang-name">${escapeHtml(meta.name)}</span>
+            <span class="card-lang-native">${escapeHtml(meta.native)} • ${lang.code}</span>
+          </div>
+          <span class="studio-pill ${pillClass}">
+            ${pillText}
+          </span>
+        </div>
+
+        <div class="card-donut-wrap">
+          <svg class="donut-svg" width="104" height="104" viewBox="0 0 104 104">
+            <defs>
+              <linearGradient id="meter-grad-${lang.code}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="${gradStart}" />
+                <stop offset="100%" stop-color="${gradEnd}" />
+              </linearGradient>
+            </defs>
+            <circle class="donut-bg-ring" cx="52" cy="52" r="${r}" fill="none" stroke-width="8"></circle>
+            <circle class="donut-val-ring" cx="52" cy="52" r="${r}" fill="none"
+              stroke="url(#meter-grad-${lang.code})" stroke-width="8"
+              stroke-dasharray="${circ}" stroke-dashoffset="${offset}"></circle>
+          </svg>
+          <div class="donut-center-info">
+            <span class="donut-pct-text">${pct}%</span>
+            <span class="donut-pct-sub">${pct === 100 ? 'Done' : 'Complete'}</span>
           </div>
         </div>
 
-        <h3 class="lang-title">${escapeHtml(meta.name)}</h3>
-        <p class="lang-native">${escapeHtml(meta.native)}</p>
-
-        <div class="lang-card-footer">
-          <span class="lang-stat-count">${count} / ${total} strings</span>
-          <span class="lang-action-link">Translate →</span>
+        <div class="card-stats-footer">
+          <span><strong>${count}</strong> of ${total} strings</span>
+          <span class="action-chip">Translate <span class="action-arrow">→</span></span>
         </div>
       `;
 
