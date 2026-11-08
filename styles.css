@@ -1687,6 +1687,49 @@ body {
 }
 
 /* Dynamic Live Status Pills */
+.progress-ring-container {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+  width: 56px;
+  height: 56px;
+}
+
+.ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 4;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--accent-cyan);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease;
+  filter: drop-shadow(0 0 6px var(--accent-cyan-glow));
+}
+
+.ring-pct-text {
+  position: absolute;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--accent-cyan);
+}
+
+.lang-flag-img {
+  border-radius: 4px;
+  vertical-align: middle;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
 .pill-draft-mine {
   background: rgba(0, 229, 255, 0.15);
   color: #00e5ff;

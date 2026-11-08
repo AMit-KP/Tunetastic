@@ -71,43 +71,66 @@
   let activeSuggestProposals = [];
 
   // -------------------------------------------------------------------------
-  // 2. DYNAMIC LANGUAGE METADATA (Intl.DisplayNames, Zero Hardcoding)
+  // 2. DYNAMIC LANGUAGE METADATA (Intl.DisplayNames & Real Flag Icons)
   // -------------------------------------------------------------------------
+
+  const KNOWN_LOCALES = {
+    "es-ES": { name: "Spanish", native: "Español", country: "es" },
+    "de-DE": { name: "German", native: "Deutsch", country: "de" },
+    "fr-FR": { name: "French", native: "Français", country: "fr" },
+    "hi-IN": { name: "Hindi", native: "हिन्दी", country: "in" },
+    "ja-JP": { name: "Japanese", native: "日本語", country: "jp" },
+    "ru-RU": { name: "Russian", native: "Русский", country: "ru" },
+    "pt-BR": { name: "Portuguese (Brazil)", native: "Português", country: "br" },
+    "it-IT": { name: "Italian", native: "Italiano", country: "it" },
+    "zh-CN": { name: "Chinese (Simplified)", native: "简体中文", country: "cn" },
+    "ar-SA": { name: "Arabic", native: "العربية", country: "sa", rtl: true }
+  };
 
   function resolveLanguageMeta(code) {
     if (!code || code === 'qps-ploc' || code.toLowerCase().includes('ploc')) return null;
 
+    if (KNOWN_LOCALES[code]) {
+      const k = KNOWN_LOCALES[code];
+      return {
+        code,
+        name: k.name,
+        native: k.native,
+        rtl: !!k.rtl,
+        country: k.country,
+        flagHtml: `<img src="https://flagcdn.com/32x24/${k.country}.png" srcset="https://flagcdn.com/64x48/${k.country}.png 2x" width="28" height="20" alt="${k.name}" class="lang-flag-img">`
+      };
+    }
+
     const parts = code.split('-');
     const langSubtag = parts[0];
-    const regionSubtag = parts[1];
+    const regionSubtag = parts[1] || parts[0];
+    const country = regionSubtag.toLowerCase();
 
     let name = code;
     let native = code;
 
     try {
       const enDisplay = new Intl.DisplayNames(['en'], { type: 'language' });
-      name = enDisplay.of(code) || enDisplay.of(langSubtag) || code;
+      name = enDisplay.of(langSubtag) || enDisplay.of(code) || code;
     } catch (e) {
       name = code;
     }
 
     try {
       const nativeDisplay = new Intl.DisplayNames([code], { type: 'language' });
-      native = nativeDisplay.of(code) || nativeDisplay.of(langSubtag) || name;
+      native = nativeDisplay.of(langSubtag) || nativeDisplay.of(code) || name;
     } catch (e) {
       native = name;
     }
 
-    let flag = "🌐";
-    if (regionSubtag && regionSubtag.length === 2) {
-      try {
-        flag = String.fromCodePoint(...regionSubtag.toUpperCase().split('').map(c => 127397 + c.charCodeAt(0)));
-      } catch (e) {
-        flag = "🌐";
-      }
-    }
-
-    return { code, name, native, flag };
+    return {
+      code,
+      name,
+      native,
+      country,
+      flagHtml: `<img src="https://flagcdn.com/32x24/${country}.png" srcset="https://flagcdn.com/64x48/${country}.png 2x" width="28" height="20" alt="${name}" class="lang-flag-img">`
+    };
   }
 
   // -------------------------------------------------------------------------
@@ -225,7 +248,7 @@
       const count = lang.translatedCount || 0;
       const total = lang.totalCount || catalog.totalStrings || 828;
 
-      const radius = 24;
+      const radius = 22;
       const circumference = 2 * Math.PI * radius;
       const strokeOffset = circumference - (pct / 100) * circumference;
 
@@ -235,11 +258,11 @@
 
       card.innerHTML = `
         <div class="lang-card-header">
-          <div class="lang-badge-flag">${meta.flag || '🌐'}</div>
+          <div class="lang-badge-flag">${meta.flagHtml || '🌐'}</div>
           <div class="progress-ring-container">
-            <svg class="progress-ring" width="56" height="56">
-              <circle class="ring-track" cx="28" cy="28" r="${radius}"></circle>
-              <circle class="ring-fill" cx="28" cy="28" r="${radius}" 
+            <svg class="progress-ring" width="56" height="56" viewBox="0 0 56 56">
+              <circle class="ring-track" cx="28" cy="28" r="${radius}" fill="none" stroke-width="4"></circle>
+              <circle class="ring-fill" cx="28" cy="28" r="${radius}" fill="none" stroke-width="4"
                 style="stroke-dasharray: ${circumference}; stroke-dashoffset: ${strokeOffset};">
               </circle>
             </svg>
@@ -271,8 +294,10 @@
     searchQuery = '';
     if (searchInput) searchInput.value = '';
 
-    const meta = resolveLanguageMeta(langCode) || { name: langCode, native: langCode, flag: '🌐' };
-    document.getElementById('current-lang-flag').textContent = meta.flag;
+    const meta = resolveLanguageMeta(langCode) || { name: langCode, native: langCode, flagHtml: '🌐' };
+    const flagBox = document.getElementById('current-lang-flag');
+    if (flagBox) flagBox.innerHTML = meta.flagHtml || '🌐';
+
     document.getElementById('current-lang-name').textContent = meta.name;
     document.getElementById('current-lang-code').textContent = langCode;
     document.getElementById('current-lang-native').textContent = meta.native;
@@ -474,60 +499,77 @@
         : `<button class="btn-suggest" data-key="${item.key}">💡 Suggest Alternative</button>`;
 
       const card = document.createElement('div');
-      card.className = 'studio-card';
+      card.className = `studio-card ${item.isHumor ? 'humor-card' : ''}`;
       card.id = `card-${item.key}`;
 
       card.innerHTML = `
-        <div class="card-header">
-          <div class="card-header-left">
-            <span class="card-key-pill">${escapeHtml(item.key)}</span>
+        <div class="studio-card-header">
+          <div class="card-tags">
+            <span class="key-badge-mono">${escapeHtml(item.key)}</span>
             ${statusPill}
             ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
-            ${item.isHumor ? `<span class="studio-pill pill-humor">🎭 Transcreation</span>` : ''}
+            ${item.isHumor ? `<span class="studio-pill pill-humor">🎭 Quip</span>` : ''}
           </div>
-          <div class="card-header-right">
+          <div class="card-header-actions">
             ${suggestBtnHtml}
           </div>
         </div>
 
-        <div class="card-split-grid">
-          <div class="source-panel">
-            <div class="panel-label">English Source</div>
-            <div class="source-bubble">${escapeHtml(item.source)}</div>
-            ${item.comment ? `<div class="developer-hint">💬 <strong>Context:</strong> ${escapeHtml(item.comment)}</div>` : ''}
+        <div class="editors-split-grid">
+          <div class="editor-column">
+            <div class="column-header">
+              <span>English Source</span>
+              <button class="copy-mini-btn" data-copy="${escapeHtml(item.source)}">📋 Copy</button>
+            </div>
+            <div class="source-display-box">${escapeHtml(item.source)}</div>
+            ${item.comment ? `<div style="font-size: 11.5px; color: var(--text-tertiary); margin-top: 5px;">💬 ${escapeHtml(item.comment)}</div>` : ''}
           </div>
 
-          <div class="trans-panel">
-            <div class="panel-label">Your Translation</div>
-            <textarea class="trans-textarea" id="input-${item.key}" rows="2" 
-              placeholder="${isLockedByOther ? 'Another contributor is drafting this... You can suggest an alternative above.' : 'Type your translation here...'}"
+          <div class="editor-column">
+            <div class="column-header">
+              <span>Your Translation</span>
+            </div>
+            <textarea class="translation-textarea" id="input-${item.key}" rows="3" 
+              placeholder="${isLockedByOther ? 'Another contributor is drafting this... You can suggest an alternative.' : 'Type your translation here...'}"
               ${isLockedByOther ? 'readonly style="opacity: 0.6;"' : ''}>${escapeHtml(translation)}</textarea>
 
             ${hasPlaceholders ? `
-              <div class="token-helper-bar">
-                <span>Placeholders:</span>
-                <span style="font-size: 11px; color: var(--text-tertiary);">${item.placeholders.map(p => `${p.token}: ${p.label}`).join(' • ')}</span>
+              <div style="font-size: 11.5px; color: var(--text-tertiary); margin-top: 5px;">
+                <span>Placeholders:</span> ${item.placeholders.map(p => `<code style="color: var(--accent-cyan);">${p.token}</code> (${p.label})`).join(' • ')}
               </div>
             ` : ''}
 
-            <div class="token-missing-alert" id="token-warning-${item.key}" style="display: ${tokenStatus.isValid ? 'none' : 'flex'};">
+            <div class="token-missing-alert" id="token-warning-${item.key}" style="display: ${tokenStatus.isValid ? 'none' : 'flex'}; margin-top: 6px;">
               ⚠️ Missing placeholder token: <strong>${tokenStatus.missing.join(', ')}</strong>
             </div>
           </div>
         </div>
 
         <div class="in-app-preview-flyout">
-          <div class="flyout-header">
-            <div class="win-flyout-icon">🎵</div>
-            <div class="flyout-title">Simulated WinUI In-App Notification</div>
+          <div class="preview-flyout-top">
+            <div class="preview-badge-title">
+              <span class="preview-wave-icon"><span></span><span></span><span></span></span>
+              <span>Simulated WinUI In-App Notification</span>
+            </div>
           </div>
-          <div class="flyout-body" id="preview-${item.key}">
+          <div class="preview-line" id="preview-${item.key}">
             ${renderSimulatedPreview(item.source, translation, item.placeholders)}
           </div>
         </div>
       `;
 
       cardsContainer.appendChild(card);
+
+      // Copy mini btn event
+      const copyBtn = card.querySelector('.copy-mini-btn');
+      if (copyBtn) {
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(item.source);
+          copyBtn.textContent = '✓ Copied!';
+          copyBtn.classList.add('copied');
+          setTimeout(() => { copyBtn.textContent = '📋 Copy'; copyBtn.classList.remove('copied'); }, 2000);
+        };
+      }
 
       // Event listener for textarea typing
       if (!isLockedByOther) {
@@ -538,7 +580,9 @@
 
           // Update live simulated preview
           const previewEl = document.getElementById(`preview-${item.key}`);
-          previewEl.innerHTML = renderSimulatedPreview(item.source, val, item.placeholders);
+          if (previewEl) {
+            previewEl.innerHTML = renderSimulatedPreview(item.source, val, item.placeholders);
+          }
 
           // Validate Tokens
           if (hasPlaceholders) {
@@ -546,12 +590,14 @@
             const tokenBadge = document.getElementById(`token-badge-${item.key}`);
             const check = validateTokens(item.source, val, item.placeholders);
             if (check.isValid) {
-              tokenWarn.style.display = 'none';
-              tokenBadge.className = 'studio-pill pill-tokens';
+              if (tokenWarn) tokenWarn.style.display = 'none';
+              if (tokenBadge) tokenBadge.className = 'studio-pill pill-tokens';
             } else {
-              tokenWarn.style.display = 'flex';
-              tokenWarn.innerHTML = `⚠️ Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
-              tokenBadge.className = 'studio-pill pill-error';
+              if (tokenWarn) {
+                tokenWarn.style.display = 'flex';
+                tokenWarn.innerHTML = `⚠️ Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
+              }
+              if (tokenBadge) tokenBadge.className = 'studio-pill pill-error';
             }
           }
 
@@ -575,16 +621,52 @@
     if (!catalog || !catalog.items) return;
     const total = catalog.items.length;
     let translated = 0;
+    let tokenCount = 0;
+    let humorCount = 0;
 
     catalog.items.forEach(item => {
       const val = getLocalTranslation(currentLang, item.key);
       const isApproved = liveStatus.approved && liveStatus.approved[item.key];
       if ((val && val.trim()) || isApproved) translated++;
+      if (item.placeholders && item.placeholders.length > 0) tokenCount++;
+      if (item.isHumor) humorCount++;
     });
 
     const pct = Math.round((translated / total) * 100) || 0;
-    document.getElementById('ws-progress-text').textContent = `${translated} of ${total} strings (${pct}%)`;
-    document.getElementById('ws-progress-fill').style.width = `${pct}%`;
+    const missing = total - translated;
+
+    const pctLabel = document.getElementById('ws-pct-label');
+    if (pctLabel) pctLabel.textContent = `${pct}% Complete (${translated}/${total})`;
+
+    const progressFill = document.getElementById('workspace-progress-fill');
+    if (progressFill) progressFill.style.width = `${pct}%`;
+
+    const doneCount = document.getElementById('ws-done-count');
+    if (doneCount) doneCount.textContent = `${translated}`;
+
+    const missingCount = document.getElementById('ws-missing-count');
+    if (missingCount) missingCount.textContent = `${missing}`;
+
+    const humorEl = document.getElementById('ws-humor-count');
+    if (humorEl) humorEl.textContent = `${humorCount}`;
+
+    const tokensEl = document.getElementById('ws-tokens-count');
+    if (tokensEl) tokensEl.textContent = `${tokenCount}`;
+
+    const countAll = document.getElementById('count-all');
+    if (countAll) countAll.textContent = `${total}`;
+
+    const countMissing = document.getElementById('count-missing');
+    if (countMissing) countMissing.textContent = `${missing}`;
+
+    const countDone = document.getElementById('count-done');
+    if (countDone) countDone.textContent = `${translated}`;
+
+    const countTokens = document.getElementById('count-tokens');
+    if (countTokens) countTokens.textContent = `${tokenCount}`;
+
+    const countHumor = document.getElementById('count-humor');
+    if (countHumor) countHumor.textContent = `${humorCount}`;
   }
 
   // -------------------------------------------------------------------------
