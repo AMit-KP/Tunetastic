@@ -446,7 +446,7 @@ body {
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -1.4px;
-  margin-bottom: 14px;
+  margin-bottom: 32px;
   animation: popIn 0.7s var(--ease-spring) 0.15s backwards;
 }
 
@@ -543,8 +543,9 @@ body {
 /* Guided Workflow Cards */
 .workflow-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
+  margin-bottom: 36px;
 }
 
 .workflow-card {
@@ -561,6 +562,7 @@ body {
 .workflow-card:nth-child(1) { animation-delay: 0.3s; }
 .workflow-card:nth-child(2) { animation-delay: 0.4s; }
 .workflow-card:nth-child(3) { animation-delay: 0.5s; }
+.workflow-card:nth-child(4) { animation-delay: 0.6s; }
 
 .workflow-card:hover {
   background: rgba(24, 32, 50, 0.9);
@@ -581,6 +583,7 @@ body {
 .glow-cyan   { background: linear-gradient(90deg, transparent, #60cdff, transparent); }
 .glow-purple { background: linear-gradient(90deg, transparent, #a78bfa, transparent); }
 .glow-green  { background: linear-gradient(90deg, transparent, #00f5d4, transparent); }
+.glow-amber  { background: linear-gradient(90deg, transparent, #f59e0b, transparent); }
 
 .workflow-icon-wrap {
   width: 38px;
@@ -602,6 +605,7 @@ body {
 .icon-cyan   { background: rgba(96, 205, 255, 0.14); color: var(--accent-cyan); box-shadow: 0 0 16px var(--accent-cyan-glow); }
 .icon-purple { background: rgba(167, 139, 250, 0.14); color: var(--accent-purple); box-shadow: 0 0 16px var(--accent-purple-glow); }
 .icon-green  { background: rgba(0, 245, 212, 0.14);  color: var(--accent-emerald); box-shadow: 0 0 16px var(--accent-emerald-glow); }
+.icon-amber  { background: rgba(245, 158, 11, 0.14);  color: var(--status-warning); box-shadow: 0 0 16px rgba(245, 158, 11, 0.35); }
 
 .workflow-content h3 {
   font-size: 16px;
