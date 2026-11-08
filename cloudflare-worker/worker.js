@@ -1,8 +1,12 @@
 /**
- * Tunetastic Community Localization Staging Worker
- * Handles silent staging of community translations in Cloudflare KV,
- * posts notification comments to the single GitHub tracker issue,
- * and serves the Admin Review Queue & GitHub Action sync endpoints.
+ * Tunetastic Community Localization Staging Worker v2
+ * Handles:
+ * 1. Zero-Login 48-Hour Sliding Draft Sessions (/api/draft, /api/drafts/resume)
+ * 2. Multi-Version Community Proposals (Max 10) with Exact-Match Guard (/api/submit, /api/suggest)
+ * 3. Collapsible Issue #143 Tracker Notifications
+ * 4. Maintainer Review Queue & Approval (/api/pending, /api/approve)
+ * 5. Automated Pull Request Creation via GitHub REST API (/api/sync-pr)
+ * 6. Safe Post-Merge KV Cleanup (/api/cleanup-synced)
  */
 
 const ALLOWED_ORIGINS = [
@@ -17,7 +21,7 @@ function getCorsHeaders(request) {
   return {
     "Access-Control-Allow-Origin": isAllowed ? origin : "https://amit-kp.github.io",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Session-ID"
   };
 }
 
@@ -30,10 +34,32 @@ function jsonResponse(data, status = 200, corsHeaders) {
 
 function verifyAdminAuth(request, env) {
   if (!env.ADMIN_PASSWORD_HASH || typeof env.ADMIN_PASSWORD_HASH !== "string" || env.ADMIN_PASSWORD_HASH.trim().length === 0) {
-    return false; // Strictly refuse if secret is missing or empty
+    return false;
   }
   const auth = request.headers.get("Authorization");
   return auth === `Bearer ${env.ADMIN_PASSWORD_HASH}`;
+}
+
+function getSessionId(request) {
+  const sid = request.headers.get("X-Session-ID") || "";
+  return sid.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64) || "anon";
+}
+
+// XML Resw helper to merge translations into existing resw content
+function mergeReswXml(existingXml, newTranslations) {
+  let xml = existingXml;
+  for (const [key, val] of Object.entries(newTranslations)) {
+    const escapedVal = String(val).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const regex = new RegExp(`(<data\\s+name="${key}"[\\s\\S]*?<value>)[\\s\\S]*?(<\\/value>)`, 'g');
+    if (regex.test(xml)) {
+      xml = xml.replace(regex, `$1${escapedVal}$2`);
+    } else {
+      // Append before </root>
+      const entry = `  <data name="${key}" xml:space="preserve">\n    <value>${escapedVal}</value>\n  </data>\n</root>`;
+      xml = xml.replace(/<\/root>\s*$/, entry);
+    }
+  }
+  return xml;
 }
 
 export default {
@@ -46,60 +72,159 @@ export default {
 
     const url = new URL(request.url);
     const path = url.pathname;
+    const sessionId = getSessionId(request);
 
     try {
-      // 1. Contributor Submits Translations (Silent Staging)
-      if (path === "/api/submit" && request.method === "POST") {
-        const body = await request.json();
-        const { language, contributor = "Anonymous", translations = {} } = body;
-
-        // Security Validation
-        if (!language || typeof language !== "string" || !/^[a-zA-Z]{2,4}(-[a-zA-Z0-9]{2,8})*$/.test(language)) {
-          return jsonResponse({ error: "Invalid language code format." }, 400, corsHeaders);
+      // -----------------------------------------------------------------------
+      // 1. DRAFT AUTOSAVE & 48-HOUR SLIDING WINDOW
+      // -----------------------------------------------------------------------
+      if (path === "/api/draft" && request.method === "POST") {
+        const { language, key, text } = await request.json();
+        if (!language || !key) {
+          return jsonResponse({ error: "Language and key required" }, 400, corsHeaders);
         }
 
-        const keys = Object.keys(translations);
-        if (keys.length === 0) {
-          return jsonResponse({ error: "Translations cannot be empty." }, 400, corsHeaders);
-        }
-        if (keys.length > 1000) {
-          return jsonResponse({ error: "Submission exceeds maximum payload limit (1000 keys)." }, 400, corsHeaders);
-        }
+        const draftKey = `draft:${language}:${sessionId}`;
+        const existingDraftRaw = await env.SUBMISSIONS.get(draftKey);
+        const draftData = existingDraftRaw ? JSON.parse(existingDraftRaw) : { keys: {}, updatedAt: null };
 
-        // Sanitize contributor string (max 50 chars, alphanumeric + dashes/underscores)
-        const sanitizedContributor = String(contributor).slice(0, 50).replace(/[^a-zA-Z0-9_\- ]/g, "").trim() || "Anonymous";
+        draftData.keys[key] = text;
+        draftData.updatedAt = new Date().toISOString();
 
-        // Sanitize each translation entry (max 5,000 characters per string)
-        const sanitizedTranslations = {};
-        for (const [k, v] of Object.entries(translations)) {
-          if (typeof k === "string" && k.length <= 200 && typeof v === "string") {
-            sanitizedTranslations[k] = v.slice(0, 5000);
+        // 48-hour sliding TTL (172800 seconds)
+        await env.SUBMISSIONS.put(draftKey, JSON.stringify(draftData), { expirationTtl: 172800 });
+
+        // Update active locks map
+        const lockMapKey = `active_locks:${language}`;
+        const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
+        const currentLocks = currentLocksRaw ? JSON.parse(currentLocksRaw) : {};
+        currentLocks[key] = { sessionId, updatedAt: Date.now() };
+        await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
+
+        return jsonResponse({ success: true, ttl: 172800 }, 200, corsHeaders);
+      }
+
+      // Resume drafts for current session
+      if (path === "/api/drafts/resume" && request.method === "GET") {
+        const lang = url.searchParams.get("lang");
+        if (!lang) return jsonResponse({ drafts: {} }, 200, corsHeaders);
+
+        const draftKey = `draft:${lang}:${sessionId}`;
+        const raw = await env.SUBMISSIONS.get(draftKey);
+        if (!raw) return jsonResponse({ drafts: {} }, 200, corsHeaders);
+
+        const data = JSON.parse(raw);
+        return jsonResponse({ drafts: data.keys || {} }, 200, corsHeaders);
+      }
+
+      // Live status of locks, approved strings, and proposals for a language
+      if (path === "/api/status" && request.method === "GET") {
+        const lang = url.searchParams.get("lang");
+        if (!lang) return jsonResponse({ locks: {}, approved: {}, proposals: {} }, 200, corsHeaders);
+
+        // Active Locks
+        const locksRaw = await env.SUBMISSIONS.get(`active_locks:${lang}`);
+        const allLocks = locksRaw ? JSON.parse(locksRaw) : {};
+        // Filter out expired locks older than 48 hours
+        const activeLocks = {};
+        const now = Date.now();
+        for (const [k, lock] of Object.entries(allLocks)) {
+          if (now - lock.updatedAt < 172800 * 1000) {
+            activeLocks[k] = lock.sessionId === sessionId ? "mine" : "other";
           }
         }
 
-        const id = `pending:${language}:${sanitizedContributor.replace(/\s+/g, "_")}:${Date.now()}`;
-        const record = {
-          id,
-          language,
-          contributor: sanitizedContributor,
-          translations: sanitizedTranslations,
-          timestamp: new Date().toISOString()
-        };
+        // Approved
+        const approvedRaw = await env.SUBMISSIONS.get(`approved:${lang}`);
+        const approved = approvedRaw ? JSON.parse(approvedRaw) : {};
 
-        if (env.SUBMISSIONS) {
-          await env.SUBMISSIONS.put(id, JSON.stringify(record));
+        // Proposals summary (counts and preview)
+        const proposalsList = await env.SUBMISSIONS.list({ prefix: `proposals:${lang}:` });
+        const proposalsSummary = {};
+        for (const item of proposalsList.keys) {
+          const k = item.name.replace(`proposals:${lang}:`, "");
+          const rawP = await env.SUBMISSIONS.get(item.name);
+          if (rawP) {
+            const arr = JSON.parse(rawP);
+            proposalsSummary[k] = { count: arr.length, isFull: arr.length >= 10 };
+          }
         }
 
-        // Send Bot Comment to Single GitHub Tracker Issue
-        if (env.GITHUB_TOKEN && env.TRACKER_ISSUE_NUMBER) {
+        return jsonResponse({ locks: activeLocks, approved, proposals: proposalsSummary }, 200, corsHeaders);
+      }
+
+      // -----------------------------------------------------------------------
+      // 2. PROPOSALS SUBMISSION & EXACT-MATCH GUARD (MAX 10 SLOTS)
+      // -----------------------------------------------------------------------
+      if (path === "/api/submit" && request.method === "POST") {
+        const body = await request.json();
+        const { language, contributor = "Unknown", translations = {} } = body;
+
+        const sanitizedContributor = String(contributor).slice(0, 50).trim() || "Unknown";
+        const keys = Object.keys(translations);
+        if (!language || keys.length === 0) {
+          return jsonResponse({ error: "Language and non-empty translations required" }, 400, corsHeaders);
+        }
+
+        const accepted = [];
+        const duplicates = [];
+        const fullSlots = [];
+
+        for (const [k, text] of Object.entries(translations)) {
+          const proposalKey = `proposals:${language}:${k}`;
+          const raw = await env.SUBMISSIONS.get(proposalKey);
+          let proposals = raw ? JSON.parse(raw) : [];
+
+          // 1. Max 10 slots check
+          if (proposals.length >= 10) {
+            fullSlots.push(k);
+            continue;
+          }
+
+          // 2. Strict Exact Match Duplicate Guard (Preserving genuine whitespace)
+          const isExactMatch = proposals.some(p => p.text === text);
+          if (isExactMatch) {
+            duplicates.push(k);
+            continue;
+          }
+
+          // Add to proposals
+          const newProposal = {
+            id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+            text,
+            contributor: sanitizedContributor,
+            sessionId,
+            timestamp: new Date().toISOString()
+          };
+          proposals.push(newProposal);
+          await env.SUBMISSIONS.put(proposalKey, JSON.stringify(proposals));
+          accepted.push({ key: k, text });
+        }
+
+        // Release locks for submitted keys
+        const lockMapKey = `active_locks:${language}`;
+        const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
+        if (currentLocksRaw) {
+          const currentLocks = JSON.parse(currentLocksRaw);
+          for (const k of keys) delete currentLocks[k];
+          await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
+        }
+
+        // Send Collapsed GitHub Tracker Comment to Issue #143
+        if (env.GITHUB_TOKEN && env.TRACKER_ISSUE_NUMBER && accepted.length > 0) {
           try {
-            const commentBody = 
-              `🌐 **New Community Translation Submitted!**\n\n` +
-              `- **Language:** \`${language}\`\n` +
-              `- **Contributor:** ${sanitizedContributor}\n` +
-              `- **Strings Translated:** ${keys.length} string(s)\n` +
+            const tableRows = accepted.slice(0, 50).map(a => `| \`${a.key}\` | \`${a.text}\` |`).join("\n");
+            const commentBody =
+              `🌐 **New Translation Submission for \`${language}\`**\n\n` +
+              `- **Contributor:** ${sanitizedContributor.startsWith("@") ? sanitizedContributor : "@" + sanitizedContributor}\n` +
+              `- **Strings Submitted:** ${accepted.length} string(s)\n` +
               `- **Timestamp:** ${new Date().toUTCString()}\n\n` +
-              `👉 [Open Review Queue in Portal](https://${env.GITHUB_OWNER || "AMit-KP"}.github.io/${env.GITHUB_REPO || "Tunetastic"}/#admin)`;
+              `<details>\n<summary><b>Click to view translated strings (${accepted.length})</b></summary>\n\n` +
+              `| Key | Submitted Translation |\n` +
+              `| :--- | :--- |\n` +
+              `${tableRows}\n\n` +
+              `</details>\n\n` +
+              `👉 [Review & Approve in Portal](https://${env.GITHUB_OWNER || "AMit-KP"}.github.io/${env.GITHUB_REPO || "Tunetastic"}/#admin)`;
 
             await fetch(`https://api.github.com/repos/${env.GITHUB_OWNER || "AMit-KP"}/${env.GITHUB_REPO || "Tunetastic"}/issues/${env.TRACKER_ISSUE_NUMBER}/comments`, {
               method: "POST",
@@ -111,99 +236,302 @@ export default {
               body: JSON.stringify({ body: commentBody })
             });
           } catch (botErr) {
-            console.error("Failed to post GitHub tracker comment:", botErr);
+            console.error("Failed to post GitHub comment:", botErr);
           }
         }
 
-        return jsonResponse({ success: true, count: Object.keys(sanitizedTranslations).length, id }, 200, corsHeaders);
+        return jsonResponse({
+          success: true,
+          acceptedCount: accepted.length,
+          duplicateKeys: duplicates,
+          fullSlotKeys: fullSlots
+        }, 200, corsHeaders);
       }
 
-      // 2. Admin Review Mode: Fetch Pending Submissions
+      // Single Key Alternative Suggestion
+      if (path === "/api/suggest" && request.method === "POST") {
+        const { language, key, text, contributor = "Unknown" } = await request.json();
+        if (!language || !key || text === undefined) {
+          return jsonResponse({ error: "Language, key, and text required" }, 400, corsHeaders);
+        }
+
+        const proposalKey = `proposals:${language}:${key}`;
+        const raw = await env.SUBMISSIONS.get(proposalKey);
+        let proposals = raw ? JSON.parse(raw) : [];
+
+        if (proposals.length >= 10) {
+          return jsonResponse({ error: "Max suggestions reached (10/10) for this string." }, 429, corsHeaders);
+        }
+
+        // Strict exact match check
+        if (proposals.some(p => p.text === text)) {
+          return jsonResponse({ error: "This exact translation has already been suggested." }, 409, corsHeaders);
+        }
+
+        const sanitizedContributor = String(contributor).slice(0, 50).trim() || "Unknown";
+        proposals.push({
+          id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+          text,
+          contributor: sanitizedContributor,
+          sessionId,
+          timestamp: new Date().toISOString()
+        });
+
+        await env.SUBMISSIONS.put(proposalKey, JSON.stringify(proposals));
+
+        return jsonResponse({ success: true, count: proposals.length }, 200, corsHeaders);
+      }
+
+      // -----------------------------------------------------------------------
+      // 3. MAINTAINER REVIEW QUEUE (/api/pending, /api/approve)
+      // -----------------------------------------------------------------------
       if (path === "/api/pending" && request.method === "GET") {
         if (!verifyAdminAuth(request, env)) {
           return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
         }
 
-        if (!env.SUBMISSIONS) {
-          return jsonResponse({ submissions: [] }, 200, corsHeaders);
+        const list = await env.SUBMISSIONS.list({ prefix: "proposals:" });
+        const items = [];
+        for (const item of list.keys) {
+          // Format: proposals:<lang>:<key>
+          const parts = item.name.split(":");
+          const lang = parts[1];
+          const key = parts.slice(2).join(":");
+          const raw = await env.SUBMISSIONS.get(item.name);
+          if (raw) {
+            items.push({ language: lang, key, proposals: JSON.parse(raw) });
+          }
         }
-        const list = await env.SUBMISSIONS.list({ prefix: "pending:" });
-        const submissions = [];
-        for (const key of list.keys) {
-          const raw = await env.SUBMISSIONS.get(key.name);
-          if (raw) submissions.push(JSON.parse(raw));
-        }
-        return jsonResponse({ submissions }, 200, corsHeaders);
+        return jsonResponse({ pending: items }, 200, corsHeaders);
       }
 
-      // 3. Admin Review Mode: Approve / Edit Translations
       if (path === "/api/approve" && request.method === "POST") {
         if (!verifyAdminAuth(request, env)) {
           return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
         }
 
-        const body = await request.json();
-        const { language, approvedTranslations = {}, removeSubmissionIds = [] } = body;
-
-        if (env.SUBMISSIONS) {
-          // Merge approved translations under approved key
-          const approvedKey = `approved:${language}`;
-          const existingRaw = await env.SUBMISSIONS.get(approvedKey);
-          const existing = existingRaw ? JSON.parse(existingRaw) : {};
-          const merged = { ...existing, ...approvedTranslations };
-          await env.SUBMISSIONS.put(approvedKey, JSON.stringify(merged));
-
-          // Clean up processed pending submissions
-          for (const id of removeSubmissionIds) {
-            await env.SUBMISSIONS.delete(id);
-          }
+        const { language, key, selectedText, contributor } = await request.json();
+        if (!language || !key || selectedText === undefined) {
+          return jsonResponse({ error: "Missing required approval fields" }, 400, corsHeaders);
         }
 
-        return jsonResponse({ success: true, count: Object.keys(approvedTranslations).length }, 200, corsHeaders);
+        // Save into approved:<lang>
+        const approvedKey = `approved:${language}`;
+        const existingRaw = await env.SUBMISSIONS.get(approvedKey);
+        const approvedMap = existingRaw ? JSON.parse(existingRaw) : {};
+        approvedMap[key] = {
+          value: selectedText,
+          contributor: contributor || "Unknown",
+          approvedAt: new Date().toISOString()
+        };
+        await env.SUBMISSIONS.put(approvedKey, JSON.stringify(approvedMap));
+
+        // Delete proposals for this key since it is now approved
+        await env.SUBMISSIONS.delete(`proposals:${language}:${key}`);
+
+        return jsonResponse({ success: true, key, approvedValue: selectedText }, 200, corsHeaders);
       }
 
-      // 4. GitHub Action: Fetch Approved Translations for Sync
-      if (path === "/api/approved" && request.method === "GET") {
+      // -----------------------------------------------------------------------
+      // 4. AUTOMATED PULL REQUEST CREATION (/api/sync-pr)
+      // -----------------------------------------------------------------------
+      if (path === "/api/sync-pr" && request.method === "POST") {
         if (!verifyAdminAuth(request, env)) {
           return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
         }
 
-        if (!env.SUBMISSIONS) {
-          return jsonResponse({ approved: {} }, 200, corsHeaders);
-        }
+        const owner = env.GITHUB_OWNER || "AMit-KP";
+        const repo = env.GITHUB_REPO || "Tunetastic";
+        const baseBranch = "feature/localization";
 
+        // Fetch all approved translations
         const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
-        const approved = {};
-        for (const key of list.keys) {
-          const lang = key.name.replace("approved:", "");
-          const raw = await env.SUBMISSIONS.get(key.name);
+        if (list.keys.length === 0) {
+          return jsonResponse({ error: "No approved translations available to sync." }, 400, corsHeaders);
+        }
+
+        const approvedPerLang = {};
+        const contributorsSet = new Set();
+        const langSummaries = [];
+
+        for (const item of list.keys) {
+          const lang = item.name.replace("approved:", "");
+          const raw = await env.SUBMISSIONS.get(item.name);
           if (raw) {
-            approved[lang] = JSON.parse(raw);
+            const data = JSON.parse(raw);
+            const count = Object.keys(data).length;
+            if (count > 0) {
+              approvedPerLang[lang] = data;
+              for (const v of Object.values(data)) {
+                if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
+              }
+              langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
+            }
           }
         }
-        return jsonResponse({ approved }, 200, corsHeaders);
+
+        if (Object.keys(approvedPerLang).length === 0) {
+          return jsonResponse({ error: "No translations found in approved queue." }, 400, corsHeaders);
+        }
+
+        // 1. Get HEAD commit of base branch
+        const refRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseBranch}`, {
+          headers: {
+            "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+            "User-Agent": "Tunetastic-L10n-Bot"
+          }
+        });
+        if (!refRes.ok) {
+          return jsonResponse({ error: `Could not fetch branch ${baseBranch}: ${await refRes.text()}` }, 500, corsHeaders);
+        }
+        const refData = await refRes.json();
+        const baseSha = refData.object.sha;
+
+        // 2. Create new branch: l10n/community-sync-<timestamp>
+        const syncBranch = `l10n/community-sync-${Date.now()}`;
+        const createBranchRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+            "User-Agent": "Tunetastic-L10n-Bot",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ref: `refs/heads/${syncBranch}`,
+            sha: baseSha
+          })
+        });
+        if (!createBranchRes.ok) {
+          return jsonResponse({ error: `Could not create branch ${syncBranch}: ${await createBranchRes.text()}` }, 500, corsHeaders);
+        }
+
+        // 3. For each language, update Strings/<lang>/Resources.resw
+        // If file doesn't exist, use en-US as base template
+        let enUsXml = "";
+        const enUsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/Strings/en-US/Resources.resw?ref=${syncBranch}`, {
+          headers: { "Authorization": `Bearer ${env.GITHUB_TOKEN}`, "User-Agent": "Tunetastic-L10n-Bot" }
+        });
+        if (enUsRes.ok) {
+          const enData = await enUsRes.json();
+          enUsXml = atob(enData.content.replace(/\n/g, ""));
+        }
+
+        for (const [lang, translationsMap] of Object.entries(approvedPerLang)) {
+          const filePath = `Strings/${lang}/Resources.resw`;
+          let existingXml = enUsXml;
+          let fileSha = undefined;
+
+          const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${syncBranch}`, {
+            headers: { "Authorization": `Bearer ${env.GITHUB_TOKEN}`, "User-Agent": "Tunetastic-L10n-Bot" }
+          });
+          if (fileRes.ok) {
+            const fileData = await fileRes.json();
+            existingXml = atob(fileData.content.replace(/\n/g, ""));
+            fileSha = fileData.sha;
+          }
+
+          // Build dictionary of key -> value
+          const dict = {};
+          for (const [k, obj] of Object.entries(translationsMap)) {
+            dict[k] = obj.value;
+          }
+
+          const updatedXml = mergeReswXml(existingXml, dict);
+          const encodedContent = btoa(unescape(encodeURIComponent(updatedXml)));
+
+          const commitBody = {
+            message: `chore(l10n): update ${lang} community translations`,
+            content: encodedContent,
+            branch: syncBranch
+          };
+          if (fileSha) commitBody.sha = fileSha;
+
+          await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`, {
+            method: "PUT",
+            headers: {
+              "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+              "User-Agent": "Tunetastic-L10n-Bot",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(commitBody)
+          });
+        }
+
+        // 4. Create Pull Request
+        const contributorsList = Array.from(contributorsSet).map(c => c.startsWith("@") ? c : "@" + c);
+        const coAuthors = Array.from(contributorsSet).map(c => `Co-authored-by: ${c.replace(/[^a-zA-Z0-9_\-]/g, "")} <community@tunetastic.app>`).join("\n");
+
+        const prBody =
+          `## 🌐 Community Localization Sync\n\n` +
+          `This Pull Request imports verified translations approved in the Community Localization Studio.\n\n` +
+          `### Languages Updated:\n` +
+          `${langSummaries.join("\n")}\n\n` +
+          `### Community Contributors:\n` +
+          `${contributorsList.length > 0 ? contributorsList.join(", ") : "Anonymous Community Members"}\n\n` +
+          `---\n*Created automatically by Tunetastic Localization Studio*\n\n` +
+          `${coAuthors}`;
+
+        const prRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+            "User-Agent": "Tunetastic-L10n-Bot",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            title: `feat(l10n): sync community translations [${Object.keys(approvedPerLang).join(", ")}]`,
+            head: syncBranch,
+            base: baseBranch,
+            body: prBody
+          })
+        });
+
+        if (!prRes.ok) {
+          return jsonResponse({ error: `Branch was created but PR opening failed: ${await prRes.text()}` }, 500, corsHeaders);
+        }
+
+        const prData = await prRes.json();
+
+        // Safe Cloudflare Retention: WE DO NOT DELETE APPROVED STRINGS HERE!
+        // Staged translations remain intact in KV until safely purged after PR merge.
+
+        return jsonResponse({
+          success: true,
+          pr_url: prData.html_url,
+          pr_number: prData.number,
+          branch: syncBranch
+        }, 200, corsHeaders);
       }
 
-      // 5. GitHub Action: Clear Processed Approved Translations
-      if (path === "/api/clear-approved" && request.method === "POST") {
+      // -----------------------------------------------------------------------
+      // 5. POST-MERGE SAFE CLEANUP (/api/cleanup-synced)
+      // -----------------------------------------------------------------------
+      if (path === "/api/cleanup-synced" && request.method === "POST") {
         if (!verifyAdminAuth(request, env)) {
           return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
         }
 
-        const { languages = [] } = await request.json();
-        if (env.SUBMISSIONS) {
-          for (const lang of languages) {
-            await env.SUBMISSIONS.delete(`approved:${lang}`);
+        const { verifiedKeys = {} } = await request.json();
+        // verifiedKeys: { "es-ES": ["Key1", "Key2"] }
+        for (const [lang, keys] of Object.entries(verifiedKeys)) {
+          const approvedKey = `approved:${lang}`;
+          const existingRaw = await env.SUBMISSIONS.get(approvedKey);
+          if (existingRaw) {
+            const map = JSON.parse(existingRaw);
+            for (const k of keys) delete map[k];
+            if (Object.keys(map).length === 0) {
+              await env.SUBMISSIONS.delete(approvedKey);
+            } else {
+              await env.SUBMISSIONS.put(approvedKey, JSON.stringify(map));
+            }
           }
         }
-        return jsonResponse({ success: true }, 200, corsHeaders);
+        return jsonResponse({ success: true, message: "Safely purged verified synced keys from KV." }, 200, corsHeaders);
       }
 
-      return jsonResponse({ error: "Not found", routes: ["/api/submit", "/api/pending", "/api/approve", "/api/approved"] }, 404, corsHeaders);
+      return jsonResponse({ error: "Not found", routes: ["/api/draft", "/api/drafts/resume", "/api/status", "/api/submit", "/api/suggest", "/api/pending", "/api/approve", "/api/sync-pr", "/api/cleanup-synced"] }, 404, corsHeaders);
     } catch (err) {
       return jsonResponse({ error: err.message }, 500, corsHeaders);
     }
   }
 };
-
-

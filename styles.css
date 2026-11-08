@@ -1592,3 +1592,152 @@ body {
     filter: brightness(1.3);
   }
 }
+
+/* =========================================================================
+   V2 EXTENSIONS: Draft Sessions, Proposal Stacks, PR Banners
+   ========================================================================= */
+
+.draft-resume-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 14px 20px;
+  margin-top: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.resume-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.resume-icon {
+  font-size: 24px;
+}
+
+.resume-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-pr-result-banner {
+  background: rgba(0, 230, 118, 0.12);
+  border: 1px solid rgba(0, 230, 118, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 18px 24px;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+  animation: fadeIn 0.4s ease;
+  line-height: 1.6;
+}
+
+.admin-pr-result-banner a {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+.proposal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.proposal-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.proposal-item:hover, .proposal-item.selected {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.4);
+}
+
+.proposal-radio {
+  margin-top: 3px;
+  accent-color: var(--accent-cyan);
+}
+
+.proposal-meta {
+  flex: 1;
+}
+
+.proposal-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.proposal-author {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* Dynamic Live Status Pills */
+.pill-draft-mine {
+  background: rgba(0, 229, 255, 0.15);
+  color: #00e5ff;
+  border: 1px solid rgba(0, 229, 255, 0.3);
+}
+
+.pill-draft-other {
+  background: rgba(255, 171, 0, 0.15);
+  color: #ffab00;
+  border: 1px solid rgba(255, 171, 0, 0.3);
+}
+
+.pill-submitted {
+  background: rgba(179, 136, 255, 0.15);
+  color: #b388ff;
+  border: 1px solid rgba(179, 136, 255, 0.3);
+}
+
+.pill-approved {
+  background: rgba(0, 230, 118, 0.15);
+  color: #00e676;
+  border: 1px solid rgba(0, 230, 118, 0.3);
+}
+
+.pill-translated {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-suggest {
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-suggest:hover {
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--accent-cyan);
+  border-color: rgba(0, 229, 255, 0.3);
+}
+
+.btn-suggest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(255, 171, 0, 0.3);
+  color: #ffab00;
+}
+
