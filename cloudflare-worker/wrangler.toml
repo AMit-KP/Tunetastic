@@ -1,0 +1,15 @@
+name = "tunetastic-l10n-staging"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Cloudflare KV Namespace Binding
+kv_namespaces = [
+  { binding = "SUBMISSIONS", id = "8d1659e456964e94bf55e6aae3a40825" }
+]
+
+[vars]
+GITHUB_OWNER = "AMit-KP"
+GITHUB_REPO = "Tunetastic"
+TRACKER_ISSUE_NUMBER = "50"
+# Note: GITHUB_TOKEN and ADMIN_PASSWORD_HASH are encrypted Cloudflare Secrets and must NEVER be stored here.
+

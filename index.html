@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tunetastic — Community Localization Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+</head>
+<body>
+
+  <!-- Ambient Background Glow Orbs -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+  <div class="ambient-glow glow-3"></div>
+
+  <!-- Top Glass Navigation Bar -->
+  <header class="nav-bar">
+    <div class="nav-content">
+      <a href="#home" class="brand" id="brand-link">
+        <div class="brand-icon-wrap">
+          <div class="brand-icon">🎵</div>
+          <div class="brand-pulse"></div>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">Tunetastic <span class="brand-badge">STUDIO</span></div>
+          <div class="brand-subtitle">Community Localization Hub</div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <button class="btn btn-glass" id="nav-home-btn" style="display: none;">
+          <span class="btn-icon">←</span> All Languages
+        </button>
+        <button class="btn btn-glass" id="nav-export-btn" style="display: none;">
+          <span class="btn-icon">📥</span> Export .resw
+        </button>
+        <button class="btn btn-primary-gradient" id="nav-submit-btn" style="display: none;">
+          <span class="btn-icon">🚀</span> Submit Translations
+        </button>
+        <a href="#admin" class="btn btn-glass" id="nav-admin-btn" title="Maintainer Review Queue">
+          <span class="btn-icon">🛡️</span> Review Queue
+        </a>
+        <a href="https://github.com/AMit-KP/Tunetastic" target="_blank" rel="noopener" class="btn btn-ghost github-link">
+          <svg class="gh-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- VIEW 1: Home Dashboard -->
+    <section id="home-view" class="view-section active">
+      
+      <!-- Hero Banner -->
+      <div class="hero-section">
+        <div class="hero-pill-badge">
+          <span class="badge-dot"></span>
+          <span>Tunetastic Localization Studio • 100% Open Source</span>
+        </div>
+        
+        <h1 class="hero-headline">
+          Tune Tunetastic to <br><span class="gradient-text">Your Native Language</span>
+        </h1>
+        
+        <p class="hero-subtext">
+          Help make Tunetastic feel right at home for music lovers worldwide. Experience live in-app preview rendering, real-time placeholder checking, and effortless zero-Git contributions.
+        </p>
+
+        <!-- Live Community Stat Ticker -->
+        <div class="hero-stats-bar">
+          <div class="stat-pill">
+            <span class="stat-icon">🎵</span>
+            <div class="stat-meta">
+              <span class="stat-value" id="stat-total-strings">828</span>
+              <span class="stat-desc">Master Strings</span>
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill">
+            <span class="stat-icon">🌍</span>
+            <div class="stat-meta">
+              <span class="stat-value" id="stat-lang-count">11</span>
+              <span class="stat-desc">Languages</span>
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill">
+            <span class="stat-icon">⚡</span>
+            <div class="stat-meta">
+              <span class="stat-value">100%</span>
+              <span class="stat-desc">Live In-App Previews</span>
+            </div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-pill">
+            <span class="stat-icon">🛡️</span>
+            <div class="stat-meta">
+              <span class="stat-value">Zero</span>
+              <span class="stat-desc">PR / Issue Spam</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Step Guided Workflow Cards -->
+        <div class="workflow-grid">
+          <div class="workflow-card">
+            <div class="workflow-card-glow glow-cyan"></div>
+            <div class="workflow-icon-wrap icon-cyan">
+              <span>01</span>
+            </div>
+            <div class="workflow-content">
+              <h3>Choose a Language</h3>
+              <p>Pick your language from the visual grid below or request a new locale with one click.</p>
+            </div>
+          </div>
+
+          <div class="workflow-card">
+            <div class="workflow-card-glow glow-purple"></div>
+            <div class="workflow-icon-wrap icon-purple">
+              <span>02</span>
+            </div>
+            <div class="workflow-content">
+              <h3>Translate with Context</h3>
+              <p>Type translations and watch realistic simulated desktop UI previews adapt live on every keystroke.</p>
+            </div>
+          </div>
+
+          <div class="workflow-card">
+            <div class="workflow-card-glow glow-green"></div>
+            <div class="workflow-icon-wrap icon-green">
+              <span>03</span>
+            </div>
+            <div class="workflow-content">
+              <h3>Silent Staging Submit</h3>
+              <p>Submit translations directly from your browser. Staged cleanly for review with zero GitHub spam.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Languages Grid Section Header -->
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Community Languages</h2>
+          <span class="pulse-counter" id="lang-counter-badge">11 Locales Active</span>
+        </div>
+        <div class="section-actions">
+          <button class="btn btn-outline" id="add-custom-lang-btn">
+            <span class="btn-icon">+</span> Add New Language
+          </button>
+        </div>
+      </div>
+
+      <!-- Language Cards Grid -->
+      <div class="lang-cards-grid" id="languages-grid">
+        <div class="loading-state">
+          <div class="music-equalizer">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </div>
+          <p style="font-weight: 600; letter-spacing: 0.2px;">Tuning localization studio catalog...</p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: Translation Workspace -->
+    <section id="workspace-view" class="view-section">
+      
+      <!-- Sticky Workspace Header -->
+      <div class="workspace-hero-card">
+        <div class="ws-hero-top">
+          <div class="ws-lang-profile">
+            <div class="ws-flag-box" id="current-lang-flag">🌐</div>
+            <div class="ws-lang-titles">
+              <div class="ws-lang-heading">
+                <h2 id="current-lang-name">Language Name</h2>
+                <span class="code-chip" id="current-lang-code">locale-tag</span>
+              </div>
+              <p class="ws-lang-subtitle" id="current-lang-native">Native Name</p>
+            </div>
+          </div>
+
+          <div class="ws-header-actions">
+            <button class="btn btn-glass" id="ws-download-btn">
+              <span>📥</span> Download .resw
+            </button>
+            <button class="btn btn-primary-gradient" id="ws-submit-btn">
+              <span>🚀</span> Submit Work
+            </button>
+          </div>
+        </div>
+
+        <!-- Glowing Progress Bar Track -->
+        <div class="ws-progress-wrap">
+          <div class="ws-progress-info">
+            <div class="ws-progress-pct-badge" id="ws-pct-label">0% Complete</div>
+            <div class="ws-save-indicator" id="auto-save-indicator">
+              <span class="save-dot"></span> Saved to Browser
+            </div>
+          </div>
+          <div class="glowing-progress-track">
+            <div class="glowing-progress-fill" id="workspace-progress-fill" style="width: 0%;"></div>
+          </div>
+          <div class="ws-metrics-row">
+            <div class="ws-metric-item"><strong id="ws-done-count">0</strong> <span class="metric-label">Translated</span></div>
+            <span class="metric-sep">•</span>
+            <div class="ws-metric-item"><strong id="ws-missing-count">0</strong> <span class="metric-label">Remaining</span></div>
+            <span class="metric-sep">•</span>
+            <div class="ws-metric-item"><strong id="ws-humor-count">0</strong> <span class="metric-label">Cultural Quips</span></div>
+            <span class="metric-sep">•</span>
+            <div class="ws-metric-item"><strong id="ws-tokens-count">0</strong> <span class="metric-label">Tokens Guarded</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modern Filter & Search Controls -->
+      <div class="control-panel">
+        <div class="search-box-wrap">
+          <span class="search-glass-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input type="text" class="search-box" id="search-input" placeholder="Search by key, English words, translation, or breadcrumb...">
+        </div>
+
+        <div class="filter-segmented-control">
+          <button class="filter-tab active" data-filter="all">
+            <span>All</span> <span class="tab-count" id="count-all">0</span>
+          </button>
+          <button class="filter-tab" data-filter="missing">
+            <span>Needs Work</span> <span class="tab-count" id="count-missing">0</span>
+          </button>
+          <button class="filter-tab" data-filter="completed">
+            <span>Completed</span> <span class="tab-count" id="count-done">0</span>
+          </button>
+          <button class="filter-tab" data-filter="tokens">
+            <span>Tokens {0}</span> <span class="tab-count" id="count-tokens">0</span>
+          </button>
+          <button class="filter-tab" data-filter="humor">
+            <span>🎭 Humor</span> <span class="tab-count" id="count-humor">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Translation Cards List -->
+      <div class="studio-cards-list" id="cards-container">
+        <!-- Injected dynamically by app.js -->
+      </div>
+
+      <!-- Pagination Nav -->
+      <div class="pagination-bar">
+        <button class="btn btn-glass" id="page-prev-btn">← Previous 50</button>
+        <div class="pagination-indicator" id="pagination-info">Page 1 of 1</div>
+        <button class="btn btn-glass" id="page-next-btn">Next 50 →</button>
+      </div>
+
+    </section>
+
+    <!-- VIEW 3: Maintainer Review Queue -->
+    <section id="admin-view" class="view-section">
+      <div class="section-header-bar">
+        <div class="section-title-wrap">
+          <h2 class="section-title">Maintainer Review Queue</h2>
+          <span class="pulse-counter" id="admin-pending-badge">0 Submissions Staged</span>
+        </div>
+        <div class="section-actions">
+          <button class="btn btn-glass" id="admin-refresh-btn">🔄 Refresh Staging</button>
+          <button class="btn btn-primary-gradient" id="admin-approve-all-btn">✅ Approve All Staged</button>
+        </div>
+      </div>
+
+      <div class="admin-notice-card">
+        <div class="admin-notice-icon">🛡️</div>
+        <div>
+          <h4>Quality Control & Manual Git Sync</h4>
+          <p>
+            Community submissions stored in Cloudflare KV are displayed below. Approving items marks them ready in staging.
+            When you're ready, trigger the manual <code>Sync Approved Community Translations</code> action in GitHub Actions to commit them directly to your repository with zero branch clutter!
+          </p>
+        </div>
+      </div>
+
+      <div class="admin-queue-list" id="admin-submissions-container">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Submit Translations -->
+  <div class="modal-backdrop" id="submit-modal">
+    <div class="modal-glass-dialog">
+      <div class="modal-header">
+        <div class="modal-badge">🚀 READY TO STAGE</div>
+        <h3 class="modal-title">Submit Your Translations</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Thank you for making Tunetastic better for the <strong id="modal-submit-lang">Spanish</strong> community!
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Your Name or GitHub Handle (Optional)</label>
+          <input type="text" class="form-input" id="submit-author-input" placeholder="e.g. maria or @maria">
+          <span class="form-hint">Used to credit your work in release changelogs.</span>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-row">
+            <span>Strings Ready to Submit:</span>
+            <strong class="highlight-cyan" id="modal-submit-count">0</strong>
+          </div>
+          <div class="summary-row">
+            <span>Repository Noise:</span>
+            <span class="badge-tag green">Zero PRs / Zero Issues</span>
+          </div>
+          <p class="summary-note">Your work is saved silently in staging for maintainer quality check before merging.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-glass" id="modal-cancel-btn">Keep Editing</button>
+        <button class="btn btn-primary-gradient" id="modal-confirm-submit-btn">Send to Staging</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Custom Language -->
+  <div class="modal-backdrop" id="custom-lang-modal">
+    <div class="modal-glass-dialog">
+      <div class="modal-header">
+        <div class="modal-badge">🌍 NEW LOCALE</div>
+        <h3 class="modal-title">Add a Community Language</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">
+          Add any language using standard BCP-47 culture tags (e.g. <code>nl-NL</code> for Dutch, <code>pl-PL</code> for Polish, <code>ko-KR</code> for Korean).
+        </p>
+        <div class="form-group">
+          <label class="form-label">BCP-47 Culture Tag</label>
+          <input type="text" class="form-input" id="custom-lang-code-input" placeholder="e.g. nl-NL">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Language Display Name</label>
+          <input type="text" class="form-input" id="custom-lang-name-input" placeholder="e.g. Dutch (Nederlands)">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-glass" id="custom-lang-cancel-btn">Cancel</button>
+        <button class="btn btn-primary-gradient" id="custom-lang-confirm-btn">Start Translating</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Popup -->
+  <div class="toast-popup" id="toast-notification">
+    <span class="toast-icon">✓</span>
+    <span class="toast-message" id="toast-message">Action successful</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

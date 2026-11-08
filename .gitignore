@@ -1,0 +1,10 @@
+# Visual Studio & IDEs
+.vs/
+.idea/
+.vscode/
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+

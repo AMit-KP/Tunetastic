@@ -1,0 +1,221 @@
+{
+  "$description": "Custom curated sample data for Tunetastic strings. If a placeholder is misidentified by heuristics, define it here to override sample previews in the Translation Portal.",
+  "Sort_Tooltip_SortedBy": {
+    "{0}": { "label": "Column Name", "sample": "Title" },
+    "{1}": { "label": "Sort Order", "sample": "Ascending" }
+  },
+  "Notification_Song_AddedToPlaylist": {
+    "{0}": { "label": "Song Title", "sample": "Bohemian Rhapsody" },
+    "{1}": { "label": "Playlist Name", "sample": "Rock Classics" }
+  },
+  "Notification_Songs_AddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Favorites" }
+  },
+  "Notification_Songs_AddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "15" },
+    "{1}": { "label": "Playlist Name", "sample": "Favorites" }
+  },
+  "Notification_AlbumSongsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Album Title", "sample": "Thriller" },
+    "{2}": { "label": "Playlist Name", "sample": "Gym Hits" }
+  },
+  "Notification_AlbumSongsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "9" },
+    "{1}": { "label": "Album Title", "sample": "Thriller" },
+    "{2}": { "label": "Playlist Name", "sample": "Gym Hits" }
+  },
+  "Notification_SelectedAlbumsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Party Mix" }
+  },
+  "Notification_SelectedAlbumsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "35" },
+    "{1}": { "label": "Playlist Name", "sample": "Party Mix" }
+  },
+  "Notification_AlbumSongsAddedToQueue_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Album Title", "sample": "Abbey Road" }
+  },
+  "Notification_AlbumSongsAddedToQueue_Plural": {
+    "{0}": { "label": "Song Count", "sample": "17" },
+    "{1}": { "label": "Album Title", "sample": "Abbey Road" }
+  },
+  "Notification_AlbumSongsDeleted_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Album Title", "sample": "Discovery" }
+  },
+  "Notification_AlbumSongsDeleted_Plural": {
+    "{0}": { "label": "Song Count", "sample": "14" },
+    "{1}": { "label": "Album Title", "sample": "Discovery" }
+  },
+  "Notification_ArtistSongsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Artist Name", "sample": "Queen" },
+    "{2}": { "label": "Playlist Name", "sample": "Legends" }
+  },
+  "Notification_ArtistSongsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "22" },
+    "{1}": { "label": "Artist Name", "sample": "Queen" },
+    "{2}": { "label": "Playlist Name", "sample": "Legends" }
+  },
+  "Notification_SelectedArtistsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Top Tracks" }
+  },
+  "Notification_SelectedArtistsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "48" },
+    "{1}": { "label": "Playlist Name", "sample": "Top Tracks" }
+  },
+  "Notification_ArtistSongsAddedToQueue_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Artist Name", "sample": "Pink Floyd" }
+  },
+  "Notification_ArtistSongsAddedToQueue_Plural": {
+    "{0}": { "label": "Song Count", "sample": "12" },
+    "{1}": { "label": "Artist Name", "sample": "Pink Floyd" }
+  },
+  "Notification_ArtistSongsDeleted_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Artist Name", "sample": "Daft Punk" }
+  },
+  "Notification_ArtistSongsDeleted_Plural": {
+    "{0}": { "label": "Song Count", "sample": "10" },
+    "{1}": { "label": "Artist Name", "sample": "Daft Punk" }
+  },
+  "Notification_GenreSongsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Genre", "sample": "Rock" },
+    "{2}": { "label": "Playlist Name", "sample": "Roadtrip" }
+  },
+  "Notification_GenreSongsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "30" },
+    "{1}": { "label": "Genre", "sample": "Rock" },
+    "{2}": { "label": "Playlist Name", "sample": "Roadtrip" }
+  },
+  "Notification_SelectedGenresAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Chill Mix" }
+  },
+  "Notification_SelectedGenresAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "55" },
+    "{1}": { "label": "Playlist Name", "sample": "Chill Mix" }
+  },
+  "Notification_GenreSongsAddedToQueue_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Genre", "sample": "Jazz" }
+  },
+  "Notification_GenreSongsAddedToQueue_Plural": {
+    "{0}": { "label": "Song Count", "sample": "18" },
+    "{1}": { "label": "Genre", "sample": "Jazz" }
+  },
+  "Notification_GenreSongsDeleted_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Genre", "sample": "Classical" }
+  },
+  "Notification_GenreSongsDeleted_Plural": {
+    "{0}": { "label": "Song Count", "sample": "8" },
+    "{1}": { "label": "Genre", "sample": "Classical" }
+  },
+  "Notification_YearSongsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Year", "sample": "1984" },
+    "{2}": { "label": "Playlist Name", "sample": "80s Hits" }
+  },
+  "Notification_YearSongsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "24" },
+    "{1}": { "label": "Year", "sample": "1984" },
+    "{2}": { "label": "Playlist Name", "sample": "80s Hits" }
+  },
+  "Notification_SelectedYearsAddedToPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Retro Party" }
+  },
+  "Notification_SelectedYearsAddedToPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "40" },
+    "{1}": { "label": "Playlist Name", "sample": "Retro Party" }
+  },
+  "Notification_YearSongsAddedToQueue_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Year", "sample": "1999" }
+  },
+  "Notification_YearSongsAddedToQueue_Plural": {
+    "{0}": { "label": "Song Count", "sample": "16" },
+    "{1}": { "label": "Year", "sample": "1999" }
+  },
+  "Notification_YearSongsDeleted_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Year", "sample": "2010" }
+  },
+  "Notification_YearSongsDeleted_Plural": {
+    "{0}": { "label": "Song Count", "sample": "12" },
+    "{1}": { "label": "Year", "sample": "2010" }
+  },
+  "Notification_SongsRemovedFromPlaylist_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Workout" }
+  },
+  "Notification_SongsRemovedFromPlaylist_Plural": {
+    "{0}": { "label": "Song Count", "sample": "6" },
+    "{1}": { "label": "Playlist Name", "sample": "Workout" }
+  },
+  "DeleteDialog_AlbumSongs_Plural": {
+    "{0}": { "label": "Song Count", "sample": "12" },
+    "{1}": { "label": "Album Title", "sample": "Dark Side of the Moon" }
+  },
+  "DeleteDialog_ArtistSongs_Plural": {
+    "{0}": { "label": "Song Count", "sample": "19" },
+    "{1}": { "label": "Artist Name", "sample": "The Beatles" }
+  },
+  "DeleteDialog_GenreSongs_Plural": {
+    "{0}": { "label": "Song Count", "sample": "25" },
+    "{1}": { "label": "Genre", "sample": "Pop" }
+  },
+  "DeleteDialog_YearSongs_Plural": {
+    "{0}": { "label": "Song Count", "sample": "14" },
+    "{1}": { "label": "Year", "sample": "1975" }
+  },
+  "PlaylistImport_Summary_TracksFound": {
+    "{0}": { "label": "Found Tracks", "sample": "42" },
+    "{1}": { "label": "Total Tracks", "sample": "50" }
+  },
+  "Notification_PlaylistAddedWithSongs_Singular": {
+    "{0}": { "label": "Song Count", "sample": "1" },
+    "{1}": { "label": "Playlist Name", "sample": "Roadtrip" }
+  },
+  "Notification_PlaylistAddedWithSongs_Plural": {
+    "{0}": { "label": "Song Count", "sample": "28" },
+    "{1}": { "label": "Playlist Name", "sample": "Roadtrip" }
+  },
+  "SongInfo_DateTime_At": {
+    "{0}": { "label": "Date", "sample": "Nov 8, 2026" },
+    "{1}": { "label": "Time", "sample": "02:30 AM" }
+  },
+  "EditSong_SuggestTip_Cycle": {
+    "{0}": { "label": "Primary Key", "sample": "Tab" },
+    "{1}": { "label": "Secondary Key", "sample": "Shift+Tab" }
+  },
+  "Notification_LibraryScanCompleted_Details": {
+    "{0}": { "label": "Library Count", "sample": "2" },
+    "{1}": { "label": "Folder Count", "sample": "14" },
+    "{2}": { "label": "Song Count", "sample": "350" }
+  },
+  "Notification_AutoScan_UpdateEntryFailed": {
+    "{0}": { "label": "File Name", "sample": "Bohemian_Rhapsody.mp3" },
+    "{1}": { "label": "Error Reason", "sample": "Access denied" }
+  },
+  "Notification_Watcher_TrackMovedFileFailed": {
+    "{0}": { "label": "File Name", "sample": "Track01.flac" },
+    "{1}": { "label": "Error Reason", "sample": "File not found" }
+  },
+  "Notification_Watcher_AddNewFileFailed": {
+    "{0}": { "label": "File Name", "sample": "Song.wav" },
+    "{1}": { "label": "Error Reason", "sample": "Corrupt metadata" }
+  },
+  "Notification_Watcher_RefreshEntryFailed": {
+    "{0}": { "label": "File Name", "sample": "Album.m4a" },
+    "{1}": { "label": "Error Reason", "sample": "Disk I/O error" }
+  }
+}
+
