@@ -810,19 +810,20 @@ body {
 }
 
 .donut-pct-text {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
   color: #ffffff;
   line-height: 1.1;
 }
 
 .donut-pct-sub {
-  font-size: 11px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   color: var(--text-tertiary);
-  font-weight: 700;
+  font-weight: 600;
+  opacity: 0.75;
   margin-top: 2px;
 }
 
