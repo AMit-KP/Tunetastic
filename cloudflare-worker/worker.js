@@ -142,15 +142,17 @@ export default {
         return jsonResponse({ success: true }, 200, corsHeaders);
       }
 
-      // Release active locks for session on tab close / unload (pagehide sendBeacon)
-      if (path === "/api/drafts/release-lock" && request.method === "POST") {
+      // Release active locks for session on tab close / unload (supports keepalive fetch, sendBeacon, and image ping)
+      if (path === "/api/drafts/release-lock" && (request.method === "POST" || request.method === "GET")) {
         let body = {};
-        try {
-          const rawText = await request.text();
-          if (rawText) body = JSON.parse(rawText);
-        } catch {}
+        if (request.method === "POST") {
+          try {
+            const rawText = await request.text();
+            if (rawText) body = JSON.parse(rawText);
+          } catch {}
+        }
         const language = body.language || url.searchParams.get("lang");
-        const sid = body.sessionId || request.headers.get("X-Session-ID") || sessionId;
+        const sid = body.sessionId || url.searchParams.get("sessionId") || url.searchParams.get("sid") || request.headers.get("X-Session-ID") || sessionId;
 
         if (language && sid) {
           const lockMapKey = `active_locks:${language}`;
@@ -204,17 +206,28 @@ export default {
         const approvedRaw = await env.SUBMISSIONS.get(`approved:${lang}`);
         const approved = approvedRaw ? JSON.parse(approvedRaw) : {};
 
-        // Proposals summary (counts and preview)
-        const proposalsList = await env.SUBMISSIONS.list({ prefix: `proposals:${lang}:` });
-        const proposalsSummary = {};
-        for (const item of proposalsList.keys) {
-          const k = item.name.replace(`proposals:${lang}:`, "");
-          const rawP = await env.SUBMISSIONS.get(item.name);
-          if (rawP) {
-            const arr = JSON.parse(rawP);
-            proposalsSummary[k] = { count: arr.length, isFull: arr.length >= 10 };
+        // Proposals summary (counts and preview) - guarded against KV list() daily quota exhaustion
+        let proposalsSummary = {};
+        try {
+          const summaryRaw = await env.SUBMISSIONS.get(`proposals_summary:${lang}`);
+          if (summaryRaw) {
+            proposalsSummary = JSON.parse(summaryRaw);
+          } else {
+            try {
+              const proposalsList = await env.SUBMISSIONS.list({ prefix: `proposals:${lang}:` });
+              for (const item of proposalsList.keys) {
+                const k = item.name.replace(`proposals:${lang}:`, "");
+                const rawP = await env.SUBMISSIONS.get(item.name);
+                if (rawP) {
+                  const arr = JSON.parse(rawP);
+                  proposalsSummary[k] = { count: arr.length, isFull: arr.length >= 10 };
+                }
+              }
+            } catch (listErr) {
+              // KV list() daily limit exceeded - gracefully fallback so /api/status NEVER fails
+            }
           }
-        }
+        } catch {}
 
         return jsonResponse({ locks: activeLocks, approved, proposals: proposalsSummary }, 200, corsHeaders);
       }
@@ -344,6 +357,15 @@ export default {
         });
 
         await env.SUBMISSIONS.put(proposalKey, JSON.stringify(proposals));
+
+        // Update proposals summary index
+        try {
+          const summaryKey = `proposals_summary:${language}`;
+          const existingRaw = await env.SUBMISSIONS.get(summaryKey);
+          const summary = existingRaw ? JSON.parse(existingRaw) : {};
+          summary[key] = { count: proposals.length, isFull: proposals.length >= 10 };
+          await env.SUBMISSIONS.put(summaryKey, JSON.stringify(summary));
+        } catch {}
 
         return jsonResponse({ success: true, count: proposals.length }, 200, corsHeaders);
       }

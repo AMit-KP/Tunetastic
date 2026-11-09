@@ -521,9 +521,49 @@
     }
   }
 
+  // Immediate active lock cleanup on page navigation / tab close
+  function releaseActiveLocksOnExit() {
+    const lang = currentLang || safeStorageGet('tunetastic_last_lang');
+    if (!lang || !SESSION_ID) return;
+
+    const queryUrl = `${WORKER_URL}/api/drafts/release-lock?lang=${encodeURIComponent(lang)}&sessionId=${encodeURIComponent(SESSION_ID)}&_t=${Date.now()}`;
+    const payload = JSON.stringify({
+      language: lang,
+      sessionId: SESSION_ID
+    });
+
+    // Layer 1: Modern fetch with keepalive: true (Outlives tab/window close in Chromium & Incognito)
+    try {
+      if (typeof fetch === 'function') {
+        fetch(queryUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Session-ID': SESSION_ID },
+          body: payload,
+          keepalive: true,
+          mode: 'cors'
+        }).catch(() => {});
+      }
+    } catch (e) {}
+
+    // Layer 2: navigator.sendBeacon
+    try {
+      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: 'text/plain' });
+        navigator.sendBeacon(queryUrl, blob);
+      }
+    } catch (e) {}
+
+    // Layer 3: Image ping fallback (GET request without CORS preflight; works from file:///, localhost, and all Incognito modes)
+    try {
+      const img = new Image();
+      img.src = queryUrl;
+    } catch (e) {}
+  }
+
   function showView(viewName) {
     if (viewName !== 'workspace') {
       stopLiveStatusPolling();
+      releaseActiveLocksOnExit();
     }
     homeView.classList.remove('active');
     workspaceView.classList.remove('active');
@@ -689,6 +729,7 @@
 
   async function openWorkspace(langCode) {
     currentLang = langCode;
+    safeStorageSet('tunetastic_last_lang', langCode);
     currentPage = 1;
     currentFilter = 'all';
     searchQuery = '';
@@ -762,7 +803,7 @@
 
   function startLiveStatusPolling() {
     stopLiveStatusPolling();
-    livePollingTimer = setInterval(pollLiveStatus, 2500);
+    livePollingTimer = setInterval(pollLiveStatus, 4000);
   }
 
   function stopLiveStatusPolling() {
@@ -2070,16 +2111,6 @@
     });
 
     // Immediate active lock cleanup on page navigation / tab close
-    const releaseActiveLocksOnExit = () => {
-      if (currentLang && SESSION_ID && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        const payload = JSON.stringify({
-          language: currentLang,
-          sessionId: SESSION_ID
-        });
-        const blob = new Blob([payload], { type: 'text/plain' });
-        navigator.sendBeacon(`${WORKER_URL}/api/drafts/release-lock`, blob);
-      }
-    };
     window.addEventListener('pagehide', releaseActiveLocksOnExit);
     window.addEventListener('beforeunload', releaseActiveLocksOnExit);
 
