@@ -527,9 +527,6 @@
       if (pct >= 70) { gradStart = '#60cdff'; gradEnd = '#00f5d4'; }
       if (pct === 100) { gradStart = '#00f5d4'; gradEnd = '#10b981'; }
 
-      const pillClass = pct === 100 ? 'pill-approved' : (pct > 0 ? 'pill-translated' : 'pill-missing');
-      const pillText = pct === 100 ? 'Complete' : `${left} left`;
-
       card.innerHTML = `
         <div class="card-top-profile">
           <span class="flag-box">${meta.flagHtml || ICONS.globe}</span>
@@ -537,9 +534,6 @@
             <span class="card-lang-name" title="${escapeHtml(formatLanguageDisplayName(meta, lang.code))}">${escapeHtml(formatLanguageDisplayName(meta, lang.code))}</span>
             <span class="card-lang-native">${escapeHtml(lang.code)}</span>
           </div>
-          <span class="studio-pill ${pillClass}">
-            ${pillText}
-          </span>
         </div>
 
         <div class="card-donut-wrap">
@@ -562,7 +556,10 @@
         </div>
 
         <div class="card-stats-footer">
-          <span><strong>${count}</strong> of ${total} strings</span>
+          <div class="card-strings-badge ${pct === 100 ? 'status-done' : (count > 0 ? 'status-progress' : 'status-empty')}">
+            <span class="strings-dot"></span>
+            <span class="strings-count"><strong class="highlight-count">${count}</strong><span class="sep-slash">/</span>${total} strings</span>
+          </div>
           <span class="action-chip">Translate <span class="action-arrow">${ICONS.arrowRight}</span></span>
         </div>
       `;
