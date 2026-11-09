@@ -49,6 +49,10 @@
   --radius-xl: 24px;
   --radius-pill: 9999px;
 
+  /* Sticky Layout Metrics */
+  --nav-height: 68px;
+  --condensed-hero-offset: 126px;
+
   /* Animation Curves */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -947,14 +951,35 @@ body {
 /* ── View 2: Translation Workspace ───────────────────────────────────────── */
 
 .workspace-hero-card {
+  position: sticky;
+  top: var(--nav-height, 68px);
+  z-index: 90;
   background: var(--surface-glass);
   backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
-  padding: 28px 32px;
-  margin-bottom: 24px;
+  padding: 26px 32px;
+  margin-bottom: 20px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   animation: popIn 0.5s var(--ease-spring);
+  transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed {
+  padding: 9px 24px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-lg);
+  background: rgba(9, 13, 22, 0.94);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 16px rgba(96, 205, 255, 0.1);
 }
 
 .ws-hero-top {
@@ -964,12 +989,24 @@ body {
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 16px;
+  transition: margin-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-hero-top {
+  margin-bottom: 0;
+  gap: 12px;
 }
 
 .ws-lang-profile {
   display: flex;
   align-items: center;
   gap: 16px;
+  transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-lang-profile {
+  gap: 10px;
 }
 
 .ws-flag-box {
@@ -980,6 +1017,8 @@ body {
   line-height: 1;
   filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5));
   flex-shrink: 0;
+  transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ws-flag-box .lang-flag-img {
@@ -989,18 +1028,52 @@ body {
   border-radius: 7px;
   box-shadow: 0 5px 16px rgba(0, 0, 0, 0.55);
   display: block;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ws-flag-box svg {
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-flag-box {
+  font-size: 24px;
+}
+
+.workspace-hero-card.is-condensed .ws-flag-box .lang-flag-img {
+  width: 30px;
+  height: 21px;
+  border-radius: 4px;
+}
+
+.workspace-hero-card.is-condensed .ws-flag-box svg {
+  width: 22px;
+  height: 22px;
 }
 
 .ws-lang-heading {
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-lang-heading {
+  gap: 8px;
 }
 
 .ws-lang-heading h2 {
   font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-lang-heading h2 {
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .code-chip {
@@ -1011,6 +1084,12 @@ body {
   background: rgba(255, 255, 255, 0.08);
   color: var(--accent-cyan);
   border: 1px solid var(--border-glass);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .code-chip {
+  font-size: 11px;
+  padding: 2px 7px;
 }
 
 .ws-lang-subtitle {
@@ -1024,11 +1103,33 @@ body {
   gap: 12px;
 }
 
+.workspace-hero-card.is-condensed #ws-submit-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
 /* Glowing Progress Bar with Shimmer Light Reflection */
 .ws-progress-wrap {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 120px;
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-progress-wrap {
+  max-height: 0;
+  opacity: 0;
+  margin-top: 0;
+  padding-top: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
 }
 
 .ws-progress-info {
@@ -1048,6 +1149,26 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  opacity: 1;
+  max-width: 250px;
+  transform: scale(1);
+  white-space: nowrap;
+  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+              max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-progress-pct-badge {
+  opacity: 0;
+  max-width: 0;
+  padding: 0;
+  margin: 0;
+  border-width: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transform: scale(0.75);
 }
 
 .ws-save-indicator {
@@ -1162,6 +1283,15 @@ body {
   border-radius: var(--radius-xl);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   flex-wrap: wrap;
+  transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+.control-panel.is-hero-condensed {
+  top: var(--condensed-hero-offset, 126px);
+  background: rgba(9, 13, 22, 0.94);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
 }
 
 .search-box-wrap {

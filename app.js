@@ -468,6 +468,11 @@
 
     navHomeBtn.style.display = 'none';
 
+    const heroCard = document.querySelector('.workspace-hero-card');
+    const ctrlPanel = document.querySelector('.control-panel');
+    if (heroCard) heroCard.classList.remove('is-condensed');
+    if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
+
     if (viewName === 'home') {
       homeView.classList.add('active');
     } else if (viewName === 'workspace') {
@@ -478,6 +483,34 @@
       navHomeBtn.style.display = 'inline-flex';
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function syncNavLayoutMetrics() {
+    const nav = document.querySelector('.nav-bar');
+    if (nav) {
+      const h = nav.offsetHeight || 68;
+      document.documentElement.style.setProperty('--nav-height', `${h}px`);
+    }
+  }
+
+  function handleWorkspaceScroll() {
+    if (!workspaceView || !workspaceView.classList.contains('active')) return;
+    const heroCard = document.querySelector('.workspace-hero-card');
+    const ctrlPanel = document.querySelector('.control-panel');
+    if (!heroCard) return;
+
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    if (scrollY > 50) {
+      if (!heroCard.classList.contains('is-condensed')) {
+        heroCard.classList.add('is-condensed');
+        if (ctrlPanel) ctrlPanel.classList.add('is-hero-condensed');
+      }
+    } else if (scrollY < 20) {
+      if (heroCard.classList.contains('is-condensed')) {
+        heroCard.classList.remove('is-condensed');
+        if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
+      }
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -582,6 +615,11 @@
     if (langNameEl) langNameEl.textContent = fullTitle;
     const langCodeEl = document.getElementById('current-lang-code');
     if (langCodeEl) langCodeEl.textContent = langCode;
+
+    const heroCard = document.querySelector('.workspace-hero-card');
+    const ctrlPanel = document.querySelector('.control-panel');
+    if (heroCard) heroCard.classList.remove('is-condensed');
+    if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
 
     if (meta.rtl) {
       document.body.classList.add('rtl-mode');
@@ -1471,6 +1509,11 @@
     // Pagination
     pagePrevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderCards(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
     pageNextBtn.onclick = () => { currentPage++; renderCards(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+    // Sticky Workspace Collapsing Header Metrics & Scroll Watcher
+    syncNavLayoutMetrics();
+    window.addEventListener('resize', syncNavLayoutMetrics, { passive: true });
+    window.addEventListener('scroll', handleWorkspaceScroll, { passive: true });
   }
 
   // Start SPA
