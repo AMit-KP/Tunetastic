@@ -174,6 +174,15 @@ export default {
         return jsonResponse({ success: true }, 200, corsHeaders);
       }
 
+      // Reset/clear active locks for a language (maintainer reset or clearing orphaned locks)
+      if (path === "/api/locks/clear" && (request.method === "POST" || request.method === "GET")) {
+        const language = url.searchParams.get("lang");
+        if (language) {
+          await env.SUBMISSIONS.delete(`active_locks:${language}`);
+        }
+        return jsonResponse({ success: true, message: `Active locks cleared for ${language}` }, 200, corsHeaders);
+      }
+
       // Key-specific Proposals Stack (up to 10 versions)
       if (path === "/api/proposals" && request.method === "GET") {
         const lang = url.searchParams.get("lang");
@@ -245,7 +254,7 @@ export default {
         const body = await request.json();
         const { language, contributor = "Unknown", translations = {} } = body;
 
-        const sanitizedContributor = String(contributor).slice(0, 50).trim() || "Unknown";
+        const sanitizedContributor = String(contributor).replace(/^@+/, "").slice(0, 50).trim() || "Unknown";
         const keys = Object.keys(translations);
         if (!language || keys.length === 0) {
           return jsonResponse({ error: "Language and non-empty translations required" }, 400, corsHeaders);
@@ -377,7 +386,7 @@ export default {
           return jsonResponse({ error: "This exact translation has already been suggested." }, 409, corsHeaders);
         }
 
-        const sanitizedContributor = String(contributor).slice(0, 50).trim() || "Unknown";
+        const sanitizedContributor = String(contributor).replace(/^@+/, "").slice(0, 50).trim() || "Unknown";
         proposals.push({
           id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
           text,
@@ -576,8 +585,15 @@ export default {
         }
 
         // 4. Create Pull Request
-        const contributorsList = Array.from(contributorsSet).map(c => c.startsWith("@") ? c : "@" + c);
-        const coAuthors = Array.from(contributorsSet).map(c => `Co-authored-by: ${c.replace(/[^a-zA-Z0-9_\-]/g, "")} <community@tunetastic.app>`).join("\n");
+        const contributorsList = Array.from(contributorsSet)
+          .map(c => String(c).replace(/^@+/, "").trim())
+          .filter(Boolean)
+          .map(c => "@" + c);
+        const coAuthors = Array.from(contributorsSet)
+          .map(c => String(c).replace(/^@+/, "").trim())
+          .filter(Boolean)
+          .map(c => `Co-authored-by: ${c.replace(/[^a-zA-Z0-9_\-]/g, "")} <community@tunetastic.app>`)
+          .join("\n");
 
         const prBody =
           `## 🌐 Community Localization Sync\n\n` +

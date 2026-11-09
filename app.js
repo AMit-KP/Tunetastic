@@ -122,6 +122,7 @@
   // Dynamic status cache from Cloudflare
   let liveStatus = { locks: {}, approved: {}, proposals: {} };
   let currentDrafts = {};
+  let isIncognitoMode = false;
 
   // Elements
   const homeView = document.getElementById('home-view');
@@ -451,6 +452,7 @@
 
   async function init() {
     setupEventListeners();
+    await checkAndShowIncognitoWarning();
     await loadCatalog();
     handleRoute();
     window.addEventListener('hashchange', handleRoute);
@@ -523,6 +525,7 @@
 
   // Immediate active lock cleanup on page navigation / tab close
   function releaseActiveLocksOnExit() {
+    if (isIncognitoMode) return;
     const lang = currentLang || safeStorageGet('tunetastic_last_lang');
     if (!lang || !SESSION_ID) return;
 
@@ -764,20 +767,24 @@
       p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
     });
 
-    // Check draft resumption and fetch live status BEFORE rendering drafts
-    try {
-      await Promise.allSettled([
-        fetchLiveStatus(),
-        checkDraftResumption()
-      ]);
-    } catch (e) {
-      console.warn("Background workspace sync error:", e);
+    // In incognito mode, bypass Cloudflare drafts, locks, and live status polling
+    if (!isIncognitoMode) {
+      try {
+        await Promise.allSettled([
+          fetchLiveStatus(),
+          checkDraftResumption()
+        ]);
+      } catch (e) {
+        console.warn("Background workspace sync error:", e);
+      }
     }
 
     // Render cards and update stats
     renderCards();
     updateWorkspaceStats();
-    startLiveStatusPolling();
+    if (!isIncognitoMode) {
+      startLiveStatusPolling();
+    }
   }
 
   async function fetchLiveStatus() {
@@ -792,9 +799,29 @@
           approved: data?.approved || {},
           proposals: data?.proposals || {}
         };
+        // Auto-synchronize local submitted records with Cloudflare truth
+        syncSubmittedWithServer(currentLang, liveStatus.proposals);
       }
     } catch (e) {
       console.warn("Could not fetch live Cloudflare status:", e);
+    }
+  }
+
+  function syncSubmittedWithServer(lang, serverProposals) {
+    if (!lang || !serverProposals || typeof serverProposals !== 'object') return;
+    const subMap = getSubmittedTranslations(lang);
+    if (!subMap || Object.keys(subMap).length === 0) return;
+    let changed = false;
+    for (const key of Object.keys(subMap)) {
+      const serverMeta = serverProposals[key];
+      // If the server confirmed there are NO active proposals in KV for this key (e.g. wiped or approved)
+      if (!serverMeta || !serverMeta.count || serverMeta.count <= 0) {
+        delete subMap[key];
+        changed = true;
+      }
+    }
+    if (changed) {
+      safeStorageSet(`tunetastic_submitted_${lang}`, JSON.stringify(subMap));
     }
   }
 
@@ -802,6 +829,7 @@
   let isPollingActive = false;
 
   function startLiveStatusPolling() {
+    if (isIncognitoMode) return;
     stopLiveStatusPolling();
     livePollingTimer = setInterval(pollLiveStatus, 4000);
   }
@@ -814,7 +842,7 @@
   }
 
   async function pollLiveStatus() {
-    if (isPollingActive) return;
+    if (isIncognitoMode || isPollingActive) return;
     if (!workspaceView || !workspaceView.classList.contains('active') || !currentLang) return;
     if (isDraftPendingResumption) return;
 
@@ -912,6 +940,10 @@
   let isDraftPendingResumption = false;
 
   async function checkDraftResumption() {
+    if (isIncognitoMode) {
+      isDraftPendingResumption = false;
+      return;
+    }
     try {
       const res = await fetch(`${WORKER_URL}/api/drafts/resume?lang=${currentLang}`, {
         headers: { 'X-Session-ID': SESSION_ID }
@@ -1029,6 +1061,7 @@
   // 400ms Debounced Draft Autosave to Cloudflare KV
   let draftSaveTimer = null;
   function scheduleDraftAutosave(key, text) {
+    if (isIncognitoMode) return; // No saving to Cloudflare KV or acquiring locks in Incognito
     clearTimeout(draftSaveTimer);
     draftSaveTimer = setTimeout(async () => {
       try {
@@ -1128,7 +1161,7 @@
       const subObj = subMap ? subMap[item.key] : null;
 
       let authorName = (subObj && subObj.contributor) || (proposalMeta && proposalMeta.latestContributor) || '';
-      if (authorName.startsWith('@')) authorName = authorName.slice(1);
+      authorName = String(authorName).replace(/^@+/, '').trim();
       const contrib = authorName ? `@${authorName}` : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
       const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
 
@@ -1478,7 +1511,9 @@
     document.getElementById('suggest-key-label').textContent = item.key;
     document.getElementById('suggest-source-text').textContent = item.source;
     document.getElementById('suggest-text-input').value = '';
-    document.getElementById('suggest-author-input').value = safeStorageGet('tunetastic_author') || '';
+    let savedAuthor = safeStorageGet('tunetastic_author') || '';
+    savedAuthor = String(savedAuthor).replace(/^@+/, '').trim();
+    document.getElementById('suggest-author-input').value = savedAuthor;
     document.getElementById('suggest-exact-error').style.display = 'none';
 
     const existingListEl = document.getElementById('suggest-existing-list');
@@ -1564,11 +1599,13 @@
 
   async function submitSuggestion() {
     const text = document.getElementById('suggest-text-input').value;
-    const author = document.getElementById('suggest-author-input').value.trim() || 'Unknown';
+    const rawAuthor = document.getElementById('suggest-author-input').value.trim() || 'Unknown';
+    const cleanAuthor = rawAuthor.replace(/^@+/, '').trim();
+    const author = cleanAuthor || 'Unknown';
     if (!text || !activeSuggestKey) return;
 
-    if (author && author !== 'Unknown') {
-      safeStorageSet('tunetastic_author', author);
+    if (cleanAuthor && cleanAuthor !== 'Unknown') {
+      safeStorageSet('tunetastic_author', cleanAuthor);
     }
 
     const confirmBtn = document.getElementById('suggest-confirm-btn');
@@ -1624,15 +1661,19 @@
     const meta = resolveLanguageMeta(currentLang) || { name: currentLang };
     document.getElementById('modal-submit-lang').textContent = formatLanguageDisplayName(meta, currentLang);
     document.getElementById('modal-submit-count').textContent = count;
-    document.getElementById('submit-author-input').value = safeStorageGet('tunetastic_author') || '';
+    let savedAuthor = safeStorageGet('tunetastic_author') || '';
+    savedAuthor = String(savedAuthor).replace(/^@+/, '').trim();
+    document.getElementById('submit-author-input').value = savedAuthor;
 
     submitModal.classList.add('active');
   }
 
   async function submitTranslations() {
-    const author = document.getElementById('submit-author-input').value.trim() || 'Unknown';
-    if (author && author !== 'Unknown') {
-      safeStorageSet('tunetastic_author', author);
+    const rawAuthor = document.getElementById('submit-author-input').value.trim() || 'Unknown';
+    const cleanAuthor = rawAuthor.replace(/^@+/, '').trim();
+    const author = cleanAuthor || 'Unknown';
+    if (cleanAuthor && cleanAuthor !== 'Unknown') {
+      safeStorageSet('tunetastic_author', cleanAuthor);
     }
 
     const translations = getAllLocalTranslations(currentLang);
@@ -2126,9 +2167,6 @@
     // Immediate active lock cleanup on page navigation / tab close
     window.addEventListener('pagehide', releaseActiveLocksOnExit);
     window.addEventListener('beforeunload', releaseActiveLocksOnExit);
-
-    // Incognito / Private Browsing Detection & Warning
-    checkAndShowIncognitoWarning();
   }
 
   async function checkAndShowIncognitoWarning() {
@@ -2158,6 +2196,7 @@
       } catch {}
     }
 
+    isIncognitoMode = isPrivate;
     if (isPrivate) {
       banner.style.display = 'flex';
     }
