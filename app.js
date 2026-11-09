@@ -915,11 +915,13 @@
           if (!getLocalTranslation(currentLang, item.key)) {
             textarea.value = '';
           }
+          autoResizeTextarea(textarea);
         } else if (statusInfo.status === 'available') {
           textarea.placeholder = 'Type translation here...';
           textarea.style.opacity = '1';
           textarea.style.cursor = 'text';
           textarea.style.background = '';
+          autoResizeTextarea(textarea);
         } else if (statusInfo.isReadOnly) {
           textarea.placeholder = 'This string is locked. Use \'Suggest Alternative\' to propose changes.';
           textarea.style.opacity = '0.85';
@@ -928,6 +930,7 @@
           if (statusInfo.displayText) {
             textarea.value = statusInfo.displayText;
           }
+          autoResizeTextarea(textarea);
         }
       }
 
@@ -1162,6 +1165,12 @@
       });
     }
     return preview;
+  }
+
+  function autoResizeTextarea(ta) {
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(40, ta.scrollHeight) + 'px';
   }
 
   function renderContextBlockHtml(comment, key) {
@@ -1464,14 +1473,16 @@
         };
       }
 
-      // Event listener for textarea typing
-      if (!isReadOnly) {
-        const textarea = card.querySelector('textarea.translation-textarea');
-        if (textarea) {
+      // Textarea auto-sizing and typing event listeners
+      const textarea = card.querySelector('textarea.translation-textarea');
+      if (textarea) {
+        autoResizeTextarea(textarea);
+        if (!isReadOnly) {
           textarea.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') e.preventDefault();
           });
           textarea.addEventListener('input', (e) => {
+            autoResizeTextarea(e.target);
             const val = e.target.value.replace(/[\r\n]+/g, ' ');
             setLocalTranslation(currentLang, item.key, val);
 
