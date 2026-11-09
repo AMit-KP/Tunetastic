@@ -70,7 +70,6 @@
   const workspaceView = document.getElementById('workspace-view');
   const adminView = document.getElementById('admin-view');
   const navHomeBtn = document.getElementById('nav-home-btn');
-  const navExportBtn = document.getElementById('nav-export-btn');
   const navSubmitBtn = document.getElementById('nav-submit-btn');
   const languagesGrid = document.getElementById('languages-grid');
   const cardsContainer = document.getElementById('cards-container');
@@ -469,7 +468,6 @@
     adminView.classList.remove('active');
 
     navHomeBtn.style.display = 'none';
-    navExportBtn.style.display = 'none';
     navSubmitBtn.style.display = 'none';
 
     if (viewName === 'home') {
@@ -477,7 +475,6 @@
     } else if (viewName === 'workspace') {
       workspaceView.classList.add('active');
       navHomeBtn.style.display = 'inline-flex';
-      navExportBtn.style.display = 'inline-flex';
       navSubmitBtn.style.display = 'inline-flex';
     } else if (viewName === 'admin') {
       adminView.classList.add('active');
@@ -1412,46 +1409,6 @@
     }
   }
 
-  function exportReswFile() {
-    if (!catalog || !catalog.items || !currentLang) return;
-    const translations = getAllLocalTranslations(currentLang);
-
-    const lines = [
-      '<?xml version="1.0" encoding="utf-8"?>',
-      '<root>',
-      '  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>',
-      '  <resheader name="version"><value>2.0</value></resheader>',
-      '  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>',
-      '  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>'
-    ];
-
-    catalog.items.forEach(item => {
-      const val = translations[item.key] || '';
-      if (val) {
-        const valEsc = escapeXml(val);
-        const commentEsc = escapeXml(item.comment || '');
-        lines.push(`  <data name="${escapeXml(item.key)}" xml:space="preserve">`);
-        lines.push(`    <value>${valEsc}</value>`);
-        if (commentEsc) lines.push(`    <comment>${commentEsc}</comment>`);
-        lines.push('  </data>');
-      }
-    });
-
-    lines.push('</root>');
-
-    const blob = new Blob([lines.join('\n')], { type: 'application/xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Resources.resw`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    showToast(`Exported Resources.resw for ${currentLang}!`);
-  }
-
   function showToast(msg) {
     if (!toastNotification) return;
     toastMessage.textContent = msg;
@@ -1483,10 +1440,6 @@
 
   function setupEventListeners() {
     navHomeBtn.onclick = () => { window.location.hash = '#home'; };
-
-    // Export .resw
-    navExportBtn.onclick = exportReswFile;
-    document.getElementById('ws-download-btn').onclick = exportReswFile;
 
     // Submit modal triggers
     navSubmitBtn.onclick = openSubmitModal;
