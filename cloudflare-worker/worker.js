@@ -142,6 +142,36 @@ export default {
         return jsonResponse({ success: true }, 200, corsHeaders);
       }
 
+      // Release active locks for session on tab close / unload (pagehide sendBeacon)
+      if (path === "/api/drafts/release-lock" && request.method === "POST") {
+        let body = {};
+        try {
+          const rawText = await request.text();
+          if (rawText) body = JSON.parse(rawText);
+        } catch {}
+        const language = body.language || url.searchParams.get("lang");
+        const sid = body.sessionId || request.headers.get("X-Session-ID") || sessionId;
+
+        if (language && sid) {
+          const lockMapKey = `active_locks:${language}`;
+          const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
+          if (currentLocksRaw) {
+            const currentLocks = JSON.parse(currentLocksRaw);
+            let modified = false;
+            for (const [k, lock] of Object.entries(currentLocks)) {
+              if (lock.sessionId === sid) {
+                delete currentLocks[k];
+                modified = true;
+              }
+            }
+            if (modified) {
+              await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
+            }
+          }
+        }
+        return jsonResponse({ success: true }, 200, corsHeaders);
+      }
+
       // Key-specific Proposals Stack (up to 10 versions)
       if (path === "/api/proposals" && request.method === "GET") {
         const lang = url.searchParams.get("lang");

@@ -2249,3 +2249,63 @@ body {
   color: #ffab00;
 }
 
+/* Incognito / Private Browsing Warning Banner */
+.incognito-warning-banner {
+  background: rgba(245, 158, 11, 0.09);
+  border: 1px solid rgba(245, 158, 11, 0.32);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.incognito-warning-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fbbf24;
+}
+
+.incognito-warning-content .svg-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.incognito-warning-text {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.incognito-warning-text strong {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.incognito-warning-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.incognito-warning-dismiss:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+

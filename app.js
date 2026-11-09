@@ -2068,6 +2068,55 @@
         pollLiveStatus();
       }
     });
+
+    // Immediate active lock cleanup on page navigation / tab close
+    const releaseActiveLocksOnExit = () => {
+      if (currentLang && SESSION_ID && typeof navigator !== 'undefined' && navigator.sendBeacon) {
+        const payload = JSON.stringify({
+          language: currentLang,
+          sessionId: SESSION_ID
+        });
+        const blob = new Blob([payload], { type: 'text/plain' });
+        navigator.sendBeacon(`${WORKER_URL}/api/drafts/release-lock`, blob);
+      }
+    };
+    window.addEventListener('pagehide', releaseActiveLocksOnExit);
+    window.addEventListener('beforeunload', releaseActiveLocksOnExit);
+
+    // Incognito / Private Browsing Detection & Warning
+    checkAndShowIncognitoWarning();
+  }
+
+  async function checkAndShowIncognitoWarning() {
+    const banner = document.getElementById('incognito-warning-banner');
+    const dismissBtn = document.getElementById('incognito-warning-dismiss');
+    if (!banner) return;
+
+    if (dismissBtn) {
+      dismissBtn.onclick = () => {
+        banner.style.display = 'none';
+      };
+    }
+
+    let isPrivate = false;
+    if (typeof window.detectIncognito === 'function') {
+      try {
+        const result = await window.detectIncognito();
+        if (result && result.isPrivate) isPrivate = true;
+      } catch {}
+    }
+
+    // Fast storage quota fallback
+    if (!isPrivate && navigator.storage && navigator.storage.estimate) {
+      try {
+        const { quota } = await navigator.storage.estimate();
+        if (quota && quota < 120000000) isPrivate = true;
+      } catch {}
+    }
+
+    if (isPrivate) {
+      banner.style.display = 'flex';
+    }
   }
 
   // Start SPA

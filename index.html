@@ -66,6 +66,19 @@
   <!-- Main Container -->
   <main class="main-container">
 
+    <!-- Incognito / Private Browsing Warning Banner -->
+    <div id="incognito-warning-banner" class="incognito-warning-banner" style="display: none;">
+      <div class="incognito-warning-content">
+        <svg class="svg-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+          <path d="M7.1 1.5c.4-.7 1.4-.7 1.8 0l6.7 11.6c.4.7-.1 1.6-.9 1.6H1.3c-.8 0-1.3-.9-.9-1.6L7.1 1.5zM8 5a.8.8 0 0 0-.8.8v3.4a.8.8 0 0 0 1.6 0V5.8A.8.8 0 0 0 8 5zm0 6.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"/>
+        </svg>
+        <div class="incognito-warning-text">
+          <strong>Private / Incognito Browsing:</strong> If this browser window or tab is closed before submitting, all your draft translations will be permanently lost and cannot be resumed. Please remember to click <strong>Submit Work</strong> to save your contributions!
+        </div>
+      </div>
+      <button type="button" class="incognito-warning-dismiss" id="incognito-warning-dismiss" aria-label="Dismiss warning">&times;</button>
+    </div>
+
     <!-- VIEW 1: Home Dashboard -->
     <section id="home-view" class="view-section active">
       
@@ -463,6 +476,7 @@
     <span class="toast-message" id="toast-message">Action successful</span>
   </div>
 
+  <script src="detectIncognito.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
