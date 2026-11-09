@@ -582,8 +582,6 @@
     if (langNameEl) langNameEl.textContent = fullTitle;
     const langCodeEl = document.getElementById('current-lang-code');
     if (langCodeEl) langCodeEl.textContent = langCode;
-    const langNativeEl = document.getElementById('current-lang-native');
-    if (langNativeEl) langNativeEl.textContent = `Official Locale Workspace • ${langCode}`;
 
     if (meta.rtl) {
       document.body.classList.add('rtl-mode');
