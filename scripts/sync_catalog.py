@@ -98,7 +98,8 @@ def sync_catalog(csharp_repo_root: Path, output_catalog_path: Path, placeholders
                 "code": code,
                 "translatedCount": len(translated_keys),
                 "totalCount": len(master_strings),
-                "progressPct": pct
+                "progressPct": pct,
+                "translations": {k: v["value"] for k, v in lang_dict.items() if v.get("value") and v.get("value").strip()}
             }
             verified_translations[code] = translated_keys
 
@@ -110,7 +111,8 @@ def sync_catalog(csharp_repo_root: Path, output_catalog_path: Path, placeholders
                 "code": d_code,
                 "translatedCount": 0,
                 "totalCount": len(master_strings),
-                "progressPct": 0
+                "progressPct": 0,
+                "translations": {}
             }
 
     # Build Items

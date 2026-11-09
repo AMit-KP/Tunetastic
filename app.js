@@ -662,11 +662,7 @@
       p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
     });
 
-    // Render immediately so cards and stats display instantly with zero delay
-    renderCards();
-    updateWorkspaceStats();
-
-    // Fetch live status from Cloudflare (locks, approved, proposals) and drafts in background
+    // Check draft resumption and fetch live status BEFORE rendering drafts
     try {
       await Promise.allSettled([
         fetchLiveStatus(),
@@ -676,7 +672,7 @@
       console.warn("Background workspace sync error:", e);
     }
 
-    // Refresh cards and stats once live cloud status settles
+    // Render cards and update stats
     renderCards();
     updateWorkspaceStats();
   }
@@ -699,79 +695,110 @@
     }
   }
 
+  let isDraftPendingResumption = false;
+
   async function checkDraftResumption() {
     try {
       const res = await fetch(`${WORKER_URL}/api/drafts/resume?lang=${currentLang}`, {
         headers: { 'X-Session-ID': SESSION_ID }
       });
+      let cloudDrafts = {};
       if (res.ok) {
         const data = await res.json();
-        currentDrafts = data.drafts || {};
-        const count = Object.keys(currentDrafts).length;
+        cloudDrafts = data.drafts || {};
+      }
 
-        if (count > 0 && draftResumeModal) {
-          const countEl = document.getElementById('resume-draft-count');
-          if (countEl) countEl.textContent = count;
-          const confirmCountEl = document.getElementById('discard-confirm-count');
-          if (confirmCountEl) confirmCountEl.textContent = count;
-          const langEl = document.getElementById('resume-draft-lang');
-          if (langEl) {
-            const meta = resolveLanguageMeta(currentLang);
-            langEl.textContent = meta ? formatLanguageDisplayName(meta, currentLang) : currentLang;
-          }
+      // Check if local storage or Cloudflare has unsubmitted drafts
+      const localDrafts = getAllLocalTranslations(currentLang);
+      const combinedDrafts = { ...localDrafts, ...cloudDrafts };
+      const count = Object.keys(combinedDrafts).length;
 
-          // Reset modal views to primary prompt
-          if (draftModalMainView) draftModalMainView.style.display = 'block';
-          if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
+      if (count > 0 && draftResumeModal) {
+        currentDrafts = combinedDrafts;
+        isDraftPendingResumption = true;
 
-          draftResumeModal.classList.add('active');
-
-          // Action 1: Resume Drafts
-          const resumeBtn = document.getElementById('draft-resume-btn');
-          if (resumeBtn) {
-            resumeBtn.onclick = () => {
-              for (const [k, v] of Object.entries(currentDrafts)) {
-                setLocalTranslation(currentLang, k, v);
-              }
-              draftResumeModal.classList.remove('active');
-              renderCards();
-              updateWorkspaceStats();
-              showToast(`Restored ${count} draft translations!`);
-            };
-          }
-
-          // Action 2: Click Discard -> Switch to Warning Confirmation View
-          const discardBtn = document.getElementById('draft-discard-btn');
-          if (discardBtn) {
-            discardBtn.onclick = () => {
-              if (draftModalMainView) draftModalMainView.style.display = 'none';
-              if (draftModalConfirmView) draftModalConfirmView.style.display = 'block';
-            };
-          }
-
-          // Action 3: Cancel Warning -> Return to Resume Prompt View
-          const cancelConfirmBtn = document.getElementById('draft-confirm-cancel-btn');
-          if (cancelConfirmBtn) {
-            cancelConfirmBtn.onclick = () => {
-              if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
-              if (draftModalMainView) draftModalMainView.style.display = 'block';
-            };
-          }
-
-          // Action 4: Confirm Discard -> Wipe memory drafts, close modal, show toast
-          const confirmDiscardBtn = document.getElementById('draft-confirm-discard-btn');
-          if (confirmDiscardBtn) {
-            confirmDiscardBtn.onclick = () => {
-              currentDrafts = {};
-              draftResumeModal.classList.remove('active');
-              showToast('Draft translations discarded.');
-            };
-          }
-        } else if (draftResumeModal) {
-          draftResumeModal.classList.remove('active');
+        const countEl = document.getElementById('resume-draft-count');
+        if (countEl) countEl.textContent = count;
+        const confirmCountEl = document.getElementById('discard-confirm-count');
+        if (confirmCountEl) confirmCountEl.textContent = count;
+        const langEl = document.getElementById('resume-draft-lang');
+        if (langEl) {
+          const meta = resolveLanguageMeta(currentLang);
+          langEl.textContent = meta ? formatLanguageDisplayName(meta, currentLang) : currentLang;
         }
+
+        // Reset modal views to primary prompt
+        if (draftModalMainView) draftModalMainView.style.display = 'block';
+        if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
+
+        draftResumeModal.classList.add('active');
+
+        // Action 1: Resume Drafts
+        const resumeBtn = document.getElementById('draft-resume-btn');
+        if (resumeBtn) {
+          resumeBtn.onclick = () => {
+            isDraftPendingResumption = false;
+            for (const [k, v] of Object.entries(currentDrafts)) {
+              setLocalTranslation(currentLang, k, v);
+            }
+            draftResumeModal.classList.remove('active');
+            renderCards();
+            updateWorkspaceStats();
+            showToast(`Restored ${count} draft translations!`);
+          };
+        }
+
+        // Action 2: Click Discard -> Switch to Warning Confirmation View
+        const discardBtn = document.getElementById('draft-discard-btn');
+        if (discardBtn) {
+          discardBtn.onclick = () => {
+            if (draftModalMainView) draftModalMainView.style.display = 'none';
+            if (draftModalConfirmView) draftModalConfirmView.style.display = 'block';
+          };
+        }
+
+        // Action 3: Cancel Warning -> Return to Resume Prompt View
+        const cancelConfirmBtn = document.getElementById('draft-confirm-cancel-btn');
+        if (cancelConfirmBtn) {
+          cancelConfirmBtn.onclick = () => {
+            if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
+            if (draftModalMainView) draftModalMainView.style.display = 'block';
+          };
+        }
+
+        // Action 4: Confirm Discard -> Wipe memory drafts, localStorage, and Cloudflare KV
+        const confirmDiscardBtn = document.getElementById('draft-confirm-discard-btn');
+        if (confirmDiscardBtn) {
+          confirmDiscardBtn.onclick = async () => {
+            isDraftPendingResumption = false;
+            currentDrafts = {};
+            localStorage.removeItem(`tunetastic_l10n_${currentLang}`);
+
+            try {
+              await fetch(`${WORKER_URL}/api/drafts/discard`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Session-ID': SESSION_ID
+                },
+                body: JSON.stringify({ language: currentLang })
+              });
+            } catch (e) {
+              console.warn("Discard sync error:", e);
+            }
+
+            draftResumeModal.classList.remove('active');
+            renderCards();
+            updateWorkspaceStats();
+            showToast('Saved drafts discarded.');
+          };
+        }
+      } else {
+        isDraftPendingResumption = false;
+        if (draftResumeModal) draftResumeModal.classList.remove('active');
       }
     } catch (e) {
+      isDraftPendingResumption = false;
       if (draftResumeModal) draftResumeModal.classList.remove('active');
     }
   }
@@ -804,6 +831,31 @@
   // 6. CARD RENDERING & LIVE IN-APP PREVIEW
   // -------------------------------------------------------------------------
 
+  function getCatalogTranslation(lang, key) {
+    if (!catalog || !catalog.languages || !catalog.languages[lang]) return '';
+    const langObj = catalog.languages[lang];
+    return (langObj.translations && langObj.translations[key]) ? langObj.translations[key] : '';
+  }
+
+  function getSubmittedTranslations(lang) {
+    try {
+      const raw = localStorage.getItem(`tunetastic_submitted_${lang}`);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function isSubmittedKey(lang, key) {
+    const all = getSubmittedTranslations(lang);
+    return Boolean(all && all[key]);
+  }
+
+  function getLocalDraft(lang, key) {
+    if (isDraftPendingResumption) return '';
+    return getLocalTranslation(lang, key);
+  }
+
   function renderSimulatedPreview(sourceText, translationText, placeholders) {
     let preview = translationText || sourceText;
     if (placeholders && Array.isArray(placeholders)) {
@@ -827,11 +879,12 @@
   }
 
   function getItemStatusInfo(item) {
-    const translation = getLocalTranslation(currentLang, item.key);
     const approvedEntry = liveStatus && liveStatus.approved ? liveStatus.approved[item.key] : null;
     const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
+    const isLocalSubmitted = isSubmittedKey(currentLang, item.key);
+    const catalogTrans = getCatalogTranslation(currentLang, item.key);
+    const localDraft = getLocalDraft(currentLang, item.key);
     const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
-    const isMine = lock === 'mine' || (currentDrafts && currentDrafts[item.key] !== undefined);
 
     // 1. Approved (Staged for release PR)
     if (approvedEntry) {
@@ -840,51 +893,60 @@
         label: `Approved (${escapeHtml(approvedEntry.contributor || 'Maintainer')})`,
         pillClass: 'pill-approved',
         dotClass: 'dot-approved',
-        isLockedByOther: false
+        isReadOnly: true,
+        displayText: approvedEntry.translation || ''
       };
     }
 
-    // 2. Already Translated
-    if (translation && translation.trim() && !isMine) {
+    // 2. Submitted / Pending Review
+    if (isLocalSubmitted || (proposalMeta && proposalMeta.count > 0)) {
+      const subMap = getSubmittedTranslations(currentLang);
+      const subObj = subMap ? subMap[item.key] : null;
+      const contrib = subObj && subObj.contributor ? `@${subObj.contributor}` : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
+      const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
+      return {
+        status: 'submitted',
+        label: `⏳ Pending Review (${escapeHtml(contrib)})`,
+        pillClass: 'pill-submitted',
+        dotClass: 'dot-submitted',
+        isReadOnly: true,
+        displayText: text
+      };
+    }
+
+    // 3. Already Translated (shipped in app catalog)
+    if (catalogTrans && catalogTrans.trim()) {
       return {
         status: 'translated',
         label: 'Already Translated',
         pillClass: 'pill-translated',
         dotClass: 'dot-translated',
-        isLockedByOther: false
+        isReadOnly: true,
+        displayText: catalogTrans
       };
     }
 
-    // 3. Your Draft in progress
-    if (isMine || (translation && translation.trim())) {
-      return {
-        status: 'mine',
-        label: 'Your Draft (In Progress)',
-        pillClass: 'pill-draft-mine',
-        dotClass: 'dot-draft',
-        isLockedByOther: false
-      };
-    }
-
-    // 4. In progress by another contributor
+    // 4. In progress by another contributor (locked in Cloudflare KV)
     if (lock === 'other') {
       return {
         status: 'other',
         label: 'In Progress (Other)',
         pillClass: 'pill-draft-other',
         dotClass: 'dot-in-progress',
-        isLockedByOther: true
+        isReadOnly: true,
+        displayText: ''
       };
     }
 
-    // 5. Submitted proposals pending maintainer review
-    if (proposalMeta && proposalMeta.count > 0) {
+    // 5. Your Draft in progress
+    if ((localDraft && localDraft.trim()) || lock === 'mine') {
       return {
-        status: 'submitted',
-        label: `Submitted / Pending Review (${proposalMeta.count})`,
-        pillClass: 'pill-submitted',
-        dotClass: 'dot-submitted',
-        isLockedByOther: false
+        status: 'mine',
+        label: 'Your Draft (In Progress)',
+        pillClass: 'pill-draft-mine',
+        dotClass: 'dot-draft',
+        isReadOnly: false,
+        displayText: localDraft || ''
       };
     }
 
@@ -894,7 +956,8 @@
       label: 'Available',
       pillClass: 'pill-available',
       dotClass: 'dot-available',
-      isLockedByOther: false
+      isReadOnly: false,
+      displayText: ''
     };
   }
 
@@ -903,24 +966,23 @@
 
     return catalog.items.filter(item => {
       const statusInfo = getItemStatusInfo(item);
-      const translation = getLocalTranslation(currentLang, item.key) || '';
 
       if (currentFilter === 'available' && statusInfo.status !== 'available') return false;
       if (currentFilter === 'mine' && statusInfo.status !== 'mine') return false;
       if (currentFilter === 'other' && statusInfo.status !== 'other') return false;
       if (currentFilter === 'submitted' && statusInfo.status !== 'submitted') return false;
       if (currentFilter === 'approved' && statusInfo.status !== 'approved') return false;
-      if (currentFilter === 'translated' && (statusInfo.status !== 'translated' && statusInfo.status !== 'approved' && !translation.trim())) return false;
+      if (currentFilter === 'translated' && statusInfo.status !== 'translated') return false;
 
       // Legacy filter fallback
       if (currentFilter === 'missing' && statusInfo.status !== 'available') return false;
-      if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved' && !translation.trim()) return false;
+      if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved') return false;
 
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const keyMatch = item.key.toLowerCase().includes(q);
         const sourceMatch = item.source.toLowerCase().includes(q);
-        const transMatch = translation.toLowerCase().includes(q);
+        const transMatch = (statusInfo.displayText || '').toLowerCase().includes(q);
         const commentMatch = (item.comment || '').toLowerCase().includes(q);
         return keyMatch || sourceMatch || transMatch || commentMatch;
       }
@@ -955,14 +1017,14 @@
     const meta = resolveLanguageMeta(currentLang) || { name: currentLang, native: currentLang };
 
     pageItems.forEach(item => {
-      const translation = getLocalTranslation(currentLang, item.key);
+      // Determine Badge and Read-Only state from status lifecycle
+      const statusInfo = getItemStatusInfo(item);
+      const translation = statusInfo.displayText || '';
+      const isReadOnly = statusInfo.isReadOnly;
       const hasPlaceholders = item.placeholders && item.placeholders.length > 0;
       const tokenStatus = validateTokens(item.source, translation, item.placeholders);
 
-      // Determine Badge from live Cloudflare Status
-      const statusInfo = getItemStatusInfo(item);
       const statusPill = `<span class="studio-pill card-status-pill ${statusInfo.pillClass}"><span class="status-dot ${statusInfo.dotClass}"></span> ${statusInfo.label}</span>`;
-      const isLockedByOther = statusInfo.isLockedByOther;
       const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
 
       // Suggest Button Slot state
@@ -974,6 +1036,10 @@
       const card = document.createElement('div');
       card.className = 'studio-card';
       card.id = `card-${item.key}`;
+
+      const placeholderText = statusInfo.status === 'other'
+        ? 'Another contributor is drafting this... You can suggest an alternative.'
+        : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...');
 
       card.innerHTML = `
         <div class="studio-card-header">
@@ -1004,8 +1070,8 @@
               <span>Your Translation (${escapeHtml(meta.native || currentLang)})</span>
             </div>
             <textarea class="translation-textarea" rows="2" 
-              placeholder="${isLockedByOther ? 'Another contributor is drafting this... You can suggest an alternative.' : 'Type translation here...'}"
-              ${isLockedByOther ? 'readonly style="opacity: 0.6;"' : ''}>${escapeHtml(translation)}</textarea>
+              placeholder="${placeholderText}"
+              ${isReadOnly ? 'readonly style="opacity: 0.85; background: rgba(255,255,255,0.02); cursor: default;"' : ''}>${escapeHtml(translation)}</textarea>
 
             <div class="token-missing-alert" style="display: ${tokenStatus.isValid ? 'none' : 'flex'};">
               ${ICONS.alert} Missing placeholder token: <strong>${tokenStatus.missing.join(', ')}</strong>
@@ -1032,8 +1098,8 @@
         };
       }
 
-      // Event listener for textarea typing (safe element lookup without unescaped selector bugs)
-      if (!isLockedByOther) {
+      // Event listener for textarea typing
+      if (!isReadOnly) {
         const textarea = card.querySelector('textarea.translation-textarea');
         if (textarea) {
           textarea.addEventListener('input', (e) => {
@@ -1155,6 +1221,16 @@
 
     const countTranslated = document.getElementById('count-translated');
     if (countTranslated) countTranslated.textContent = `${counts.translated}`;
+
+    // Update Submit Work button in workspace hero
+    const wsSubmitBtn = document.getElementById('ws-submit-btn');
+    if (wsSubmitBtn) {
+      const draftCount = counts.mine;
+      wsSubmitBtn.innerHTML = `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg> Submit Work ${draftCount > 0 ? `(${draftCount})` : ''}`;
+      wsSubmitBtn.disabled = draftCount === 0;
+      wsSubmitBtn.style.opacity = draftCount === 0 ? '0.6' : '1';
+      wsSubmitBtn.style.cursor = draftCount === 0 ? 'not-allowed' : 'pointer';
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -1178,24 +1254,30 @@
     existingListEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary);">Loading existing proposals...</span>`;
     suggestModal.classList.add('active');
 
-    // Fetch existing proposals for this key
+    // Fetch existing proposals for this specific key
     activeSuggestProposals = [];
     try {
-      const res = await fetch(`${WORKER_URL}/api/status?lang=${currentLang}`);
+      const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
       if (res.ok) {
         const data = await res.json();
-        // Look up key proposals if available
+        activeSuggestProposals = Array.isArray(data.proposals) ? data.proposals : [];
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn("Could not fetch proposals for key:", e);
+    }
 
-    // Mock/populate existing proposals list
+    // Populate existing proposals list
     renderExistingProposalsInModal(item);
 
-    // Live exact-match check on typing (Whitespace is preserved as genuine!)
+    // Live exact-match check on typing (rejects duplicate text)
     const textarea = document.getElementById('suggest-text-input');
+    const catalogTrans = getCatalogTranslation(currentLang, item.key);
+
     textarea.oninput = (e) => {
       const val = e.target.value;
-      const isExactMatch = activeSuggestProposals.some(p => p.text === val);
+      const isExactProposalMatch = activeSuggestProposals.some(p => p.text === val);
+      const isCatalogExactMatch = catalogTrans && catalogTrans === val;
+      const isExactMatch = isExactProposalMatch || isCatalogExactMatch;
 
       if (isExactMatch) {
         document.getElementById('suggest-exact-error').style.display = 'block';
@@ -1278,6 +1360,7 @@
         suggestModal.classList.remove('active');
         await fetchLiveStatus();
         renderCards();
+        updateWorkspaceStats();
       } else {
         alert(data.error || "Failed to submit suggestion.");
       }
@@ -1317,6 +1400,12 @@
     }
 
     const translations = getAllLocalTranslations(currentLang);
+    const count = Object.keys(translations).length;
+    if (count === 0) {
+      alert("No draft translations to submit.");
+      return;
+    }
+
     const btn = document.getElementById('modal-confirm-submit-btn');
     btn.disabled = true;
     btn.textContent = 'Submitting to Staging...';
@@ -1338,9 +1427,40 @@
       const data = await res.json();
       if (res.ok) {
         submitModal.classList.remove('active');
-        showToast(`Successfully submitted ${data.acceptedCount || Object.keys(translations).length} strings to staging!`);
+
+        // Transition submitted keys from drafts to submitted state
+        const submittedKey = `tunetastic_submitted_${currentLang}`;
+        let existingSubmitted = {};
+        try {
+          existingSubmitted = JSON.parse(localStorage.getItem(submittedKey) || '{}');
+        } catch {}
+
+        for (const [k, v] of Object.entries(translations)) {
+          existingSubmitted[k] = {
+            text: v,
+            contributor: author,
+            timestamp: Date.now()
+          };
+        }
+        localStorage.setItem(submittedKey, JSON.stringify(existingSubmitted));
+
+        // Clear local active drafts
+        localStorage.removeItem(`tunetastic_l10n_${currentLang}`);
+        currentDrafts = {};
+
+        // Discard draft lock in Cloudflare
+        try {
+          await fetch(`${WORKER_URL}/api/drafts/discard`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Session-ID': SESSION_ID },
+            body: JSON.stringify({ language: currentLang })
+          });
+        } catch {}
+
+        showToast(`Successfully submitted ${data.acceptedCount || count} strings to staging!`);
         await fetchLiveStatus();
         renderCards();
+        updateWorkspaceStats();
       } else {
         alert(data.error || "Submission failed.");
       }
@@ -1356,17 +1476,97 @@
   // 9. MAINTAINER REVIEW QUEUE & AUTOMATED PR CREATION (#admin)
   // -------------------------------------------------------------------------
 
+  function requestAdminAuth() {
+    return new Promise((resolve, reject) => {
+      if (sessionAdminPassword) {
+        resolve(sessionAdminPassword);
+        return;
+      }
+      const modal = document.getElementById('admin-auth-modal');
+      const input = document.getElementById('admin-password-input');
+      const submitBtn = document.getElementById('admin-auth-submit-btn');
+      const cancelBtn = document.getElementById('admin-auth-cancel-btn');
+      const errorEl = document.getElementById('admin-auth-error');
+
+      if (!modal || !input) {
+        reject(new Error("Admin modal elements missing"));
+        return;
+      }
+
+      input.value = '';
+      if (errorEl) errorEl.style.display = 'none';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Unlock Console';
+      modal.classList.add('active');
+      input.focus();
+
+      const cleanup = () => {
+        submitBtn.onclick = null;
+        cancelBtn.onclick = null;
+        input.onkeydown = null;
+        modal.classList.remove('active');
+      };
+
+      const attemptUnlock = async () => {
+        const pwd = input.value.trim();
+        if (!pwd) return;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying...';
+        if (errorEl) errorEl.style.display = 'none';
+
+        try {
+          const res = await fetch(`${WORKER_URL}/api/pending`, {
+            headers: { 'Authorization': `Bearer ${pwd}` }
+          });
+          if (res.ok) {
+            sessionAdminPassword = pwd;
+            cleanup();
+            resolve(pwd);
+          } else {
+            if (errorEl) {
+              errorEl.textContent = 'Incorrect password. Access denied.';
+              errorEl.style.display = 'block';
+            }
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Unlock Console';
+            input.select();
+          }
+        } catch (e) {
+          if (errorEl) {
+            errorEl.textContent = 'Could not reach staging server: ' + e.message;
+            errorEl.style.display = 'block';
+          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Unlock Console';
+        }
+      };
+
+      submitBtn.onclick = attemptUnlock;
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') attemptUnlock();
+        if (e.key === 'Escape') {
+          cleanup();
+          reject(new Error("Cancelled"));
+        }
+      };
+      cancelBtn.onclick = () => {
+        cleanup();
+        reject(new Error("Cancelled"));
+      };
+    });
+  }
+
   async function loadAdminQueue() {
     const container = document.getElementById('admin-submissions-container');
     container.innerHTML = `<div style="text-align: center; padding: 48px; color: var(--text-secondary);"><div class="loading-spinner"></div>Connecting to staging storage...</div>`;
 
     if (!sessionAdminPassword) {
-      const pwd = prompt("Enter Maintainer Password:", "");
-      if (!pwd) {
+      try {
+        await requestAdminAuth();
+      } catch {
         window.location.hash = '#home';
         return;
       }
-      sessionAdminPassword = pwd;
     }
 
     try {
@@ -1374,9 +1574,13 @@
         headers: { 'Authorization': `Bearer ${sessionAdminPassword}` }
       });
       if (res.status === 401) {
-        alert("Incorrect maintainer password.");
-        sessionAdminPassword = "";
-        window.location.hash = '#home';
+        sessionAdminPassword = '';
+        container.innerHTML = `
+          <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); text-align: center;">
+            <h4 style="color: #f87171;">Session Expired or Invalid Password</h4>
+            <button class="btn btn-primary-gradient" style="margin-top: 14px;" onclick="loadAdminQueue()">Re-authenticate</button>
+          </div>
+        `;
         return;
       }
 
@@ -1476,6 +1680,12 @@
             });
 
             if (aRes.ok) {
+              if (liveStatus && liveStatus.approved && item.language === currentLang) {
+                liveStatus.approved[item.key] = {
+                  translation: selectedText,
+                  contributor
+                };
+              }
               card.style.opacity = '0.5';
               card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">${ICONS.check} Approved! Key "${item.key}" is staged in Cloudflare. Click "Sync Approved to Git" when ready to create a PR.</div>`;
               showToast(`Approved "${item.key}"!`);
@@ -1500,9 +1710,11 @@
   // Automated Pull Request Creation Action
   async function triggerSyncPr() {
     if (!sessionAdminPassword) {
-      const pwd = prompt("Enter Maintainer Password:", "");
-      if (!pwd) return;
-      sessionAdminPassword = pwd;
+      try {
+        await requestAdminAuth();
+      } catch {
+        return;
+      }
     }
 
     const prBtn = document.getElementById('admin-sync-pr-btn');

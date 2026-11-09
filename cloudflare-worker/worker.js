@@ -117,6 +117,44 @@ export default {
         return jsonResponse({ drafts: data.keys || {} }, 200, corsHeaders);
       }
 
+      // Discard drafts for current session
+      if (path === "/api/drafts/discard" && request.method === "POST") {
+        const { language } = await request.json().catch(() => ({}));
+        if (language) {
+          const draftKey = `draft:${language}:${sessionId}`;
+          await env.SUBMISSIONS.delete(draftKey);
+
+          // Clear active locks for this session
+          const lockMapKey = `active_locks:${language}`;
+          const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
+          if (currentLocksRaw) {
+            const currentLocks = JSON.parse(currentLocksRaw);
+            let modified = false;
+            for (const [k, lock] of Object.entries(currentLocks)) {
+              if (lock.sessionId === sessionId) {
+                delete currentLocks[k];
+                modified = true;
+              }
+            }
+            if (modified) {
+              await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
+            }
+          }
+        }
+        return jsonResponse({ success: true }, 200, corsHeaders);
+      }
+
+      // Key-specific Proposals Stack (up to 10 versions)
+      if (path === "/api/proposals" && request.method === "GET") {
+        const lang = url.searchParams.get("lang");
+        const key = url.searchParams.get("key");
+        if (!lang || !key) return jsonResponse({ proposals: [] }, 200, corsHeaders);
+        const proposalKey = `proposals:${lang}:${key}`;
+        const raw = await env.SUBMISSIONS.get(proposalKey);
+        const proposals = raw ? JSON.parse(raw) : [];
+        return jsonResponse({ proposals }, 200, corsHeaders);
+      }
+
       // Live status of locks, approved strings, and proposals for a language
       if (path === "/api/status" && request.method === "GET") {
         const lang = url.searchParams.get("lang");
