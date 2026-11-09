@@ -1121,12 +1121,17 @@
       };
     }
 
-    // 2. Submitted
-    if (isLocalSubmitted || (proposalMeta && proposalMeta.count > 0)) {
+    // 2. Submitted (Active in Cloudflare KV proposals)
+    const hasServerProposals = Boolean(proposalMeta && proposalMeta.count > 0);
+    if (hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals))) {
       const subMap = getSubmittedTranslations(currentLang);
       const subObj = subMap ? subMap[item.key] : null;
-      const contrib = subObj && subObj.contributor ? `@${subObj.contributor}` : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
+
+      let authorName = (subObj && subObj.contributor) || (proposalMeta && proposalMeta.latestContributor) || '';
+      if (authorName.startsWith('@')) authorName = authorName.slice(1);
+      const contrib = authorName ? `@${authorName}` : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
       const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
+
       return {
         status: 'submitted',
         label: `Submitted (${escapeHtml(contrib)})`,
@@ -1135,6 +1140,14 @@
         isReadOnly: true,
         displayText: text
       };
+    } else if (isLocalSubmitted && liveStatus && liveStatus.proposals && !hasServerProposals) {
+      // Server has confirmed NO proposals exist in KV for this key (e.g. KV was cleared or proposals synced)
+      // Prune dead local submitted record so localStorage synchronizes with server state
+      const subMap = getSubmittedTranslations(currentLang);
+      if (subMap && subMap[item.key]) {
+        delete subMap[item.key];
+        safeStorageSet(`tunetastic_submitted_${currentLang}`, JSON.stringify(subMap));
+      }
     }
 
     // 3. Already Translated (shipped in app catalog)

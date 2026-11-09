@@ -220,7 +220,13 @@ export default {
                 const rawP = await env.SUBMISSIONS.get(item.name);
                 if (rawP) {
                   const arr = JSON.parse(rawP);
-                  proposalsSummary[k] = { count: arr.length, isFull: arr.length >= 10 };
+                  const last = arr[arr.length - 1];
+                  proposalsSummary[k] = {
+                    count: arr.length,
+                    isFull: arr.length >= 10,
+                    latestTranslation: last ? last.text : '',
+                    latestContributor: last ? last.contributor : ''
+                  };
                 }
               }
             } catch (listErr) {
@@ -278,6 +284,30 @@ export default {
           proposals.push(newProposal);
           await env.SUBMISSIONS.put(proposalKey, JSON.stringify(proposals));
           accepted.push({ key: k, text });
+        }
+
+        // Update proposals summary index
+        if (accepted.length > 0) {
+          try {
+            const summaryKey = `proposals_summary:${language}`;
+            const existingRaw = await env.SUBMISSIONS.get(summaryKey);
+            const summary = existingRaw ? JSON.parse(existingRaw) : {};
+            for (const a of accepted) {
+              const pKey = `proposals:${language}:${a.key}`;
+              const pRaw = await env.SUBMISSIONS.get(pKey);
+              if (pRaw) {
+                const arr = JSON.parse(pRaw);
+                const last = arr[arr.length - 1];
+                summary[a.key] = {
+                  count: arr.length,
+                  isFull: arr.length >= 10,
+                  latestTranslation: last ? last.text : '',
+                  latestContributor: last ? last.contributor : ''
+                };
+              }
+            }
+            await env.SUBMISSIONS.put(summaryKey, JSON.stringify(summary));
+          } catch {}
         }
 
         // Release locks for submitted keys
