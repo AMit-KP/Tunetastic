@@ -1080,7 +1080,7 @@
       };
     }
 
-    // 2. Submitted / Pending Review
+    // 2. Submitted
     if (isLocalSubmitted || (proposalMeta && proposalMeta.count > 0)) {
       const subMap = getSubmittedTranslations(currentLang);
       const subObj = subMap ? subMap[item.key] : null;
@@ -1088,7 +1088,7 @@
       const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
       return {
         status: 'submitted',
-        label: `⏳ Pending Review (${escapeHtml(contrib)})`,
+        label: `Submitted (${escapeHtml(contrib)})`,
         pillClass: 'pill-submitted',
         dotClass: 'dot-submitted',
         isReadOnly: true,
@@ -1777,12 +1777,12 @@
 
       const data = await res.json();
       const pendingItems = data.pending || [];
-      document.getElementById('admin-pending-badge').textContent = `${pendingItems.length} Keys Pending Review`;
+      document.getElementById('admin-pending-badge').textContent = `${pendingItems.length} Keys Submitted`;
 
       if (pendingItems.length === 0) {
         container.innerHTML = `
           <div style="text-align: center; padding: 48px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
-            ${ICONS.checkCircle} The review queue is completely clear! No community proposals are pending review.
+            ${ICONS.checkCircle} The review queue is completely clear! No community proposals are submitted.
           </div>
         `;
         return;
