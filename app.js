@@ -733,19 +733,22 @@
 
         draftResumeModal.classList.add('active');
 
+        // Helper: Load drafts into workspace and close modal
+        const restoreDraftsAndClose = () => {
+          isDraftPendingResumption = false;
+          for (const [k, v] of Object.entries(currentDrafts)) {
+            setLocalTranslation(currentLang, k, v);
+          }
+          draftResumeModal.classList.remove('active');
+          renderCards();
+          updateWorkspaceStats();
+          showToast(`Restored ${count} draft translations!`);
+        };
+
         // Action 1: Resume Drafts
         const resumeBtn = document.getElementById('draft-resume-btn');
         if (resumeBtn) {
-          resumeBtn.onclick = () => {
-            isDraftPendingResumption = false;
-            for (const [k, v] of Object.entries(currentDrafts)) {
-              setLocalTranslation(currentLang, k, v);
-            }
-            draftResumeModal.classList.remove('active');
-            renderCards();
-            updateWorkspaceStats();
-            showToast(`Restored ${count} draft translations!`);
-          };
+          resumeBtn.onclick = restoreDraftsAndClose;
         }
 
         // Action 2: Click Discard -> Switch to Warning Confirmation View
@@ -757,13 +760,10 @@
           };
         }
 
-        // Action 3: Cancel Warning -> Return to Resume Prompt View
+        // Action 3: Keep Drafts -> Close popup and load drafts
         const cancelConfirmBtn = document.getElementById('draft-confirm-cancel-btn');
         if (cancelConfirmBtn) {
-          cancelConfirmBtn.onclick = () => {
-            if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
-            if (draftModalMainView) draftModalMainView.style.display = 'block';
-          };
+          cancelConfirmBtn.onclick = restoreDraftsAndClose;
         }
 
         // Action 4: Confirm Discard -> Wipe memory drafts, localStorage, and Cloudflare KV
