@@ -906,8 +906,6 @@
       if (currentFilter === 'missing' && statusInfo.status !== 'available') return false;
       if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved' && !translation.trim()) return false;
 
-      if (currentFilter === 'tokens' && (!item.placeholders || item.placeholders.length === 0)) return false;
-
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const keyMatch = item.key.toLowerCase().includes(q);
@@ -1147,9 +1145,6 @@
 
     const countTranslated = document.getElementById('count-translated');
     if (countTranslated) countTranslated.textContent = `${counts.translated}`;
-
-    const countTokens = document.getElementById('count-tokens');
-    if (countTokens) countTokens.textContent = `${counts.tokens}`;
   }
 
   // -------------------------------------------------------------------------
