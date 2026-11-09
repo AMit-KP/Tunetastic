@@ -1406,7 +1406,7 @@
             <div class="column-header">
               <span>English Source</span>
             </div>
-            <div class="source-display-box">${escapeHtml(item.source)}</div>
+            <div class="source-display-box" title="${escapeHtml(item.source)}">${escapeHtml(item.source)}</div>
             <div class="column-actions-bar">
               <button class="copy-mini-btn" title="Copy English source text">${ICONS.copy} Copy</button>
             </div>
@@ -1416,7 +1416,7 @@
             <div class="column-header">
               <span>Your Translation</span>
             </div>
-            <textarea class="translation-textarea" rows="2" 
+            <textarea class="translation-textarea" rows="1" 
               placeholder="${placeholderText}"
               ${isReadOnly ? 'readonly style="opacity: 0.85; background: rgba(255,255,255,0.02); cursor: default;"' : ''}>${escapeHtml(translation)}</textarea>
 
@@ -1459,8 +1459,11 @@
       if (!isReadOnly) {
         const textarea = card.querySelector('textarea.translation-textarea');
         if (textarea) {
+          textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') e.preventDefault();
+          });
           textarea.addEventListener('input', (e) => {
-            const val = e.target.value;
+            const val = e.target.value.replace(/[\r\n]+/g, ' ');
             setLocalTranslation(currentLang, item.key, val);
 
             // Update live simulated preview

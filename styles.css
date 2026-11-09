@@ -1802,6 +1802,23 @@ body {
   display: block;
 }
 
+/* Bigger Status Pills on Studio Cards */
+.card-badges .studio-pill,
+.card-status-pill {
+  font-size: 12.5px;
+  font-weight: 700;
+  height: 28px;
+  padding: 0 13px;
+  gap: 8px;
+  letter-spacing: 0.25px;
+}
+
+.card-badges .studio-pill .status-dot,
+.card-status-pill .status-dot {
+  width: 8px;
+  height: 8px;
+}
+
 .pill-available {
   background: rgba(16, 185, 129, 0.12);
   color: #34d399;
@@ -1953,29 +1970,51 @@ body {
   background: rgba(255, 255, 255, 0.025);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 0 14px;
   font-size: 14px;
   color: var(--text-primary);
-  min-height: 58px;
-  white-space: pre-wrap;
-  line-height: 1.55;
-  word-break: break-word;
+  height: 40px;
+  min-height: 40px;
+  line-height: 38px;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .translation-textarea {
   width: 100%;
-  min-height: 58px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  line-height: 38px;
   background: rgba(8, 12, 20, 0.6);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
-  padding: 10px 14px;
+  padding: 0 14px;
   font-family: inherit;
   font-size: 14px;
   color: var(--text-primary);
-  resize: vertical;
+  resize: none !important;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
   outline: none;
+  box-sizing: border-box;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
-  line-height: 1.55;
+}
+
+.translation-textarea::-webkit-scrollbar,
+.source-display-box::-webkit-scrollbar {
+  height: 3px;
+}
+
+.translation-textarea::-webkit-scrollbar-thumb,
+.source-display-box::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
 }
 
 .translation-textarea:focus {
