@@ -21,6 +21,9 @@
 
   function safeStorageGet(key, preferSession = false) {
     try {
+      if (isIncognitoMode && key.startsWith('tunetastic_l10n_')) {
+        return memoryStore[key] || null;
+      }
       if (preferSession && typeof window.sessionStorage !== 'undefined') {
         const val = window.sessionStorage.getItem(key);
         if (val !== null) return val;
@@ -37,6 +40,10 @@
 
   function safeStorageSet(key, value, preferSession = false) {
     try {
+      if (isIncognitoMode && key.startsWith('tunetastic_l10n_')) {
+        memoryStore[key] = String(value);
+        return;
+      }
       if (preferSession && typeof window.sessionStorage !== 'undefined') {
         window.sessionStorage.setItem(key, value);
       }
@@ -783,6 +790,7 @@
     // Render cards and update stats
     renderCards();
     updateWorkspaceStats();
+    updateSaveIndicatorUi();
     if (!isIncognitoMode) {
       startLiveStatusPolling();
     }
@@ -1061,10 +1069,36 @@
     }
   }
 
-  // 400ms Debounced Draft Autosave to Cloudflare KV
+  function updateSaveIndicatorUi(status = 'default') {
+    const indicator = document.getElementById('auto-save-indicator');
+    if (!indicator) return;
+
+    if (isIncognitoMode) {
+      indicator.className = 'ws-save-indicator ws-save-indicator-incognito';
+      indicator.innerHTML = '<span class="save-dot save-dot-incognito"></span> Autosave Off (Incognito)';
+      indicator.title = 'Draft autosave is disabled in Incognito mode. Translations are session-only and will be lost if this tab is closed.';
+      return;
+    }
+
+    if (status === 'saving') {
+      indicator.className = 'ws-save-indicator ws-save-indicator-saving';
+      indicator.innerHTML = '<span class="save-dot save-dot-saving"></span> Saving...';
+      indicator.title = 'Autosaving draft changes to browser and cloud...';
+    } else {
+      indicator.className = 'ws-save-indicator';
+      indicator.innerHTML = '<span class="save-dot"></span> Saved to Browser';
+      indicator.title = 'Changes automatically saved to your browser and cloud.';
+    }
+  }
+
+  // 400ms Debounced Draft Autosave to cloud storage
   let draftSaveTimer = null;
   function scheduleDraftAutosave(key, text) {
-    if (isIncognitoMode) return; // No saving to Cloudflare KV or acquiring locks in Incognito
+    if (isIncognitoMode) {
+      updateSaveIndicatorUi();
+      return;
+    }
+    updateSaveIndicatorUi('saving');
     clearTimeout(draftSaveTimer);
     draftSaveTimer = setTimeout(async () => {
       try {
@@ -1082,6 +1116,8 @@
         });
       } catch (err) {
         console.warn("Autosave draft failed:", err);
+      } finally {
+        updateSaveIndicatorUi('default');
       }
     }, 400);
   }
@@ -1600,7 +1636,7 @@
 
     if (draftCount === 0) {
       timerEl.classList.remove('is-urgent');
-      timerEl.setAttribute('title', '48-Hour Sliding Window: Your translations autosave to Cloudflare and stay protected for 48 hours from your latest edit.');
+      timerEl.setAttribute('title', '48-Hour Sliding Window: Your translations autosave to cloud storage and stay protected for 48 hours from your latest edit.');
       if (labelEl) labelEl.textContent = 'Autosave:';
       digitsEl.textContent = '48h Window';
       return;
@@ -2110,7 +2146,7 @@
                 };
               }
               card.style.opacity = '0.5';
-              card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">${ICONS.check} Approved! Key "${item.key}" is staged in Cloudflare. Click "Sync Approved to Git" when ready to create a PR.</div>`;
+              card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">${ICONS.check} Approved! Key "${item.key}" is staged on server. Click "Sync Approved to Git" when ready to create a PR.</div>`;
               showToast(`Approved "${item.key}"!`);
             } else {
               alert("Failed to approve.");
@@ -2340,8 +2376,9 @@
 
     isIncognitoMode = isPrivate;
     if (isPrivate) {
-      banner.style.display = 'flex';
+      if (banner) banner.style.display = 'flex';
     }
+    updateSaveIndicatorUi();
   }
 
   // Start SPA
