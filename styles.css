@@ -950,30 +950,38 @@ body {
 
 /* ── View 2: Translation Workspace ───────────────────────────────────────── */
 
-.workspace-hero-card {
+.workspace-sticky-group {
   position: sticky;
   top: var(--nav-height, 68px);
   z-index: 90;
+  overflow-anchor: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  transform: translateZ(0);
+}
+
+.workspace-hero-card {
   background: var(--surface-glass);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-xl);
   padding: 26px 32px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   animation: popIn 0.5s var(--ease-spring);
   transform: translateZ(0);
-  will-change: padding, margin-bottom, background, box-shadow;
+  will-change: padding, background, box-shadow;
   transition: padding 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              margin-bottom 0.2s cubic-bezier(0.16, 1, 0.3, 1),
               background 0.2s ease,
               box-shadow 0.2s ease;
 }
 
 .workspace-hero-card.is-condensed {
   padding: 8px 22px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   border-radius: var(--radius-xl);
   background: rgba(9, 13, 22, 0.95);
   border-color: rgba(255, 255, 255, 0.12);
@@ -1234,14 +1242,11 @@ body {
 /* ── Filter & Search Control Panel ───────────────────────────────────────── */
 
 .control-panel {
-  position: sticky;
-  top: var(--condensed-hero-offset, 126px);
-  z-index: 85;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   padding: 10px 14px;
   background: rgba(10, 15, 26, 0.88);
   backdrop-filter: blur(24px);

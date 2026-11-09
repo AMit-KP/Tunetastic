@@ -512,12 +512,12 @@
     if (!cachedHeroCard) return;
 
     const scrollY = window.scrollY || document.documentElement.scrollTop;
-    if (scrollY > 40) {
+    if (scrollY > 70) {
       if (!cachedHeroCard.classList.contains('is-condensed')) {
         cachedHeroCard.classList.add('is-condensed');
         if (cachedCtrlPanel) cachedCtrlPanel.classList.add('is-hero-condensed');
       }
-    } else if (scrollY < 15) {
+    } else if (scrollY < 20) {
       if (cachedHeroCard.classList.contains('is-condensed')) {
         cachedHeroCard.classList.remove('is-condensed');
         if (cachedCtrlPanel) cachedCtrlPanel.classList.remove('is-hero-condensed');
