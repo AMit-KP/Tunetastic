@@ -464,6 +464,9 @@
   }
 
   function showView(viewName) {
+    if (viewName !== 'workspace') {
+      stopLiveStatusPolling();
+    }
     homeView.classList.remove('active');
     workspaceView.classList.remove('active');
     adminView.classList.remove('active');
@@ -675,6 +678,7 @@
     // Render cards and update stats
     renderCards();
     updateWorkspaceStats();
+    startLiveStatusPolling();
   }
 
   async function fetchLiveStatus() {
@@ -693,6 +697,117 @@
     } catch (e) {
       console.warn("Could not fetch live Cloudflare status:", e);
     }
+  }
+
+  let livePollingTimer = null;
+  let isPollingActive = false;
+
+  function startLiveStatusPolling() {
+    stopLiveStatusPolling();
+    livePollingTimer = setInterval(pollLiveStatus, 2500);
+  }
+
+  function stopLiveStatusPolling() {
+    if (livePollingTimer) {
+      clearInterval(livePollingTimer);
+      livePollingTimer = null;
+    }
+  }
+
+  async function pollLiveStatus() {
+    if (isPollingActive) return;
+    if (!workspaceView || !workspaceView.classList.contains('active') || !currentLang) return;
+    if (isDraftPendingResumption) return;
+
+    isPollingActive = true;
+    try {
+      const prevLocks = JSON.stringify(liveStatus.locks || {});
+      const prevApproved = JSON.stringify(liveStatus.approved || {});
+      const prevProposals = JSON.stringify(liveStatus.proposals || {});
+
+      await fetchLiveStatus();
+
+      const newLocks = JSON.stringify(liveStatus.locks || {});
+      const newApproved = JSON.stringify(liveStatus.approved || {});
+      const newProposals = JSON.stringify(liveStatus.proposals || {});
+
+      if (prevLocks !== newLocks || prevApproved !== newApproved || prevProposals !== newProposals) {
+        const isUserTyping = Boolean(document.activeElement && document.activeElement.tagName === 'TEXTAREA');
+        if (!isUserTyping) {
+          renderCards();
+        } else {
+          syncLiveStatusToDOM();
+        }
+        updateWorkspaceStats();
+      }
+    } catch (e) {
+      console.warn("Live status poll error:", e);
+    } finally {
+      isPollingActive = false;
+    }
+  }
+
+  function syncLiveStatusToDOM() {
+    if (!catalog || !catalog.items) return;
+    const itemMap = new Map();
+    catalog.items.forEach(i => itemMap.set(i.key, i));
+
+    const cards = cardsContainer.querySelectorAll('.studio-card');
+    cards.forEach(card => {
+      const id = card.id;
+      if (!id.startsWith('card-')) return;
+      const key = id.replace('card-', '');
+      const item = itemMap.get(key);
+      if (!item) return;
+
+      const statusInfo = getItemStatusInfo(item);
+      const statusPill = card.querySelector('.card-status-pill');
+      if (statusPill) {
+        statusPill.className = `studio-pill card-status-pill ${statusInfo.pillClass}`;
+        statusPill.innerHTML = `<span class="status-dot ${statusInfo.dotClass}"></span> ${statusInfo.label}`;
+      }
+
+      const textarea = card.querySelector('textarea.translation-textarea');
+      if (textarea && document.activeElement !== textarea) {
+        textarea.readOnly = statusInfo.isReadOnly;
+        if (statusInfo.status === 'other') {
+          textarea.placeholder = 'Another contributor is drafting this... You can suggest an alternative.';
+          textarea.style.opacity = '0.6';
+          textarea.style.cursor = 'default';
+          textarea.style.background = 'rgba(255,255,255,0.02)';
+          if (!getLocalTranslation(currentLang, item.key)) {
+            textarea.value = '';
+          }
+        } else if (statusInfo.status === 'available') {
+          textarea.placeholder = 'Type translation here...';
+          textarea.style.opacity = '1';
+          textarea.style.cursor = 'text';
+          textarea.style.background = '';
+        } else if (statusInfo.isReadOnly) {
+          textarea.placeholder = 'This string is locked. Use \'Suggest Alternative\' to propose changes.';
+          textarea.style.opacity = '0.85';
+          textarea.style.cursor = 'default';
+          textarea.style.background = 'rgba(255,255,255,0.02)';
+          if (statusInfo.displayText) {
+            textarea.value = statusInfo.displayText;
+          }
+        }
+      }
+
+      // Update Suggest button slot limit
+      const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
+      const isFull = proposalMeta && proposalMeta.isFull;
+      const suggestBtn = card.querySelector('.btn-suggest');
+      if (suggestBtn) {
+        if (isFull) {
+          suggestBtn.disabled = true;
+          suggestBtn.innerHTML = `${ICONS.lock} Max (10/10)`;
+        } else {
+          suggestBtn.disabled = false;
+          suggestBtn.innerHTML = `${ICONS.bulb} Suggest Alternative`;
+        }
+      }
+    });
   }
 
   let isDraftPendingResumption = false;
@@ -812,7 +927,7 @@
     }
   }
 
-  // 750ms Debounced Draft Autosave to Cloudflare KV
+  // 400ms Debounced Draft Autosave to Cloudflare KV
   let draftSaveTimer = null;
   function scheduleDraftAutosave(key, text) {
     clearTimeout(draftSaveTimer);
@@ -833,7 +948,7 @@
       } catch (err) {
         console.warn("Autosave draft failed:", err);
       }
-    }, 750);
+    }, 400);
   }
 
   // -------------------------------------------------------------------------
@@ -1883,6 +1998,18 @@
     syncNavLayoutMetrics();
     window.addEventListener('resize', syncNavLayoutMetrics, { passive: true });
     window.addEventListener('scroll', handleWorkspaceScroll, { passive: true });
+
+    // Live Cross-Browser Focus & Tab Visibility Sync
+    window.addEventListener('focus', () => {
+      if (workspaceView && workspaceView.classList.contains('active')) {
+        pollLiveStatus();
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && workspaceView && workspaceView.classList.contains('active')) {
+        pollLiveStatus();
+      }
+    });
   }
 
   // Start SPA

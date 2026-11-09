@@ -88,17 +88,22 @@ export default {
         const existingDraftRaw = await env.SUBMISSIONS.get(draftKey);
         const draftData = existingDraftRaw ? JSON.parse(existingDraftRaw) : { keys: {}, updatedAt: null };
 
-        draftData.keys[key] = text;
-        draftData.updatedAt = new Date().toISOString();
-
-        // 48-hour sliding TTL (172800 seconds)
-        await env.SUBMISSIONS.put(draftKey, JSON.stringify(draftData), { expirationTtl: 172800 });
-
         // Update active locks map
         const lockMapKey = `active_locks:${language}`;
         const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
         const currentLocks = currentLocksRaw ? JSON.parse(currentLocksRaw) : {};
-        currentLocks[key] = { sessionId, updatedAt: Date.now() };
+
+        if (text && typeof text === "string" && text.trim().length > 0) {
+          draftData.keys[key] = text;
+          draftData.updatedAt = new Date().toISOString();
+          currentLocks[key] = { sessionId, updatedAt: Date.now() };
+        } else {
+          delete draftData.keys[key];
+          delete currentLocks[key];
+        }
+
+        // 48-hour sliding TTL (172800 seconds)
+        await env.SUBMISSIONS.put(draftKey, JSON.stringify(draftData), { expirationTtl: 172800 });
         await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
 
         return jsonResponse({ success: true, ttl: 172800 }, 200, corsHeaders);
