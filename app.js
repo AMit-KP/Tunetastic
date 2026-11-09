@@ -79,10 +79,12 @@
   const toastNotification = document.getElementById('toast-notification');
   const toastMessage = document.getElementById('toast-message');
 
-  // Modals & Banners
+  // Modals & Centered Dialogs
   const submitModal = document.getElementById('submit-modal');
   const suggestModal = document.getElementById('suggest-modal');
-  const draftResumeBanner = document.getElementById('draft-resume-banner');
+  const draftResumeModal = document.getElementById('draft-resume-modal');
+  const draftModalMainView = document.getElementById('draft-modal-main-view');
+  const draftModalConfirmView = document.getElementById('draft-modal-confirm-view');
 
   // Active Key for Suggest Modal
   let activeSuggestKey = null;
@@ -472,6 +474,7 @@
     const ctrlPanel = document.querySelector('.control-panel');
     if (heroCard) heroCard.classList.remove('is-condensed');
     if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
+    if (draftResumeModal) draftResumeModal.classList.remove('active');
 
     if (viewName === 'home') {
       homeView.classList.add('active');
@@ -620,6 +623,7 @@
     const ctrlPanel = document.querySelector('.control-panel');
     if (heroCard) heroCard.classList.remove('is-condensed');
     if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
+    if (draftResumeModal) draftResumeModal.classList.remove('active');
 
     if (meta.rtl) {
       document.body.classList.add('rtl-mode');
@@ -679,29 +683,70 @@
         currentDrafts = data.drafts || {};
         const count = Object.keys(currentDrafts).length;
 
-        if (count > 0 && draftResumeBanner) {
-          document.getElementById('resume-draft-count').textContent = count;
-          draftResumeBanner.style.display = 'flex';
+        if (count > 0 && draftResumeModal) {
+          const countEl = document.getElementById('resume-draft-count');
+          if (countEl) countEl.textContent = count;
+          const confirmCountEl = document.getElementById('discard-confirm-count');
+          if (confirmCountEl) confirmCountEl.textContent = count;
+          const langEl = document.getElementById('resume-draft-lang');
+          if (langEl) {
+            const meta = resolveLanguageMeta(currentLang);
+            langEl.textContent = meta ? formatLanguageDisplayName(meta, currentLang) : currentLang;
+          }
 
-          document.getElementById('resume-draft-btn').onclick = () => {
-            for (const [k, v] of Object.entries(currentDrafts)) {
-              setLocalTranslation(currentLang, k, v);
-            }
-            draftResumeBanner.style.display = 'none';
-            renderCards();
-            updateWorkspaceStats();
-            showToast(`Restored ${count} draft translations!`);
-          };
+          // Reset modal views to primary prompt
+          if (draftModalMainView) draftModalMainView.style.display = 'block';
+          if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
 
-          document.getElementById('discard-draft-btn').onclick = () => {
-            draftResumeBanner.style.display = 'none';
-          };
-        } else if (draftResumeBanner) {
-          draftResumeBanner.style.display = 'none';
+          draftResumeModal.classList.add('active');
+
+          // Action 1: Resume Drafts
+          const resumeBtn = document.getElementById('draft-resume-btn');
+          if (resumeBtn) {
+            resumeBtn.onclick = () => {
+              for (const [k, v] of Object.entries(currentDrafts)) {
+                setLocalTranslation(currentLang, k, v);
+              }
+              draftResumeModal.classList.remove('active');
+              renderCards();
+              updateWorkspaceStats();
+              showToast(`Restored ${count} draft translations!`);
+            };
+          }
+
+          // Action 2: Click Discard -> Switch to Warning Confirmation View
+          const discardBtn = document.getElementById('draft-discard-btn');
+          if (discardBtn) {
+            discardBtn.onclick = () => {
+              if (draftModalMainView) draftModalMainView.style.display = 'none';
+              if (draftModalConfirmView) draftModalConfirmView.style.display = 'block';
+            };
+          }
+
+          // Action 3: Cancel Warning -> Return to Resume Prompt View
+          const cancelConfirmBtn = document.getElementById('draft-confirm-cancel-btn');
+          if (cancelConfirmBtn) {
+            cancelConfirmBtn.onclick = () => {
+              if (draftModalConfirmView) draftModalConfirmView.style.display = 'none';
+              if (draftModalMainView) draftModalMainView.style.display = 'block';
+            };
+          }
+
+          // Action 4: Confirm Discard -> Wipe memory drafts, close modal, show toast
+          const confirmDiscardBtn = document.getElementById('draft-confirm-discard-btn');
+          if (confirmDiscardBtn) {
+            confirmDiscardBtn.onclick = () => {
+              currentDrafts = {};
+              draftResumeModal.classList.remove('active');
+              showToast('Draft translations discarded.');
+            };
+          }
+        } else if (draftResumeModal) {
+          draftResumeModal.classList.remove('active');
         }
       }
     } catch (e) {
-      if (draftResumeBanner) draftResumeBanner.style.display = 'none';
+      if (draftResumeModal) draftResumeModal.classList.remove('active');
     }
   }
 
