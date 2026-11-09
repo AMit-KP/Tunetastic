@@ -84,7 +84,6 @@
   // Modals & Banners
   const submitModal = document.getElementById('submit-modal');
   const suggestModal = document.getElementById('suggest-modal');
-  const customLangModal = document.getElementById('custom-lang-modal');
   const draftResumeBanner = document.getElementById('draft-resume-banner');
 
   // Active Key for Suggest Modal
@@ -1247,20 +1246,6 @@
     // Admin review triggers
     document.getElementById('admin-refresh-btn').onclick = loadAdminQueue;
     document.getElementById('admin-sync-pr-btn').onclick = triggerSyncPr;
-
-    // Custom Lang Modal
-    document.getElementById('add-custom-lang-btn').onclick = () => { customLangModal.classList.add('active'); };
-    document.getElementById('custom-lang-cancel-btn').onclick = () => { customLangModal.classList.remove('active'); };
-    document.getElementById('custom-lang-confirm-btn').onclick = () => {
-      const code = document.getElementById('custom-lang-code-input').value.trim();
-      if (code && code !== 'qps-ploc') {
-        const meta = resolveLanguageMeta(code);
-        if (!catalog.languages) catalog.languages = {};
-        catalog.languages[code] = { ...meta, translatedCount: 0, totalCount: catalog.totalStrings || 828, progressPct: 0 };
-        customLangModal.classList.remove('active');
-        window.location.hash = `#translate/${code}`;
-      }
-    };
 
     // Filter tabs
     document.querySelectorAll('.filter-tab').forEach(pill => {
