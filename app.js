@@ -566,6 +566,7 @@
   function showView(viewName) {
     if (viewName !== 'workspace') {
       stopLiveStatusPolling();
+      stopDraftTimer();
       releaseActiveLocksOnExit();
     }
     homeView.classList.remove('active');
@@ -785,6 +786,7 @@
     if (!isIncognitoMode) {
       startLiveStatusPolling();
     }
+    startDraftTimer();
   }
 
   async function fetchLiveStatus() {
@@ -1019,6 +1021,7 @@
             isDraftPendingResumption = false;
             currentDrafts = {};
             safeStorageRemove(`tunetastic_l10n_${currentLang}`);
+            safeStorageRemove(`tunetastic_draft_updated_${currentLang}`);
 
             // Clear in-memory locks for this session immediately
             if (liveStatus && liveStatus.locks) {
@@ -1500,6 +1503,91 @@
       wsSubmitBtn.style.opacity = draftCount === 0 ? '0.6' : '1';
       wsSubmitBtn.style.cursor = draftCount === 0 ? 'not-allowed' : 'pointer';
     }
+
+    // Update 48-Hour Sliding Draft Countdown Timer
+    updateDraftTimerDisplay(counts.mine);
+  }
+
+  // -------------------------------------------------------------------------
+  // 6b. 48-HOUR SLIDING DRAFT TIMER
+  // -------------------------------------------------------------------------
+
+  let draftCountdownTimer = null;
+
+  function startDraftTimer() {
+    stopDraftTimer();
+    updateDraftTimerDisplay();
+    draftCountdownTimer = setInterval(() => {
+      updateDraftTimerDisplay();
+    }, 1000);
+  }
+
+  function stopDraftTimer() {
+    if (draftCountdownTimer) {
+      clearInterval(draftCountdownTimer);
+      draftCountdownTimer = null;
+    }
+  }
+
+  function updateDraftTimerDisplay(explicitDraftCount) {
+    const timerEl = document.getElementById('ws-draft-timer');
+    const digitsEl = document.getElementById('ws-timer-digits');
+    const labelEl = document.querySelector('.ws-draft-timer .timer-label');
+    if (!timerEl || !digitsEl || !currentLang) return;
+
+    if (isIncognitoMode) {
+      timerEl.classList.add('is-incognito');
+      timerEl.classList.remove('is-urgent');
+      timerEl.setAttribute('title', 'Incognito Mode: Autosave is disabled. Drafts are session-only and will be lost on tab close.');
+      if (labelEl) labelEl.textContent = 'Session:';
+      digitsEl.textContent = 'Tab Only';
+      return;
+    }
+
+    timerEl.classList.remove('is-incognito');
+    const drafts = getAllLocalTranslations(currentLang);
+    const draftCount = explicitDraftCount !== undefined ? explicitDraftCount : Object.keys(drafts).length;
+
+    const DRAFT_WINDOW_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+    if (draftCount === 0) {
+      timerEl.classList.remove('is-urgent');
+      timerEl.setAttribute('title', '48-Hour Sliding Window: Your translations autosave to Cloudflare and stay protected for 48 hours from your latest edit.');
+      if (labelEl) labelEl.textContent = 'Autosave:';
+      digitsEl.textContent = '48h Window';
+      return;
+    }
+
+    let lastUpdated = parseInt(safeStorageGet(`tunetastic_draft_updated_${currentLang}`), 10);
+    if (!lastUpdated || isNaN(lastUpdated)) {
+      lastUpdated = Date.now();
+      safeStorageSet(`tunetastic_draft_updated_${currentLang}`, String(lastUpdated));
+    }
+
+    const elapsed = Date.now() - lastUpdated;
+    const remaining = Math.max(0, DRAFT_WINDOW_MS - elapsed);
+
+    if (remaining <= 0) {
+      timerEl.classList.add('is-urgent');
+      if (labelEl) labelEl.textContent = 'Status:';
+      digitsEl.textContent = 'Expired';
+      timerEl.setAttribute('title', 'Your 48-hour draft window has expired. Type in any field to restart the 48-hour autosave window.');
+      return;
+    }
+
+    const hours = Math.floor(remaining / (3600 * 1000));
+    const minutes = Math.floor((remaining % (3600 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
+
+    if (hours < 2) {
+      timerEl.classList.add('is-urgent');
+    } else {
+      timerEl.classList.remove('is-urgent');
+    }
+
+    if (labelEl) labelEl.textContent = 'Expires in:';
+    digitsEl.textContent = `${hours}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+    timerEl.setAttribute('title', `Active 48-Hour Draft Window: ${hours}h ${minutes}m ${seconds}s remaining. Window automatically resets to 48 hours every time you edit.`);
   }
 
   // -------------------------------------------------------------------------
@@ -1723,6 +1811,7 @@
 
         // Clear local active drafts
         safeStorageRemove(`tunetastic_l10n_${currentLang}`);
+        safeStorageRemove(`tunetastic_draft_updated_${currentLang}`);
         currentDrafts = {};
 
         // Clear in-memory locks for this session immediately
@@ -2063,10 +2152,15 @@
       const map = stored ? JSON.parse(stored) : {};
       if (value && value.trim()) {
         map[key] = value;
+        safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()));
       } else {
         delete map[key];
+        if (Object.keys(map).length === 0) {
+          safeStorageRemove(`tunetastic_draft_updated_${lang}`);
+        }
       }
       safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map));
+      updateDraftTimerDisplay();
     } catch (e) {}
   }
 

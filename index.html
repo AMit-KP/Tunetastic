@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.2.2">
+  <link rel="stylesheet" href="styles.css?v=2.2.3">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -187,6 +187,16 @@
             </div>
 
             <div class="ws-header-actions">
+              <div class="ws-draft-timer" id="ws-draft-timer" title="48-Hour Sliding Draft Window. Autosaves and extends as you type.">
+                <span class="timer-icon">
+                  <svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="8" cy="8" r="6.5"></circle>
+                    <polyline points="8 4 8 8 10.5 9.5"></polyline>
+                  </svg>
+                </span>
+                <span class="timer-label">Autosave:</span>
+                <span class="timer-digits" id="ws-timer-digits">48h Window</span>
+              </div>
               <button class="btn btn-primary-gradient" id="ws-submit-btn" title="Submit translations to staging">
                 <svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg> Submit Work
               </button>
@@ -477,6 +487,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.2.2"></script>
+  <script src="app.js?v=2.2.3"></script>
 </body>
 </html>
