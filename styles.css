@@ -963,23 +963,21 @@ body {
   margin-bottom: 20px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   animation: popIn 0.5s var(--ease-spring);
-  transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              margin-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+  will-change: padding, margin-bottom, background, box-shadow;
+  transition: padding 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              margin-bottom 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.2s ease,
+              box-shadow 0.2s ease;
 }
 
 .workspace-hero-card.is-condensed {
-  padding: 9px 24px;
+  padding: 8px 22px;
   margin-bottom: 12px;
-  border-radius: var(--radius-lg);
-  background: rgba(9, 13, 22, 0.94);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  border-radius: var(--radius-xl);
+  background: rgba(9, 13, 22, 0.95);
   border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 16px rgba(96, 205, 255, 0.1);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 16px rgba(96, 205, 255, 0.1);
 }
 
 .ws-hero-top {
@@ -989,24 +987,17 @@ body {
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 16px;
-  transition: margin-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: margin-bottom 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .workspace-hero-card.is-condensed .ws-hero-top {
   margin-bottom: 0;
-  gap: 12px;
 }
 
 .ws-lang-profile {
   display: flex;
   align-items: center;
-  gap: 16px;
-  transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.workspace-hero-card.is-condensed .ws-lang-profile {
-  gap: 10px;
+  gap: 14px;
 }
 
 .ws-flag-box {
@@ -1017,63 +1008,46 @@ body {
   line-height: 1;
   filter: drop-shadow(0 6px 14px rgba(0,0,0,0.5));
   flex-shrink: 0;
-  transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left center;
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ws-flag-box .lang-flag-img {
-  width: 56px;
-  height: 40px;
+  width: 52px;
+  height: 37px;
   object-fit: cover;
-  border-radius: 7px;
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.55);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
   display: block;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              border-radius 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ws-flag-box svg {
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 32px;
+  height: 32px;
 }
 
 .workspace-hero-card.is-condensed .ws-flag-box {
-  font-size: 24px;
-}
-
-.workspace-hero-card.is-condensed .ws-flag-box .lang-flag-img {
-  width: 30px;
-  height: 21px;
-  border-radius: 4px;
-}
-
-.workspace-hero-card.is-condensed .ws-flag-box svg {
-  width: 22px;
-  height: 22px;
+  transform: scale(0.64);
 }
 
 .ws-lang-heading {
   display: flex;
   align-items: center;
-  gap: 12px;
-  transition: gap 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.workspace-hero-card.is-condensed .ws-lang-heading {
-  gap: 8px;
+  gap: 10px;
 }
 
 .ws-lang-heading h2 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: -0.5px;
-  transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.4px;
+  transform-origin: left center;
+  will-change: transform;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .workspace-hero-card.is-condensed .ws-lang-heading h2 {
-  font-size: 16px;
-  font-weight: 700;
+  transform: scale(0.8);
 }
 
 .code-chip {
@@ -1084,12 +1058,6 @@ body {
   background: rgba(255, 255, 255, 0.08);
   color: var(--accent-cyan);
   border: 1px solid var(--border-glass);
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.workspace-hero-card.is-condensed .code-chip {
-  font-size: 11px;
-  padding: 2px 7px;
 }
 
 .ws-lang-subtitle {
@@ -1117,19 +1085,19 @@ body {
   opacity: 1;
   overflow: hidden;
   transform: translateY(0);
-  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, max-height, transform;
+  transition: opacity 0.15s ease,
+              max-height 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.18s ease;
 }
 
 .workspace-hero-card.is-condensed .ws-progress-wrap {
   max-height: 0;
   opacity: 0;
-  margin-top: 0;
-  padding-top: 0;
+  margin: 0;
+  padding: 0;
   pointer-events: none;
-  transform: translateY(-8px);
+  transform: translateY(-6px);
 }
 
 .ws-progress-info {
@@ -1153,11 +1121,10 @@ body {
   max-width: 250px;
   transform: scale(1);
   white-space: nowrap;
-  transition: opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-              max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              margin 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, max-width, transform;
+  transition: opacity 0.15s ease,
+              max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.15s ease;
 }
 
 .workspace-hero-card.is-condensed .ws-progress-pct-badge {
@@ -1168,7 +1135,7 @@ body {
   border-width: 0;
   pointer-events: none;
   overflow: hidden;
-  transform: scale(0.75);
+  transform: scale(0.7);
 }
 
 .ws-save-indicator {
@@ -1268,7 +1235,7 @@ body {
 
 .control-panel {
   position: sticky;
-  top: 74px;
+  top: var(--condensed-hero-offset, 126px);
   z-index: 85;
   display: flex;
   align-items: center;
@@ -1283,13 +1250,13 @@ body {
   border-radius: var(--radius-xl);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   flex-wrap: wrap;
-  transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.3s ease,
-              box-shadow 0.3s ease;
+  transform: translateZ(0);
+  will-change: background, box-shadow;
+  transition: background 0.2s ease,
+              box-shadow 0.2s ease;
 }
 
 .control-panel.is-hero-condensed {
-  top: var(--condensed-hero-offset, 126px);
   background: rgba(9, 13, 22, 0.94);
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
 }
@@ -1429,14 +1396,15 @@ body {
 }
 
 .studio-card {
-  background: var(--surface-glass);
-  backdrop-filter: blur(20px);
+  background: rgba(18, 24, 38, 0.85);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   padding: 18px 22px;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
   position: relative;
   animation: cardCascade 0.35s var(--ease-spring) calc(var(--i, 0) * 0.02s) backwards;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 160px;
 }
 
 .studio-card:focus-within {

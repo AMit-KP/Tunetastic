@@ -470,10 +470,10 @@
 
     navHomeBtn.style.display = 'none';
 
-    const heroCard = document.querySelector('.workspace-hero-card');
-    const ctrlPanel = document.querySelector('.control-panel');
-    if (heroCard) heroCard.classList.remove('is-condensed');
-    if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
+    cachedHeroCard = document.querySelector('.workspace-hero-card');
+    cachedCtrlPanel = document.querySelector('.control-panel');
+    if (cachedHeroCard) cachedHeroCard.classList.remove('is-condensed');
+    if (cachedCtrlPanel) cachedCtrlPanel.classList.remove('is-hero-condensed');
     if (draftResumeModal) draftResumeModal.classList.remove('active');
 
     if (viewName === 'home') {
@@ -496,23 +496,39 @@
     }
   }
 
-  function handleWorkspaceScroll() {
+  let isScrollThrottled = false;
+  let cachedHeroCard = null;
+  let cachedCtrlPanel = null;
+
+  function updateWorkspaceScrollState() {
+    isScrollThrottled = false;
     if (!workspaceView || !workspaceView.classList.contains('active')) return;
-    const heroCard = document.querySelector('.workspace-hero-card');
-    const ctrlPanel = document.querySelector('.control-panel');
-    if (!heroCard) return;
+    if (!cachedHeroCard || !cachedHeroCard.isConnected) {
+      cachedHeroCard = document.querySelector('.workspace-hero-card');
+    }
+    if (!cachedCtrlPanel || !cachedCtrlPanel.isConnected) {
+      cachedCtrlPanel = document.querySelector('.control-panel');
+    }
+    if (!cachedHeroCard) return;
 
     const scrollY = window.scrollY || document.documentElement.scrollTop;
-    if (scrollY > 50) {
-      if (!heroCard.classList.contains('is-condensed')) {
-        heroCard.classList.add('is-condensed');
-        if (ctrlPanel) ctrlPanel.classList.add('is-hero-condensed');
+    if (scrollY > 40) {
+      if (!cachedHeroCard.classList.contains('is-condensed')) {
+        cachedHeroCard.classList.add('is-condensed');
+        if (cachedCtrlPanel) cachedCtrlPanel.classList.add('is-hero-condensed');
       }
-    } else if (scrollY < 20) {
-      if (heroCard.classList.contains('is-condensed')) {
-        heroCard.classList.remove('is-condensed');
-        if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
+    } else if (scrollY < 15) {
+      if (cachedHeroCard.classList.contains('is-condensed')) {
+        cachedHeroCard.classList.remove('is-condensed');
+        if (cachedCtrlPanel) cachedCtrlPanel.classList.remove('is-hero-condensed');
       }
+    }
+  }
+
+  function handleWorkspaceScroll() {
+    if (!isScrollThrottled) {
+      isScrollThrottled = true;
+      window.requestAnimationFrame(updateWorkspaceScrollState);
     }
   }
 
