@@ -1164,16 +1164,31 @@
     return preview;
   }
 
-  function formatContextBreadcrumbs(comment) {
+  function renderContextBlockHtml(comment) {
     if (!comment) return '';
     const parts = comment.split(/\s*->\s*/);
     if (parts.length > 1) {
-      return parts.map((p, idx) => {
-        const isLeaf = idx === parts.length - 1;
-        return `<span class="context-crumb${isLeaf ? ' context-crumb-active' : ''}">${escapeHtml(p)}</span>`;
-      }).join('<span class="context-arrow">→</span>');
+      const pathParts = parts.slice(0, -1);
+      const leafTitle = parts[parts.length - 1];
+      const pathHtml = pathParts.map(p => `<span class="crumb">${escapeHtml(p)}</span>`).join('<span class="crumb-sep">›</span>');
+      return `
+        <div class="card-context-block">
+          <div class="card-context-path">
+            <span class="card-context-icon">${ICONS.comment}</span>
+            ${pathHtml}
+          </div>
+          <h4 class="card-context-title">${escapeHtml(leafTitle)}</h4>
+        </div>
+      `;
     }
-    return `<span class="context-crumb context-crumb-active">${escapeHtml(comment)}</span>`;
+    return `
+      <div class="card-context-block">
+        <h4 class="card-context-title">
+          <span class="card-context-icon">${ICONS.comment}</span>
+          ${escapeHtml(comment)}
+        </h4>
+      </div>
+    `;
   }
 
   function renderSimulatedPreview(sourceText, translationText, placeholders) {
@@ -1367,12 +1382,7 @@
         ? 'Another contributor is drafting this... You can suggest an alternative.'
         : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...');
 
-      const contextHtml = item.comment 
-        ? `<div class="card-context-line" title="Context: ${escapeHtml(item.comment)}">
-             <span class="card-context-icon">${ICONS.comment}</span>
-             <div class="card-context-crumbs">${formatContextBreadcrumbs(item.comment)}</div>
-           </div>`
-        : '';
+      const contextHtml = renderContextBlockHtml(item.comment);
 
       const sourcePreviewHtml = renderSimulatedText(item.source, item.placeholders);
       const targetPreviewHtml = renderSimulatedText(translation, item.placeholders);
@@ -1420,18 +1430,14 @@
           </div>
         </div>
 
-        <div class="live-preview-strip">
-          <div class="preview-badge"><span class="preview-pulse"></span> Preview</div>
-          <div class="preview-dual-grid">
-            <div class="preview-dual-item preview-source-item" title="English: ${escapeHtml(item.source)}">
-              <span class="preview-label">English:</span>
-              <span class="preview-content preview-source-text">${sourcePreviewHtml}</span>
-            </div>
-            <div class="preview-dual-divider"></div>
-            <div class="preview-dual-item preview-target-item" title="${escapeHtml(translation ? 'Translated: ' + translation : 'No translation yet')}">
-              <span class="preview-label">Translated:</span>
-              <span class="preview-content preview-trans-text">${targetPreviewHtml || '<span class="preview-empty">No translation yet</span>'}</span>
-            </div>
+        <div class="live-preview-box">
+          <div class="preview-row preview-row-source" title="English Preview: ${escapeHtml(item.source)}">
+            <span class="preview-pill preview-pill-en"><span class="preview-pulse pulse-cyan"></span> English Preview</span>
+            <span class="preview-content preview-source-text">${sourcePreviewHtml}</span>
+          </div>
+          <div class="preview-row preview-row-target" title="Translation Preview: ${escapeHtml(translation || 'No translation yet')}">
+            <span class="preview-pill preview-pill-tr"><span class="preview-pulse pulse-purple"></span> Translated Preview</span>
+            <span class="preview-content preview-trans-text">${targetPreviewHtml || '<span class="preview-empty">No translation yet</span>'}</span>
           </div>
         </div>
       `;
@@ -1459,12 +1465,12 @@
 
             // Update live simulated preview
             const previewTransEl = card.querySelector('.preview-trans-text');
-            const previewTargetItem = card.querySelector('.preview-target-item');
+            const previewTargetRow = card.querySelector('.preview-row-target');
             if (previewTransEl) {
               const rendered = renderSimulatedText(val, item.placeholders);
               previewTransEl.innerHTML = rendered || '<span class="preview-empty">No translation yet</span>';
-              if (previewTargetItem) {
-                previewTargetItem.setAttribute('title', val ? `Translated: ${val}` : 'No translation yet');
+              if (previewTargetRow) {
+                previewTargetRow.setAttribute('title', val ? `Translation Preview: ${val}` : 'Translation Preview: No translation yet');
               }
             }
 
