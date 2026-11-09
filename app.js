@@ -1164,8 +1164,14 @@
     return preview;
   }
 
-  function renderContextBlockHtml(comment) {
-    if (!comment) return '';
+  function renderContextBlockHtml(comment, key) {
+    if (!comment) {
+      return `
+        <div class="card-key-line">
+          <span class="key-badge-mono">${escapeHtml(key)}</span>
+        </div>
+      `;
+    }
     const parts = comment.split(/\s*->\s*/);
     if (parts.length > 1) {
       const pathParts = parts.slice(0, -1);
@@ -1173,20 +1179,26 @@
       const pathHtml = pathParts.map(p => `<span class="crumb">${escapeHtml(p)}</span>`).join('<span class="crumb-sep">›</span>');
       return `
         <div class="card-context-block">
-          <div class="card-context-path">
-            <span class="card-context-icon">${ICONS.comment}</span>
-            ${pathHtml}
+          <div class="card-context-icon">${ICONS.comment}</div>
+          <div class="card-context-details">
+            <div class="card-context-path">${pathHtml}</div>
+            <h4 class="card-context-title">${escapeHtml(leafTitle)}</h4>
+            <div class="card-key-line">
+              <span class="key-badge-mono">${escapeHtml(key)}</span>
+            </div>
           </div>
-          <h4 class="card-context-title">${escapeHtml(leafTitle)}</h4>
         </div>
       `;
     }
     return `
       <div class="card-context-block">
-        <h4 class="card-context-title">
-          <span class="card-context-icon">${ICONS.comment}</span>
-          ${escapeHtml(comment)}
-        </h4>
+        <div class="card-context-icon">${ICONS.comment}</div>
+        <div class="card-context-details">
+          <h4 class="card-context-title">${escapeHtml(comment)}</h4>
+          <div class="card-key-line">
+            <span class="key-badge-mono">${escapeHtml(key)}</span>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -1382,7 +1394,7 @@
         ? 'Another contributor is drafting this... You can suggest an alternative.'
         : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...');
 
-      const contextHtml = renderContextBlockHtml(item.comment);
+      const contextHtml = renderContextBlockHtml(item.comment, item.key);
 
       const sourcePreviewHtml = renderSimulatedText(item.source, item.placeholders);
       const targetPreviewHtml = renderSimulatedText(translation, item.placeholders);
@@ -1391,9 +1403,6 @@
         <div class="studio-card-header">
           <div class="card-identity">
             ${contextHtml}
-            <div class="card-key-line">
-              <span class="key-badge-mono">${escapeHtml(item.key)}</span>
-            </div>
           </div>
           <div class="card-badges">
             ${statusPill}

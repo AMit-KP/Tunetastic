@@ -1631,12 +1631,33 @@ body {
 .card-identity {
   display: flex;
   flex-direction: column;
-  gap: 4px;
   min-width: 0;
   flex: 1 1 auto;
 }
 
 .card-context-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-context-icon {
+  color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.card-context-icon .svg-icon {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.card-context-details {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -1651,21 +1672,7 @@ body {
   font-size: 12px;
   font-weight: 600;
   color: #38bdf8;
-  line-height: 1.3;
-}
-
-.card-context-path .card-context-icon {
-  color: #38bdf8;
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  margin-right: 2px;
-}
-
-.card-context-path .card-context-icon .svg-icon {
-  width: 13px;
-  height: 13px;
-  display: block;
+  line-height: 1.35;
 }
 
 .card-context-path .crumb {
@@ -1683,28 +1690,12 @@ body {
   font-size: 16.5px;
   font-weight: 750;
   color: #ffffff;
-  line-height: 1.35;
+  line-height: 1.3;
   letter-spacing: -0.015em;
   word-break: break-word;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin: 0;
   padding: 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.card-context-title .card-context-icon {
-  color: #38bdf8;
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.card-context-title .card-context-icon .svg-icon {
-  width: 16px;
-  height: 16px;
-  display: block;
 }
 
 .card-key-line {
