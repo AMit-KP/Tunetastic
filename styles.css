@@ -199,7 +199,7 @@ body {
 }
 
 .brand:hover .brand-icon {
-  transform: rotate(-6deg) scale(1.08);
+  transform: scale(1.08);
   border-color: rgba(96, 205, 255, 0.65);
   box-shadow: 0 6px 24px rgba(96, 205, 255, 0.5);
 }
@@ -745,11 +745,11 @@ body {
 
 .flag-box .lang-flag-img,
 .lang-badge-flag .lang-flag-img {
-  width: 32px;
-  height: 24px;
+  width: 42px;
+  height: 30px;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
   display: block;
 }
 
@@ -910,11 +910,11 @@ body {
 }
 
 .ws-flag-box .lang-flag-img {
-  width: 44px;
-  height: 32px;
+  width: 56px;
+  height: 40px;
   object-fit: cover;
-  border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  border-radius: 7px;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.55);
   display: block;
 }
 

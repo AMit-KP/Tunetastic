@@ -131,7 +131,7 @@
         native: k.native,
         rtl: !!k.rtl,
         country: k.country,
-        flagHtml: `<img src="https://flagcdn.com/32x24/${k.country}.png" srcset="https://flagcdn.com/64x48/${k.country}.png 2x" width="28" height="20" alt="${k.name}" class="lang-flag-img">`
+        flagHtml: `<img src="https://flagcdn.com/64x48/${k.country}.png" srcset="https://flagcdn.com/128x96/${k.country}.png 2x" width="42" height="30" alt="${k.name}" class="lang-flag-img">`
       };
     }
 
@@ -162,7 +162,7 @@
       name,
       native,
       country,
-      flagHtml: `<img src="https://flagcdn.com/32x24/${country}.png" srcset="https://flagcdn.com/64x48/${country}.png 2x" width="28" height="20" alt="${name}" class="lang-flag-img">`
+      flagHtml: `<img src="https://flagcdn.com/64x48/${country}.png" srcset="https://flagcdn.com/128x96/${country}.png 2x" width="42" height="30" alt="${name}" class="lang-flag-img">`
     };
   }
 
