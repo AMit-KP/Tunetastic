@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.2.1">
+  <link rel="stylesheet" href="styles.css?v=2.2.2">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -229,14 +229,14 @@
             <button class="filter-tab active" data-filter="all">
               <span>All</span> <span class="tab-count" id="count-all">0</span>
             </button>
-            <button class="filter-tab" data-filter="available" title="Available / Untranslated strings">
-              <span class="filter-status-dot dot-available"></span> <span>Available</span> <span class="tab-count" id="count-available">0</span>
+            <button class="filter-tab" data-filter="available" title="Untranslated strings that need translation">
+              <span class="filter-status-dot dot-available"></span> <span>Need Translation</span> <span class="tab-count" id="count-available">0</span>
             </button>
-            <button class="filter-tab" data-filter="mine" title="Your Drafts in Progress">
-              <span class="filter-status-dot dot-draft"></span> <span>Your Drafts</span> <span class="tab-count" id="count-mine">0</span>
+            <button class="filter-tab" data-filter="mine" title="Translations drafted by you">
+              <span class="filter-status-dot dot-draft"></span> <span>Drafted By You</span> <span class="tab-count" id="count-mine">0</span>
             </button>
             <button class="filter-tab" data-filter="other" title="Active by another contributor">
-              <span class="filter-status-dot dot-in-progress"></span> <span>In Progress</span> <span class="tab-count" id="count-other">0</span>
+              <span class="filter-status-dot dot-in-progress"></span> <span>In Progress By Others</span> <span class="tab-count" id="count-other">0</span>
             </button>
             <button class="filter-tab" data-filter="submitted" title="Submitted proposals">
               <span class="filter-status-dot dot-submitted"></span> <span>Submitted</span> <span class="tab-count" id="count-submitted">0</span>
@@ -477,6 +477,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.2.1"></script>
+  <script src="app.js?v=2.2.2"></script>
 </body>
 </html>

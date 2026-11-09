@@ -1199,7 +1199,7 @@
     if (lock === 'other') {
       return {
         status: 'other',
-        label: 'In Progress (Other)',
+        label: 'In Progress By Others',
         pillClass: 'pill-draft-other',
         dotClass: 'dot-in-progress',
         isReadOnly: true,
@@ -1207,11 +1207,11 @@
       };
     }
 
-    // 5. Your Draft in progress
+    // 5. Drafted by you in progress
     if (!isDraftPendingResumption && Boolean(localDraft && localDraft.trim())) {
       return {
         status: 'mine',
-        label: 'Your Draft (In Progress)',
+        label: 'Drafted By You',
         pillClass: 'pill-draft-mine',
         dotClass: 'dot-draft',
         isReadOnly: false,
@@ -1219,10 +1219,10 @@
       };
     }
 
-    // 6. Available / Untranslated
+    // 6. Need Translation / Untranslated
     return {
       status: 'available',
-      label: 'Available',
+      label: 'Need Translation',
       pillClass: 'pill-available',
       dotClass: 'dot-available',
       isReadOnly: false,
