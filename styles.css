@@ -2038,7 +2038,8 @@ body {
 }
 
 .preview-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 152px 1fr;
   align-items: center;
   gap: 12px;
   min-height: 26px;
@@ -2046,6 +2047,8 @@ body {
 }
 
 .preview-pill {
+  width: 100%;
+  min-width: 152px;
   font-size: 10px;
   font-weight: 750;
   line-height: 1;
@@ -2053,10 +2056,10 @@ body {
   letter-spacing: 0.5px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
   flex-shrink: 0;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 4px;
   box-sizing: border-box;
   white-space: nowrap;
@@ -2138,9 +2141,15 @@ body {
 
 @media (max-width: 640px) {
   .preview-row {
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
+  }
+
+  .preview-pill {
+    width: auto;
+    min-width: 0;
   }
 }
 
