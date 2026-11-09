@@ -70,7 +70,6 @@
   const workspaceView = document.getElementById('workspace-view');
   const adminView = document.getElementById('admin-view');
   const navHomeBtn = document.getElementById('nav-home-btn');
-  const navSubmitBtn = document.getElementById('nav-submit-btn');
   const languagesGrid = document.getElementById('languages-grid');
   const cardsContainer = document.getElementById('cards-container');
   const searchInput = document.getElementById('search-input');
@@ -468,14 +467,12 @@
     adminView.classList.remove('active');
 
     navHomeBtn.style.display = 'none';
-    navSubmitBtn.style.display = 'none';
 
     if (viewName === 'home') {
       homeView.classList.add('active');
     } else if (viewName === 'workspace') {
       workspaceView.classList.add('active');
       navHomeBtn.style.display = 'inline-flex';
-      navSubmitBtn.style.display = 'inline-flex';
     } else if (viewName === 'admin') {
       adminView.classList.add('active');
       navHomeBtn.style.display = 'inline-flex';
@@ -1442,7 +1439,6 @@
     navHomeBtn.onclick = () => { window.location.hash = '#home'; };
 
     // Submit modal triggers
-    navSubmitBtn.onclick = openSubmitModal;
     document.getElementById('ws-submit-btn').onclick = openSubmitModal;
     document.getElementById('modal-cancel-btn').onclick = () => { submitModal.classList.remove('active'); };
     document.getElementById('modal-confirm-submit-btn').onclick = submitTranslations;
