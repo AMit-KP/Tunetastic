@@ -800,16 +800,96 @@
     return { isValid: missing.length === 0, missing };
   }
 
+  function getItemStatusInfo(item) {
+    const translation = getLocalTranslation(currentLang, item.key);
+    const approvedEntry = liveStatus && liveStatus.approved ? liveStatus.approved[item.key] : null;
+    const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
+    const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
+    const isMine = lock === 'mine' || (currentDrafts && currentDrafts[item.key] !== undefined);
+
+    // 1. Approved (Staged for release PR)
+    if (approvedEntry) {
+      return {
+        status: 'approved',
+        label: `Approved (${escapeHtml(approvedEntry.contributor || 'Maintainer')})`,
+        pillClass: 'pill-approved',
+        dotClass: 'dot-approved',
+        isLockedByOther: false
+      };
+    }
+
+    // 2. Already Translated
+    if (translation && translation.trim() && !isMine) {
+      return {
+        status: 'translated',
+        label: 'Already Translated',
+        pillClass: 'pill-translated',
+        dotClass: 'dot-translated',
+        isLockedByOther: false
+      };
+    }
+
+    // 3. Your Draft in progress
+    if (isMine || (translation && translation.trim())) {
+      return {
+        status: 'mine',
+        label: 'Your Draft (In Progress)',
+        pillClass: 'pill-draft-mine',
+        dotClass: 'dot-draft',
+        isLockedByOther: false
+      };
+    }
+
+    // 4. In progress by another contributor
+    if (lock === 'other') {
+      return {
+        status: 'other',
+        label: 'In Progress (Other)',
+        pillClass: 'pill-draft-other',
+        dotClass: 'dot-in-progress',
+        isLockedByOther: true
+      };
+    }
+
+    // 5. Submitted proposals pending maintainer review
+    if (proposalMeta && proposalMeta.count > 0) {
+      return {
+        status: 'submitted',
+        label: `Submitted / Pending Review (${proposalMeta.count})`,
+        pillClass: 'pill-submitted',
+        dotClass: 'dot-submitted',
+        isLockedByOther: false
+      };
+    }
+
+    // 6. Available / Untranslated
+    return {
+      status: 'available',
+      label: 'Available',
+      pillClass: 'pill-available',
+      dotClass: 'dot-available',
+      isLockedByOther: false
+    };
+  }
+
   function getFilteredItems() {
     if (!catalog || !catalog.items) return [];
 
     return catalog.items.filter(item => {
-      const translation = getLocalTranslation(currentLang, item.key);
-      const isApproved = liveStatus && liveStatus.approved && liveStatus.approved[item.key];
-      const hasTranslation = !!(translation && translation.trim()) || !!isApproved;
+      const statusInfo = getItemStatusInfo(item);
+      const translation = getLocalTranslation(currentLang, item.key) || '';
 
-      if ((currentFilter === 'untranslated' || currentFilter === 'missing') && hasTranslation) return false;
-      if ((currentFilter === 'translated' || currentFilter === 'completed') && !hasTranslation) return false;
+      if (currentFilter === 'available' && statusInfo.status !== 'available') return false;
+      if (currentFilter === 'mine' && statusInfo.status !== 'mine') return false;
+      if (currentFilter === 'other' && statusInfo.status !== 'other') return false;
+      if (currentFilter === 'submitted' && statusInfo.status !== 'submitted') return false;
+      if (currentFilter === 'approved' && statusInfo.status !== 'approved') return false;
+      if (currentFilter === 'translated' && (statusInfo.status !== 'translated' && statusInfo.status !== 'approved' && !translation.trim())) return false;
+
+      // Legacy filter fallback
+      if (currentFilter === 'missing' && statusInfo.status !== 'available') return false;
+      if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved' && !translation.trim()) return false;
+
       if (currentFilter === 'tokens' && (!item.placeholders || item.placeholders.length === 0)) return false;
       if (currentFilter === 'humor' && !item.isHumor) return false;
 
@@ -857,25 +937,10 @@
       const tokenStatus = validateTokens(item.source, translation, item.placeholders);
 
       // Determine Badge from live Cloudflare Status
-      const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
-      const approvedEntry = liveStatus && liveStatus.approved ? liveStatus.approved[item.key] : null;
+      const statusInfo = getItemStatusInfo(item);
+      const statusPill = `<span class="studio-pill card-status-pill ${statusInfo.pillClass}"><span class="status-dot ${statusInfo.dotClass}"></span> ${statusInfo.label}</span>`;
+      const isLockedByOther = statusInfo.isLockedByOther;
       const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
-
-      let statusPill = `<span class="studio-pill card-status-pill pill-missing">${ICONS.clock} Needs Work</span>`;
-      let isLockedByOther = false;
-
-      if (approvedEntry) {
-        statusPill = `<span class="studio-pill card-status-pill pill-approved">${ICONS.check} Approved (${escapeHtml(approvedEntry.contributor)})</span>`;
-      } else if (translation && translation.trim()) {
-        statusPill = `<span class="studio-pill card-status-pill pill-translated">${ICONS.check} Translated</span>`;
-      } else if (lock === 'mine') {
-        statusPill = `<span class="studio-pill card-status-pill pill-draft-mine">${ICONS.edit} Your Draft</span>`;
-      } else if (lock === 'other') {
-        statusPill = `<span class="studio-pill card-status-pill pill-draft-other">${ICONS.clock} In Progress (Other)</span>`;
-        isLockedByOther = true;
-      } else if (proposalMeta && proposalMeta.count > 0) {
-        statusPill = `<span class="studio-pill card-status-pill pill-submitted">${ICONS.layers} Proposals (${proposalMeta.count})</span>`;
-      }
 
       // Suggest Button Slot state
       const isFull = proposalMeta && proposalMeta.isFull;
@@ -961,14 +1026,10 @@
 
             // Update status pill on card dynamically
             const statusPillEl = card.querySelector('.card-status-pill');
-            if (statusPillEl && !approvedEntry && lock !== 'other') {
-              if (val.trim()) {
-                statusPillEl.className = 'studio-pill card-status-pill pill-translated';
-                statusPillEl.innerHTML = `${ICONS.check} Translated`;
-              } else {
-                statusPillEl.className = 'studio-pill card-status-pill pill-missing';
-                statusPillEl.innerHTML = `${ICONS.clock} Needs Work`;
-              }
+            if (statusPillEl) {
+              const updatedStatusInfo = getItemStatusInfo(item);
+              statusPillEl.className = `studio-pill card-status-pill ${updatedStatusInfo.pillClass}`;
+              statusPillEl.innerHTML = `<span class="status-dot ${updatedStatusInfo.dotClass}"></span> ${updatedStatusInfo.label}`;
             }
 
             // Validate Tokens
@@ -1014,53 +1075,75 @@
   function updateWorkspaceStats() {
     if (!catalog || !catalog.items) return;
     const total = catalog.items.length;
-    let translated = 0;
-    let tokenCount = 0;
-    let humorCount = 0;
+    let counts = {
+      available: 0,
+      mine: 0,
+      other: 0,
+      submitted: 0,
+      approved: 0,
+      translated: 0,
+      tokens: 0,
+      humor: 0
+    };
 
     catalog.items.forEach(item => {
-      const val = getLocalTranslation(currentLang, item.key);
-      const isApproved = liveStatus && liveStatus.approved && liveStatus.approved[item.key];
-      if ((val && val.trim()) || isApproved) translated++;
-      if (item.placeholders && item.placeholders.length > 0) tokenCount++;
-      if (item.isHumor) humorCount++;
+      const statusInfo = getItemStatusInfo(item);
+      if (counts[statusInfo.status] !== undefined) {
+        counts[statusInfo.status]++;
+      }
+      if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
+      if (item.isHumor) counts.humor++;
     });
 
-    const pct = Math.round((translated / total) * 100) || 0;
-    const missing = total - translated;
+    const completed = counts.translated + counts.approved + counts.mine;
+    const remaining = total - completed;
+    const pct = Math.round((completed / total) * 100) || 0;
 
     const pctLabel = document.getElementById('ws-pct-label');
-    if (pctLabel) pctLabel.textContent = `${pct}% Complete (${translated}/${total})`;
+    if (pctLabel) pctLabel.textContent = `${pct}% Complete (${completed}/${total})`;
 
     const progressFill = document.getElementById('workspace-progress-fill');
     if (progressFill) progressFill.style.width = `${pct}%`;
 
     const doneCount = document.getElementById('ws-done-count');
-    if (doneCount) doneCount.textContent = `${translated}`;
+    if (doneCount) doneCount.textContent = `${completed}`;
 
     const missingCount = document.getElementById('ws-missing-count');
-    if (missingCount) missingCount.textContent = `${missing}`;
+    if (missingCount) missingCount.textContent = `${remaining}`;
 
     const humorEl = document.getElementById('ws-humor-count');
-    if (humorEl) humorEl.textContent = `${humorCount}`;
+    if (humorEl) humorEl.textContent = `${counts.humor}`;
 
     const tokensEl = document.getElementById('ws-tokens-count');
-    if (tokensEl) tokensEl.textContent = `${tokenCount}`;
+    if (tokensEl) tokensEl.textContent = `${counts.tokens}`;
 
+    // Filter tab counts
     const countAll = document.getElementById('count-all');
     if (countAll) countAll.textContent = `${total}`;
 
-    const countMissing = document.getElementById('count-missing');
-    if (countMissing) countMissing.textContent = `${missing}`;
+    const countAvailable = document.getElementById('count-available');
+    if (countAvailable) countAvailable.textContent = `${counts.available}`;
 
-    const countDone = document.getElementById('count-done');
-    if (countDone) countDone.textContent = `${translated}`;
+    const countMine = document.getElementById('count-mine');
+    if (countMine) countMine.textContent = `${counts.mine}`;
+
+    const countOther = document.getElementById('count-other');
+    if (countOther) countOther.textContent = `${counts.other}`;
+
+    const countSubmitted = document.getElementById('count-submitted');
+    if (countSubmitted) countSubmitted.textContent = `${counts.submitted}`;
+
+    const countApproved = document.getElementById('count-approved');
+    if (countApproved) countApproved.textContent = `${counts.approved}`;
+
+    const countTranslated = document.getElementById('count-translated');
+    if (countTranslated) countTranslated.textContent = `${counts.translated}`;
 
     const countTokens = document.getElementById('count-tokens');
-    if (countTokens) countTokens.textContent = `${tokenCount}`;
+    if (countTokens) countTokens.textContent = `${counts.tokens}`;
 
     const countHumor = document.getElementById('count-humor');
-    if (countHumor) countHumor.textContent = `${humorCount}`;
+    if (countHumor) countHumor.textContent = `${counts.humor}`;
   }
 
   // -------------------------------------------------------------------------

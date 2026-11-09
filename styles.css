@@ -1381,14 +1381,34 @@ body {
   flex-shrink: 0;
 }
 
-.filter-status-dot.dot-warning {
+.filter-status-dot.dot-available {
+  background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+}
+
+.filter-status-dot.dot-draft {
+  background: #60cdff;
+  box-shadow: 0 0 6px rgba(96, 205, 255, 0.7);
+}
+
+.filter-status-dot.dot-in-progress {
   background: #f59e0b;
   box-shadow: 0 0 6px rgba(245, 158, 11, 0.7);
 }
 
-.filter-status-dot.dot-success {
-  background: #10b981;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+.filter-status-dot.dot-submitted {
+  background: #a78bfa;
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.7);
+}
+
+.filter-status-dot.dot-approved {
+  background: #c084fc;
+  box-shadow: 0 0 6px rgba(192, 132, 252, 0.7);
+}
+
+.filter-status-dot.dot-translated {
+  background: #94a3b8;
+  box-shadow: 0 0 6px rgba(148, 163, 184, 0.7);
 }
 
 .tab-count {
@@ -1501,19 +1521,87 @@ body {
   letter-spacing: 0.2px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   transition: all var(--transition-fast);
 }
 
-.pill-translated { background: var(--status-success-glow); color: var(--status-success); border: 1px solid rgba(16, 185, 129, 0.35); }
-.pill-missing    { background: rgba(245, 158, 11, 0.14); color: var(--status-warning); border: 1px solid rgba(245, 158, 11, 0.32); }
+.studio-pill .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.pill-available {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+}
+.pill-available .status-dot {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.pill-draft-mine {
+  background: rgba(96, 205, 255, 0.12);
+  color: #60cdff;
+  border: 1px solid rgba(96, 205, 255, 0.35);
+}
+.pill-draft-mine .status-dot {
+  background: #60cdff;
+  box-shadow: 0 0 6px #60cdff;
+}
+
+.pill-draft-other {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.pill-draft-other .status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b;
+}
+
+.pill-submitted {
+  background: rgba(167, 139, 250, 0.14);
+  color: #c4b5fd;
+  border: 1px solid rgba(167, 139, 250, 0.35);
+}
+.pill-submitted .status-dot {
+  background: #a78bfa;
+  box-shadow: 0 0 6px #a78bfa;
+}
+
+.pill-approved {
+  background: rgba(192, 132, 252, 0.15);
+  color: #e9d5ff;
+  border: 1px solid rgba(192, 132, 252, 0.4);
+}
+.pill-approved .status-dot {
+  background: #c084fc;
+  box-shadow: 0 0 6px #c084fc;
+}
+
+.pill-translated {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.pill-translated .status-dot {
+  background: #94a3b8;
+  box-shadow: 0 0 6px #94a3b8;
+}
+
+.pill-missing {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+}
+
 .pill-tokens     { background: rgba(96, 205, 255, 0.12); color: var(--accent-cyan); border: 1px solid rgba(96, 205, 255, 0.28); }
 .pill-humor      { background: var(--accent-purple-glow); color: var(--accent-purple); border: 1px solid rgba(167, 139, 250, 0.35); }
 .pill-error      { background: var(--status-danger-glow); color: var(--status-danger); border: 1px solid rgba(239, 68, 68, 0.35); }
-.pill-approved   { background: rgba(0, 120, 212, 0.2); color: #60cdff; border: 1px solid rgba(96, 205, 255, 0.4); }
-.pill-draft-mine { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-.pill-draft-other{ background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
-.pill-submitted  { background: rgba(167, 139, 250, 0.2); color: #c084fc; border: 1px solid rgba(167, 139, 250, 0.4); }
 
 /* Two-Column Editor Layout */
 .editors-split-grid {
@@ -2157,35 +2245,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-.pill-draft-mine {
-  background: rgba(0, 229, 255, 0.15);
-  color: #00e5ff;
-  border: 1px solid rgba(0, 229, 255, 0.3);
-}
 
-.pill-draft-other {
-  background: rgba(255, 171, 0, 0.15);
-  color: #ffab00;
-  border: 1px solid rgba(255, 171, 0, 0.3);
-}
-
-.pill-submitted {
-  background: rgba(179, 136, 255, 0.15);
-  color: #b388ff;
-  border: 1px solid rgba(179, 136, 255, 0.3);
-}
-
-.pill-approved {
-  background: rgba(0, 230, 118, 0.15);
-  color: #00e676;
-  border: 1px solid rgba(0, 230, 118, 0.3);
-}
-
-.pill-translated {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e0e0e0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-}
 
 .btn-suggest {
   padding: 4px 10px;

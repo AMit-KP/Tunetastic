@@ -216,16 +216,28 @@
           <button class="filter-tab active" data-filter="all">
             <span>All</span> <span class="tab-count" id="count-all">0</span>
           </button>
-          <button class="filter-tab" data-filter="missing">
-            <span class="filter-status-dot dot-warning"></span> <span>Needs Work</span> <span class="tab-count" id="count-missing">0</span>
+          <button class="filter-tab" data-filter="available" title="Available / Untranslated strings">
+            <span class="filter-status-dot dot-available"></span> <span>Available</span> <span class="tab-count" id="count-available">0</span>
           </button>
-          <button class="filter-tab" data-filter="completed">
-            <span class="filter-status-dot dot-success"></span> <span>Completed</span> <span class="tab-count" id="count-done">0</span>
+          <button class="filter-tab" data-filter="mine" title="Your Drafts in Progress">
+            <span class="filter-status-dot dot-draft"></span> <span>Your Drafts</span> <span class="tab-count" id="count-mine">0</span>
           </button>
-          <button class="filter-tab" data-filter="tokens">
+          <button class="filter-tab" data-filter="other" title="Active by another contributor">
+            <span class="filter-status-dot dot-in-progress"></span> <span>In Progress</span> <span class="tab-count" id="count-other">0</span>
+          </button>
+          <button class="filter-tab" data-filter="submitted" title="Submitted proposals pending review">
+            <span class="filter-status-dot dot-submitted"></span> <span>Pending Review</span> <span class="tab-count" id="count-submitted">0</span>
+          </button>
+          <button class="filter-tab" data-filter="approved" title="Approved by maintainers for release">
+            <span class="filter-status-dot dot-approved"></span> <span>Approved</span> <span class="tab-count" id="count-approved">0</span>
+          </button>
+          <button class="filter-tab" data-filter="translated" title="Already translated strings">
+            <span class="filter-status-dot dot-translated"></span> <span>Translated</span> <span class="tab-count" id="count-translated">0</span>
+          </button>
+          <button class="filter-tab" data-filter="tokens" title="Strings containing formatting tokens like {0}">
             <span>Tokens {0}</span> <span class="tab-count" id="count-tokens">0</span>
           </button>
-          <button class="filter-tab" data-filter="humor">
+          <button class="filter-tab" data-filter="humor" title="Playful / Cultural musical quips">
             <span><svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 0l1.8 5.2L15 7l-5.2 1.8L8 14l-1.8-5.2L1 7l5.2-1.8L8 0z"/></svg> Quips</span> <span class="tab-count" id="count-humor">0</span>
           </button>
         </div>
