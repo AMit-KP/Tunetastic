@@ -345,12 +345,15 @@ body {
   background: rgba(255, 255, 255, 0.06);
 }
 
-.gh-icon {
-  opacity: 0.8;
+.gh-icon,
+.store-icon {
+  opacity: 0.85;
   transition: transform var(--transition-fast);
+  flex-shrink: 0;
 }
 
-.btn:hover .gh-icon {
+.btn:hover .gh-icon,
+.btn:hover .store-icon {
   transform: scale(1.15);
 }
 
