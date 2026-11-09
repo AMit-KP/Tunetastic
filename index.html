@@ -158,10 +158,10 @@
 
     </section>
 
-    <!-- VIEW 2: Translation Workspace -->
+    <!-- VIEW 2: Translation Workspace (Fluent Studio Redesign) -->
     <section id="workspace-view" class="view-section">
       
-      <!-- Sticky Workspace Header -->
+      <!-- Studio Workspace Command Hero -->
       <div class="workspace-hero-card">
         <div class="ws-hero-top">
           <div class="ws-lang-profile">
@@ -172,16 +172,17 @@
               <div class="ws-lang-heading">
                 <h2 id="current-lang-name">Language Name</h2>
                 <span class="code-chip" id="current-lang-code">locale-tag</span>
+                <span class="ws-progress-pct-badge" id="ws-pct-label">0% Complete</span>
               </div>
-              <p class="ws-lang-subtitle" id="current-lang-native">Native Name</p>
+              <p class="ws-lang-subtitle" id="current-lang-native">Official Locale Workspace</p>
             </div>
           </div>
 
           <div class="ws-header-actions">
-            <button class="btn btn-glass" id="ws-download-btn">
+            <button class="btn btn-glass" id="ws-download-btn" title="Export .resw translation file">
               <svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 12l-4-4h2.5V2h3v6H12L8 12zm-6 2h12v1.5H2V14z"/></svg> Download .resw
             </button>
-            <button class="btn btn-primary-gradient" id="ws-submit-btn">
+            <button class="btn btn-primary-gradient" id="ws-submit-btn" title="Submit translations to staging">
               <svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg> Submit Work
             </button>
           </div>
@@ -206,23 +207,22 @@
 
         <!-- Glowing Progress Bar Track -->
         <div class="ws-progress-wrap">
-          <div class="ws-progress-info">
-            <div class="ws-progress-pct-badge" id="ws-pct-label">0% Complete</div>
-            <div class="ws-save-indicator" id="auto-save-indicator">
-              <span class="save-dot"></span> Saved to Browser
-            </div>
-          </div>
           <div class="glowing-progress-track">
             <div class="glowing-progress-fill" id="workspace-progress-fill" style="width: 0%;"></div>
           </div>
           <div class="ws-metrics-row">
-            <div class="ws-metric-item"><strong id="ws-done-count">0</strong> <span class="metric-label">Translated</span></div>
-            <span class="metric-sep">•</span>
-            <div class="ws-metric-item"><strong id="ws-missing-count">0</strong> <span class="metric-label">Remaining</span></div>
-            <span class="metric-sep">•</span>
-            <div class="ws-metric-item"><strong id="ws-humor-count">0</strong> <span class="metric-label">Cultural Quips</span></div>
-            <span class="metric-sep">•</span>
-            <div class="ws-metric-item"><strong id="ws-tokens-count">0</strong> <span class="metric-label">Tokens Guarded</span></div>
+            <div class="ws-save-indicator" id="auto-save-indicator">
+              <span class="save-dot"></span> Saved to Browser
+            </div>
+            <div class="ws-metrics-pills">
+              <span class="metric-pill"><strong id="ws-done-count">0</strong> <span class="metric-label">Translated</span></span>
+              <span class="metric-sep">•</span>
+              <span class="metric-pill"><strong id="ws-missing-count">828</strong> <span class="metric-label">Remaining</span></span>
+              <span class="metric-sep">•</span>
+              <span class="metric-pill"><strong id="ws-tokens-count">0</strong> <span class="metric-label">Tokens Guarded</span></span>
+              <span class="metric-sep">•</span>
+              <span class="metric-pill"><strong id="ws-humor-count">0</strong> <span class="metric-label">Cultural Quips</span></span>
+            </div>
           </div>
         </div>
       </div>
@@ -236,7 +236,7 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </span>
-          <input type="text" class="search-box" id="search-input" placeholder="Search by key, English words, translation, or breadcrumb...">
+          <input type="text" class="search-box" id="search-input" placeholder="Search by key, English words, translation, or context...">
         </div>
 
         <div class="filter-segmented-control">
@@ -244,10 +244,10 @@
             <span>All</span> <span class="tab-count" id="count-all">0</span>
           </button>
           <button class="filter-tab" data-filter="missing">
-            <span>Needs Work</span> <span class="tab-count" id="count-missing">0</span>
+            <span class="filter-status-dot dot-warning"></span> <span>Needs Work</span> <span class="tab-count" id="count-missing">0</span>
           </button>
           <button class="filter-tab" data-filter="completed">
-            <span>Completed</span> <span class="tab-count" id="count-done">0</span>
+            <span class="filter-status-dot dot-success"></span> <span>Completed</span> <span class="tab-count" id="count-done">0</span>
           </button>
           <button class="filter-tab" data-filter="tokens">
             <span>Tokens {0}</span> <span class="tab-count" id="count-tokens">0</span>

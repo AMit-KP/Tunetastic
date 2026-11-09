@@ -584,9 +584,12 @@
     if (flagBox) flagBox.innerHTML = meta.flagHtml || ICONS.globe;
 
     const fullTitle = formatLanguageDisplayName(meta, langCode);
-    document.getElementById('current-lang-name').textContent = fullTitle;
-    document.getElementById('current-lang-code').textContent = langCode;
-    document.getElementById('current-lang-native').textContent = `Official Locale Workspace • ${langCode}`;
+    const langNameEl = document.getElementById('current-lang-name');
+    if (langNameEl) langNameEl.textContent = fullTitle;
+    const langCodeEl = document.getElementById('current-lang-code');
+    if (langCodeEl) langCodeEl.textContent = langCode;
+    const langNativeEl = document.getElementById('current-lang-native');
+    if (langNativeEl) langNativeEl.textContent = `Official Locale Workspace • ${langCode}`;
 
     if (meta.rtl) {
       document.body.classList.add('rtl-mode');
@@ -594,12 +597,26 @@
       document.body.classList.remove('rtl-mode');
     }
 
-    // 1. Fetch live status from Cloudflare (locks, approved, proposals)
-    await fetchLiveStatus();
+    // Reset filter buttons active state to 'all'
+    document.querySelectorAll('.filter-tab').forEach(p => {
+      p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
+    });
 
-    // 2. Fetch active draft session for this user to resume
-    await checkDraftResumption();
+    // Render immediately so cards and stats display instantly with zero delay
+    renderCards();
+    updateWorkspaceStats();
 
+    // Fetch live status from Cloudflare (locks, approved, proposals) and drafts in background
+    try {
+      await Promise.allSettled([
+        fetchLiveStatus(),
+        checkDraftResumption()
+      ]);
+    } catch (e) {
+      console.warn("Background workspace sync error:", e);
+    }
+
+    // Refresh cards and stats once live cloud status settles
     renderCards();
     updateWorkspaceStats();
   }
@@ -610,7 +627,12 @@
         headers: { 'X-Session-ID': SESSION_ID }
       });
       if (res.ok) {
-        liveStatus = await res.json();
+        const data = await res.json();
+        liveStatus = {
+          locks: data?.locks || {},
+          approved: data?.approved || {},
+          proposals: data?.proposals || {}
+        };
       }
     } catch (e) {
       console.warn("Could not fetch live Cloudflare status:", e);
@@ -708,11 +730,11 @@
 
     return catalog.items.filter(item => {
       const translation = getLocalTranslation(currentLang, item.key);
-      const isApproved = liveStatus.approved && liveStatus.approved[item.key];
+      const isApproved = liveStatus && liveStatus.approved && liveStatus.approved[item.key];
       const hasTranslation = !!(translation && translation.trim()) || !!isApproved;
 
-      if (currentFilter === 'untranslated' && hasTranslation) return false;
-      if (currentFilter === 'translated' && !hasTranslation) return false;
+      if ((currentFilter === 'untranslated' || currentFilter === 'missing') && hasTranslation) return false;
+      if ((currentFilter === 'translated' || currentFilter === 'completed') && !hasTranslation) return false;
       if (currentFilter === 'tokens' && (!item.placeholders || item.placeholders.length === 0)) return false;
       if (currentFilter === 'humor' && !item.isHumor) return false;
 
@@ -752,37 +774,39 @@
       return;
     }
 
+    const meta = resolveLanguageMeta(currentLang) || { name: currentLang, native: currentLang };
+
     pageItems.forEach(item => {
       const translation = getLocalTranslation(currentLang, item.key);
       const hasPlaceholders = item.placeholders && item.placeholders.length > 0;
       const tokenStatus = validateTokens(item.source, translation, item.placeholders);
 
       // Determine Badge from live Cloudflare Status
-      const lock = liveStatus.locks ? liveStatus.locks[item.key] : null;
-      const approvedEntry = liveStatus.approved ? liveStatus.approved[item.key] : null;
-      const proposalMeta = liveStatus.proposals ? liveStatus.proposals[item.key] : null;
+      const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
+      const approvedEntry = liveStatus && liveStatus.approved ? liveStatus.approved[item.key] : null;
+      const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
 
-      let statusPill = `<span class="studio-pill" style="opacity: 0.6;">${ICONS.checkCircle} Available</span>`;
+      let statusPill = `<span class="studio-pill card-status-pill pill-missing">${ICONS.clock} Needs Work</span>`;
       let isLockedByOther = false;
 
       if (approvedEntry) {
-        statusPill = `<span class="studio-pill pill-approved">${ICONS.check} Approved (by ${escapeHtml(approvedEntry.contributor)})</span>`;
+        statusPill = `<span class="studio-pill card-status-pill pill-approved">${ICONS.check} Approved (${escapeHtml(approvedEntry.contributor)})</span>`;
       } else if (translation && translation.trim()) {
-        statusPill = `<span class="studio-pill pill-translated">${ICONS.check} Translated</span>`;
+        statusPill = `<span class="studio-pill card-status-pill pill-translated">${ICONS.check} Translated</span>`;
       } else if (lock === 'mine') {
-        statusPill = `<span class="studio-pill pill-draft-mine">${ICONS.edit} Your Draft</span>`;
+        statusPill = `<span class="studio-pill card-status-pill pill-draft-mine">${ICONS.edit} Your Draft</span>`;
       } else if (lock === 'other') {
-        statusPill = `<span class="studio-pill pill-draft-other">${ICONS.clock} In Progress (Other)</span>`;
+        statusPill = `<span class="studio-pill card-status-pill pill-draft-other">${ICONS.clock} In Progress (Other)</span>`;
         isLockedByOther = true;
       } else if (proposalMeta && proposalMeta.count > 0) {
-        statusPill = `<span class="studio-pill pill-submitted">${ICONS.layers} Proposals (${proposalMeta.count})</span>`;
+        statusPill = `<span class="studio-pill card-status-pill pill-submitted">${ICONS.layers} Proposals (${proposalMeta.count})</span>`;
       }
 
       // Suggest Button Slot state
       const isFull = proposalMeta && proposalMeta.isFull;
       const suggestBtnHtml = isFull 
         ? `<button class="btn-suggest" disabled title="Max 10 community suggestions reached">${ICONS.lock} Max (10/10)</button>`
-        : `<button class="btn-suggest" data-key="${item.key}">${ICONS.bulb} Suggest Alternative</button>`;
+        : `<button class="btn-suggest" data-key="${escapeHtml(item.key)}">${ICONS.bulb} Suggest Alternative</button>`;
 
       const card = document.createElement('div');
       card.className = `studio-card ${item.isHumor ? 'humor-card' : ''}`;
@@ -790,57 +814,46 @@
 
       card.innerHTML = `
         <div class="studio-card-header">
-          <div class="card-tags">
+          <div class="card-identity">
             <span class="key-badge-mono">${escapeHtml(item.key)}</span>
+            ${item.comment ? `<span class="context-hint-chip" title="Context: ${escapeHtml(item.comment)}">${ICONS.comment} ${escapeHtml(item.comment)}</span>` : ''}
+          </div>
+          <div class="card-badges">
             ${statusPill}
             ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
             ${item.isHumor ? `<span class="studio-pill pill-humor">${ICONS.sparkle} Quip</span>` : ''}
           </div>
-          <div class="card-header-actions">
+          <div class="card-actions">
+            <button class="copy-mini-btn" title="Copy English source text">${ICONS.copy} Copy</button>
             ${suggestBtnHtml}
           </div>
         </div>
 
         <div class="editors-split-grid">
-          <div class="editor-column">
+          <div class="editor-column source-column">
             <div class="column-header">
               <span>English Source</span>
-              <button class="copy-mini-btn" data-copy="${escapeHtml(item.source)}">${ICONS.copy} Copy</button>
             </div>
             <div class="source-display-box">${escapeHtml(item.source)}</div>
-            ${item.comment ? `<div style="font-size: 11.5px; color: var(--text-tertiary); margin-top: 5px;">${ICONS.comment} ${escapeHtml(item.comment)}</div>` : ''}
           </div>
 
-          <div class="editor-column">
+          <div class="editor-column target-column">
             <div class="column-header">
-              <span>Your Translation</span>
+              <span>Your Translation (${escapeHtml(meta.native || currentLang)})</span>
             </div>
-            <textarea class="translation-textarea" id="input-${item.key}" rows="3" 
-              placeholder="${isLockedByOther ? 'Another contributor is drafting this... You can suggest an alternative.' : 'Type your translation here...'}"
+            <textarea class="translation-textarea" rows="2" 
+              placeholder="${isLockedByOther ? 'Another contributor is drafting this... You can suggest an alternative.' : 'Type translation here...'}"
               ${isLockedByOther ? 'readonly style="opacity: 0.6;"' : ''}>${escapeHtml(translation)}</textarea>
 
-            ${hasPlaceholders ? `
-              <div style="font-size: 11.5px; color: var(--text-tertiary); margin-top: 5px;">
-                <span>Placeholders:</span> ${item.placeholders.map(p => `<code style="color: var(--accent-cyan);">${p.token}</code> (${p.label})`).join(' • ')}
-              </div>
-            ` : ''}
-
-            <div class="token-missing-alert" id="token-warning-${item.key}" style="display: ${tokenStatus.isValid ? 'none' : 'flex'}; margin-top: 6px;">
+            <div class="token-missing-alert" style="display: ${tokenStatus.isValid ? 'none' : 'flex'};">
               ${ICONS.alert} Missing placeholder token: <strong>${tokenStatus.missing.join(', ')}</strong>
             </div>
           </div>
         </div>
 
-        <div class="in-app-preview-flyout">
-          <div class="preview-flyout-top">
-            <div class="preview-badge-title">
-              <span class="preview-wave-icon"><span></span><span></span><span></span></span>
-              <span>Simulated WinUI In-App Notification</span>
-            </div>
-          </div>
-          <div class="preview-line" id="preview-${item.key}">
-            ${renderSimulatedPreview(item.source, translation, item.placeholders)}
-          </div>
+        <div class="live-preview-strip">
+          <span class="preview-badge"><span class="preview-pulse"></span> Preview</span>
+          <span class="preview-text">${renderSimulatedPreview(item.source, translation, item.placeholders)}</span>
         </div>
       `;
 
@@ -857,40 +870,60 @@
         };
       }
 
-      // Event listener for textarea typing
+      // Event listener for textarea typing (safe element lookup without unescaped selector bugs)
       if (!isLockedByOther) {
-        const textarea = card.querySelector(`#input-${item.key}`);
-        textarea.addEventListener('input', (e) => {
-          const val = e.target.value;
-          setLocalTranslation(currentLang, item.key, val);
+        const textarea = card.querySelector('textarea.translation-textarea');
+        if (textarea) {
+          textarea.addEventListener('input', (e) => {
+            const val = e.target.value;
+            setLocalTranslation(currentLang, item.key, val);
 
-          // Update live simulated preview
-          const previewEl = document.getElementById(`preview-${item.key}`);
-          if (previewEl) {
-            previewEl.innerHTML = renderSimulatedPreview(item.source, val, item.placeholders);
-          }
-
-          // Validate Tokens
-          if (hasPlaceholders) {
-            const tokenWarn = document.getElementById(`token-warning-${item.key}`);
-            const tokenBadge = document.getElementById(`token-badge-${item.key}`);
-            const check = validateTokens(item.source, val, item.placeholders);
-            if (check.isValid) {
-              if (tokenWarn) tokenWarn.style.display = 'none';
-              if (tokenBadge) tokenBadge.className = 'studio-pill pill-tokens';
-            } else {
-              if (tokenWarn) {
-                tokenWarn.style.display = 'flex';
-                tokenWarn.innerHTML = `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
-              }
-              if (tokenBadge) tokenBadge.className = 'studio-pill pill-error';
+            // Update live simulated preview
+            const previewEl = card.querySelector('.preview-text');
+            if (previewEl) {
+              previewEl.innerHTML = renderSimulatedPreview(item.source, val, item.placeholders);
             }
-          }
 
-          // Trigger debounced Cloudflare Draft Autosave
-          scheduleDraftAutosave(item.key, val);
-          updateWorkspaceStats();
-        });
+            // Update status pill on card dynamically
+            const statusPillEl = card.querySelector('.card-status-pill');
+            if (statusPillEl && !approvedEntry && lock !== 'other') {
+              if (val.trim()) {
+                statusPillEl.className = 'studio-pill card-status-pill pill-translated';
+                statusPillEl.innerHTML = `${ICONS.check} Translated`;
+              } else {
+                statusPillEl.className = 'studio-pill card-status-pill pill-missing';
+                statusPillEl.innerHTML = `${ICONS.clock} Needs Work`;
+              }
+            }
+
+            // Validate Tokens
+            if (hasPlaceholders) {
+              const tokenWarn = card.querySelector('.token-missing-alert');
+              const tokenBadge = card.querySelector('[id^="token-badge-"]');
+              const check = validateTokens(item.source, val, item.placeholders);
+              if (check.isValid) {
+                if (tokenWarn) tokenWarn.style.display = 'none';
+                if (tokenBadge) {
+                  tokenBadge.className = 'studio-pill pill-tokens';
+                  tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
+                }
+              } else {
+                if (tokenWarn) {
+                  tokenWarn.style.display = 'flex';
+                  tokenWarn.innerHTML = `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
+                }
+                if (tokenBadge) {
+                  tokenBadge.className = 'studio-pill pill-error';
+                  tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
+                }
+              }
+            }
+
+            // Trigger debounced Cloudflare Draft Autosave
+            scheduleDraftAutosave(item.key, val);
+            updateWorkspaceStats();
+          });
+        }
       }
 
       // Event listener for Suggest Alternative Button
@@ -912,7 +945,7 @@
 
     catalog.items.forEach(item => {
       const val = getLocalTranslation(currentLang, item.key);
-      const isApproved = liveStatus.approved && liveStatus.approved[item.key];
+      const isApproved = liveStatus && liveStatus.approved && liveStatus.approved[item.key];
       if ((val && val.trim()) || isApproved) translated++;
       if (item.placeholders && item.placeholders.length > 0) tokenCount++;
       if (item.isHumor) humorCount++;
