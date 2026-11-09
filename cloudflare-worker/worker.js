@@ -9,17 +9,10 @@
  * 6. Safe Post-Merge KV Cleanup (/api/cleanup-synced)
  */
 
-const ALLOWED_ORIGINS = [
-  "https://amit-kp.github.io",
-  "http://localhost",
-  "http://127.0.0.1"
-];
-
 function getCorsHeaders(request) {
-  const origin = request.headers.get("Origin") || "";
-  const isAllowed = ALLOWED_ORIGINS.some(allowed => origin.toLowerCase().startsWith(allowed));
+  const origin = request.headers.get("Origin");
   return {
-    "Access-Control-Allow-Origin": isAllowed ? origin : "https://amit-kp.github.io",
+    "Access-Control-Allow-Origin": origin && origin !== "null" ? origin : "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Session-ID"
   };

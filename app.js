@@ -14,14 +14,72 @@
   'use strict';
 
   // -------------------------------------------------------------------------
-  // 1. STATE & ANONYMOUS SESSION MANAGEMENT
+  // 1. STATE & ANONYMOUS SESSION MANAGEMENT (MULTI-TAB & INCOGNITO COMPATIBLE)
   // -------------------------------------------------------------------------
 
+  const memoryStore = {};
+
+  function safeStorageGet(key, preferSession = false) {
+    try {
+      if (preferSession && typeof window.sessionStorage !== 'undefined') {
+        const val = window.sessionStorage.getItem(key);
+        if (val !== null) return val;
+      }
+      if (typeof window.localStorage !== 'undefined') {
+        const val = window.localStorage.getItem(key);
+        if (val !== null) return val;
+      }
+      return memoryStore[key] || null;
+    } catch {
+      return memoryStore[key] || null;
+    }
+  }
+
+  function safeStorageSet(key, value, preferSession = false) {
+    try {
+      if (preferSession && typeof window.sessionStorage !== 'undefined') {
+        window.sessionStorage.setItem(key, value);
+      }
+      if (typeof window.localStorage !== 'undefined') {
+        window.localStorage.setItem(key, value);
+      }
+    } catch {
+      memoryStore[key] = String(value);
+    }
+  }
+
+  function safeStorageRemove(key) {
+    try {
+      if (typeof window.sessionStorage !== 'undefined') {
+        window.sessionStorage.removeItem(key);
+      }
+      if (typeof window.localStorage !== 'undefined') {
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      delete memoryStore[key];
+    }
+  }
+
   function getOrCreateSessionId() {
-    let sid = localStorage.getItem('tunetastic_session_id');
-    if (!sid) {
-      sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
-      localStorage.setItem('tunetastic_session_id', sid);
+    // Check sessionStorage first: ensures separate incognito tabs/windows each get their own distinct session!
+    let sid = null;
+    try {
+      sid = window.sessionStorage.getItem('tunetastic_session_id');
+      if (!sid) {
+        sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
+        window.sessionStorage.setItem('tunetastic_session_id', sid);
+      }
+    } catch {
+      try {
+        sid = window.localStorage.getItem('tunetastic_session_id');
+        if (!sid) {
+          sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
+          window.localStorage.setItem('tunetastic_session_id', sid);
+        }
+      } catch {
+        sid = 's_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      }
     }
     return sid;
   }
@@ -887,7 +945,7 @@
           confirmDiscardBtn.onclick = async () => {
             isDraftPendingResumption = false;
             currentDrafts = {};
-            localStorage.removeItem(`tunetastic_l10n_${currentLang}`);
+            safeStorageRemove(`tunetastic_l10n_${currentLang}`);
 
             // Clear in-memory locks for this session immediately
             if (liveStatus && liveStatus.locks) {
@@ -963,7 +1021,7 @@
 
   function getSubmittedTranslations(lang) {
     try {
-      const raw = localStorage.getItem(`tunetastic_submitted_${lang}`);
+      const raw = safeStorageGet(`tunetastic_submitted_${lang}`);
       return raw ? JSON.parse(raw) : {};
     } catch {
       return {};
@@ -1366,7 +1424,7 @@
     document.getElementById('suggest-key-label').textContent = item.key;
     document.getElementById('suggest-source-text').textContent = item.source;
     document.getElementById('suggest-text-input').value = '';
-    document.getElementById('suggest-author-input').value = localStorage.getItem('tunetastic_author') || '';
+    document.getElementById('suggest-author-input').value = safeStorageGet('tunetastic_author') || '';
     document.getElementById('suggest-exact-error').style.display = 'none';
 
     const existingListEl = document.getElementById('suggest-existing-list');
@@ -1456,7 +1514,7 @@
     if (!text || !activeSuggestKey) return;
 
     if (author && author !== 'Unknown') {
-      localStorage.setItem('tunetastic_author', author);
+      safeStorageSet('tunetastic_author', author);
     }
 
     const confirmBtn = document.getElementById('suggest-confirm-btn');
@@ -1512,7 +1570,7 @@
     const meta = resolveLanguageMeta(currentLang) || { name: currentLang };
     document.getElementById('modal-submit-lang').textContent = formatLanguageDisplayName(meta, currentLang);
     document.getElementById('modal-submit-count').textContent = count;
-    document.getElementById('submit-author-input').value = localStorage.getItem('tunetastic_author') || '';
+    document.getElementById('submit-author-input').value = safeStorageGet('tunetastic_author') || '';
 
     submitModal.classList.add('active');
   }
@@ -1520,7 +1578,7 @@
   async function submitTranslations() {
     const author = document.getElementById('submit-author-input').value.trim() || 'Unknown';
     if (author && author !== 'Unknown') {
-      localStorage.setItem('tunetastic_author', author);
+      safeStorageSet('tunetastic_author', author);
     }
 
     const translations = getAllLocalTranslations(currentLang);
@@ -1556,7 +1614,7 @@
         const submittedKey = `tunetastic_submitted_${currentLang}`;
         let existingSubmitted = {};
         try {
-          existingSubmitted = JSON.parse(localStorage.getItem(submittedKey) || '{}');
+          existingSubmitted = JSON.parse(safeStorageGet(submittedKey) || '{}');
         } catch {}
 
         for (const [k, v] of Object.entries(translations)) {
@@ -1566,10 +1624,10 @@
             timestamp: Date.now()
           };
         }
-        localStorage.setItem(submittedKey, JSON.stringify(existingSubmitted));
+        safeStorageSet(submittedKey, JSON.stringify(existingSubmitted));
 
         // Clear local active drafts
-        localStorage.removeItem(`tunetastic_l10n_${currentLang}`);
+        safeStorageRemove(`tunetastic_l10n_${currentLang}`);
         currentDrafts = {};
 
         // Clear in-memory locks for this session immediately
@@ -1895,7 +1953,7 @@
 
   function getLocalTranslation(lang, key) {
     try {
-      const stored = localStorage.getItem(`tunetastic_l10n_${lang}`);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
       if (!stored) return '';
       const map = JSON.parse(stored);
       return map[key] || '';
@@ -1906,20 +1964,20 @@
 
   function setLocalTranslation(lang, key, value) {
     try {
-      const stored = localStorage.getItem(`tunetastic_l10n_${lang}`);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
       const map = stored ? JSON.parse(stored) : {};
       if (value && value.trim()) {
         map[key] = value;
       } else {
         delete map[key];
       }
-      localStorage.setItem(`tunetastic_l10n_${lang}`, JSON.stringify(map));
+      safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map));
     } catch (e) {}
   }
 
   function getAllLocalTranslations(lang) {
     try {
-      const stored = localStorage.getItem(`tunetastic_l10n_${lang}`);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
