@@ -1418,11 +1418,6 @@ body {
   transform: translateY(-1px);
 }
 
-.studio-card.humor-card {
-  border-left: 3px solid var(--accent-purple);
-  background: linear-gradient(135deg, rgba(167, 139, 250, 0.04) 0%, rgba(18, 24, 38, 0.75) 100%);
-}
-
 .studio-card-header {
   display: flex;
   align-items: center;
@@ -1573,7 +1568,6 @@ body {
 }
 
 .pill-tokens     { background: rgba(96, 205, 255, 0.12); color: var(--accent-cyan); border: 1px solid rgba(96, 205, 255, 0.28); }
-.pill-humor      { background: var(--accent-purple-glow); color: var(--accent-purple); border: 1px solid rgba(167, 139, 250, 0.35); }
 .pill-error      { background: var(--status-danger-glow); color: var(--status-danger); border: 1px solid rgba(239, 68, 68, 0.35); }
 
 /* Two-Column Editor Layout */

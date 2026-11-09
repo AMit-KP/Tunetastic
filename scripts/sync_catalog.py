@@ -140,14 +140,11 @@ def sync_catalog(csharp_repo_root: Path, output_catalog_path: Path, placeholders
                     "sample": h["sample"]
                 })
 
-        is_humor = key.startswith("EmptyState_") or "Quote" in key or "humor" in comment.lower() or "joke" in comment.lower()
-
         items.append({
             "key": key,
             "source": text,
             "comment": comment,
-            "placeholders": placeholders,
-            "isHumor": is_humor
+            "placeholders": placeholders
         })
 
     catalog = {

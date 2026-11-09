@@ -907,7 +907,6 @@
       if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved' && !translation.trim()) return false;
 
       if (currentFilter === 'tokens' && (!item.placeholders || item.placeholders.length === 0)) return false;
-      if (currentFilter === 'humor' && !item.isHumor) return false;
 
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
@@ -965,7 +964,7 @@
         : `<button class="btn-suggest" data-key="${escapeHtml(item.key)}">${ICONS.bulb} Suggest Alternative</button>`;
 
       const card = document.createElement('div');
-      card.className = `studio-card ${item.isHumor ? 'humor-card' : ''}`;
+      card.className = 'studio-card';
       card.id = `card-${item.key}`;
 
       card.innerHTML = `
@@ -977,7 +976,6 @@
           <div class="card-badges">
             ${statusPill}
             ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
-            ${item.isHumor ? `<span class="studio-pill pill-humor">${ICONS.sparkle} Quip</span>` : ''}
           </div>
           <div class="card-actions">
             <button class="copy-mini-btn" title="Copy English source text">${ICONS.copy} Copy</button>
@@ -1098,8 +1096,7 @@
       submitted: 0,
       approved: 0,
       translated: 0,
-      tokens: 0,
-      humor: 0
+      tokens: 0
     };
 
     catalog.items.forEach(item => {
@@ -1108,7 +1105,6 @@
         counts[statusInfo.status]++;
       }
       if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
-      if (item.isHumor) counts.humor++;
     });
 
     const completed = counts.translated + counts.approved + counts.mine;
@@ -1126,9 +1122,6 @@
 
     const missingCount = document.getElementById('ws-missing-count');
     if (missingCount) missingCount.textContent = `${remaining}`;
-
-    const humorEl = document.getElementById('ws-humor-count');
-    if (humorEl) humorEl.textContent = `${counts.humor}`;
 
     const tokensEl = document.getElementById('ws-tokens-count');
     if (tokensEl) tokensEl.textContent = `${counts.tokens}`;
@@ -1157,9 +1150,6 @@
 
     const countTokens = document.getElementById('count-tokens');
     if (countTokens) countTokens.textContent = `${counts.tokens}`;
-
-    const countHumor = document.getElementById('count-humor');
-    if (countHumor) countHumor.textContent = `${counts.humor}`;
   }
 
   // -------------------------------------------------------------------------
