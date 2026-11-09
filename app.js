@@ -470,8 +470,10 @@
 
     navHomeBtn.style.display = 'none';
 
+    cachedStickyGroup = document.querySelector('.workspace-sticky-group');
     cachedHeroCard = document.querySelector('.workspace-hero-card');
     cachedCtrlPanel = document.querySelector('.control-panel');
+    if (cachedStickyGroup) cachedStickyGroup.classList.remove('is-condensed');
     if (cachedHeroCard) cachedHeroCard.classList.remove('is-condensed');
     if (cachedCtrlPanel) cachedCtrlPanel.classList.remove('is-hero-condensed');
     if (draftResumeModal) draftResumeModal.classList.remove('active');
@@ -497,12 +499,16 @@
   }
 
   let isScrollThrottled = false;
+  let cachedStickyGroup = null;
   let cachedHeroCard = null;
   let cachedCtrlPanel = null;
 
   function updateWorkspaceScrollState() {
     isScrollThrottled = false;
     if (!workspaceView || !workspaceView.classList.contains('active')) return;
+    if (!cachedStickyGroup || !cachedStickyGroup.isConnected) {
+      cachedStickyGroup = document.querySelector('.workspace-sticky-group');
+    }
     if (!cachedHeroCard || !cachedHeroCard.isConnected) {
       cachedHeroCard = document.querySelector('.workspace-hero-card');
     }
@@ -515,11 +521,13 @@
     if (scrollY > 70) {
       if (!cachedHeroCard.classList.contains('is-condensed')) {
         cachedHeroCard.classList.add('is-condensed');
+        if (cachedStickyGroup) cachedStickyGroup.classList.add('is-condensed');
         if (cachedCtrlPanel) cachedCtrlPanel.classList.add('is-hero-condensed');
       }
     } else if (scrollY < 20) {
       if (cachedHeroCard.classList.contains('is-condensed')) {
         cachedHeroCard.classList.remove('is-condensed');
+        if (cachedStickyGroup) cachedStickyGroup.classList.remove('is-condensed');
         if (cachedCtrlPanel) cachedCtrlPanel.classList.remove('is-hero-condensed');
       }
     }
@@ -635,8 +643,10 @@
     const langCodeEl = document.getElementById('current-lang-code');
     if (langCodeEl) langCodeEl.textContent = langCode;
 
+    const stickyGroup = document.querySelector('.workspace-sticky-group');
     const heroCard = document.querySelector('.workspace-hero-card');
     const ctrlPanel = document.querySelector('.control-panel');
+    if (stickyGroup) stickyGroup.classList.remove('is-condensed');
     if (heroCard) heroCard.classList.remove('is-condensed');
     if (ctrlPanel) ctrlPanel.classList.remove('is-hero-condensed');
     if (draftResumeModal) draftResumeModal.classList.remove('active');

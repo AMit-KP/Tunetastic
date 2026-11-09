@@ -52,6 +52,7 @@
   /* Sticky Layout Metrics */
   --nav-height: 68px;
   --condensed-hero-offset: 126px;
+  --hero-shrink-delta: 104px;
 
   /* Animation Curves */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -65,6 +66,10 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body, #workspace-view, .workspace-sticky-group, .studio-cards-list, .studio-card {
+  overflow-anchor: none;
 }
 
 body {
@@ -960,6 +965,12 @@ body {
   gap: 12px;
   margin-bottom: 24px;
   transform: translateZ(0);
+  will-change: margin-bottom;
+  transition: margin-bottom 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workspace-sticky-group.is-condensed {
+  margin-bottom: calc(24px + var(--hero-shrink-delta, 104px));
 }
 
 .workspace-hero-card {
