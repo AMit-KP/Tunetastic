@@ -166,6 +166,228 @@
   }
 
   // -------------------------------------------------------------------------
+  // 3. REGION & LOCALE AUTO-DETECTION (Zero Permissions)
+  // -------------------------------------------------------------------------
+
+  const TIMEZONE_TO_LOCALE = {
+    // Hindi (India)
+    'Asia/Kolkata': 'hi-IN',
+    'Asia/Calcutta': 'hi-IN',
+
+    // Spanish (Spain & regions)
+    'Europe/Madrid': 'es-ES',
+    'Atlantic/Canary': 'es-ES',
+    'Africa/Ceuta': 'es-ES',
+
+    // German (Germany, Austria, Switzerland)
+    'Europe/Berlin': 'de-DE',
+    'Europe/Busingen': 'de-DE',
+    'Europe/Vienna': 'de-DE',
+    'Europe/Zurich': 'de-DE',
+
+    // French (France, Belgium, Monaco)
+    'Europe/Paris': 'fr-FR',
+    'Europe/Brussels': 'fr-FR',
+    'Europe/Monaco': 'fr-FR',
+
+    // Japanese (Japan)
+    'Asia/Tokyo': 'ja-JP',
+
+    // Russian (Russia & regions)
+    'Europe/Moscow': 'ru-RU',
+    'Europe/Kaliningrad': 'ru-RU',
+    'Europe/Samara': 'ru-RU',
+    'Europe/Volgograd': 'ru-RU',
+    'Europe/Kirov': 'ru-RU',
+    'Europe/Astrakhan': 'ru-RU',
+    'Europe/Saratov': 'ru-RU',
+    'Europe/Ulyanovsk': 'ru-RU',
+    'Asia/Yekaterinburg': 'ru-RU',
+    'Asia/Omsk': 'ru-RU',
+    'Asia/Novosibirsk': 'ru-RU',
+    'Asia/Barnaul': 'ru-RU',
+    'Asia/Tomsk': 'ru-RU',
+    'Asia/Novokuznetsk': 'ru-RU',
+    'Asia/Krasnoyarsk': 'ru-RU',
+    'Asia/Irkutsk': 'ru-RU',
+    'Asia/Chita': 'ru-RU',
+    'Asia/Yakutsk': 'ru-RU',
+    'Asia/Khandyga': 'ru-RU',
+    'Asia/Vladivostok': 'ru-RU',
+    'Asia/Ust-Nera': 'ru-RU',
+    'Asia/Magadan': 'ru-RU',
+    'Asia/Sakhalin': 'ru-RU',
+    'Asia/Srednekolymsk': 'ru-RU',
+    'Asia/Kamchatka': 'ru-RU',
+    'Asia/Anadyr': 'ru-RU',
+
+    // Portuguese (Brazil, Portugal)
+    'America/Sao_Paulo': 'pt-BR',
+    'America/Noronha': 'pt-BR',
+    'America/Belem': 'pt-BR',
+    'America/Fortaleza': 'pt-BR',
+    'America/Recife': 'pt-BR',
+    'America/Araguaina': 'pt-BR',
+    'America/Maceio': 'pt-BR',
+    'America/Bahia': 'pt-BR',
+    'America/Santarem': 'pt-BR',
+    'America/Campo_Grande': 'pt-BR',
+    'America/Cuiaba': 'pt-BR',
+    'America/Porto_Velho': 'pt-BR',
+    'America/Boa_Vista': 'pt-BR',
+    'America/Manaus': 'pt-BR',
+    'America/Eirunepe': 'pt-BR',
+    'America/Rio_Branco': 'pt-BR',
+    'Europe/Lisbon': 'pt-BR',
+    'Atlantic/Azores': 'pt-BR',
+    'Atlantic/Madeira': 'pt-BR',
+
+    // Italian (Italy, San Marino, Vatican)
+    'Europe/Rome': 'it-IT',
+    'Europe/San_Marino': 'it-IT',
+    'Europe/Vatican': 'it-IT',
+
+    // Chinese (China, Hong Kong, Taiwan)
+    'Asia/Shanghai': 'zh-CN',
+    'Asia/Urumqi': 'zh-CN',
+    'Asia/Chongqing': 'zh-CN',
+    'Asia/Harbin': 'zh-CN',
+    'Asia/Hong_Kong': 'zh-CN',
+    'Asia/Taipei': 'zh-CN',
+
+    // Arabic (Saudi Arabia, UAE, Gulf & Middle East)
+    'Asia/Riyadh': 'ar-SA',
+    'Asia/Dubai': 'ar-SA',
+    'Asia/Kuwait': 'ar-SA',
+    'Asia/Qatar': 'ar-SA',
+    'Asia/Bahrain': 'ar-SA',
+    'Asia/Muscat': 'ar-SA',
+    'Africa/Cairo': 'ar-SA',
+    'Asia/Amman': 'ar-SA',
+    'Asia/Beirut': 'ar-SA',
+    'Asia/Baghdad': 'ar-SA'
+  };
+
+  const REGION_TO_LOCALE = {
+    'IN': 'hi-IN',
+    'ES': 'es-ES',
+    'DE': 'de-DE',
+    'AT': 'de-DE',
+    'CH': 'de-DE',
+    'FR': 'fr-FR',
+    'BE': 'fr-FR',
+    'JP': 'ja-JP',
+    'RU': 'ru-RU',
+    'BY': 'ru-RU',
+    'KZ': 'ru-RU',
+    'BR': 'pt-BR',
+    'PT': 'pt-BR',
+    'IT': 'it-IT',
+    'CN': 'zh-CN',
+    'HK': 'zh-CN',
+    'TW': 'zh-CN',
+    'SA': 'ar-SA',
+    'AE': 'ar-SA',
+    'KW': 'ar-SA',
+    'QA': 'ar-SA',
+    'BH': 'ar-SA',
+    'OM': 'ar-SA',
+    'EG': 'ar-SA'
+  };
+
+  const LANG_PREFIX_TO_LOCALE = {
+    'hi': 'hi-IN',
+    'es': 'es-ES',
+    'de': 'de-DE',
+    'fr': 'fr-FR',
+    'ja': 'ja-JP',
+    'ru': 'ru-RU',
+    'pt': 'pt-BR',
+    'it': 'it-IT',
+    'zh': 'zh-CN',
+    'ar': 'ar-SA'
+  };
+
+  function detectUserLocaleCode(availableCodes) {
+    const codeSet = new Set(availableCodes);
+
+    // 1. Inspect navigator.languages & navigator.language (Zero Permission)
+    const browserLangs = (navigator.languages && navigator.languages.length)
+      ? navigator.languages
+      : [navigator.language || ''];
+
+    for (const raw of browserLangs) {
+      if (!raw) continue;
+      const normalized = raw.trim();
+
+      // Exact BCP-47 match
+      for (const code of codeSet) {
+        if (code.toLowerCase() === normalized.toLowerCase()) {
+          return code;
+        }
+      }
+
+      // Language subtag match (e.g. 'hi' -> 'hi-IN')
+      const prefix = normalized.split('-')[0].toLowerCase();
+      if (LANG_PREFIX_TO_LOCALE[prefix] && codeSet.has(LANG_PREFIX_TO_LOCALE[prefix])) {
+        return LANG_PREFIX_TO_LOCALE[prefix];
+      }
+
+      // Region subtag match (e.g. 'en-IN' -> region 'IN' -> 'hi-IN')
+      const parts = normalized.split('-');
+      if (parts.length > 1) {
+        const region = parts[1].toUpperCase();
+        if (REGION_TO_LOCALE[region] && codeSet.has(REGION_TO_LOCALE[region])) {
+          return REGION_TO_LOCALE[region];
+        }
+      }
+    }
+
+    // 2. Inspect IANA System Timezone via Intl API (Zero Permission)
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz && TIMEZONE_TO_LOCALE[tz] && codeSet.has(TIMEZONE_TO_LOCALE[tz])) {
+        return TIMEZONE_TO_LOCALE[tz];
+      }
+    } catch (e) {
+      // Ignore if Intl timezone unavailable
+    }
+
+    return null;
+  }
+
+  function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  let sessionHomeLanguagesOrder = null;
+
+  function getPrioritizedHomeLanguages(rawLangs) {
+    if (sessionHomeLanguagesOrder && sessionHomeLanguagesOrder.length === rawLangs.length) {
+      return sessionHomeLanguagesOrder;
+    }
+
+    const availableCodes = rawLangs.map(l => l.code);
+    const detectedCode = detectUserLocaleCode(availableCodes);
+
+    if (detectedCode) {
+      const primary = rawLangs.find(l => l.code === detectedCode);
+      const others = shuffleArray(rawLangs.filter(l => l.code !== detectedCode));
+      sessionHomeLanguagesOrder = [primary, ...others];
+    } else {
+      sessionHomeLanguagesOrder = shuffleArray(rawLangs);
+    }
+
+    return sessionHomeLanguagesOrder;
+  }
+
+
+  // -------------------------------------------------------------------------
   // 3. INITIALIZATION & ROUTING
   // -------------------------------------------------------------------------
 
@@ -272,9 +494,12 @@
     languagesGrid.innerHTML = '';
     if (!catalog || !catalog.languages) return;
 
-    const langs = Object.values(catalog.languages).filter(l => l.code !== 'qps-ploc');
+    const rawLangs = Object.values(catalog.languages).filter(l => l.code !== 'qps-ploc');
     const badge = document.getElementById('lang-counter-badge');
-    if (badge) badge.textContent = `${langs.length} Locales Active`;
+    if (badge) badge.textContent = `${rawLangs.length} Locales Active`;
+
+    // Detected language comes 1st; remaining languages are randomized on each refresh
+    const langs = getPrioritizedHomeLanguages(rawLangs);
 
     langs.forEach((lang, index) => {
       const meta = resolveLanguageMeta(lang.code) || lang;
