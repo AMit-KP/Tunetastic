@@ -526,7 +526,7 @@ body {
 }
 
 .stat-pill:hover .stat-icon {
-  transform: scale(1.1) rotate(6deg);
+  transform: scale(1.1);
 }
 
 .stat-meta {
@@ -757,7 +757,7 @@ body {
 .lang-card:hover .flag-box,
 .lang-card-item:hover .lang-badge-flag,
 .lang-card:hover .lang-badge-flag {
-  transform: scale(1.12) rotate(-3deg);
+  transform: scale(1.08);
 }
 
 .card-lang-titles {
