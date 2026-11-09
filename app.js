@@ -774,6 +774,15 @@
             currentDrafts = {};
             localStorage.removeItem(`tunetastic_l10n_${currentLang}`);
 
+            // Clear in-memory locks for this session immediately
+            if (liveStatus && liveStatus.locks) {
+              for (const [k, lock] of Object.entries(liveStatus.locks)) {
+                if (lock === 'mine') {
+                  delete liveStatus.locks[k];
+                }
+              }
+            }
+
             try {
               await fetch(`${WORKER_URL}/api/drafts/discard`, {
                 method: 'POST',
@@ -939,14 +948,14 @@
     }
 
     // 5. Your Draft in progress
-    if ((localDraft && localDraft.trim()) || lock === 'mine') {
+    if (!isDraftPendingResumption && Boolean(localDraft && localDraft.trim())) {
       return {
         status: 'mine',
         label: 'Your Draft (In Progress)',
         pillClass: 'pill-draft-mine',
         dotClass: 'dot-draft',
         isReadOnly: false,
-        displayText: localDraft || ''
+        displayText: localDraft
       };
     }
 
@@ -1447,6 +1456,15 @@
         // Clear local active drafts
         localStorage.removeItem(`tunetastic_l10n_${currentLang}`);
         currentDrafts = {};
+
+        // Clear in-memory locks for this session immediately
+        if (liveStatus && liveStatus.locks) {
+          for (const [k, lock] of Object.entries(liveStatus.locks)) {
+            if (lock === 'mine') {
+              delete liveStatus.locks[k];
+            }
+          }
+        }
 
         // Discard draft lock in Cloudflare
         try {
