@@ -1115,15 +1115,33 @@
     return getLocalTranslation(lang, key);
   }
 
-  function renderSimulatedPreview(sourceText, translationText, placeholders) {
-    let preview = translationText || sourceText;
+  function renderSimulatedText(rawText, placeholders) {
+    if (!rawText) return '';
+    let preview = escapeHtml(rawText);
     if (placeholders && Array.isArray(placeholders)) {
       placeholders.forEach(ph => {
+        const escToken = escapeHtml(ph.token);
         const replacement = `<strong class="token-tag">${escapeHtml(ph.sample)}</strong>`;
-        preview = preview.split(ph.token).join(replacement);
+        preview = preview.split(escToken).join(replacement);
       });
     }
     return preview;
+  }
+
+  function formatContextBreadcrumbs(comment) {
+    if (!comment) return '';
+    const parts = comment.split(/\s*->\s*/);
+    if (parts.length > 1) {
+      return parts.map((p, idx) => {
+        const isLeaf = idx === parts.length - 1;
+        return `<span class="context-crumb${isLeaf ? ' context-crumb-active' : ''}">${escapeHtml(p)}</span>`;
+      }).join('<span class="context-arrow">→</span>');
+    }
+    return `<span class="context-crumb context-crumb-active">${escapeHtml(comment)}</span>`;
+  }
+
+  function renderSimulatedPreview(sourceText, translationText, placeholders) {
+    return renderSimulatedText(translationText || sourceText, placeholders);
   }
 
   function validateTokens(sourceText, translatedText, placeholders) {
@@ -1313,19 +1331,27 @@
         ? 'Another contributor is drafting this... You can suggest an alternative.'
         : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...');
 
+      const contextHtml = item.comment 
+        ? `<div class="card-context-line" title="Context: ${escapeHtml(item.comment)}">
+             <span class="card-context-icon">${ICONS.comment}</span>
+             <div class="card-context-crumbs">${formatContextBreadcrumbs(item.comment)}</div>
+           </div>`
+        : '';
+
+      const sourcePreviewHtml = renderSimulatedText(item.source, item.placeholders);
+      const targetPreviewHtml = renderSimulatedText(translation, item.placeholders);
+
       card.innerHTML = `
         <div class="studio-card-header">
           <div class="card-identity">
-            <span class="key-badge-mono">${escapeHtml(item.key)}</span>
-            ${item.comment ? `<span class="context-hint-chip" title="Context: ${escapeHtml(item.comment)}">${ICONS.comment} ${escapeHtml(item.comment)}</span>` : ''}
+            ${contextHtml}
+            <div class="card-key-line">
+              <span class="key-badge-mono">${escapeHtml(item.key)}</span>
+            </div>
           </div>
           <div class="card-badges">
             ${statusPill}
             ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
-          </div>
-          <div class="card-actions">
-            <button class="copy-mini-btn" title="Copy English source text">${ICONS.copy} Copy</button>
-            ${suggestBtnHtml}
           </div>
         </div>
 
@@ -1335,11 +1361,14 @@
               <span>English Source</span>
             </div>
             <div class="source-display-box">${escapeHtml(item.source)}</div>
+            <div class="column-actions-bar">
+              <button class="copy-mini-btn" title="Copy English source text">${ICONS.copy} Copy</button>
+            </div>
           </div>
 
           <div class="editor-column target-column">
             <div class="column-header">
-              <span>Your Translation (${escapeHtml(meta.native || currentLang)})</span>
+              <span>Your Translation</span>
             </div>
             <textarea class="translation-textarea" rows="2" 
               placeholder="${placeholderText}"
@@ -1348,12 +1377,26 @@
             <div class="token-missing-alert" style="display: ${tokenStatus.isValid ? 'none' : 'flex'};">
               ${ICONS.alert} Missing placeholder token: <strong>${tokenStatus.missing.join(', ')}</strong>
             </div>
+
+            <div class="column-actions-bar">
+              ${suggestBtnHtml}
+            </div>
           </div>
         </div>
 
         <div class="live-preview-strip">
-          <span class="preview-badge"><span class="preview-pulse"></span> Preview</span>
-          <span class="preview-text">${renderSimulatedPreview(item.source, translation, item.placeholders)}</span>
+          <div class="preview-badge"><span class="preview-pulse"></span> Preview</div>
+          <div class="preview-dual-grid">
+            <div class="preview-dual-item preview-source-item" title="English: ${escapeHtml(item.source)}">
+              <span class="preview-label">English:</span>
+              <span class="preview-content preview-source-text">${sourcePreviewHtml}</span>
+            </div>
+            <div class="preview-dual-divider"></div>
+            <div class="preview-dual-item preview-target-item" title="${escapeHtml(translation ? 'Translated: ' + translation : 'No translation yet')}">
+              <span class="preview-label">Translated:</span>
+              <span class="preview-content preview-trans-text">${targetPreviewHtml || '<span class="preview-empty">No translation yet</span>'}</span>
+            </div>
+          </div>
         </div>
       `;
 
@@ -1379,9 +1422,14 @@
             setLocalTranslation(currentLang, item.key, val);
 
             // Update live simulated preview
-            const previewEl = card.querySelector('.preview-text');
-            if (previewEl) {
-              previewEl.innerHTML = renderSimulatedPreview(item.source, val, item.placeholders);
+            const previewTransEl = card.querySelector('.preview-trans-text');
+            const previewTargetItem = card.querySelector('.preview-target-item');
+            if (previewTransEl) {
+              const rendered = renderSimulatedText(val, item.placeholders);
+              previewTransEl.innerHTML = rendered || '<span class="preview-empty">No translation yet</span>';
+              if (previewTargetItem) {
+                previewTargetItem.setAttribute('title', val ? `Translated: ${val}` : 'No translation yet');
+              }
             }
 
             // Update status pill on card dynamically
