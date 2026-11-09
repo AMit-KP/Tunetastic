@@ -376,11 +376,11 @@
 							<Button x:Name="SaveAsOffsetButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_SaveAsOffset_ToolTip}"
 							        HorizontalAlignment="Center"
 							        Click="SaveAsOffsetButton_Click"
-							        Content="Save as offset metadata" />
+							        Content="{services:Loc Key=Lyrics_SaveAsOffset.Content}" />
 							<Button x:Name="SaveByTimestampsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_SaveByModifying_ToolTip}"
 							        HorizontalAlignment="Center"
 							        Click="SaveByTimestampsButton_Click"
-							        Content="Save by modifying timestamps" />
+							        Content="{services:Loc Key=Lyrics_SaveByModifying.Content}" />
 						</StackPanel>
 					</Flyout>
 				</Button.Flyout>
@@ -520,36 +520,36 @@
 								<AppBarButton x:Name="CopyLyricsButton"
 								              Click="CopyAppBarButton_Click"
 								              Icon="Copy"
-								              Label="Copy"
+								              Label="{services:Loc Key=Lyrics_Menu_Copy_Label}"
 								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Copy_ToolTip}" />
 								<AppBarSeparator x:Name="Separator1" />
 								<AppBarButton x:Name="EditLyricsButton"
 								              Click="EditAppBarButton_Click"
 								              Icon="Edit"
-								              Label="Edit"
+								              Label="{services:Loc Key=Lyrics_Menu_Edit_Label}"
 								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Edit_ToolTip}" />
 								<AppBarSeparator x:Name="Separator2" />
 								<AppBarButton x:Name="SyncLyricsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Sync_ToolTip}"
 								              Click="SyncLyricsButton_Click"
 								              Icon="Sync"
-								              Label="Sync" />
+								              Label="{services:Loc Key=Lyrics_Menu_Sync_Label}" />
 								<!--<AppBarSeparator x:Name="Separator3"/>
 								<AppBarButton x:Name="SearchLyricsButton"
 								              Click="SearchAppBarButton_Click"
 								              Icon="Find"
 								              IsEnabled="False"
-								              Label="Search"
-								              ToolTipService.ToolTip="Search for lyrics on internet" />-->
+								              Label="{services:Loc Key=Lyrics_Menu_Search_Label}"
+								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Search_ToolTip}" />-->
 								<AppBarSeparator x:Name="Separator4" />
 								<AppBarButton x:Name="ClearLyricsButton"
 								              Click="ClearAppBarButton_Click"
 								              Icon="Delete"
-								              Label="Clear"
+								              Label="{services:Loc Key=Lyrics_Menu_Clear_Label}"
 								              ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_Clear_ToolTip}" />
 								<AppBarButton x:Name="OpenLyricsButton" ToolTipService.ToolTip="{services:Loc Key=Lyrics_Menu_OpenLrc_ToolTip}"
 								              Click="OpenAppBarButton_Click"
 								              Icon="Folder"
-								              Label="Open File" />
+								              Label="{services:Loc Key=Lyrics_Menu_OpenLrc_Label}" />
 							</dev:MenuFlyoutSecondaryItems>
 						</dev:MenuFlyoutAttach.SecondaryMenu>
 					</MenuFlyout>

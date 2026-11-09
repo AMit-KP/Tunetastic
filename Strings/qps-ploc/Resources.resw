@@ -1788,6 +1788,30 @@
     <value>[!!! Ôþéñ ţĥé ℓřç ƒïℓé !!!]</value>
     <comment>Now Playing -&gt; Lyrics Menu -&gt; "Open LRC File" Action -&gt; Tooltip</comment>
   </data>
+  <data name="Lyrics_Menu_Copy_Label" xml:space="preserve">
+    <value>[!!! Çôþý !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Copy" Action -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_Menu_Edit_Label" xml:space="preserve">
+    <value>[!!! Éđïţ !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Edit" Action -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_Menu_Sync_Label" xml:space="preserve">
+    <value>[!!! Šýñç !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Sync" Action -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_Menu_Search_Label" xml:space="preserve">
+    <value>[!!! Šéářçĥ !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Search" Action -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_Menu_Clear_Label" xml:space="preserve">
+    <value>[!!! Çℓéář !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Clear" Action -&gt; Label</comment>
+  </data>
+  <data name="Lyrics_Menu_OpenLrc_Label" xml:space="preserve">
+    <value>[!!! Ôþéñ Fïℓé !!!]</value>
+    <comment>Now Playing -&gt; Lyrics Menu -&gt; "Open File" Action -&gt; Label</comment>
+  </data>
   <data name="Lyrics_EditDialog.Title" xml:space="preserve">
     <value>[!!! Éđïţ Łýřïçš !!!]</value>
     <comment>Popups &amp; Dialogs -&gt; Edit Lyrics Dialog -&gt; Window Title</comment>
