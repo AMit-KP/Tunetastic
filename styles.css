@@ -1146,11 +1146,21 @@ body {
 /* ── Filter & Search Control Panel ───────────────────────────────────────── */
 
 .control-panel {
+  position: sticky;
+  top: 74px;
+  z-index: 85;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
+  padding: 10px 14px;
+  background: rgba(10, 15, 26, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   flex-wrap: wrap;
 }
 
