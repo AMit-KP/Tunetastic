@@ -60,7 +60,7 @@ public class LibraryScanner
 		await _scanTask;
 
 		foreach (var failed in failedFiles)
-			GlobalNotification.Error(LocalizationService.FormatString("Notification_ReadMetadataFailed", failed));
+			GlobalNotification.Error($"{LocalizationService.GetString("Notification_ReadMetadataFailed")}\n{failed}");
 
 		switch (type)
 		{
@@ -218,7 +218,11 @@ public class LibraryScanner
 			ScanProgress = 100;
 			TaskbarHelper.SetProgressValue(App.Hwnd, ScanProgress, 100);
 			await Task.Delay(10);
-			return ("Success", LocalizationService.FormatString("Notification_LibraryScanCompleted_Details", librariesCount, foldersCount, songsCount), failedFiles.ToList());
+			string scanSummary = $"{LocalizationService.GetString("Notification_LibraryScanCompleted")}\n" +
+			                     $"{LocalizationService.FormatString("Notification_LibraryScan_Summary_Libraries", librariesCount)}\n" +
+			                     $"{LocalizationService.FormatString("Notification_LibraryScan_Summary_Folders", foldersCount)}\n" +
+			                     $"{LocalizationService.FormatString("Notification_LibraryScan_Summary_Tracks", songsCount)}";
+			return ("Success", scanSummary, failedFiles.ToList());
 		}
 		else
 		{
@@ -386,7 +390,7 @@ public class LibraryScanner
 		{
 			if (!Directory.Exists(folder))
 			{
-				GlobalNotification.Error(LocalizationService.FormatString("Notification_LibraryFolderNotFound", folder));
+				GlobalNotification.Error($"{LocalizationService.FormatString("Notification_LibraryFolderNotFound", folder)}\n{LocalizationService.GetString("Notification_LibraryFolder_RemovedHint")}");
 			}
 			else
 			{

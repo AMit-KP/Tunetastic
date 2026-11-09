@@ -349,7 +349,7 @@ public static class LibraryWatcherService
 		}
 		catch (Exception ex)
 		{
-			GlobalNotification.Error(LocalizationService.FormatString("Notification_Watcher_TrackMovedFileFailed", newPath, ex.Message));
+			GlobalNotification.Error($"{LocalizationService.GetString("Notification_Watcher_TrackMovedFileFailed")}\n{newPath}\n{ex.Message}");
 		}
 	}
 
@@ -560,7 +560,7 @@ public static class LibraryWatcherService
 				}
 				catch (Exception ex)
 				{
-					GlobalNotification.Error(LocalizationService.FormatString("Notification_Watcher_TrackMovedFileFailed", newPath, ex.Message));
+					GlobalNotification.Error($"{LocalizationService.GetString("Notification_Watcher_TrackMovedFileFailed")}\n{newPath}\n{ex.Message}");
 				}
 			}
 
@@ -580,7 +580,7 @@ public static class LibraryWatcherService
 				}
 				catch (Exception ex)
 				{
-					GlobalNotification.Error(LocalizationService.FormatString("Notification_Watcher_AddNewFileFailed", path, ex.Message));
+					GlobalNotification.Error($"{LocalizationService.GetString("Notification_Watcher_AddNewFileFailed")}\n{path}\n{ex.Message}");
 				}
 			}
 
@@ -592,7 +592,7 @@ public static class LibraryWatcherService
 				}
 				catch (Exception ex)
 				{
-					GlobalNotification.Error(LocalizationService.FormatString("Notification_Watcher_RefreshEntryFailed", path, ex.Message));
+					GlobalNotification.Error($"{LocalizationService.GetString("Notification_Watcher_RefreshEntryFailed")}\n{path}\n{ex.Message}");
 				}
 			}
 
@@ -601,7 +601,7 @@ public static class LibraryWatcherService
 		catch (Exception ex)
 		{
 			// A failing pass must never kill the debounce loop silently.
-			GlobalNotification.Error(LocalizationService.FormatString("Notification_Watcher_AutoScanPassFailed", ex.Message));
+			GlobalNotification.Error($"{LocalizationService.GetString("Notification_Watcher_AutoScanPassFailed")}\n{ex.Message}");
 		}
 		finally
 		{

@@ -3063,14 +3063,16 @@
     <comment>Library Auto Scan -&gt; Failed Changes Count Plural</comment>
   </data>
   <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Singular" xml:space="preserve">
-    <value>Stopped after {0} song could not be played.
-If files were moved or deleted, rescan your library.</value>
+    <value>Stopped after {0} song could not be played.</value>
     <comment>Music Player -&gt; Playback Stopped Consecutive Failures Singular</comment>
   </data>
   <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Plural" xml:space="preserve">
-    <value>Stopped after {0} songs in a row could not be played.
-If files were moved or deleted, rescan your library.</value>
+    <value>Stopped after {0} songs in a row could not be played.</value>
     <comment>Music Player -&gt; Playback Stopped Consecutive Failures Plural</comment>
+  </data>
+  <data name="Notification_MusicPlayer_RescanHint" xml:space="preserve">
+    <value>If files were moved or deleted, rescan your library.</value>
+    <comment>Music Player -&gt; Playback Stopped Consecutive Failures Rescan Hint</comment>
   </data>
   <data name="Notification_MusicPlayer_SkippedUnplayable_Singular" xml:space="preserve">
     <value>Skipped {0} song that could not be played.</value>
@@ -3088,22 +3090,29 @@ If files were moved or deleted, rescan your library.</value>
     <value>Tracks are ignored if they are less than {0} seconds</value>
     <comment>Settings -&gt; Library Management -&gt; Ignore Short Tracks Card Description Plural</comment>
   </data>
-  <data name="Notification_LibraryScanCompleted_Details" xml:space="preserve">
-    <value>Library scan completed.
-Libraries: {0}
-Folders: {1}
-Songs/Tracks: {2}</value>
-    <comment>Library Scanner -&gt; Scan Completed Details ({0}=libraries, {1}=folders, {2}=songs)</comment>
+  <data name="Notification_LibraryScanCompleted" xml:space="preserve">
+    <value>Library scan completed.</value>
+    <comment>Library Scanner -&gt; Scan Completed Header</comment>
+  </data>
+  <data name="Notification_LibraryScan_Summary_Libraries" xml:space="preserve">
+    <value>Libraries: {0}</value>
+    <comment>Library Scanner -&gt; Summary Libraries Count ({0}=libraries)</comment>
+  </data>
+  <data name="Notification_LibraryScan_Summary_Folders" xml:space="preserve">
+    <value>Folders: {0}</value>
+    <comment>Library Scanner -&gt; Summary Folders Count ({0}=folders)</comment>
+  </data>
+  <data name="Notification_LibraryScan_Summary_Tracks" xml:space="preserve">
+    <value>Songs/Tracks: {0}</value>
+    <comment>Library Scanner -&gt; Summary Songs/Tracks Count ({0}=songs)</comment>
   </data>
   <data name="Notification_ExternalLrcDiscovered" xml:space="preserve">
-    <value>Discovered external .lrc file:
-{0}</value>
-    <comment>Main Player -&gt; Discovered External Lrc File Toast ({0}=lrc path)</comment>
+    <value>Discovered external .lrc file:</value>
+    <comment>Main Player -&gt; Discovered External Lrc File Toast</comment>
   </data>
   <data name="Notification_TrackNotFoundWithPath" xml:space="preserve">
-    <value>Could not find track/song:
-{0}</value>
-    <comment>Main Player -&gt; Track Not Found Toast ({0}=track path)</comment>
+    <value>Could not find track/song:</value>
+    <comment>Main Player -&gt; Track Not Found Toast</comment>
   </data>
   <data name="Notification_NoTracksFoundInLibrary" xml:space="preserve">
     <value>No tracks/songs found in library.</value>
@@ -3138,54 +3147,48 @@ Songs/Tracks: {2}</value>
     <comment>Music Player -&gt; Queue Ended Toast</comment>
   </data>
   <data name="Notification_MusicFolderUnavailable" xml:space="preserve">
-    <value>Music folder is not available:
-{0}
-Reconnect it and try again.</value>
-    <comment>Music Player -&gt; Folder Unavailable Toast ({0}=folder path)</comment>
+    <value>Music folder is not available:</value>
+    <comment>Music Player -&gt; Folder Unavailable Toast</comment>
+  </data>
+  <data name="Notification_MusicFolder_ReconnectHint" xml:space="preserve">
+    <value>Reconnect it and try again.</value>
+    <comment>Music Player -&gt; Folder Unavailable Reconnect Hint</comment>
   </data>
   <data name="Notification_CouldNotLoadSongWithPath" xml:space="preserve">
-    <value>Could not load song:
-{0}</value>
-    <comment>Music Player -&gt; Load Song With Path Error Toast ({0}=song path)</comment>
+    <value>Could not load song:</value>
+    <comment>Music Player -&gt; Load Song With Path Error Toast</comment>
   </data>
   <data name="Notification_MetadataUpdated" xml:space="preserve">
-    <value>Updated metadata for:
-{0}</value>
-    <comment>Music Player -&gt; Tag Write -&gt; Metadata Updated Success Toast ({0}=path)</comment>
+    <value>Updated metadata for:</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Updated Success Toast</comment>
   </data>
   <data name="Notification_MetadataUpdateFailed" xml:space="preserve">
-    <value>Failed to update metadata for:
-{0}</value>
-    <comment>Music Player -&gt; Tag Write -&gt; Metadata Update Failed Toast ({0}=path)</comment>
+    <value>Failed to update metadata for:</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Update Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_Scanning" xml:space="preserve">
     <value>Scanning for changes please wait...</value>
     <comment>Library Auto Scan -&gt; Scanning Changes Info Toast</comment>
   </data>
   <data name="Notification_AutoScan_UpdateEntryFailed" xml:space="preserve">
-    <value>Couldn't update the library entry for:
-{0}
-{1}</value>
-    <comment>Library Auto Scan -&gt; Update Entry Failed Toast ({0}=path, {1}=error)</comment>
+    <value>Couldn't update the library entry for:</value>
+    <comment>Library Auto Scan -&gt; Update Entry Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_RemoveMissingFailed" xml:space="preserve">
-    <value>Couldn't remove the missing tracks from the library.
-{0}</value>
-    <comment>Library Auto Scan -&gt; Remove Missing Failed Toast ({0}=error)</comment>
+    <value>Couldn't remove the missing tracks from the library.</value>
+    <comment>Library Auto Scan -&gt; Remove Missing Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_AddNewFailed" xml:space="preserve">
-    <value>Couldn't add the new or changed tracks to the library.
-{0}</value>
-    <comment>Library Auto Scan -&gt; Add New Failed Toast ({0}=error)</comment>
+    <value>Couldn't add the new or changed tracks to the library.</value>
+    <comment>Library Auto Scan -&gt; Add New Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_InSync" xml:space="preserve">
     <value>All libraries are in sync</value>
     <comment>Library Auto Scan -&gt; All Libraries In Sync Success Toast</comment>
   </data>
   <data name="Notification_ReadMetadataFailed" xml:space="preserve">
-    <value>Failed to read metadata for:
-{0}</value>
-    <comment>Library Scanner -&gt; Read Metadata Failed Toast ({0}=file path)</comment>
+    <value>Failed to read metadata for:</value>
+    <comment>Library Scanner -&gt; Read Metadata Failed Toast</comment>
   </data>
   <data name="Notification_LibraryScanFailedKeptExisting" xml:space="preserve">
     <value>Library scan failed; kept the existing library.</value>
@@ -3200,9 +3203,12 @@ Reconnect it and try again.</value>
     <comment>Library Scanner -&gt; No Libraries Found Add One Warning Toast</comment>
   </data>
   <data name="Notification_LibraryFolderNotFound" xml:space="preserve">
-    <value>Library folder not found: {0}
- Folder might be removed/renamed from system.</value>
+    <value>Library folder not found: {0}</value>
     <comment>Library Scanner -&gt; Folder Not Found Toast ({0}=folder path)</comment>
+  </data>
+  <data name="Notification_LibraryFolder_RemovedHint" xml:space="preserve">
+    <value>Folder might be removed/renamed from system.</value>
+    <comment>Library Scanner -&gt; Folder Not Found Hint</comment>
   </data>
   <data name="Notification_Playlist_UnsupportedFormat" xml:space="preserve">
     <value>Unsupported playlist format.</value>
@@ -3241,27 +3247,20 @@ Reconnect it and try again.</value>
     <comment>Database Helper -&gt; Database Busy Lookup Error Toast ({0}=path)</comment>
   </data>
   <data name="Notification_Watcher_TrackMovedFileFailed" xml:space="preserve">
-    <value>Couldn't track the moved file:
-{0}
-{1}</value>
-    <comment>Library Watcher Service -&gt; Move File Failed Toast ({0}=path, {1}=error)</comment>
+    <value>Couldn't track the moved file:</value>
+    <comment>Library Watcher Service -&gt; Move File Failed Toast</comment>
   </data>
   <data name="Notification_Watcher_AddNewFileFailed" xml:space="preserve">
-    <value>Couldn't add the new file to the library:
-{0}
-{1}</value>
-    <comment>Library Watcher Service -&gt; Add File Failed Toast ({0}=path, {1}=error)</comment>
+    <value>Couldn't add the new file to the library:</value>
+    <comment>Library Watcher Service -&gt; Add File Failed Toast</comment>
   </data>
   <data name="Notification_Watcher_RefreshEntryFailed" xml:space="preserve">
-    <value>Couldn't refresh the library entry for:
-{0}
-{1}</value>
-    <comment>Library Watcher Service -&gt; Refresh Entry Failed Toast ({0}=path, {1}=error)</comment>
+    <value>Couldn't refresh the library entry for:</value>
+    <comment>Library Watcher Service -&gt; Refresh Entry Failed Toast</comment>
   </data>
   <data name="Notification_Watcher_AutoScanPassFailed" xml:space="preserve">
-    <value>An automatic scan pass failed.
-{0}</value>
-    <comment>Library Watcher Service -&gt; Auto Scan Pass Failed Toast ({0}=error)</comment>
+    <value>An automatic scan pass failed.</value>
+    <comment>Library Watcher Service -&gt; Auto Scan Pass Failed Toast</comment>
   </data>
   <data name="Settings_FadePlayPauseStop_EnabledDescription" xml:space="preserve">
     <value>The music will fade in/out on Play/Pause/Stop. Fade Time: {0} ms</value>

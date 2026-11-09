@@ -891,14 +891,14 @@ public class MusicPlayer
 				if (unavailableFolder != null)
 				{
 					Pause();
-					NotifyOnce(LocalizationService.FormatString("Notification_MusicFolderUnavailable", unavailableFolder), warning: false);
+					NotifyOnce($"{LocalizationService.GetString("Notification_MusicFolderUnavailable")}\n{unavailableFolder}\n{LocalizationService.GetString("Notification_MusicFolder_ReconnectHint")}", warning: false);
 					return;
 				}
 
 				if (skipped.Count >= MaxSongsToSkip)
 				{
 					Pause();
-					NotifyOnce(LocalizationService.FormatPluralString("Notification_MusicPlayer_StoppedConsecutiveFailed", skipped.Count), warning: false);
+					NotifyOnce($"{LocalizationService.FormatPluralString("Notification_MusicPlayer_StoppedConsecutiveFailed", skipped.Count)}\n{LocalizationService.GetString("Notification_MusicPlayer_RescanHint")}", warning: false);
 					return;
 				}
 
@@ -921,7 +921,7 @@ public class MusicPlayer
 			if (token.IsCancellationRequested) return;
 
 			if (skipped.Count == 1)
-				NotifyOnce(skipped[0] is { } path ? LocalizationService.FormatString("Notification_CouldNotLoadSongWithPath", path) : LocalizationService.GetString("Notification_CouldNotLoadNextSong"), warning: false);
+				NotifyOnce(skipped[0] is { } path ? $"{LocalizationService.GetString("Notification_CouldNotLoadSongWithPath")}\n{path}" : LocalizationService.GetString("Notification_CouldNotLoadNextSong"), warning: false);
 			else
 				NotifyOnce(LocalizationService.FormatPluralString("Notification_MusicPlayer_SkippedUnplayable", skipped.Count), warning: true);
 		}
@@ -1192,9 +1192,9 @@ public class MusicPlayer
 				}
 			}
 			if (success)
-				GlobalNotification.Success(LocalizationService.FormatString("Notification_MetadataUpdated", path));
+				GlobalNotification.Success($"{LocalizationService.GetString("Notification_MetadataUpdated")}\n{path}");
 			else
-				GlobalNotification.Error(LocalizationService.FormatString("Notification_MetadataUpdateFailed", path));
+				GlobalNotification.Error($"{LocalizationService.GetString("Notification_MetadataUpdateFailed")}\n{path}");
 
 			await DatabaseHelper.Instance.DeletePendingTagWrite(path);
 		}

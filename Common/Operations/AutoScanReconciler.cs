@@ -78,7 +78,7 @@ public static class AutoScanReconciler
 				// A single failing file must not abort the pass: that would also skip the deletions,
 				// the new files, the folder recount and the notification below.
 				failedChanges++;
-				GlobalNotification.Error(LocalizationService.FormatString("Notification_AutoScan_UpdateEntryFailed", oldPath, ex.Message));
+				GlobalNotification.Error($"{LocalizationService.GetString("Notification_AutoScan_UpdateEntryFailed")}\n{oldPath}\n{ex.Message}");
 			}
 		}
 
@@ -92,7 +92,7 @@ public static class AutoScanReconciler
 			catch (Exception ex)
 			{
 				failedChanges++;
-				GlobalNotification.Error(LocalizationService.FormatString("Notification_AutoScan_RemoveMissingFailed", ex.Message));
+				GlobalNotification.Error($"{LocalizationService.GetString("Notification_AutoScan_RemoveMissingFailed")}\n{ex.Message}");
 			}
 		}
 
@@ -108,7 +108,7 @@ public static class AutoScanReconciler
 		catch (Exception ex)
 		{
 			failedChanges++;
-			GlobalNotification.Error(LocalizationService.FormatString("Notification_AutoScan_AddNewFailed", ex.Message));
+			GlobalNotification.Error($"{LocalizationService.GetString("Notification_AutoScan_AddNewFailed")}\n{ex.Message}");
 		}
 
 		// onDisk holds every extension-matching file currently on disk — the same set a full scan counts —

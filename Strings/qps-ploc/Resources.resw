@@ -3063,14 +3063,16 @@
     <comment>Library Auto Scan -&gt; Failed Changes Count Plural</comment>
   </data>
   <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Singular" xml:space="preserve">
-    <value>[ !!! Šťôƥƥéď áƒťéř {0} šôñĝ çôûľď ñôť ƀé ƥľáŷéď.
-Íƒ ƒíľéš ŵéřé ɱôṽéď ôř ďéľéťéď, řéšçáñ ŷôûř ľíƀřářŷ. !!! ]</value>
+    <value>[ !!! Šťôƥƥéď áƒťéř {0} šôñĝ çôûľď ñôť ƀé ƥľáŷéď. !!! ]</value>
     <comment>Music Player -&gt; Playback Stopped Consecutive Failures Singular</comment>
   </data>
   <data name="Notification_MusicPlayer_StoppedConsecutiveFailed_Plural" xml:space="preserve">
-    <value>[ !!! Šťôƥƥéď áƒťéř {0} šôñĝš íñ á řôŵ çôûľď ñôť ƀé ƥľáŷéď.
-Íƒ ƒíľéš ŵéřé ɱôṽéď ôř ďéľéťéď, řéšçáñ ŷôûř ľíƀřářŷ. !!! ]</value>
+    <value>[ !!! Šťôƥƥéď áƒťéř {0} šôñĝš íñ á řôŵ çôûľď ñôť ƀé ƥľáŷéď. !!! ]</value>
     <comment>Music Player -&gt; Playback Stopped Consecutive Failures Plural</comment>
+  </data>
+  <data name="Notification_MusicPlayer_RescanHint" xml:space="preserve">
+    <value>[ !!! Íƒ ƒíľéš ŵéřé ɱôṽéď ôř ďéľéťéď, řéšçáñ ŷôûř ľíƀřářŷ. !!! ]</value>
+    <comment>Music Player -&gt; Playback Stopped Consecutive Failures Rescan Hint</comment>
   </data>
   <data name="Notification_MusicPlayer_SkippedUnplayable_Singular" xml:space="preserve">
     <value>[ !!! Šķíƥƥéď {0} šôñĝ ťĥáť çôûľď ñôť ƀé ƥľáŷéď. !!! ]</value>
@@ -3088,22 +3090,29 @@
     <value>[ !!! Ťřáçķš ářé íĝñôřéď íƒ ťĥéŷ ářé ľéšš ťĥáñ {0} šéçôñďš !!! ]</value>
     <comment>Settings -&gt; Library Management -&gt; Ignore Short Tracks Card Description Plural</comment>
   </data>
-  <data name="Notification_LibraryScanCompleted_Details" xml:space="preserve">
-    <value>[ !!! Ľíƀřářŷ šçáñ çôɱƥľéťéď.
-Ľíƀřáříéš: {0}
-Ƒôľďéřš: {1}
-Šôñĝš/Ťřáçķš: {2} !!! ]</value>
-    <comment>Library Scanner -&gt; Scan Completed Details ({0}=libraries, {1}=folders, {2}=songs)</comment>
+  <data name="Notification_LibraryScanCompleted" xml:space="preserve">
+    <value>[ !!! Ľíƀřářŷ šçáñ çôɱƥľéťéď. !!! ]</value>
+    <comment>Library Scanner -&gt; Scan Completed Header</comment>
+  </data>
+  <data name="Notification_LibraryScan_Summary_Libraries" xml:space="preserve">
+    <value>[ !!! Ľíƀřáříéš: {0} !!! ]</value>
+    <comment>Library Scanner -&gt; Summary Libraries Count ({0}=libraries)</comment>
+  </data>
+  <data name="Notification_LibraryScan_Summary_Folders" xml:space="preserve">
+    <value>[ !!! Ƒôľďéřš: {0} !!! ]</value>
+    <comment>Library Scanner -&gt; Summary Folders Count ({0}=folders)</comment>
+  </data>
+  <data name="Notification_LibraryScan_Summary_Tracks" xml:space="preserve">
+    <value>[ !!! Šôñĝš/Ťřáçķš: {0} !!! ]</value>
+    <comment>Library Scanner -&gt; Summary Songs/Tracks Count ({0}=songs)</comment>
   </data>
   <data name="Notification_ExternalLrcDiscovered" xml:space="preserve">
-    <value>[ !!! Ďíšçôṽéřéď éẋťéřñáľ .ľřç ƒíľé:
-{0} !!! ]</value>
-    <comment>Main Player -&gt; Discovered External Lrc File Toast ({0}=lrc path)</comment>
+    <value>[ !!! Ďíšçôṽéřéď éẋťéřñáľ .ľřç ƒíľé: !!! ]</value>
+    <comment>Main Player -&gt; Discovered External Lrc File Toast</comment>
   </data>
   <data name="Notification_TrackNotFoundWithPath" xml:space="preserve">
-    <value>[ !!! Ĉôûľď ñôť ƒíñď ťřáçķ/šôñĝ:
-{0} !!! ]</value>
-    <comment>Main Player -&gt; Track Not Found Toast ({0}=track path)</comment>
+    <value>[ !!! Ĉôûľď ñôť ƒíñď ťřáçķ/šôñĝ: !!! ]</value>
+    <comment>Main Player -&gt; Track Not Found Toast</comment>
   </data>
   <data name="Notification_NoTracksFoundInLibrary" xml:space="preserve">
     <value>[ !!! Ñô ťřáçķš/šôñĝš ƒôûñď íñ ľíƀřářŷ. !!! ]</value>
@@ -3138,54 +3147,48 @@
     <comment>Music Player -&gt; Queue Ended Toast</comment>
   </data>
   <data name="Notification_MusicFolderUnavailable" xml:space="preserve">
-    <value>[ !!! Ṁûšíç ƒôľďéř íš ñôť áṽáíľáƀľé:
-{0}
-Řéçôññéçť íť áñď ťřŷ áĝáíñ. !!! ]</value>
-    <comment>Music Player -&gt; Folder Unavailable Toast ({0}=folder path)</comment>
+    <value>[ !!! Ṁûšíç ƒôľďéř íš ñôť áṽáíľáƀľé: !!! ]</value>
+    <comment>Music Player -&gt; Folder Unavailable Toast</comment>
+  </data>
+  <data name="Notification_MusicFolder_ReconnectHint" xml:space="preserve">
+    <value>[ !!! Řéçôññéçť íť áñď ťřŷ áĝáíñ. !!! ]</value>
+    <comment>Music Player -&gt; Folder Unavailable Reconnect Hint</comment>
   </data>
   <data name="Notification_CouldNotLoadSongWithPath" xml:space="preserve">
-    <value>[ !!! Ĉôûľď ñôť ľôáď šôñĝ:
-{0} !!! ]</value>
-    <comment>Music Player -&gt; Load Song With Path Error Toast ({0}=song path)</comment>
+    <value>[ !!! Ĉôûľď ñôť ľôáď šôñĝ: !!! ]</value>
+    <comment>Music Player -&gt; Load Song With Path Error Toast</comment>
   </data>
   <data name="Notification_MetadataUpdated" xml:space="preserve">
-    <value>[ !!! Ûƥďáťéď ɱéťáďáťá ƒôř:
-{0} !!! ]</value>
-    <comment>Music Player -&gt; Tag Write -&gt; Metadata Updated Success Toast ({0}=path)</comment>
+    <value>[ !!! Ûƥďáťéď ɱéţáďáťá ƒôř: !!! ]</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Updated Success Toast</comment>
   </data>
   <data name="Notification_MetadataUpdateFailed" xml:space="preserve">
-    <value>[ !!! Ƒáíľéď ťô ûƥďáťé ɱéťáďáťá ƒôř:
-{0} !!! ]</value>
-    <comment>Music Player -&gt; Tag Write -&gt; Metadata Update Failed Toast ({0}=path)</comment>
+    <value>[ !!! Ƒáíľéď ťô ûƥďáťé ɱéţáďáťá ƒôř: !!! ]</value>
+    <comment>Music Player -&gt; Tag Write -&gt; Metadata Update Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_Scanning" xml:space="preserve">
     <value>[ !!! Šçáññíñĝ ƒôř çĥáñĝéš ƥľéášé ŵáíť... !!! ]</value>
     <comment>Library Auto Scan -&gt; Scanning Changes Info Toast</comment>
   </data>
   <data name="Notification_AutoScan_UpdateEntryFailed" xml:space="preserve">
-    <value>[ !!! Ĉôûľďñ'ť ûƥďáťé ťĥé ľíƀřářŷ éñťřŷ ƒôř:
-{0}
-{1} !!! ]</value>
-    <comment>Library Auto Scan -&gt; Update Entry Failed Toast ({0}=path, {1}=error)</comment>
+    <value>[ !!! Ĉôûľďñ'ť ûƥďáťé ťĥé ľíƀřářŷ éñťřŷ ƒôř: !!! ]</value>
+    <comment>Library Auto Scan -&gt; Update Entry Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_RemoveMissingFailed" xml:space="preserve">
-    <value>[ !!! Ĉôûľďñ'ť řéɱôṽé ťĥé ɱíššíñĝ ťřáçķš ƒřôɱ ťĥé ľíƀřářŷ.
-{0} !!! ]</value>
-    <comment>Library Auto Scan -&gt; Remove Missing Failed Toast ({0}=error)</comment>
+    <value>[ !!! Ĉôûľďñ'ť řéɱôṽé ťĥé ɱíššíñĝ ťřáçķš ƒřôɱ ťĥé ľíƀřářŷ. !!! ]</value>
+    <comment>Library Auto Scan -&gt; Remove Missing Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_AddNewFailed" xml:space="preserve">
-    <value>[ !!! Ĉôûľďñ'ť áďď ťĥé ñéŵ ôř çĥáñĝéď ťřáçķš ťô ťĥé ľíƀřářŷ.
-{0} !!! ]</value>
-    <comment>Library Auto Scan -&gt; Add New Failed Toast ({0}=error)</comment>
+    <value>[ !!! Ĉôûľďñ'ť áďď ťĥé ñéŵ ôř çĥáñĝéď ťřáçķš ťô ťĥé ľíƀřářŷ. !!! ]</value>
+    <comment>Library Auto Scan -&gt; Add New Failed Toast</comment>
   </data>
   <data name="Notification_AutoScan_InSync" xml:space="preserve">
     <value>[ !!! Âľľ ľíƀřáříéš ářé íñ šŷñç !!! ]</value>
     <comment>Library Auto Scan -&gt; All Libraries In Sync Success Toast</comment>
   </data>
   <data name="Notification_ReadMetadataFailed" xml:space="preserve">
-    <value>[ !!! Ƒáíľéď ťô řéáď ɱéťáďáťá ƒôř:
-{0} !!! ]</value>
-    <comment>Library Scanner -&gt; Read Metadata Failed Toast ({0}=file path)</comment>
+    <value>[ !!! Ƒáíľéď ťô řéáď ɱéţáďáťá ƒôř: !!! ]</value>
+    <comment>Library Scanner -&gt; Read Metadata Failed Toast</comment>
   </data>
   <data name="Notification_LibraryScanFailedKeptExisting" xml:space="preserve">
     <value>[ !!! Ľíƀřářŷ šçáñ ƒáíľéď; ķéƥť ťĥé éẋíšťíñĝ ľíƀřářŷ. !!! ]</value>
@@ -3200,9 +3203,12 @@
     <comment>Library Scanner -&gt; No Libraries Found Add One Warning Toast</comment>
   </data>
   <data name="Notification_LibraryFolderNotFound" xml:space="preserve">
-    <value>[ !!! Ľíƀřářŷ ƒôľďéř ñôť ƒôûñď: {0}
- Ƒôľďéř ɱíĝĥť ƀé řéɱôṽéď/řéñáɱéď ƒřôɱ šŷšťéɱ. !!! ]</value>
+    <value>[ !!! Ľíƀřářŷ ƒôľďéř ñôť ƒôûñď: {0} !!! ]</value>
     <comment>Library Scanner -&gt; Folder Not Found Toast ({0}=folder path)</comment>
+  </data>
+  <data name="Notification_LibraryFolder_RemovedHint" xml:space="preserve">
+    <value>[ !!! Ƒôľďéř ɱíĝĥť ƀé řéɱôṽéď/řéñáɱéď ƒřôɱ šýšťéɱ. !!! ]</value>
+    <comment>Library Scanner -&gt; Folder Not Found Hint</comment>
   </data>
   <data name="Notification_Playlist_UnsupportedFormat" xml:space="preserve">
     <value>[ !!! Ûñšûƥƥôřťéď ƥľáŷľíšť ƒôřɱáť. !!! ]</value>
@@ -3241,27 +3247,20 @@
     <comment>Database Helper -&gt; Database Busy Lookup Error Toast ({0}=path)</comment>
   </data>
   <data name="Notification_Watcher_TrackMovedFileFailed" xml:space="preserve">
-    <value>[ !!! Ĉôûľďñ'ť ťřáçķ ťĥé ɱôṽéď ƒíľé:
-{0}
-{1} !!! ]</value>
-    <comment>Library Watcher Service -&gt; Move File Failed Toast ({0}=path, {1}=error)</comment>
+    <value>[ !!! Ĉôûľďñ'ť ťřáçķ ťĥé ɱôṽéď ƒíľé: !!! ]</value>
+    <comment>Library Watcher Service -&gt; Move File Failed Toast</comment>
   </data>
   <data name="Notification_Watcher_AddNewFileFailed" xml:space="preserve">
-    <value>[ !!! Ĉôûľďñ'ť áďď ťĥé ñéŵ ƒíľé ťô ťĥé ľíƀřářŷ:
-{0}
-{1} !!! ]</value>
-    <comment>Library Watcher Service -&gt; Add File Failed Toast ({0}=path, {1}=error)</comment>
+    <value>[ !!! Ĉôûľďñ'ť áďď ťĥé ñéŵ ƒíľé ťô ťĥé ľíƀřářŷ: !!! ]</value>
+    <comment>Library Watcher Service -&gt; Add File Failed Toast</comment>
   </data>
   <data name="Notification_Watcher_RefreshEntryFailed" xml:space="preserve">
-    <value>[ !!! Ĉôûľďñ'ť řéƒřéšĥ ťĥé ľíƀřářŷ éñťřŷ ƒôř:
-{0}
-{1} !!! ]</value>
-    <comment>Library Watcher Service -&gt; Refresh Entry Failed Toast ({0}=path, {1}=error)</comment>
+    <value>[ !!! Ĉôûľďñ'ť řéƒřéšĥ ťĥé ľíƀřářŷ éñťřŷ ƒôř: !!! ]</value>
+    <comment>Library Watcher Service -&gt; Refresh Entry Failed Toast</comment>
   </data>
   <data name="Notification_Watcher_AutoScanPassFailed" xml:space="preserve">
-    <value>[ !!! Âñ áûťôɱáťíç šçáñ ƥášš ƒáíľéď.
-{0} !!! ]</value>
-    <comment>Library Watcher Service -&gt; Auto Scan Pass Failed Toast ({0}=error)</comment>
+    <value>[ !!! Âñ áûťôɱáţíç šçáñ ƥášš ƒáíľéď. !!! ]</value>
+    <comment>Library Watcher Service -&gt; Auto Scan Pass Failed Toast</comment>
   </data>
   <data name="Settings_FadePlayPauseStop_EnabledDescription" xml:space="preserve">
     <value>[ !!! Ťĥé ɱûšíç ŵíľľ ƒáďé íñ/ôûť ôñ Ƥľáŷ/Ƥáûšé/Šťôƥ. Ƒáďé Ťíɱé: {0} ɱš !!! ]</value>

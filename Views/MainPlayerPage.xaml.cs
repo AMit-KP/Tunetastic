@@ -200,7 +200,7 @@ public sealed partial class MainPlayerPage : Page
 								lyricsText = externalContent;
 								ShowLyricsButton.Visibility = Visibility.Visible;
 								LyricMenuOptions(embeddedLyrics: false);
-								GlobalNotification.Info(LocalizationService.FormatString("Notification_ExternalLrcDiscovered", _externalLrcPath));
+								GlobalNotification.Info($"{LocalizationService.GetString("Notification_ExternalLrcDiscovered")}\n{_externalLrcPath}");
 							}
 							else
 							{
@@ -217,7 +217,7 @@ public sealed partial class MainPlayerPage : Page
 					else
 					{
 						if (notify)
-							GlobalNotification.Error(LocalizationService.FormatString("Notification_TrackNotFoundWithPath", songPath));
+							GlobalNotification.Error($"{LocalizationService.GetString("Notification_TrackNotFoundWithPath")}\n{songPath}");
 					}
 				}
 			}
