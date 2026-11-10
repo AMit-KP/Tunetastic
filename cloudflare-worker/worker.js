@@ -125,7 +125,8 @@ async function syncPrStatuses(env, owner, repo) {
 
     const prCache = new Map();
     for (const lang of candidateLangs) {
-      const raw = await env.SUBMISSIONS.get(`approved:${lang}`);
+      const approvedKey = `approved:${lang}`;
+      const raw = await env.SUBMISSIONS.get(approvedKey);
       if (!raw) continue;
       let approvedMap = JSON.parse(raw);
       let changed = false;
@@ -196,9 +197,9 @@ async function syncPrStatuses(env, owner, repo) {
 
       if (changed) {
         if (Object.keys(approvedMap).length === 0) {
-          await env.SUBMISSIONS.delete(item.name);
+          await env.SUBMISSIONS.delete(approvedKey);
         } else {
-          await env.SUBMISSIONS.put(item.name, JSON.stringify(approvedMap));
+          await env.SUBMISSIONS.put(approvedKey, JSON.stringify(approvedMap));
         }
       }
     }
