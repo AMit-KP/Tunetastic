@@ -1090,6 +1090,8 @@
               for (const [k, lock] of Object.entries(liveStatus.locks)) {
                 if (lock === 'mine') {
                   delete liveStatus.locks[k];
+                } else if (lock === 'both') {
+                  liveStatus.locks[k] = 'other';
                 }
               }
             }
@@ -1287,7 +1289,7 @@
     const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
 
     const hasLocalDraft = Boolean(!isDraftPendingResumption && localDraft !== null && localDraft !== undefined && localDraft.trim().length > 0);
-    const isOtherDrafting = lock === 'other';
+    const isOtherDrafting = lock === 'other' || lock === 'both';
     const hasServerProposals = Boolean(proposalMeta && proposalMeta.count > 0);
     const isSubmitted = hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals));
 
@@ -2022,6 +2024,8 @@
           for (const [k, lock] of Object.entries(liveStatus.locks)) {
             if (lock === 'mine') {
               delete liveStatus.locks[k];
+            } else if (lock === 'both') {
+              liveStatus.locks[k] = 'other';
             }
           }
         }

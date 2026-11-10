@@ -38,6 +38,39 @@ function getSessionId(request) {
   return sid.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64) || "anon";
 }
 
+function setLockSession(currentLocks, k, sId, time) {
+  if (!currentLocks[k] || typeof currentLocks[k] !== 'object') {
+    currentLocks[k] = { sessions: {} };
+  }
+  if (!currentLocks[k].sessions || typeof currentLocks[k].sessions !== 'object') {
+    const existingSId = currentLocks[k].sessionId;
+    const existingTime = currentLocks[k].updatedAt || time;
+    currentLocks[k].sessions = {};
+    if (existingSId) {
+      currentLocks[k].sessions[existingSId] = existingTime;
+    }
+  }
+  currentLocks[k].sessions[sId] = time;
+  currentLocks[k].sessionId = sId;
+  currentLocks[k].updatedAt = time;
+}
+
+function removeLockSession(currentLocks, k, sId) {
+  if (!currentLocks[k]) return;
+  if (currentLocks[k].sessions && typeof currentLocks[k].sessions === 'object') {
+    delete currentLocks[k].sessions[sId];
+    const remaining = Object.entries(currentLocks[k].sessions);
+    if (remaining.length === 0) {
+      delete currentLocks[k];
+    } else {
+      currentLocks[k].sessionId = remaining[remaining.length - 1][0];
+      currentLocks[k].updatedAt = remaining[remaining.length - 1][1];
+    }
+  } else if (currentLocks[k].sessionId === sId) {
+    delete currentLocks[k];
+  }
+}
+
 // XML Resw helper to merge translations into existing resw content
 function mergeReswXml(existingXml, newTranslations) {
   let xml = existingXml;
@@ -92,10 +125,10 @@ export default {
           for (const [dKey, dText] of Object.entries(drafts)) {
             if (dText && typeof dText === "string" && dText.trim().length > 0) {
               draftData.keys[dKey] = dText;
-              currentLocks[dKey] = { sessionId, updatedAt: now };
+              setLockSession(currentLocks, dKey, sessionId, now);
             } else {
               delete draftData.keys[dKey];
-              delete currentLocks[dKey];
+              removeLockSession(currentLocks, dKey, sessionId);
             }
           }
           draftData.updatedAt = updatedAt || new Date().toISOString();
@@ -103,10 +136,10 @@ export default {
           if (text && typeof text === "string" && text.trim().length > 0) {
             draftData.keys[key] = text;
             draftData.updatedAt = new Date().toISOString();
-            currentLocks[key] = { sessionId, updatedAt: Date.now() };
+            setLockSession(currentLocks, key, sessionId, Date.now());
           } else {
             delete draftData.keys[key];
-            delete currentLocks[key];
+            removeLockSession(currentLocks, key, sessionId);
           }
         }
 
@@ -143,11 +176,9 @@ export default {
           if (currentLocksRaw) {
             const currentLocks = JSON.parse(currentLocksRaw);
             let modified = false;
-            for (const [k, lock] of Object.entries(currentLocks)) {
-              if (lock.sessionId === sessionId) {
-                delete currentLocks[k];
-                modified = true;
-              }
+            for (const k of Object.keys(currentLocks)) {
+              removeLockSession(currentLocks, k, sessionId);
+              modified = true;
             }
             if (modified) {
               await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
@@ -175,11 +206,9 @@ export default {
           if (currentLocksRaw) {
             const currentLocks = JSON.parse(currentLocksRaw);
             let modified = false;
-            for (const [k, lock] of Object.entries(currentLocks)) {
-              if (lock.sessionId === sid) {
-                delete currentLocks[k];
-                modified = true;
-              }
+            for (const k of Object.keys(currentLocks)) {
+              removeLockSession(currentLocks, k, sid);
+              modified = true;
             }
             if (modified) {
               await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
@@ -221,8 +250,27 @@ export default {
         const activeLocks = {};
         const now = Date.now();
         for (const [k, lock] of Object.entries(allLocks)) {
-          if (now - lock.updatedAt < 172800 * 1000) {
-            activeLocks[k] = lock.sessionId === sessionId ? "mine" : "other";
+          let hasMine = false;
+          let hasOther = false;
+
+          if (lock && lock.sessions && typeof lock.sessions === "object") {
+            for (const [sId, sTime] of Object.entries(lock.sessions)) {
+              if (now - sTime < 172800 * 1000) {
+                if (sId === sessionId) hasMine = true;
+                else hasOther = true;
+              }
+            }
+          } else if (lock && lock.updatedAt && (now - lock.updatedAt < 172800 * 1000)) {
+            if (lock.sessionId === sessionId) hasMine = true;
+            else hasOther = true;
+          }
+
+          if (hasMine && hasOther) {
+            activeLocks[k] = "both";
+          } else if (hasMine) {
+            activeLocks[k] = "mine";
+          } else if (hasOther) {
+            activeLocks[k] = "other";
           }
         }
 
@@ -328,12 +376,14 @@ export default {
           } catch {}
         }
 
-        // Release locks for submitted keys
+        // Release locks for submitted keys for this session
         const lockMapKey = `active_locks:${language}`;
         const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
         if (currentLocksRaw) {
           const currentLocks = JSON.parse(currentLocksRaw);
-          for (const k of keys) delete currentLocks[k];
+          for (const k of keys) {
+            removeLockSession(currentLocks, k, sessionId);
+          }
           await env.SUBMISSIONS.put(lockMapKey, JSON.stringify(currentLocks), { expirationTtl: 172800 });
         }
 
