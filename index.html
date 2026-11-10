@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.5.1">
+  <link rel="stylesheet" href="styles.css?v=2.5.2">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -257,7 +257,7 @@
             <button class="filter-tab" data-filter="submitted" title="Submitted proposals">
               <span class="filter-status-dot dot-submitted"></span> <span>Submitted</span> <span class="tab-count" id="count-submitted">0</span>
             </button>
-            <button class="filter-tab" data-filter="approved" title="Approved by maintainers for release">
+            <button class="filter-tab" data-filter="approved" title="Approved by admin for release">
               <span class="filter-status-dot dot-approved"></span> <span>Approved</span> <span class="tab-count" id="count-approved">0</span>
             </button>
             <button class="filter-tab" data-filter="translated" title="Already translated strings">
@@ -287,11 +287,11 @@
 
     </section>
 
-    <!-- VIEW 3: Maintainer Review Queue -->
+    <!-- VIEW 3: Admin Review Queue -->
     <section id="admin-view" class="view-section">
       <div class="section-header-bar">
         <div class="section-title-wrap">
-          <h2 class="section-title">Maintainer Review Queue</h2>
+          <h2 class="section-title">Admin Review Queue</h2>
           <span class="pulse-counter" id="admin-pending-badge">0 Submissions Pending</span>
         </div>
         <div class="section-actions">
@@ -445,20 +445,20 @@
     </div>
   </div>
 
-  <!-- MODAL: Maintainer Authentication (#admin-auth-modal) -->
+  <!-- MODAL: Admin Authentication (#admin-auth-modal) -->
   <div class="modal-backdrop" id="admin-auth-modal">
     <div class="modal-glass-dialog modal-dialog-sm">
       <div class="modal-header">
         <div class="modal-badge purple">
           <svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 1a2 2 0 0 1 2 2v2H6V3a2 2 0 0 1 2-2zm3 4V3a3 3 0 0 0-6 0v2a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"/></svg>
-          MAINTAINER ACCESS
+          ADMIN ACCESS
         </div>
         <h3 class="modal-title">Admin Console Unlock</h3>
       </div>
       <div class="modal-body">
-        <p class="modal-intro">Enter maintainer password to review proposals and manage PR sync:</p>
+        <p class="modal-intro">Enter admin password to review proposals and manage PR sync:</p>
         <div class="modal-input-group" style="margin-top: 14px;">
-          <input type="password" id="admin-password-input" class="modal-text-input" placeholder="Maintainer Password..." autocomplete="current-password" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(0,0,0,0.25); color: var(--text-primary); font-size: 14px; outline: none; box-sizing: border-box;">
+          <input type="password" id="admin-password-input" class="modal-text-input" placeholder="Admin Password..." autocomplete="current-password" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(0,0,0,0.25); color: var(--text-primary); font-size: 14px; outline: none; box-sizing: border-box;">
         </div>
         <div id="admin-auth-error" style="display: none; color: #f87171; font-size: 12px; margin-top: 8px;">
           Incorrect password. Access denied.
@@ -478,6 +478,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.5.1"></script>
+  <script src="app.js?v=2.5.2"></script>
 </body>
 </html>

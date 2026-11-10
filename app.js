@@ -6,7 +6,7 @@
  * 3. Dynamic Intl.DisplayNames Language Metadata (Zero Hardcoding)
  * 4. Multi-Version Community Alternative Suggestions (Max 10 Slots)
  * 5. Strict Exact-Match Duplicate Guard
- * 6. Maintainer Review Queue with Proposal Stacks
+ * 6. Admin Review Queue with Proposal Stacks
  * 7. Automated PR Creation via Cloudflare Worker
  */
 
@@ -126,7 +126,7 @@
   // Cloudflare Worker Staging Endpoint
   const WORKER_URL = window.TUNETASTIC_WORKER_URL || "https://tunetastic-l10n-staging.amit-ku-p-2806.workers.dev";
 
-  // In-memory Maintainer session auth
+  // In-memory Admin session auth
   let sessionAdminPassword = "";
 
   // Dynamic status cache from Cloudflare
@@ -2035,7 +2035,7 @@
   }
 
   // -------------------------------------------------------------------------
-  // 9. MAINTAINER REVIEW QUEUE & AUTOMATED PR CREATION (#admin)
+  // 9. ADMIN REVIEW QUEUE & AUTOMATED PR CREATION (#admin)
   // -------------------------------------------------------------------------
 
   function requestAdminAuth() {
