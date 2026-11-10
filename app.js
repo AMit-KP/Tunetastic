@@ -882,14 +882,26 @@
           textarea.style.background = '';
           autoResizeTextarea(textarea);
         } else if (statusInfo.isReadOnly) {
-          textarea.placeholder = 'This string is locked. Use \'Suggest Alternative\' to propose changes.';
+          textarea.placeholder = (statusInfo.status === 'submitted' && !statusInfo.displayText)
+            ? 'Translation submitted. Use \'Suggest Alternative\' to propose changes.'
+            : 'This string is locked. Use \'Suggest Alternative\' to propose changes.';
           textarea.style.opacity = '0.85';
           textarea.style.cursor = 'default';
           textarea.style.background = 'rgba(255,255,255,0.02)';
-          if (statusInfo.displayText) {
-            textarea.value = statusInfo.displayText;
-          }
+          textarea.value = statusInfo.displayText || '';
           autoResizeTextarea(textarea);
+        }
+      }
+
+      // Update Translated Preview row if present
+      const previewTransEl = card.querySelector('.preview-trans-text');
+      const previewTargetRow = card.querySelector('.preview-row-target');
+      if (previewTransEl) {
+        const val = statusInfo.displayText || '';
+        const rendered = renderSimulatedText(val, item.placeholders);
+        previewTransEl.innerHTML = rendered || '<span class="preview-empty">No translation yet</span>';
+        if (previewTargetRow) {
+          previewTargetRow.setAttribute('title', val ? `Translation Preview: ${val}` : 'Translation Preview: No translation yet');
         }
       }
 
@@ -1255,7 +1267,8 @@
     if (hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals))) {
       const subMap = getSubmittedTranslations(currentLang);
       const subObj = subMap ? subMap[item.key] : null;
-      const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
+      // Show translation during submit status ONLY to the user who submitted it; keep empty for everyone else
+      const text = (subObj && subObj.text) ? subObj.text : '';
 
       return {
         status: 'submitted',
@@ -1400,7 +1413,9 @@
 
       const placeholderText = statusInfo.status === 'other'
         ? 'Another contributor is drafting this... You can suggest an alternative.'
-        : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...');
+        : (statusInfo.status === 'submitted' && !statusInfo.displayText
+          ? 'Translation submitted. Use \'Suggest Alternative\' to propose changes.'
+          : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...'));
 
       const contextHtml = renderContextBlockHtml(item.comment, item.key);
 
@@ -1832,6 +1847,20 @@
       const data = await res.json();
       if (res.ok) {
         showToast("Suggestion submitted to review queue!");
+
+        // Record locally that this user submitted a translation/suggestion for this key
+        const submittedKey = `tunetastic_submitted_${currentLang}`;
+        let existingSubmitted = {};
+        try {
+          existingSubmitted = JSON.parse(safeStorageGet(submittedKey) || '{}');
+        } catch {}
+        existingSubmitted[activeSuggestKey] = {
+          text,
+          contributor: author,
+          timestamp: Date.now()
+        };
+        safeStorageSet(submittedKey, JSON.stringify(existingSubmitted));
+
         suggestModal.classList.remove('active');
         await fetchLiveStatus();
         renderCards();

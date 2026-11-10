@@ -244,12 +244,9 @@ export default {
                 const rawP = await env.SUBMISSIONS.get(item.name);
                 if (rawP) {
                   const arr = JSON.parse(rawP);
-                  const last = arr[arr.length - 1];
                   proposalsSummary[k] = {
                     count: arr.length,
-                    isFull: arr.length >= 10,
-                    latestTranslation: last ? last.text : '',
-                    latestContributor: last ? last.contributor : ''
+                    isFull: arr.length >= 10
                   };
                 }
               }
@@ -321,12 +318,9 @@ export default {
               const pRaw = await env.SUBMISSIONS.get(pKey);
               if (pRaw) {
                 const arr = JSON.parse(pRaw);
-                const last = arr[arr.length - 1];
                 summary[a.key] = {
                   count: arr.length,
-                  isFull: arr.length >= 10,
-                  latestTranslation: last ? last.text : '',
-                  latestContributor: last ? last.contributor : ''
+                  isFull: arr.length >= 10
                 };
               }
             }
