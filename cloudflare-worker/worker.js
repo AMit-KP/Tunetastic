@@ -420,7 +420,7 @@ export default {
 
             const commentBody =
               `🌐 **New Translation Submission for \`${language}\`**\n\n` +
-              `- **Contributor:** ${sanitizedContributor}\n` +
+              `- **Contributor:** ${sanitizedContributor.replace(/^@+/, "")}\n` +
               `- **Strings Submitted:** ${accepted.length} string(s)\n` +
               `- **Timestamp:** ${formatToIST(new Date())}\n\n` +
               `<details>\n<summary><b>Click to view translated strings (${accepted.length})</b></summary>\n\n` +
@@ -764,15 +764,10 @@ export default {
           });
         }
 
-        // 4. Create Pull Request
+        // 4. Create Pull Request (Never add @ to contributors and never add fake email links)
         const contributorsList = Array.from(contributorsSet)
-          .map(c => String(c).trim())
-          .filter(Boolean);
-        const coAuthors = Array.from(contributorsSet)
           .map(c => String(c).replace(/^@+/, "").trim())
-          .filter(Boolean)
-          .map(c => `Co-authored-by: ${c.replace(/[^a-zA-Z0-9_\-]/g, "")} <community@tunetastic.app>`)
-          .join("\n");
+          .filter(Boolean);
 
         const prBody =
           `## 🌐 Community Localization Sync\n\n` +
@@ -781,8 +776,7 @@ export default {
           `${langSummaries.join("\n")}\n\n` +
           `### Community Contributors:\n` +
           `${contributorsList.length > 0 ? contributorsList.join(", ") : "Anonymous Community Members"}\n\n` +
-          `---\n*Created automatically by Tunetastic Localization Studio*\n\n` +
-          `${coAuthors}`;
+          `---\n*Created automatically by Tunetastic Localization Studio*`;
 
         const prRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
           method: "POST",
