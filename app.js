@@ -1255,7 +1255,7 @@
 
       let authorName = (subObj && subObj.contributor) || (proposalMeta && proposalMeta.latestContributor) || '';
       authorName = String(authorName).replace(/^@+/, '').trim();
-      const contrib = authorName ? `@${authorName}` : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
+      const contrib = authorName ? (authorName.includes('@') || authorName.includes(' ') ? authorName : `@${authorName}`) : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
       const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
 
       return {
