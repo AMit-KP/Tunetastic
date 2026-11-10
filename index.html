@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.4.9">
+  <link rel="stylesheet" href="styles.css?v=2.5.0">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -37,7 +37,10 @@
 
       <div class="nav-actions">
         <button class="btn btn-glass" id="nav-home-btn" style="display: none;">
-          <span class="btn-icon">←</span> All Languages
+          <svg class="svg-icon btn-arrow-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13.5 8H2.5m0 0l4.5-4.5M2.5 8l4.5 4.5"/>
+          </svg>
+          <span>All Languages</span>
         </button>
         <a href="https://apps.microsoft.com/detail/9PCCNQZTD6PX?referrer=appbadge&mode=full" target="_blank" rel="noopener" class="btn btn-ghost store-link" title="Get Tunetastic on Microsoft Store">
           <svg class="store-icon" viewBox="0 0 16 16" width="16" height="16" fill="none">
@@ -271,9 +274,15 @@
 
       <!-- Pagination Nav -->
       <div class="pagination-bar">
-        <button class="btn btn-glass" id="page-prev-btn">← Previous 50</button>
+        <button class="btn btn-glass" id="page-prev-btn">
+          <svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5m0 0l4.5-4.5M2.5 8l4.5 4.5"/></svg>
+          <span>Previous 50</span>
+        </button>
         <div class="pagination-indicator" id="pagination-info">Page 1 of 1</div>
-        <button class="btn btn-glass" id="page-next-btn">Next 50 →</button>
+        <button class="btn btn-glass" id="page-next-btn">
+          <span>Next 50</span>
+          <svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8h11m0 0l-4.5-4.5m4.5 4.5l-4.5 4.5"/></svg>
+        </button>
       </div>
 
     </section>
@@ -469,6 +478,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.4.9"></script>
+  <script src="app.js?v=2.5.0"></script>
 </body>
 </html>

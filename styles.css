@@ -293,6 +293,35 @@ body {
   flex-shrink: 0;
 }
 
+#nav-home-btn .btn-arrow-icon {
+  transition: transform var(--transition-fast);
+}
+
+#nav-home-btn:hover .btn-arrow-icon {
+  transform: translateX(-3px);
+}
+
+body.rtl-mode #nav-home-btn .btn-arrow-icon {
+  transform: scaleX(-1);
+}
+
+body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
+  transform: scaleX(-1) translateX(-3px);
+}
+
+#page-prev-btn:hover .svg-icon {
+  transform: translateX(-2px);
+}
+
+#page-next-btn:hover .svg-icon {
+  transform: translateX(2px);
+}
+
+#page-prev-btn .svg-icon,
+#page-next-btn .svg-icon {
+  transition: transform var(--transition-fast);
+}
+
 .btn:active {
   transform: scale(0.96) !important;
 }
