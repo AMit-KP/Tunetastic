@@ -4,7 +4,7 @@
  * 1. Zero-Login 48-Hour Sliding Draft Sessions (/api/draft, /api/drafts/resume)
  * 2. Multi-Version Community Proposals (Max 10) with Exact-Match Guard (/api/submit, /api/suggest)
  * 3. Collapsible Issue #143 Tracker Notifications
- * 4. Maintainer Review Queue & Approval (/api/pending, /api/approve)
+ * 4. Admin Review Queue & Approval (/api/pending, /api/approve)
  * 5. Automated Pull Request Creation via GitHub REST API (/api/sync-pr)
  * 6. Safe Post-Merge KV Cleanup (/api/cleanup-synced)
  */
@@ -218,7 +218,7 @@ export default {
         return jsonResponse({ success: true }, 200, corsHeaders);
       }
 
-      // Reset/clear active locks for a language (maintainer reset or clearing orphaned locks)
+      // Reset/clear active locks for a language (admin reset or clearing orphaned locks)
       if (path === "/api/locks/clear" && (request.method === "POST" || request.method === "GET")) {
         const language = url.searchParams.get("lang");
         if (language) {
@@ -469,7 +469,7 @@ export default {
       }
 
       // -----------------------------------------------------------------------
-      // 3. MAINTAINER REVIEW QUEUE (/api/pending, /api/approve)
+      // 3. ADMIN REVIEW QUEUE (/api/pending, /api/approve)
       // -----------------------------------------------------------------------
       if (path === "/api/pending" && request.method === "GET") {
         if (!verifyAdminAuth(request, env)) {
