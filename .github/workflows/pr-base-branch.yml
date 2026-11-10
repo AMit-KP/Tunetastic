@@ -20,6 +20,12 @@ jobs:
             const headRef = pr.head.ref;
             const currentBase = pr.base.ref;
 
+            // Ignore PRs targeting localization or created from localization sync branches
+            if (currentBase === 'feature/localization' || headRef.startsWith('l10n/') || headRef === 'feature/localization') {
+              core.info(`Localization PR detected (head: "${headRef}", base: "${currentBase}"). Skipping base branch update.`);
+              return;
+            }
+
             // Only internal PRs from the repo's own Development branch target master.
             // All fork PRs and other branches must target Development.
             const isInternal = pr.head.repo && pr.head.repo.full_name === context.payload.repository.full_name;
