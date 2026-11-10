@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.4.2">
+  <link rel="stylesheet" href="styles.css?v=2.4.3">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -362,6 +362,36 @@
     </div>
   </div>
 
+  <!-- MODAL: View Community Submissions -->
+  <div class="modal-backdrop" id="view-submissions-modal">
+    <div class="modal-glass-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Community Submissions</h3>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 14px;">
+          <span style="font-size: 12px; color: var(--text-tertiary);">Key:</span>
+          <code id="view-submissions-key-label" style="color: var(--accent-cyan); font-family: var(--font-mono); margin-left: 6px;">Key_Name</code>
+        </div>
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px;">English Source:</div>
+          <div id="view-submissions-source-text" style="color: var(--text-primary); font-size: 14px; font-weight: 500;">Source text</div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+            Submitted Translations (<span id="view-submissions-count">0</span>):
+          </div>
+          <div id="view-submissions-list" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-glass" id="view-submissions-close-btn">Close</button>
+        <button class="btn btn-primary-gradient" id="view-submissions-suggest-btn">Suggest Alternative</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: Submit Translations -->
   <div class="modal-backdrop" id="submit-modal">
     <div class="modal-glass-dialog">
@@ -490,6 +520,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.4.2"></script>
+  <script src="app.js?v=2.4.3"></script>
 </body>
 </html>

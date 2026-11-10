@@ -2018,6 +2018,7 @@ body {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 6px;
+  flex-wrap: wrap;
 }
 
 /* ── Live In-App Context Preview (Dual Distinct Rows) ─────────────────────── */
@@ -2702,6 +2703,48 @@ body {
   background: rgba(129, 140, 248, 0.05);
   box-shadow: none;
   transform: none;
+}
+
+/* View Submissions Button */
+.btn-view-submissions {
+  height: 26px;
+  padding: 0 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.btn-view-submissions .svg-icon {
+  display: block;
+  vertical-align: 0;
+  flex-shrink: 0;
+}
+
+.btn-view-submissions:hover {
+  background: rgba(59, 130, 246, 0.25);
+  color: #ffffff;
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+.sub-copy-btn {
+  height: 24px;
+  padding: 0 9px;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 /* Incognito / Private Browsing Warning Banner */

@@ -1708,6 +1708,146 @@
   }
 
   // -------------------------------------------------------------------------
+  // 6b. VIEW COMMUNITY SUBMISSIONS MODAL
+  // -------------------------------------------------------------------------
+
+  function formatTimeAgo(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const timestamp = typeof dateStr === 'number' ? dateStr : Date.parse(dateStr);
+      if (isNaN(timestamp)) return '';
+      const diff = Math.floor((Date.now() - timestamp) / 1000);
+      if (diff < 60) return 'Just now';
+      const minutes = Math.floor(diff / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days}d ago`;
+      return new Date(timestamp).toLocaleDateString();
+    } catch {
+      return '';
+    }
+  }
+
+  async function openViewSubmissionsModal(item) {
+    activeViewSubmissionsItem = item;
+    const keyLabel = document.getElementById('view-submissions-key-label');
+    const sourceEl = document.getElementById('view-submissions-source-text');
+    const countEl = document.getElementById('view-submissions-count');
+    const listEl = document.getElementById('view-submissions-list');
+    const suggestBtn = document.getElementById('view-submissions-suggest-btn');
+
+    if (keyLabel) keyLabel.textContent = item.key;
+    if (sourceEl) sourceEl.textContent = item.source;
+    if (countEl) countEl.textContent = '...';
+    if (listEl) {
+      listEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary);"><span class="loading-spinner" style="width: 14px; height: 14px; border-width: 1.5px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span>Loading community submissions...</span>`;
+    }
+    if (suggestBtn) {
+      suggestBtn.disabled = false;
+      suggestBtn.textContent = 'Suggest Alternative';
+    }
+
+    if (viewSubmissionsModal) {
+      viewSubmissionsModal.classList.add('active');
+    }
+
+    let proposals = [];
+    try {
+      const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
+      if (res.ok) {
+        const data = await res.json();
+        proposals = Array.isArray(data.proposals) ? data.proposals : [];
+      }
+    } catch (e) {
+      console.warn("Could not fetch submissions for key:", e);
+    }
+
+    // Fallback: If server returned no proposals (e.g. offline/mock), check local submitted store
+    if (proposals.length === 0) {
+      const localSubMap = getSubmittedTranslations(currentLang);
+      if (localSubMap && localSubMap[item.key]) {
+        const localEntry = localSubMap[item.key];
+        proposals.push({
+          id: 'local_' + Date.now(),
+          text: localEntry.text,
+          contributor: localEntry.contributor || 'You',
+          sessionId: SESSION_ID,
+          timestamp: localEntry.timestamp ? new Date(localEntry.timestamp).toISOString() : new Date().toISOString()
+        });
+      }
+    }
+
+    renderViewSubmissionsList(proposals, item);
+  }
+
+  function renderViewSubmissionsList(proposals, item) {
+    const listEl = document.getElementById('view-submissions-list');
+    const countEl = document.getElementById('view-submissions-count');
+    const suggestBtn = document.getElementById('view-submissions-suggest-btn');
+    if (!listEl) return;
+
+    if (countEl) countEl.textContent = proposals.length;
+
+    if (suggestBtn) {
+      if (proposals.length >= 10) {
+        suggestBtn.disabled = true;
+        suggestBtn.textContent = 'Max Suggestions Reached (10/10)';
+      } else {
+        suggestBtn.disabled = false;
+        suggestBtn.textContent = 'Suggest Alternative';
+      }
+    }
+
+    if (proposals.length === 0) {
+      listEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary); font-style: italic;">No submissions found for this string yet.</span>`;
+      return;
+    }
+
+    const currentAuthor = (safeStorageGet('tunetastic_author') || '').replace(/^@+/, '').toLowerCase();
+
+    listEl.innerHTML = proposals.map((p, idx) => {
+      const rawContributor = p.contributor ? String(p.contributor).replace(/^@+/, '').trim() : 'Unknown';
+      const isMine = (p.sessionId && p.sessionId === SESSION_ID) || (currentAuthor && rawContributor.toLowerCase() === currentAuthor);
+      const timeStr = formatTimeAgo(p.timestamp);
+
+      return `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="color: var(--text-primary); font-size: 13.5px; font-weight: 500; word-break: break-word; line-height: 1.4;">${escapeHtml(p.text)}</div>
+            <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span>By <strong style="color: var(--text-secondary);">${escapeHtml(rawContributor)}</strong>${isMine ? ' <span class="studio-pill pill-draft-mine" style="font-size: 9px; padding: 1px 6px; margin-left: 4px;">You</span>' : ''}</span>
+              ${timeStr ? `<span>•</span><span>${escapeHtml(timeStr)}</span>` : ''}
+              <span style="opacity: 0.6;">(#${idx + 1})</span>
+            </div>
+          </div>
+          <button class="btn btn-glass sub-copy-btn" data-copy-val="${escapeHtml(p.text)}" title="Copy translation">
+            ${ICONS.copy} Copy
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    // Attach 1-click copy listeners to buttons
+    listEl.querySelectorAll('.sub-copy-btn').forEach(btn => {
+      btn.onclick = () => {
+        const textToCopy = btn.getAttribute('data-copy-val') || '';
+        if (textToCopy) {
+          navigator.clipboard.writeText(textToCopy);
+          btn.innerHTML = `${ICONS.check} Copied!`;
+          btn.classList.add('copied');
+          showToast("Translation copied to clipboard!");
+          setTimeout(() => {
+            btn.innerHTML = `${ICONS.copy} Copy`;
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      };
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // 7. SUGGEST ALTERNATIVE MODAL (STRICT EXACT MATCH & 10-SLOT LIMIT)
   // -------------------------------------------------------------------------
 
@@ -2394,6 +2534,48 @@
         }
       });
     }
+
+    // View Submissions modal triggers
+    const viewSubCloseBtn = document.getElementById('view-submissions-close-btn');
+    if (viewSubCloseBtn) {
+      viewSubCloseBtn.onclick = () => {
+        if (viewSubmissionsModal) viewSubmissionsModal.classList.remove('active');
+      };
+    }
+
+    const viewSubSuggestBtn = document.getElementById('view-submissions-suggest-btn');
+    if (viewSubSuggestBtn) {
+      viewSubSuggestBtn.onclick = () => {
+        if (viewSubmissionsModal) viewSubmissionsModal.classList.remove('active');
+        if (activeViewSubmissionsItem) {
+          openSuggestModal(activeViewSubmissionsItem);
+        }
+      };
+    }
+
+    // Modal backdrop clicks to close
+    [viewSubmissionsModal, suggestModal, submitModal].forEach(modalEl => {
+      if (modalEl) {
+        modalEl.addEventListener('click', (e) => {
+          if (e.target === modalEl) {
+            modalEl.classList.remove('active');
+          }
+        });
+      }
+    });
+
+    // Global Escape Key to close open modals
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (viewSubmissionsModal && viewSubmissionsModal.classList.contains('active')) {
+          viewSubmissionsModal.classList.remove('active');
+        } else if (suggestModal && suggestModal.classList.contains('active')) {
+          suggestModal.classList.remove('active');
+        } else if (submitModal && submitModal.classList.contains('active')) {
+          submitModal.classList.remove('active');
+        }
+      }
+    });
 
     // Admin review triggers
     document.getElementById('admin-refresh-btn').onclick = loadAdminQueue;
