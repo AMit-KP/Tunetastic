@@ -112,7 +112,7 @@ export default {
         if (!raw) return jsonResponse({ drafts: {} }, 200, corsHeaders);
 
         const data = JSON.parse(raw);
-        return jsonResponse({ drafts: data.keys || {} }, 200, corsHeaders);
+        return jsonResponse({ drafts: data.keys || {}, updatedAt: data.updatedAt || null }, 200, corsHeaders);
       }
 
       // Discard drafts for current session

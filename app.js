@@ -962,9 +962,11 @@
         headers: { 'X-Session-ID': SESSION_ID }
       });
       let cloudDrafts = {};
+      let cloudDraftUpdatedAt = null;
       if (res.ok) {
         const data = await res.json();
         cloudDrafts = data.drafts || {};
+        cloudDraftUpdatedAt = data.updatedAt || null;
       }
 
       // Check if local storage or Cloudflare has unsubmitted drafts
@@ -992,15 +994,29 @@
 
         draftResumeModal.classList.add('active');
 
-        // Helper: Load drafts into workspace and close modal
+        // Helper: Load drafts into workspace and close modal (preserving original edit timestamp)
         const restoreDraftsAndClose = () => {
           isDraftPendingResumption = false;
-          for (const [k, v] of Object.entries(currentDrafts)) {
-            setLocalTranslation(currentLang, k, v);
+
+          // Preserve the original edit timestamp; clock should NOT reset on resumption!
+          let existingUpdated = parseInt(safeStorageGet(`tunetastic_draft_updated_${currentLang}`), 10);
+          if (!existingUpdated || isNaN(existingUpdated)) {
+            if (cloudDraftUpdatedAt) {
+              const parsed = new Date(cloudDraftUpdatedAt).getTime();
+              if (!isNaN(parsed)) existingUpdated = parsed;
+            }
           }
+          if (!existingUpdated || isNaN(existingUpdated)) {
+            existingUpdated = Date.now();
+          }
+
+          safeStorageSet(`tunetastic_l10n_${currentLang}`, JSON.stringify(currentDrafts));
+          safeStorageSet(`tunetastic_draft_updated_${currentLang}`, String(existingUpdated));
+
           draftResumeModal.classList.remove('active');
           renderCards();
           updateWorkspaceStats();
+          updateDraftTimerDisplay();
           showToast(`Restored ${count} draft translations!`);
         };
 
@@ -2263,17 +2279,21 @@
     }
   }
 
-  function setLocalTranslation(lang, key, value) {
+  function setLocalTranslation(lang, key, value, updateTimestamp = true) {
     try {
       const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
       const map = stored ? JSON.parse(stored) : {};
       if (value && value.trim()) {
         map[key] = value;
-        safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()));
+        if (updateTimestamp) {
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()));
+        }
       } else {
         delete map[key];
         if (Object.keys(map).length === 0) {
           safeStorageRemove(`tunetastic_draft_updated_${lang}`);
+        } else if (updateTimestamp) {
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()));
         }
       }
       safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map));
