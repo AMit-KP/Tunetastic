@@ -113,12 +113,19 @@ function mergeReswXml(existingXml, newTranslations) {
 async function syncPrStatuses(env, owner, repo) {
   if (!env.GITHUB_TOKEN) return;
   try {
-    const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
-    const prCache = new Map();
+    const candidateLangs = new Set(["hi-IN", "es-ES", "de-DE", "fr-FR", "ja-JP", "ru-RU", "pt-BR", "it-IT", "zh-CN", "ar-SA"]);
+    try {
+      const indexedLangsRaw = await env.SUBMISSIONS.get("approved_languages");
+      if (indexedLangsRaw) JSON.parse(indexedLangsRaw).forEach(l => candidateLangs.add(l));
+    } catch {}
+    try {
+      const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
+      if (list && list.keys) list.keys.forEach(item => candidateLangs.add(item.name.replace("approved:", "")));
+    } catch {}
 
-    for (const item of list.keys) {
-      const lang = item.name.replace("approved:", "");
-      const raw = await env.SUBMISSIONS.get(item.name);
+    const prCache = new Map();
+    for (const lang of candidateLangs) {
+      const raw = await env.SUBMISSIONS.get(`approved:${lang}`);
       if (!raw) continue;
       let approvedMap = JSON.parse(raw);
       let changed = false;
@@ -655,17 +662,32 @@ export default {
           }
         }
 
-        // Fetch all approved translations
-        const approvedList = await env.SUBMISSIONS.list({ prefix: "approved:" });
+        // Fetch all approved translations (Combines candidate languages & index with KV get() for instant consistency)
         const approvedPerLang = {};
-        for (const item of approvedList.keys) {
-          const lang = item.name.replace("approved:", "");
-          const raw = await env.SUBMISSIONS.get(item.name);
+        const candidateLangs = new Set(["hi-IN", "es-ES", "de-DE", "fr-FR", "ja-JP", "ru-RU", "pt-BR", "it-IT", "zh-CN", "ar-SA"]);
+        pendingItems.forEach(p => candidateLangs.add(p.language));
+
+        try {
+          const indexedLangsRaw = await env.SUBMISSIONS.get("approved_languages");
+          if (indexedLangsRaw) JSON.parse(indexedLangsRaw).forEach(l => candidateLangs.add(l));
+        } catch {}
+
+        try {
+          const approvedList = await env.SUBMISSIONS.list({ prefix: "approved:" });
+          if (approvedList && approvedList.keys) {
+            approvedList.keys.forEach(item => candidateLangs.add(item.name.replace("approved:", "")));
+          }
+        } catch {}
+
+        for (const lang of candidateLangs) {
+          const raw = await env.SUBMISSIONS.get(`approved:${lang}`);
           if (raw) {
-            const data = JSON.parse(raw);
-            if (Object.keys(data).length > 0) {
-              approvedPerLang[lang] = data;
-            }
+            try {
+              const data = JSON.parse(raw);
+              if (Object.keys(data).length > 0) {
+                approvedPerLang[lang] = data;
+              }
+            } catch {}
           }
         }
 
@@ -693,6 +715,16 @@ export default {
           approvedAt: new Date().toISOString()
         };
         await env.SUBMISSIONS.put(approvedKey, JSON.stringify(approvedMap));
+
+        // Maintain approved_languages index for zero-lag instant lookups
+        try {
+          const indexedLangsRaw = await env.SUBMISSIONS.get("approved_languages");
+          const indexedLangs = indexedLangsRaw ? JSON.parse(indexedLangsRaw) : [];
+          if (!indexedLangs.includes(language)) {
+            indexedLangs.push(language);
+            await env.SUBMISSIONS.put("approved_languages", JSON.stringify(indexedLangs));
+          }
+        } catch {}
 
         // Delete proposals for this key since it is now approved
         await env.SUBMISSIONS.delete(`proposals:${language}:${key}`);
@@ -793,20 +825,30 @@ export default {
             }
           }
         } else {
-          const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
-          for (const item of list.keys) {
-            const lang = item.name.replace("approved:", "");
-            const raw = await env.SUBMISSIONS.get(item.name);
+          const candidateLangs = new Set(["hi-IN", "es-ES", "de-DE", "fr-FR", "ja-JP", "ru-RU", "pt-BR", "it-IT", "zh-CN", "ar-SA"]);
+          try {
+            const indexedLangsRaw = await env.SUBMISSIONS.get("approved_languages");
+            if (indexedLangsRaw) JSON.parse(indexedLangsRaw).forEach(l => candidateLangs.add(l));
+          } catch {}
+          try {
+            const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
+            if (list && list.keys) list.keys.forEach(k => candidateLangs.add(k.name.replace("approved:", "")));
+          } catch {}
+
+          for (const lang of candidateLangs) {
+            const raw = await env.SUBMISSIONS.get(`approved:${lang}`);
             if (raw) {
-              const data = JSON.parse(raw);
-              const count = Object.keys(data).length;
-              if (count > 0) {
-                approvedPerLang[lang] = data;
-                for (const v of Object.values(data)) {
-                  if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
+              try {
+                const data = JSON.parse(raw);
+                const count = Object.keys(data).length;
+                if (count > 0) {
+                  approvedPerLang[lang] = data;
+                  for (const v of Object.values(data)) {
+                    if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
+                  }
+                  langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
                 }
-                langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
-              }
+              } catch {}
             }
           }
         }

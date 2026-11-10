@@ -2239,6 +2239,13 @@
       const pendingItems = data.pending || [];
       const approvedPerLang = data.approved || {};
 
+      // Resilient fallback: Merge liveStatus.approved if available for current language
+      if (currentLang && liveStatus && liveStatus.approved && Object.keys(liveStatus.approved).length > 0) {
+        if (!approvedPerLang[currentLang] || Object.keys(approvedPerLang[currentLang]).length === 0) {
+          approvedPerLang[currentLang] = { ...liveStatus.approved };
+        }
+      }
+
       let totalApprovedCount = 0;
       for (const map of Object.values(approvedPerLang)) {
         totalApprovedCount += Object.keys(map).length;
