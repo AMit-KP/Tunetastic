@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.3.7">
+  <link rel="stylesheet" href="styles.css?v=2.3.8">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -347,7 +347,10 @@
         </div>
 
         <div class="form-group" id="suggest-author-group">
-          <label class="form-label">Name / Email ID / GitHub ID / Username or Alias (Optional)</label>
+          <label class="form-label" for="suggest-author-input">
+            <span>Name / Email ID / GitHub ID / Username or Alias</span>
+            <span class="form-optional-pill">Optional</span>
+          </label>
           <input type="text" class="form-input" id="suggest-author-input" placeholder="e.g. Maria, maria@example.com, or @maria">
           <span class="form-hint">Used to credit your work in release changelogs and Git history.</span>
         </div>
@@ -363,7 +366,6 @@
   <div class="modal-backdrop" id="submit-modal">
     <div class="modal-glass-dialog">
       <div class="modal-header">
-        <div class="modal-badge"><svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg> READY TO STAGE</div>
         <h3 class="modal-title">Submit Your Translations</h3>
       </div>
       <div class="modal-body">
@@ -372,7 +374,10 @@
         </p>
 
         <div class="form-group">
-          <label class="form-label">Name / Email ID / GitHub ID / Username or Alias (Optional)</label>
+          <label class="form-label" for="submit-author-input">
+            <span>Name / Email ID / GitHub ID / Username or Alias</span>
+            <span class="form-optional-pill">Optional</span>
+          </label>
           <input type="text" class="form-input" id="submit-author-input" placeholder="e.g. Maria, maria@example.com, or @maria">
           <span class="form-hint">Used to credit your work in release changelogs and Git history.</span>
         </div>
@@ -485,6 +490,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.3.7"></script>
+  <script src="app.js?v=2.3.8"></script>
 </body>
 </html>
