@@ -1283,7 +1283,7 @@
     if (approvedEntry) {
       return {
         status: 'approved',
-        label: `Approved (${escapeHtml(approvedEntry.contributor || 'Maintainer')})`,
+        label: 'Approved',
         pillClass: 'pill-approved',
         dotClass: 'dot-approved',
         isReadOnly: true,
@@ -1296,15 +1296,11 @@
     if (hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals))) {
       const subMap = getSubmittedTranslations(currentLang);
       const subObj = subMap ? subMap[item.key] : null;
-
-      let authorName = (subObj && subObj.contributor) || (proposalMeta && proposalMeta.latestContributor) || '';
-      authorName = String(authorName).replace(/^@+/, '').trim();
-      const contrib = authorName ? (authorName.includes('@') || authorName.includes(' ') ? authorName : `@${authorName}`) : (proposalMeta ? `${proposalMeta.count} proposal(s)` : 'Contributor');
       const text = (subObj && subObj.text) || (proposalMeta && proposalMeta.latestTranslation) || catalogTrans || '';
 
       return {
         status: 'submitted',
-        label: `Submitted (${escapeHtml(contrib)})`,
+        label: 'Submitted',
         pillClass: 'pill-submitted',
         dotClass: 'dot-submitted',
         isReadOnly: true,
@@ -1476,7 +1472,7 @@
 
           <div class="editor-column target-column">
             <div class="column-header">
-              <span>Your Translation</span>
+              <span>Translation</span>
             </div>
             <textarea class="translation-textarea" rows="1" 
               placeholder="${placeholderText}"
