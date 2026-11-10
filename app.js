@@ -27,6 +27,7 @@
       if (preferSession && typeof window.sessionStorage !== 'undefined') {
         const val = window.sessionStorage.getItem(key);
         if (val !== null) return val;
+        return null;
       }
       if (typeof window.localStorage !== 'undefined') {
         const val = window.localStorage.getItem(key);
@@ -46,6 +47,7 @@
       }
       if (preferSession && typeof window.sessionStorage !== 'undefined') {
         window.sessionStorage.setItem(key, value);
+        return;
       }
       if (typeof window.localStorage !== 'undefined') {
         window.localStorage.setItem(key, value);
@@ -69,20 +71,20 @@
   }
 
   function getOrCreateSessionId() {
-    // Check localStorage first: preserves session across browser restarts for zero-login 48h drafts
+    // Check sessionStorage first: ensures distinct tabs/windows get independent collaborator sessions!
     let sid = null;
     try {
-      sid = window.localStorage.getItem('tunetastic_session_id');
+      sid = window.sessionStorage.getItem('tunetastic_session_id');
       if (!sid) {
         sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
-        window.localStorage.setItem('tunetastic_session_id', sid);
+        window.sessionStorage.setItem('tunetastic_session_id', sid);
       }
     } catch {
       try {
-        sid = window.sessionStorage.getItem('tunetastic_session_id');
+        sid = window.localStorage.getItem('tunetastic_session_id');
         if (!sid) {
           sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
-          window.sessionStorage.setItem('tunetastic_session_id', sid);
+          window.localStorage.setItem('tunetastic_session_id', sid);
         }
       } catch {
         sid = 's_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -734,25 +736,22 @@
       p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
     });
 
-    // In incognito mode, bypass Cloudflare drafts, locks, and live status polling
-    if (!isIncognitoMode) {
-      try {
-        await Promise.allSettled([
-          fetchLiveStatus(),
-          checkDraftResumption()
-        ]);
-      } catch (e) {
-        console.warn("Background workspace sync error:", e);
+    // Always fetch live status (read-only for all sessions including incognito). Check resumption for standard sessions.
+    try {
+      const syncTasks = [fetchLiveStatus()];
+      if (!isIncognitoMode) {
+        syncTasks.push(checkDraftResumption());
       }
+      await Promise.allSettled(syncTasks);
+    } catch (e) {
+      console.warn("Background workspace sync error:", e);
     }
 
     // Render cards and update stats
     renderCards();
     updateWorkspaceStats();
     updateSaveIndicatorUi();
-    if (!isIncognitoMode) {
-      startLiveStatusPolling();
-    }
+    startLiveStatusPolling();
     startDraftTimer();
   }
 
@@ -798,7 +797,6 @@
   let isPollingActive = false;
 
   function startLiveStatusPolling() {
-    if (isIncognitoMode) return;
     stopLiveStatusPolling();
     livePollingTimer = setInterval(pollLiveStatus, 4000);
   }
@@ -811,7 +809,7 @@
   }
 
   async function pollLiveStatus() {
-    if (isIncognitoMode || isPollingActive) return;
+    if (isPollingActive) return;
     if (!workspaceView || !workspaceView.classList.contains('active') || !currentLang) return;
     if (isDraftPendingResumption) return;
 
@@ -828,7 +826,12 @@
       const newProposals = JSON.stringify(liveStatus.proposals || {});
 
       if (prevLocks !== newLocks || prevApproved !== newApproved || prevProposals !== newProposals) {
-        syncLiveStatusToDOM();
+        const isEditing = document.activeElement && document.activeElement.tagName === 'TEXTAREA';
+        if ((currentFilter !== 'all' || (searchQuery && searchQuery.trim())) && !isEditing) {
+          renderCards();
+        } else {
+          syncLiveStatusToDOM();
+        }
         updateWorkspaceStats();
       }
     } catch (e) {
@@ -932,9 +935,7 @@
           textarea.style.opacity = '1';
           textarea.style.cursor = 'text';
           textarea.style.background = '';
-          if (statusInfo.hasLocalDraft) {
-            textarea.value = statusInfo.displayText || '';
-          }
+          textarea.value = statusInfo.displayText || '';
         }
         autoResizeTextarea(textarea);
       }
@@ -1013,8 +1014,8 @@
             existingUpdated = Date.now();
           }
 
-          safeStorageSet(`tunetastic_l10n_${currentLang}`, JSON.stringify(currentDrafts));
-          safeStorageSet(`tunetastic_draft_updated_${currentLang}`, String(existingUpdated));
+          safeStorageSet(`tunetastic_l10n_${currentLang}`, JSON.stringify(currentDrafts), true);
+          safeStorageSet(`tunetastic_draft_updated_${currentLang}`, String(existingUpdated), true);
 
           draftResumeModal.classList.remove('active');
           renderCards();
@@ -1141,11 +1142,9 @@
   // 400ms Debounced Draft Autosave to cloud storage
   let draftSaveTimer = null;
   function scheduleDraftAutosave(key, text) {
-    if (isIncognitoMode) {
-      updateSaveIndicatorUi();
-      return;
+    if (!isIncognitoMode) {
+      updateSaveIndicatorUi('saving');
     }
-    updateSaveIndicatorUi('saving');
     clearTimeout(draftSaveTimer);
     draftSaveTimer = setTimeout(async () => {
       try {
@@ -1370,24 +1369,27 @@
     const badges = [];
     if (baseStatus === 'approved') {
       badges.push({ label: 'Approved', pillClass: 'pill-approved', dotClass: 'dot-approved' });
+      if (isOtherDrafting) {
+        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      }
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
-      } else if (isOtherDrafting) {
-        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
       }
     } else if (baseStatus === 'translated') {
       badges.push({ label: 'Already Translated', pillClass: 'pill-translated', dotClass: 'dot-translated' });
+      if (isOtherDrafting) {
+        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      }
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
-      } else if (isOtherDrafting) {
-        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
       }
     } else if (baseStatus === 'submitted') {
       badges.push({ label: 'Submitted', pillClass: 'pill-submitted', dotClass: 'dot-submitted' });
+      if (isOtherDrafting) {
+        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      }
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
-      } else if (isOtherDrafting) {
-        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
       }
     } else if (baseStatus === 'other') {
       badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
@@ -2322,7 +2324,7 @@
 
   function getLocalTranslation(lang, key) {
     try {
-      const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true);
       if (!stored) return '';
       const map = JSON.parse(stored);
       return map[key] || '';
@@ -2333,29 +2335,29 @@
 
   function setLocalTranslation(lang, key, value, updateTimestamp = true) {
     try {
-      const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true);
       const map = stored ? JSON.parse(stored) : {};
       if (value && value.trim()) {
         map[key] = value;
         if (updateTimestamp) {
-          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()));
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()), true);
         }
       } else {
         delete map[key];
         if (Object.keys(map).length === 0) {
           safeStorageRemove(`tunetastic_draft_updated_${lang}`);
         } else if (updateTimestamp) {
-          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()));
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()), true);
         }
       }
-      safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map));
+      safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map), true);
       updateDraftTimerDisplay();
     } catch (e) {}
   }
 
   function getAllLocalTranslations(lang) {
     try {
-      const stored = safeStorageGet(`tunetastic_l10n_${lang}`);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};
@@ -2492,6 +2494,20 @@
       if (document.visibilityState === 'visible' && workspaceView && workspaceView.classList.contains('active')) {
         pollLiveStatus();
       }
+    });
+
+    // Immediate active editing lock release on tab close or page exit
+    window.addEventListener('pagehide', () => {
+      const lang = currentLang || safeStorageGet('tunetastic_last_lang');
+      if (!lang || !SESSION_ID) return;
+      const url = `${WORKER_URL}/api/drafts/release-lock?lang=${encodeURIComponent(lang)}&sid=${encodeURIComponent(SESSION_ID)}`;
+      try {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(url);
+        } else {
+          fetch(url, { keepalive: true, method: 'POST' }).catch(() => {});
+        }
+      } catch {}
     });
   }
 
