@@ -995,7 +995,7 @@
         draftResumeModal.classList.add('active');
 
         // Helper: Load drafts into workspace and close modal (preserving original edit timestamp)
-        const restoreDraftsAndClose = () => {
+        const restoreDraftsAndClose = async () => {
           isDraftPendingResumption = false;
 
           // Preserve the original edit timestamp; clock should NOT reset on resumption!
@@ -1018,6 +1018,34 @@
           updateWorkspaceStats();
           updateDraftTimerDisplay();
           showToast(`Restored ${count} draft translations!`);
+
+          // Re-acquire active locks and sync drafts in Cloudflare KV under current session
+          if (!isIncognitoMode && currentDrafts && Object.keys(currentDrafts).length > 0) {
+            try {
+              await fetch(`${WORKER_URL}/api/draft`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Session-ID': SESSION_ID
+                },
+                body: JSON.stringify({
+                  language: currentLang,
+                  drafts: currentDrafts,
+                  updatedAt: new Date(existingUpdated).toISOString()
+                })
+              });
+              await fetchLiveStatus();
+              const isUserTyping = Boolean(document.activeElement && document.activeElement.tagName === 'TEXTAREA');
+              if (!isUserTyping) {
+                renderCards();
+              } else {
+                syncLiveStatusToDOM();
+              }
+              updateWorkspaceStats();
+            } catch (e) {
+              console.warn("Failed to re-acquire draft locks on resumption:", e);
+            }
+          }
         };
 
         // Action 1: Resume Drafts

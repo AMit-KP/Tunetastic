@@ -69,12 +69,13 @@ export default {
 
     try {
       // -----------------------------------------------------------------------
-      // 1. DRAFT AUTOSAVE & 48-HOUR SLIDING WINDOW
+      // 1. DRAFT AUTOSAVE & 48-HOUR SLIDING WINDOW (Supports single & batch drafts)
       // -----------------------------------------------------------------------
       if (path === "/api/draft" && request.method === "POST") {
-        const { language, key, text } = await request.json();
-        if (!language || !key) {
-          return jsonResponse({ error: "Language and key required" }, 400, corsHeaders);
+        const body = await request.json().catch(() => ({}));
+        const { language, key, text, drafts, updatedAt } = body;
+        if (!language || (!key && !drafts)) {
+          return jsonResponse({ error: "Language and either key or drafts required" }, 400, corsHeaders);
         }
 
         const draftKey = `draft:${language}:${sessionId}`;
@@ -86,13 +87,27 @@ export default {
         const currentLocksRaw = await env.SUBMISSIONS.get(lockMapKey);
         const currentLocks = currentLocksRaw ? JSON.parse(currentLocksRaw) : {};
 
-        if (text && typeof text === "string" && text.trim().length > 0) {
-          draftData.keys[key] = text;
-          draftData.updatedAt = new Date().toISOString();
-          currentLocks[key] = { sessionId, updatedAt: Date.now() };
-        } else {
-          delete draftData.keys[key];
-          delete currentLocks[key];
+        if (drafts && typeof drafts === "object") {
+          const now = Date.now();
+          for (const [dKey, dText] of Object.entries(drafts)) {
+            if (dText && typeof dText === "string" && dText.trim().length > 0) {
+              draftData.keys[dKey] = dText;
+              currentLocks[dKey] = { sessionId, updatedAt: now };
+            } else {
+              delete draftData.keys[dKey];
+              delete currentLocks[dKey];
+            }
+          }
+          draftData.updatedAt = updatedAt || new Date().toISOString();
+        } else if (key) {
+          if (text && typeof text === "string" && text.trim().length > 0) {
+            draftData.keys[key] = text;
+            draftData.updatedAt = new Date().toISOString();
+            currentLocks[key] = { sessionId, updatedAt: Date.now() };
+          } else {
+            delete draftData.keys[key];
+            delete currentLocks[key];
+          }
         }
 
         // 48-hour sliding TTL (172800 seconds)
