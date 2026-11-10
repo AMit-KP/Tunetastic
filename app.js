@@ -1878,7 +1878,7 @@
     }
 
     listEl.innerHTML = proposals.map((p, idx) => {
-      const rawContributor = p.contributor ? String(p.contributor).replace(/^@+/, '').trim() : 'Unknown';
+      const rawContributor = p.contributor ? String(p.contributor).trim() : 'Unknown';
       const timeStr = formatTimeAgo(p.timestamp);
 
       return `
@@ -1933,7 +1933,7 @@
     document.getElementById('modal-submit-lang').textContent = formatLanguageDisplayName(meta, currentLang);
     document.getElementById('modal-submit-count').textContent = count;
     let savedAuthor = safeStorageGet('tunetastic_author') || '';
-    savedAuthor = String(savedAuthor).replace(/^@+/, '').trim();
+    savedAuthor = String(savedAuthor).trim();
     document.getElementById('submit-author-input').value = savedAuthor;
 
     submitModal.classList.add('active');
@@ -1941,10 +1941,9 @@
 
   async function submitTranslations() {
     const rawAuthor = document.getElementById('submit-author-input').value.trim() || 'Unknown';
-    const cleanAuthor = rawAuthor.replace(/^@+/, '').trim();
-    const author = cleanAuthor || 'Unknown';
-    if (cleanAuthor && cleanAuthor !== 'Unknown') {
-      safeStorageSet('tunetastic_author', cleanAuthor);
+    const author = rawAuthor || 'Unknown';
+    if (rawAuthor && rawAuthor !== 'Unknown') {
+      safeStorageSet('tunetastic_author', rawAuthor);
     } else {
       safeStorageRemove('tunetastic_author');
     }
@@ -1961,6 +1960,20 @@
     btn.textContent = 'Submitting...';
 
     try {
+      // Prepare details (English source & App Context) for GitHub Tracker table
+      const details = {};
+      const catMap = new Map();
+      if (catalog && catalog.items) {
+        catalog.items.forEach(i => catMap.set(i.key, i));
+      }
+      for (const k of Object.keys(translations)) {
+        const item = catMap.get(k);
+        details[k] = {
+          source: (item && item.source) || '',
+          context: (item && item.comment) || ''
+        };
+      }
+
       const res = await fetch(`${WORKER_URL}/api/submit`, {
         method: 'POST',
         headers: {
@@ -1970,7 +1983,8 @@
         body: JSON.stringify({
           language: currentLang,
           contributor: author,
-          translations
+          translations,
+          details
         })
       });
 
@@ -2400,7 +2414,7 @@
     document.getElementById('ws-submit-btn').onclick = openSubmitModal;
     document.getElementById('modal-cancel-btn').onclick = () => {
       const input = document.getElementById('submit-author-input');
-      const val = input ? input.value.replace(/^@+/, '').trim() : '';
+      const val = input ? input.value.trim() : '';
       if (val) {
         safeStorageSet('tunetastic_author', val);
       } else {
@@ -2413,7 +2427,7 @@
     const submitAuthorInput = document.getElementById('submit-author-input');
     if (submitAuthorInput) {
       submitAuthorInput.addEventListener('input', (e) => {
-        const val = e.target.value.replace(/^@+/, '').trim();
+        const val = e.target.value.trim();
         if (val) {
           safeStorageSet('tunetastic_author', val);
         } else {

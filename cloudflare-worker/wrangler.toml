@@ -10,6 +10,6 @@ kv_namespaces = [
 [vars]
 GITHUB_OWNER = "AMit-KP"
 GITHUB_REPO = "Tunetastic"
-TRACKER_ISSUE_NUMBER = "50"
+TRACKER_ISSUE_NUMBER = "144"
 # Note: GITHUB_TOKEN and ADMIN_PASSWORD_HASH are encrypted Cloudflare Secrets and must NEVER be stored here.
 

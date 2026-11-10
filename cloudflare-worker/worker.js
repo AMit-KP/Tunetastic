@@ -33,6 +33,27 @@ function verifyAdminAuth(request, env) {
   return auth === `Bearer ${env.ADMIN_PASSWORD_HASH}`;
 }
 
+
+function formatToIST(date = new Date()) {
+  try {
+    const formatted = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Kolkata",
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    }).format(date);
+    return formatted + " IST";
+  } catch {
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    return new Date(date.getTime() + istOffset).toUTCString().replace("GMT", "IST");
+  }
+}
+
 function getSessionId(request) {
   const sid = request.headers.get("X-Session-ID") || "";
   return sid.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64) || "anon";
@@ -312,9 +333,9 @@ export default {
       // -----------------------------------------------------------------------
       if (path === "/api/submit" && request.method === "POST") {
         const body = await request.json();
-        const { language, contributor = "Unknown", translations = {} } = body;
+        const { language, contributor = "Unknown", translations = {}, details = {} } = body;
 
-        const sanitizedContributor = String(contributor).replace(/^@+/, "").slice(0, 50).trim() || "Unknown";
+        const sanitizedContributor = String(contributor).slice(0, 50).trim() || "Unknown";
         const keys = Object.keys(translations);
         if (!language || keys.length === 0) {
           return jsonResponse({ error: "Language and non-empty translations required" }, 400, corsHeaders);
@@ -352,7 +373,9 @@ export default {
           };
           proposals.push(newProposal);
           await env.SUBMISSIONS.put(proposalKey, JSON.stringify(proposals));
-          accepted.push({ key: k, text });
+          const kSource = (details && details[k] && details[k].source) ? details[k].source : "";
+          const kContext = (details && details[k] && details[k].context) ? details[k].context : "";
+          accepted.push({ key: k, text, source: kSource, context: kContext });
         }
 
         // Update proposals summary index
@@ -390,15 +413,19 @@ export default {
         // Send Collapsed GitHub Tracker Comment to Issue #143
         if (env.GITHUB_TOKEN && env.TRACKER_ISSUE_NUMBER && accepted.length > 0) {
           try {
-            const tableRows = accepted.slice(0, 50).map(a => `| \`${a.key}\` | \`${a.text}\` |`).join("\n");
+            const escapeCell = (val) => String(val || "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ").trim() || "-";
+            const tableRows = accepted.slice(0, 100).map(a =>
+              `| \`${a.key}\` | ${escapeCell(a.context)} | ${escapeCell(a.source)} | \`${escapeCell(a.text)}\` |`
+            ).join("\n");
+
             const commentBody =
               `🌐 **New Translation Submission for \`${language}\`**\n\n` +
-              `- **Contributor:** ${sanitizedContributor.startsWith("@") ? sanitizedContributor : "@" + sanitizedContributor}\n` +
+              `- **Contributor:** ${sanitizedContributor}\n` +
               `- **Strings Submitted:** ${accepted.length} string(s)\n` +
-              `- **Timestamp:** ${new Date().toUTCString()}\n\n` +
+              `- **Timestamp:** ${formatToIST(new Date())}\n\n` +
               `<details>\n<summary><b>Click to view translated strings (${accepted.length})</b></summary>\n\n` +
-              `| Key | Submitted Translation |\n` +
-              `| :--- | :--- |\n` +
+              `| Key | App Context | English Source | Submitted Translation |\n` +
+              `| :--- | :--- | :--- | :--- |\n` +
               `${tableRows}\n\n` +
               `</details>\n\n` +
               `👉 [Review & Approve in Portal](https://${env.GITHUB_OWNER || "AMit-KP"}.github.io/${env.GITHUB_REPO || "Tunetastic"}/#admin)`;
