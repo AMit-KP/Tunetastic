@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.4.4">
+  <link rel="stylesheet" href="styles.css?v=2.4.5">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -312,56 +312,6 @@
 
   </main>
 
-  <!-- MODAL: Suggest Alternative Translation -->
-  <div class="modal-backdrop" id="suggest-modal">
-    <div class="modal-glass-dialog">
-      <div class="modal-header">
-        <div class="modal-badge"><svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5c0 2 1.2 3.4 2.2 4.5h4.6c1-1.1 2.2-2.5 2.2-4.5A4.5 4.5 0 0 0 8 1.5zM6 13h4M6.5 14.5h3"/></svg> COMMUNITY ALTERNATIVE</div>
-        <h3 class="modal-title">Suggest an Alternative</h3>
-      </div>
-      <div class="modal-body">
-        <div style="margin-bottom: 14px;">
-          <span style="font-size: 12px; color: var(--text-tertiary);">Key:</span>
-          <code id="suggest-key-label" style="color: var(--accent-cyan); font-family: var(--font-mono); margin-left: 6px;">Key_Name</code>
-        </div>
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px;">
-          <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px;">English Source:</div>
-          <div id="suggest-source-text" style="color: var(--text-primary); font-size: 14px; font-weight: 500;">Source text</div>
-        </div>
-
-        <!-- Existing proposals stack list -->
-        <div id="suggest-existing-container" style="margin-bottom: 14px;">
-          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Existing Community Proposals (<span id="suggest-slot-count">0</span>/10):</div>
-          <div id="suggest-existing-list" style="max-height: 140px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
-        </div>
-
-        <!-- Max 10 banner -->
-        <div id="suggest-full-banner" style="display: none; background: rgba(255, 171, 0, 0.1); border: 1px solid rgba(255, 171, 0, 0.3); border-radius: var(--radius-md); padding: 12px; margin-bottom: 14px; color: #ffab00; font-size: 13px;">
-          <svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M12 6V4a4 4 0 0 0-8 0v2H2v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6h-2zM6 4a2 2 0 1 1 4 0v2H6V4zm2 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg> <strong>Max Suggestions Reached (10/10)</strong>. New suggestions are paused for this string until the maintainer evaluates existing proposals.
-        </div>
-
-        <div class="form-group" id="suggest-input-group">
-          <label class="form-label">Your Proposed Translation</label>
-          <textarea class="form-input" id="suggest-text-input" rows="3" placeholder="Enter your translation..."></textarea>
-          <div id="suggest-exact-error" style="display: none; color: #ff6b6b; font-size: 12px; margin-top: 6px;"><svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M7.1 1.5c.4-.7 1.4-.7 1.8 0l6.7 11.6c.4.7-.1 1.6-.9 1.6H1.3c-.8 0-1.3-.9-.9-1.6L7.1 1.5zM8 5a.8.8 0 0 0-.8.8v3.4a.8.8 0 0 0 1.6 0V5.8A.8.8 0 0 0 8 5zm0 6.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"/></svg> This exact translation has already been suggested.</div>
-        </div>
-
-        <div class="form-group" id="suggest-author-group">
-          <label class="form-label" for="suggest-author-input">
-            <span>Name / Email ID / GitHub ID / Username or Alias</span>
-            <span class="form-optional-pill">Optional</span>
-          </label>
-          <input type="text" class="form-input" id="suggest-author-input" placeholder="e.g. Maria, maria@example.com, or @maria">
-          <span class="form-hint">Used to credit your work in release changelogs and Git history.</span>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-glass" id="suggest-cancel-btn">Cancel</button>
-        <button class="btn btn-primary-gradient" id="suggest-confirm-btn">Submit Suggestion</button>
-      </div>
-    </div>
-  </div>
-
   <!-- MODAL: View Community Submissions -->
   <div class="modal-backdrop" id="view-submissions-modal">
     <div class="modal-glass-dialog">
@@ -385,9 +335,8 @@
           <div id="view-submissions-list" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" style="justify-content: flex-end;">
         <button class="btn btn-glass" id="view-submissions-close-btn">Close</button>
-        <button class="btn btn-primary-gradient" id="view-submissions-suggest-btn">Suggest Alternative</button>
       </div>
     </div>
   </div>
@@ -520,6 +469,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.4.4"></script>
+  <script src="app.js?v=2.4.5"></script>
 </body>
 </html>

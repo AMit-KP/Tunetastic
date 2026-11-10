@@ -148,15 +148,12 @@
 
   // Modals & Centered Dialogs
   const submitModal = document.getElementById('submit-modal');
-  const suggestModal = document.getElementById('suggest-modal');
   const viewSubmissionsModal = document.getElementById('view-submissions-modal');
   const draftResumeModal = document.getElementById('draft-resume-modal');
   const draftModalMainView = document.getElementById('draft-modal-main-view');
   const draftModalConfirmView = document.getElementById('draft-modal-confirm-view');
 
   // Active Key for Modals
-  let activeSuggestKey = null;
-  let activeSuggestProposals = [];
   let activeViewSubmissionsItem = null;
 
   // -------------------------------------------------------------------------
@@ -841,6 +838,80 @@
     }
   }
 
+  function updateCardBadgesAndActions(card, item, statusInfo) {
+    const badgesContainer = card.querySelector('.card-badges');
+    if (badgesContainer) {
+      badgesContainer.querySelectorAll('.card-status-pill').forEach(el => el.remove());
+      const tokenBadge = badgesContainer.querySelector('[id^="token-badge-"]');
+      statusInfo.badges.forEach(b => {
+        const pill = document.createElement('span');
+        pill.className = `studio-pill card-status-pill ${b.pillClass}`;
+        pill.innerHTML = `<span class="status-dot ${b.dotClass}"></span> ${b.label}`;
+        if (tokenBadge) {
+          badgesContainer.insertBefore(pill, tokenBadge);
+        } else {
+          badgesContainer.appendChild(pill);
+        }
+      });
+    }
+
+    const actionsBar = card.querySelector('.target-column .column-actions-bar');
+    if (actionsBar) {
+      const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
+      const subCount = proposalMeta ? proposalMeta.count : 0;
+
+      // 1. View Submissions button
+      let viewSubBtn = actionsBar.querySelector('.btn-view-submissions');
+      if (statusInfo.showViewSubmissionsBtn) {
+        if (!viewSubBtn) {
+          viewSubBtn = document.createElement('button');
+          viewSubBtn.className = 'btn-view-submissions';
+          viewSubBtn.setAttribute('data-key', item.key);
+          viewSubBtn.onclick = () => openViewSubmissionsModal(item);
+          actionsBar.prepend(viewSubBtn);
+        }
+        viewSubBtn.innerHTML = `${ICONS.eye} View Submissions${subCount > 0 ? ` (${subCount})` : ''}`;
+      } else if (viewSubBtn) {
+        viewSubBtn.remove();
+      }
+
+      // 2. Suggest Alternative button (Only for approved/translated when not yet unlocked)
+      let suggestBtn = actionsBar.querySelector('.btn-suggest');
+      if (statusInfo.showSuggestBtn) {
+        if (!suggestBtn) {
+          suggestBtn = document.createElement('button');
+          suggestBtn.className = 'btn-suggest';
+          suggestBtn.setAttribute('data-key', item.key);
+          suggestBtn.onclick = () => unlockForSuggestion(item, card);
+          actionsBar.appendChild(suggestBtn);
+        }
+        suggestBtn.innerHTML = `${ICONS.bulb} Suggest Alternative`;
+      } else if (suggestBtn) {
+        suggestBtn.remove();
+      }
+    }
+  }
+
+  function unlockForSuggestion(item, card) {
+    const textarea = card.querySelector('textarea.translation-textarea');
+    const existingVal = textarea && textarea.value ? textarea.value : (getCatalogTranslation(currentLang, item.key) || '');
+    setLocalTranslation(currentLang, item.key, existingVal);
+    scheduleDraftAutosave(item.key, existingVal);
+
+    if (textarea) {
+      textarea.readOnly = false;
+      textarea.style.opacity = '1';
+      textarea.style.cursor = 'text';
+      textarea.style.background = '';
+      textarea.focus();
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
+
+    const updatedStatus = getItemStatusInfo(item);
+    updateCardBadgesAndActions(card, item, updatedStatus);
+    updateWorkspaceStats();
+  }
+
   function syncLiveStatusToDOM() {
     if (!catalog || !catalog.items) return;
     const itemMap = new Map();
@@ -855,40 +926,26 @@
       if (!item) return;
 
       const statusInfo = getItemStatusInfo(item);
-      const statusPill = card.querySelector('.card-status-pill');
-      if (statusPill) {
-        statusPill.className = `studio-pill card-status-pill ${statusInfo.pillClass}`;
-        statusPill.innerHTML = `<span class="status-dot ${statusInfo.dotClass}"></span> ${statusInfo.label}`;
-      }
+      updateCardBadgesAndActions(card, item, statusInfo);
 
       const textarea = card.querySelector('textarea.translation-textarea');
       if (textarea && document.activeElement !== textarea) {
         textarea.readOnly = statusInfo.isReadOnly;
-        if (statusInfo.status === 'other') {
-          textarea.placeholder = 'Another contributor is drafting this... You can suggest an alternative.';
-          textarea.style.opacity = '0.6';
-          textarea.style.cursor = 'default';
-          textarea.style.background = 'rgba(255,255,255,0.02)';
-          if (!getLocalTranslation(currentLang, item.key)) {
-            textarea.value = '';
-          }
-          autoResizeTextarea(textarea);
-        } else if (statusInfo.status === 'available') {
-          textarea.placeholder = 'Type translation here...';
-          textarea.style.opacity = '1';
-          textarea.style.cursor = 'text';
-          textarea.style.background = '';
-          autoResizeTextarea(textarea);
-        } else if (statusInfo.isReadOnly) {
-          textarea.placeholder = (statusInfo.status === 'submitted' && !statusInfo.displayText)
-            ? 'Translation submitted. Use \'Suggest Alternative\' to propose changes.'
-            : 'This string is locked. Use \'Suggest Alternative\' to propose changes.';
+        textarea.placeholder = statusInfo.placeholderText;
+        if (statusInfo.isReadOnly) {
           textarea.style.opacity = '0.85';
           textarea.style.cursor = 'default';
           textarea.style.background = 'rgba(255,255,255,0.02)';
           textarea.value = statusInfo.displayText || '';
-          autoResizeTextarea(textarea);
+        } else {
+          textarea.style.opacity = '1';
+          textarea.style.cursor = 'text';
+          textarea.style.background = '';
+          if (statusInfo.hasLocalDraft) {
+            textarea.value = statusInfo.displayText || '';
+          }
         }
+        autoResizeTextarea(textarea);
       }
 
       // Update Translated Preview row if present
@@ -901,41 +958,6 @@
         if (previewTargetRow) {
           previewTargetRow.setAttribute('title', val ? `Translation Preview: ${val}` : 'Translation Preview: No translation yet');
         }
-      }
-
-      // Update Suggest button slot limit
-      const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
-      const isFull = proposalMeta && proposalMeta.isFull;
-      const suggestBtn = card.querySelector('.btn-suggest');
-      if (suggestBtn) {
-        if (isFull) {
-          suggestBtn.disabled = true;
-          suggestBtn.innerHTML = `${ICONS.lock} Max (10/10)`;
-        } else {
-          suggestBtn.disabled = false;
-          suggestBtn.innerHTML = `${ICONS.bulb} Suggest Alternative`;
-        }
-      }
-
-      // Update View Submissions button (shown only when status is 'submitted')
-      const subCount = proposalMeta ? proposalMeta.count : 0;
-      let viewSubBtn = card.querySelector('.btn-view-submissions');
-      if (statusInfo.status === 'submitted') {
-        if (!viewSubBtn) {
-          viewSubBtn = document.createElement('button');
-          viewSubBtn.className = 'btn-view-submissions';
-          viewSubBtn.setAttribute('data-key', item.key);
-          viewSubBtn.onclick = () => openViewSubmissionsModal(item);
-          if (suggestBtn && suggestBtn.parentNode) {
-            suggestBtn.parentNode.insertBefore(viewSubBtn, suggestBtn);
-          } else {
-            const actionsBar = card.querySelector('.target-column .column-actions-bar');
-            if (actionsBar) actionsBar.appendChild(viewSubBtn);
-          }
-        }
-        viewSubBtn.innerHTML = `${ICONS.eye} View Submissions${subCount > 0 ? ` (${subCount})` : ''}`;
-      } else if (viewSubBtn) {
-        viewSubBtn.remove();
       }
     });
   }
@@ -1264,37 +1286,27 @@
     const localDraft = getLocalDraft(currentLang, item.key);
     const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
 
-    // 1. Approved (Staged for release PR)
+    const hasLocalDraft = Boolean(!isDraftPendingResumption && localDraft !== null && localDraft !== undefined && localDraft.trim().length > 0);
+    const isOtherDrafting = lock === 'other';
+    const hasServerProposals = Boolean(proposalMeta && proposalMeta.count > 0);
+    const isSubmitted = hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals));
+
+    // Base Status
+    let baseStatus = 'available';
     if (approvedEntry) {
-      return {
-        status: 'approved',
-        label: 'Approved',
-        pillClass: 'pill-approved',
-        dotClass: 'dot-approved',
-        isReadOnly: true,
-        displayText: approvedEntry.translation || ''
-      };
+      baseStatus = 'approved';
+    } else if (isSubmitted) {
+      baseStatus = 'submitted';
+    } else if (catalogTrans && catalogTrans.trim()) {
+      baseStatus = 'translated';
+    } else if (isOtherDrafting) {
+      baseStatus = 'other';
+    } else if (hasLocalDraft) {
+      baseStatus = 'mine';
     }
 
-    // 2. Submitted (Active in Cloudflare KV proposals)
-    const hasServerProposals = Boolean(proposalMeta && proposalMeta.count > 0);
-    if (hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals))) {
-      const subMap = getSubmittedTranslations(currentLang);
-      const subObj = subMap ? subMap[item.key] : null;
-      // Show translation during submit status ONLY to the user who submitted it; keep empty for everyone else
-      const text = (subObj && subObj.text) ? subObj.text : '';
-
-      return {
-        status: 'submitted',
-        label: 'Submitted',
-        pillClass: 'pill-submitted',
-        dotClass: 'dot-submitted',
-        isReadOnly: true,
-        displayText: text
-      };
-    } else if (isLocalSubmitted && liveStatus && liveStatus.proposals && !hasServerProposals) {
-      // Server has confirmed NO proposals exist in KV for this key (e.g. KV was cleared or proposals synced)
-      // Prune dead local submitted record so localStorage synchronizes with server state
+    // Handle stale local submitted record cleanup
+    if (isLocalSubmitted && liveStatus && liveStatus.proposals && !hasServerProposals) {
       const subMap = getSubmittedTranslations(currentLang);
       if (subMap && subMap[item.key]) {
         delete subMap[item.key];
@@ -1302,50 +1314,114 @@
       }
     }
 
-    // 3. Already Translated (shipped in app catalog)
-    if (catalogTrans && catalogTrans.trim()) {
-      return {
-        status: 'translated',
-        label: 'Already Translated',
-        pillClass: 'pill-translated',
-        dotClass: 'dot-translated',
-        isReadOnly: true,
-        displayText: catalogTrans
-      };
+    // Determine Display Text & Read-Only state
+    let displayText = '';
+    let isReadOnly = false;
+    let placeholderText = 'Type translation here...';
+    let showSuggestBtn = false;
+    let showViewSubmissionsBtn = false;
+
+    if (baseStatus === 'approved') {
+      if (hasLocalDraft) {
+        displayText = localDraft;
+        isReadOnly = false;
+        placeholderText = 'Edit approved translation...';
+        showSuggestBtn = false;
+      } else {
+        displayText = approvedEntry.translation || '';
+        isReadOnly = true;
+        placeholderText = 'Approved translation. Click Suggest Alternative to propose edits.';
+        showSuggestBtn = true;
+      }
+    } else if (baseStatus === 'translated') {
+      if (hasLocalDraft) {
+        displayText = localDraft;
+        isReadOnly = false;
+        placeholderText = 'Edit existing translation...';
+        showSuggestBtn = false;
+      } else {
+        displayText = catalogTrans || '';
+        isReadOnly = true;
+        placeholderText = 'Existing translation. Click Suggest Alternative to propose edits.';
+        showSuggestBtn = true;
+      }
+    } else if (baseStatus === 'submitted') {
+      showViewSubmissionsBtn = true;
+      showSuggestBtn = false;
+      isReadOnly = false; // Enabled per user request!
+      if (hasLocalDraft) {
+        displayText = localDraft;
+        placeholderText = 'Type alternative suggestion here...';
+      } else {
+        displayText = ''; // Empty text field per user request
+        placeholderText = 'Type alternative suggestion here...';
+      }
+    } else if (baseStatus === 'other') {
+      showSuggestBtn = false;
+      isReadOnly = false; // Enabled per user request!
+      if (hasLocalDraft) {
+        displayText = localDraft;
+        placeholderText = 'In progress by another contributor... Type to suggest alternative.';
+      } else {
+        displayText = '';
+        placeholderText = 'In progress by another contributor... Type to suggest alternative.';
+      }
+    } else { // available or mine
+      showSuggestBtn = false;
+      isReadOnly = false;
+      displayText = hasLocalDraft ? localDraft : '';
+      placeholderText = 'Type translation here...';
     }
 
-    // 4. In progress by another contributor (locked in Cloudflare KV)
-    if (lock === 'other') {
-      return {
-        status: 'other',
-        label: 'In Progress By Others',
-        pillClass: 'pill-draft-other',
-        dotClass: 'dot-in-progress',
-        isReadOnly: true,
-        displayText: ''
-      };
+    // Build Badges Array
+    const badges = [];
+    if (baseStatus === 'approved') {
+      badges.push({ label: 'Approved', pillClass: 'pill-approved', dotClass: 'dot-approved' });
+      if (hasLocalDraft) {
+        badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
+      } else if (isOtherDrafting) {
+        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      }
+    } else if (baseStatus === 'translated') {
+      badges.push({ label: 'Already Translated', pillClass: 'pill-translated', dotClass: 'dot-translated' });
+      if (hasLocalDraft) {
+        badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
+      } else if (isOtherDrafting) {
+        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      }
+    } else if (baseStatus === 'submitted') {
+      badges.push({ label: 'Submitted', pillClass: 'pill-submitted', dotClass: 'dot-submitted' });
+      if (hasLocalDraft) {
+        badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
+      } else if (isOtherDrafting) {
+        badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      }
+    } else if (baseStatus === 'other') {
+      badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
+      if (hasLocalDraft) {
+        badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
+      }
+    } else { // available or mine
+      if (hasLocalDraft) {
+        badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
+      } else {
+        badges.push({ label: 'Need Translation', pillClass: 'pill-available', dotClass: 'dot-available' });
+      }
     }
 
-    // 5. Drafted by you in progress
-    if (!isDraftPendingResumption && Boolean(localDraft && localDraft.trim())) {
-      return {
-        status: 'mine',
-        label: 'Drafted By You',
-        pillClass: 'pill-draft-mine',
-        dotClass: 'dot-draft',
-        isReadOnly: false,
-        displayText: localDraft
-      };
-    }
-
-    // 6. Need Translation / Untranslated
     return {
-      status: 'available',
-      label: 'Need Translation',
-      pillClass: 'pill-available',
-      dotClass: 'dot-available',
-      isReadOnly: false,
-      displayText: ''
+      status: baseStatus,
+      hasLocalDraft,
+      isOtherDrafting,
+      isReadOnly,
+      displayText,
+      placeholderText,
+      showSuggestBtn,
+      showViewSubmissionsBtn,
+      badges,
+      label: badges[0].label,
+      pillClass: badges[0].pillClass,
+      dotClass: badges[0].dotClass
     };
   }
 
@@ -1355,15 +1431,15 @@
     return catalog.items.filter(item => {
       const statusInfo = getItemStatusInfo(item);
 
-      if (currentFilter === 'available' && statusInfo.status !== 'available') return false;
-      if (currentFilter === 'mine' && statusInfo.status !== 'mine') return false;
-      if (currentFilter === 'other' && statusInfo.status !== 'other') return false;
+      if (currentFilter === 'available' && (statusInfo.status !== 'available' || statusInfo.hasLocalDraft)) return false;
+      if (currentFilter === 'mine' && !statusInfo.hasLocalDraft) return false;
+      if (currentFilter === 'other' && !statusInfo.isOtherDrafting) return false;
       if (currentFilter === 'submitted' && statusInfo.status !== 'submitted') return false;
       if (currentFilter === 'approved' && statusInfo.status !== 'approved') return false;
       if (currentFilter === 'translated' && statusInfo.status !== 'translated') return false;
 
       // Legacy filter fallback
-      if (currentFilter === 'missing' && statusInfo.status !== 'available') return false;
+      if (currentFilter === 'missing' && (statusInfo.status !== 'available' || statusInfo.hasLocalDraft)) return false;
       if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved') return false;
 
       if (searchQuery) {
@@ -1412,29 +1488,21 @@
       const hasPlaceholders = item.placeholders && item.placeholders.length > 0;
       const tokenStatus = validateTokens(item.source, translation, item.placeholders);
 
-      const statusPill = `<span class="studio-pill card-status-pill ${statusInfo.pillClass}"><span class="status-dot ${statusInfo.dotClass}"></span> ${statusInfo.label}</span>`;
+      const badgesHtml = statusInfo.badges.map(b => `<span class="studio-pill card-status-pill ${b.pillClass}"><span class="status-dot ${b.dotClass}"></span> ${b.label}</span>`).join('');
       const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
-
-      // Suggest Button Slot state
-      const isFull = proposalMeta && proposalMeta.isFull;
-      const suggestBtnHtml = isFull 
-        ? `<button class="btn-suggest" disabled title="Max 10 community suggestions reached">${ICONS.lock} Max (10/10)</button>`
-        : `<button class="btn-suggest" data-key="${escapeHtml(item.key)}">${ICONS.bulb} Suggest Alternative</button>`;
-
       const subCount = proposalMeta ? proposalMeta.count : 0;
-      const viewSubmissionsBtnHtml = statusInfo.status === 'submitted'
+
+      const viewSubmissionsBtnHtml = statusInfo.showViewSubmissionsBtn
         ? `<button class="btn-view-submissions" data-key="${escapeHtml(item.key)}">${ICONS.eye} View Submissions${subCount > 0 ? ` (${subCount})` : ''}</button>`
+        : '';
+
+      const suggestBtnHtml = statusInfo.showSuggestBtn
+        ? `<button class="btn-suggest" data-key="${escapeHtml(item.key)}">${ICONS.bulb} Suggest Alternative</button>`
         : '';
 
       const card = document.createElement('div');
       card.className = 'studio-card';
       card.id = `card-${item.key}`;
-
-      const placeholderText = statusInfo.status === 'other'
-        ? 'Another contributor is drafting this... You can suggest an alternative.'
-        : (statusInfo.status === 'submitted' && !statusInfo.displayText
-          ? 'Translation submitted. Use \'Suggest Alternative\' to propose changes.'
-          : (isReadOnly ? 'This string is locked. Use \'Suggest Alternative\' to propose changes.' : 'Type translation here...'));
 
       const contextHtml = renderContextBlockHtml(item.comment, item.key);
 
@@ -1447,7 +1515,7 @@
             ${contextHtml}
           </div>
           <div class="card-badges">
-            ${statusPill}
+            ${badgesHtml}
             ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
           </div>
         </div>
@@ -1468,7 +1536,7 @@
               <span>Translation</span>
             </div>
             <textarea class="translation-textarea" rows="1" 
-              placeholder="${placeholderText}"
+              placeholder="${statusInfo.placeholderText}"
               ${isReadOnly ? 'readonly style="opacity: 0.85; background: rgba(255,255,255,0.02); cursor: default;"' : ''}>${escapeHtml(translation)}</textarea>
 
             <div class="token-missing-alert" style="display: ${tokenStatus.isValid ? 'none' : 'flex'};">
@@ -1511,62 +1579,56 @@
       const textarea = card.querySelector('textarea.translation-textarea');
       if (textarea) {
         autoResizeTextarea(textarea);
-        if (!isReadOnly) {
-          textarea.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') e.preventDefault();
-          });
-          textarea.addEventListener('input', (e) => {
-            autoResizeTextarea(e.target);
-            const val = e.target.value.replace(/[\r\n]+/g, ' ');
-            setLocalTranslation(currentLang, item.key, val);
+        textarea.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') e.preventDefault();
+        });
+        textarea.addEventListener('input', (e) => {
+          autoResizeTextarea(e.target);
+          const val = e.target.value.replace(/[\r\n]+/g, ' ');
+          setLocalTranslation(currentLang, item.key, val);
 
-            // Update live simulated preview
-            const previewTransEl = card.querySelector('.preview-trans-text');
-            const previewTargetRow = card.querySelector('.preview-row-target');
-            if (previewTransEl) {
-              const rendered = renderSimulatedText(val, item.placeholders);
-              previewTransEl.innerHTML = rendered || '<span class="preview-empty">No translation yet</span>';
-              if (previewTargetRow) {
-                previewTargetRow.setAttribute('title', val ? `Translation Preview: ${val}` : 'Translation Preview: No translation yet');
+          // Update live simulated preview
+          const previewTransEl = card.querySelector('.preview-trans-text');
+          const previewTargetRow = card.querySelector('.preview-row-target');
+          if (previewTransEl) {
+            const rendered = renderSimulatedText(val, item.placeholders);
+            previewTransEl.innerHTML = rendered || '<span class="preview-empty">No translation yet</span>';
+            if (previewTargetRow) {
+              previewTargetRow.setAttribute('title', val ? `Translation Preview: ${val}` : 'Translation Preview: No translation yet');
+            }
+          }
+
+          // Update status badges and action bar buttons on card dynamically
+          const updatedStatusInfo = getItemStatusInfo(item);
+          updateCardBadgesAndActions(card, item, updatedStatusInfo);
+
+          // Validate Tokens
+          if (hasPlaceholders) {
+            const tokenWarn = card.querySelector('.token-missing-alert');
+            const tokenBadge = card.querySelector('[id^="token-badge-"]');
+            const check = validateTokens(item.source, val, item.placeholders);
+            if (check.isValid) {
+              if (tokenWarn) tokenWarn.style.display = 'none';
+              if (tokenBadge) {
+                tokenBadge.className = 'studio-pill pill-tokens';
+                tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
+              }
+            } else {
+              if (tokenWarn) {
+                tokenWarn.style.display = 'flex';
+                tokenWarn.innerHTML = `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
+              }
+              if (tokenBadge) {
+                tokenBadge.className = 'studio-pill pill-error';
+                tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
               }
             }
+          }
 
-            // Update status pill on card dynamically
-            const statusPillEl = card.querySelector('.card-status-pill');
-            if (statusPillEl) {
-              const updatedStatusInfo = getItemStatusInfo(item);
-              statusPillEl.className = `studio-pill card-status-pill ${updatedStatusInfo.pillClass}`;
-              statusPillEl.innerHTML = `<span class="status-dot ${updatedStatusInfo.dotClass}"></span> ${updatedStatusInfo.label}`;
-            }
-
-            // Validate Tokens
-            if (hasPlaceholders) {
-              const tokenWarn = card.querySelector('.token-missing-alert');
-              const tokenBadge = card.querySelector('[id^="token-badge-"]');
-              const check = validateTokens(item.source, val, item.placeholders);
-              if (check.isValid) {
-                if (tokenWarn) tokenWarn.style.display = 'none';
-                if (tokenBadge) {
-                  tokenBadge.className = 'studio-pill pill-tokens';
-                  tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
-                }
-              } else {
-                if (tokenWarn) {
-                  tokenWarn.style.display = 'flex';
-                  tokenWarn.innerHTML = `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
-                }
-                if (tokenBadge) {
-                  tokenBadge.className = 'studio-pill pill-error';
-                  tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
-                }
-              }
-            }
-
-            // Trigger debounced Cloudflare Draft Autosave
-            scheduleDraftAutosave(item.key, val);
-            updateWorkspaceStats();
-          });
-        }
+          // Trigger debounced Cloudflare Draft Autosave
+          scheduleDraftAutosave(item.key, val);
+          updateWorkspaceStats();
+        });
       }
 
       // Event listener for View Submissions Button
@@ -1579,9 +1641,9 @@
 
       // Event listener for Suggest Alternative Button
       const suggestBtn = card.querySelector('.btn-suggest');
-      if (suggestBtn && !suggestBtn.disabled) {
+      if (suggestBtn) {
         suggestBtn.addEventListener('click', () => {
-          openSuggestModal(item);
+          unlockForSuggestion(item, card);
         });
       }
     });
@@ -1602,9 +1664,12 @@
 
     catalog.items.forEach(item => {
       const statusInfo = getItemStatusInfo(item);
-      if (counts[statusInfo.status] !== undefined) {
-        counts[statusInfo.status]++;
-      }
+      if (statusInfo.hasLocalDraft) counts.mine++;
+      if (statusInfo.isOtherDrafting) counts.other++;
+      if (statusInfo.status === 'approved') counts.approved++;
+      if (statusInfo.status === 'translated') counts.translated++;
+      if (statusInfo.status === 'submitted') counts.submitted++;
+      if (statusInfo.status === 'available' && !statusInfo.hasLocalDraft) counts.available++;
       if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
     });
 
@@ -1774,17 +1839,12 @@
     const sourceEl = document.getElementById('view-submissions-source-text');
     const countEl = document.getElementById('view-submissions-count');
     const listEl = document.getElementById('view-submissions-list');
-    const suggestBtn = document.getElementById('view-submissions-suggest-btn');
 
     if (keyLabel) keyLabel.textContent = item.key;
     if (sourceEl) sourceEl.textContent = item.source;
     if (countEl) countEl.textContent = '...';
     if (listEl) {
       listEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary);"><span class="loading-spinner" style="width: 14px; height: 14px; border-width: 1.5px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span>Loading community submissions...</span>`;
-    }
-    if (suggestBtn) {
-      suggestBtn.disabled = false;
-      suggestBtn.textContent = 'Suggest Alternative';
     }
 
     if (viewSubmissionsModal) {
@@ -1823,20 +1883,9 @@
   function renderViewSubmissionsList(proposals, item) {
     const listEl = document.getElementById('view-submissions-list');
     const countEl = document.getElementById('view-submissions-count');
-    const suggestBtn = document.getElementById('view-submissions-suggest-btn');
     if (!listEl) return;
 
     if (countEl) countEl.textContent = proposals.length;
-
-    if (suggestBtn) {
-      if (proposals.length >= 10) {
-        suggestBtn.disabled = true;
-        suggestBtn.textContent = 'Max Suggestions Reached (10/10)';
-      } else {
-        suggestBtn.disabled = false;
-        suggestBtn.textContent = 'Suggest Alternative';
-      }
-    }
 
     if (proposals.length === 0) {
       listEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary); font-style: italic;">No submissions found for this string yet.</span>`;
@@ -1883,165 +1932,6 @@
         }
       };
     });
-  }
-
-  // -------------------------------------------------------------------------
-  // 7. SUGGEST ALTERNATIVE MODAL (STRICT EXACT MATCH & 10-SLOT LIMIT)
-  // -------------------------------------------------------------------------
-
-  async function openSuggestModal(item) {
-    activeSuggestKey = item.key;
-    document.getElementById('suggest-key-label').textContent = item.key;
-    document.getElementById('suggest-source-text').textContent = item.source;
-    document.getElementById('suggest-text-input').value = '';
-    let savedAuthor = safeStorageGet('tunetastic_author') || '';
-    savedAuthor = String(savedAuthor).replace(/^@+/, '').trim();
-    document.getElementById('suggest-author-input').value = savedAuthor;
-    document.getElementById('suggest-exact-error').style.display = 'none';
-
-    const existingListEl = document.getElementById('suggest-existing-list');
-    const fullBannerEl = document.getElementById('suggest-full-banner');
-    const inputGroupEl = document.getElementById('suggest-input-group');
-    const authorGroupEl = document.getElementById('suggest-author-group');
-    const confirmBtn = document.getElementById('suggest-confirm-btn');
-
-    existingListEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary);">Loading existing proposals...</span>`;
-    suggestModal.classList.add('active');
-
-    // Fetch existing proposals for this specific key
-    activeSuggestProposals = [];
-    try {
-      const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
-      if (res.ok) {
-        const data = await res.json();
-        activeSuggestProposals = Array.isArray(data.proposals) ? data.proposals : [];
-      }
-    } catch (e) {
-      console.warn("Could not fetch proposals for key:", e);
-    }
-
-    // Populate existing proposals list
-    renderExistingProposalsInModal(item);
-
-    // Live exact-match check on typing (rejects duplicate text)
-    const textarea = document.getElementById('suggest-text-input');
-    const catalogTrans = getCatalogTranslation(currentLang, item.key);
-
-    textarea.oninput = (e) => {
-      const val = e.target.value;
-      const isExactProposalMatch = activeSuggestProposals.some(p => p.text === val);
-      const isCatalogExactMatch = catalogTrans && catalogTrans === val;
-      const isExactMatch = isExactProposalMatch || isCatalogExactMatch;
-
-      if (isExactMatch) {
-        document.getElementById('suggest-exact-error').style.display = 'block';
-        confirmBtn.disabled = true;
-      } else {
-        document.getElementById('suggest-exact-error').style.display = 'none';
-        confirmBtn.disabled = val.trim().length === 0;
-      }
-    };
-  }
-
-  function renderExistingProposalsInModal(item) {
-    const existingListEl = document.getElementById('suggest-existing-list');
-    const slotCountEl = document.getElementById('suggest-slot-count');
-    const fullBannerEl = document.getElementById('suggest-full-banner');
-    const inputGroupEl = document.getElementById('suggest-input-group');
-    const authorGroupEl = document.getElementById('suggest-author-group');
-    const confirmBtn = document.getElementById('suggest-confirm-btn');
-
-    const count = activeSuggestProposals.length;
-    slotCountEl.textContent = count;
-
-    if (count >= 10) {
-      fullBannerEl.style.display = 'block';
-      inputGroupEl.style.display = 'none';
-      authorGroupEl.style.display = 'none';
-      confirmBtn.style.display = 'none';
-    } else {
-      fullBannerEl.style.display = 'none';
-      inputGroupEl.style.display = 'block';
-      authorGroupEl.style.display = 'block';
-      confirmBtn.style.display = 'inline-flex';
-      confirmBtn.disabled = true;
-    }
-
-    if (count === 0) {
-      existingListEl.innerHTML = `<span style="font-size: 12px; color: var(--text-tertiary); font-style: italic;">No alternative proposals submitted yet. Be the first!</span>`;
-      return;
-    }
-
-    existingListEl.innerHTML = activeSuggestProposals.map((p, idx) => `
-      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 13px;">
-        <div style="color: var(--text-primary);">${escapeHtml(p.text)}</div>
-        <div style="font-size: 10.5px; color: var(--text-tertiary); margin-top: 2px;">Proposal #${idx + 1} by ${escapeHtml(p.contributor || 'Unknown')}</div>
-      </div>
-    `).join('');
-  }
-
-  async function submitSuggestion() {
-    const text = document.getElementById('suggest-text-input').value;
-    const rawAuthor = document.getElementById('suggest-author-input').value.trim() || 'Unknown';
-    const cleanAuthor = rawAuthor.replace(/^@+/, '').trim();
-    const author = cleanAuthor || 'Unknown';
-    if (!text || !activeSuggestKey) return;
-
-    if (cleanAuthor && cleanAuthor !== 'Unknown') {
-      safeStorageSet('tunetastic_author', cleanAuthor);
-    } else {
-      safeStorageRemove('tunetastic_author');
-    }
-
-    const confirmBtn = document.getElementById('suggest-confirm-btn');
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = 'Submitting...';
-
-    try {
-      const res = await fetch(`${WORKER_URL}/api/suggest`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Session-ID': SESSION_ID
-        },
-        body: JSON.stringify({
-          language: currentLang,
-          key: activeSuggestKey,
-          text,
-          contributor: author
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        showToast("Suggestion submitted to review queue!");
-
-        // Record locally that this user submitted a translation/suggestion for this key
-        const submittedKey = `tunetastic_submitted_${currentLang}`;
-        let existingSubmitted = {};
-        try {
-          existingSubmitted = JSON.parse(safeStorageGet(submittedKey) || '{}');
-        } catch {}
-        existingSubmitted[activeSuggestKey] = {
-          text,
-          contributor: author,
-          timestamp: Date.now()
-        };
-        safeStorageSet(submittedKey, JSON.stringify(existingSubmitted));
-
-        suggestModal.classList.remove('active');
-        await fetchLiveStatus();
-        renderCards();
-        updateWorkspaceStats();
-      } else {
-        alert(data.error || "Failed to submit suggestion.");
-      }
-    } catch (err) {
-      alert("Could not reach staging server: " + err.message);
-    } finally {
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = 'Submit Suggestion';
-    }
   }
 
   // -------------------------------------------------------------------------
@@ -2548,31 +2438,6 @@
       });
     }
 
-    // Suggest modal triggers
-    document.getElementById('suggest-cancel-btn').onclick = () => {
-      const input = document.getElementById('suggest-author-input');
-      const val = input ? input.value.replace(/^@+/, '').trim() : '';
-      if (val) {
-        safeStorageSet('tunetastic_author', val);
-      } else {
-        safeStorageRemove('tunetastic_author');
-      }
-      suggestModal.classList.remove('active');
-    };
-    document.getElementById('suggest-confirm-btn').onclick = submitSuggestion;
-
-    const suggestAuthorInput = document.getElementById('suggest-author-input');
-    if (suggestAuthorInput) {
-      suggestAuthorInput.addEventListener('input', (e) => {
-        const val = e.target.value.replace(/^@+/, '').trim();
-        if (val) {
-          safeStorageSet('tunetastic_author', val);
-        } else {
-          safeStorageRemove('tunetastic_author');
-        }
-      });
-    }
-
     // View Submissions modal triggers
     const viewSubCloseBtn = document.getElementById('view-submissions-close-btn');
     if (viewSubCloseBtn) {
@@ -2581,18 +2446,8 @@
       };
     }
 
-    const viewSubSuggestBtn = document.getElementById('view-submissions-suggest-btn');
-    if (viewSubSuggestBtn) {
-      viewSubSuggestBtn.onclick = () => {
-        if (viewSubmissionsModal) viewSubmissionsModal.classList.remove('active');
-        if (activeViewSubmissionsItem) {
-          openSuggestModal(activeViewSubmissionsItem);
-        }
-      };
-    }
-
     // Modal backdrop clicks to close
-    [viewSubmissionsModal, suggestModal, submitModal].forEach(modalEl => {
+    [viewSubmissionsModal, submitModal].forEach(modalEl => {
       if (modalEl) {
         modalEl.addEventListener('click', (e) => {
           if (e.target === modalEl) {
@@ -2607,8 +2462,6 @@
       if (e.key === 'Escape') {
         if (viewSubmissionsModal && viewSubmissionsModal.classList.contains('active')) {
           viewSubmissionsModal.classList.remove('active');
-        } else if (suggestModal && suggestModal.classList.contains('active')) {
-          suggestModal.classList.remove('active');
         } else if (submitModal && submitModal.classList.contains('active')) {
           submitModal.classList.remove('active');
         }
