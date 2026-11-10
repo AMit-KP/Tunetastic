@@ -109,6 +109,7 @@
     alert: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M7.1 1.5c.4-.7 1.4-.7 1.8 0l6.7 11.6c.4.7-.1 1.6-.9 1.6H1.3c-.8 0-1.3-.9-.9-1.6L7.1 1.5zM8 5a.8.8 0 0 0-.8.8v3.4a.8.8 0 0 0 1.6 0V5.8A.8.8 0 0 0 8 5zm0 6.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z"/></svg>`,
     search: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5" stroke-linecap="round"/></svg>`,
     rocket: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg>`,
+    eye: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>`,
     arrowLeft: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13L5 8l5-5"/></svg>`,
     arrowRight: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>`
   };
@@ -148,13 +149,15 @@
   // Modals & Centered Dialogs
   const submitModal = document.getElementById('submit-modal');
   const suggestModal = document.getElementById('suggest-modal');
+  const viewSubmissionsModal = document.getElementById('view-submissions-modal');
   const draftResumeModal = document.getElementById('draft-resume-modal');
   const draftModalMainView = document.getElementById('draft-modal-main-view');
   const draftModalConfirmView = document.getElementById('draft-modal-confirm-view');
 
-  // Active Key for Suggest Modal
+  // Active Key for Modals
   let activeSuggestKey = null;
   let activeSuggestProposals = [];
+  let activeViewSubmissionsItem = null;
 
   // -------------------------------------------------------------------------
   // 2. DYNAMIC LANGUAGE METADATA (Intl.DisplayNames & Real Flag Icons)
@@ -913,6 +916,27 @@
           suggestBtn.innerHTML = `${ICONS.bulb} Suggest Alternative`;
         }
       }
+
+      // Update View Submissions button (shown only when status is 'submitted')
+      const subCount = proposalMeta ? proposalMeta.count : 0;
+      let viewSubBtn = card.querySelector('.btn-view-submissions');
+      if (statusInfo.status === 'submitted') {
+        if (!viewSubBtn) {
+          viewSubBtn = document.createElement('button');
+          viewSubBtn.className = 'btn-view-submissions';
+          viewSubBtn.setAttribute('data-key', item.key);
+          viewSubBtn.onclick = () => openViewSubmissionsModal(item);
+          if (suggestBtn && suggestBtn.parentNode) {
+            suggestBtn.parentNode.insertBefore(viewSubBtn, suggestBtn);
+          } else {
+            const actionsBar = card.querySelector('.target-column .column-actions-bar');
+            if (actionsBar) actionsBar.appendChild(viewSubBtn);
+          }
+        }
+        viewSubBtn.innerHTML = `${ICONS.eye} View Submissions${subCount > 0 ? ` (${subCount})` : ''}`;
+      } else if (viewSubBtn) {
+        viewSubBtn.remove();
+      }
     });
   }
 
@@ -1397,6 +1421,11 @@
         ? `<button class="btn-suggest" disabled title="Max 10 community suggestions reached">${ICONS.lock} Max (10/10)</button>`
         : `<button class="btn-suggest" data-key="${escapeHtml(item.key)}">${ICONS.bulb} Suggest Alternative</button>`;
 
+      const subCount = proposalMeta ? proposalMeta.count : 0;
+      const viewSubmissionsBtnHtml = statusInfo.status === 'submitted'
+        ? `<button class="btn-view-submissions" data-key="${escapeHtml(item.key)}">${ICONS.eye} View Submissions${subCount > 0 ? ` (${subCount})` : ''}</button>`
+        : '';
+
       const card = document.createElement('div');
       card.className = 'studio-card';
       card.id = `card-${item.key}`;
@@ -1447,6 +1476,7 @@
             </div>
 
             <div class="column-actions-bar">
+              ${viewSubmissionsBtnHtml}
               ${suggestBtnHtml}
             </div>
           </div>
@@ -1537,6 +1567,14 @@
             updateWorkspaceStats();
           });
         }
+      }
+
+      // Event listener for View Submissions Button
+      const viewSubBtn = card.querySelector('.btn-view-submissions');
+      if (viewSubBtn) {
+        viewSubBtn.addEventListener('click', () => {
+          openViewSubmissionsModal(item);
+        });
       }
 
       // Event listener for Suggest Alternative Button
