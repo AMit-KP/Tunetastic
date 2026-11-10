@@ -1317,7 +1317,6 @@
     const mergedEntry = liveStatus && liveStatus.merged ? liveStatus.merged[item.key] : null;
     const isMerged = Boolean(mergedEntry);
     const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
-    const isLocalSubmitted = isSubmittedKey(currentLang, item.key);
     const catalogTrans = getCatalogTranslation(currentLang, item.key);
     const localDraft = getLocalDraft(currentLang, item.key);
     const lock = liveStatus && liveStatus.locks ? liveStatus.locks[item.key] : null;
@@ -1325,13 +1324,28 @@
     const hasLocalDraft = Boolean(!isDraftPendingResumption && localDraft !== null && localDraft !== undefined && localDraft.trim().length > 0);
     const isOtherDrafting = lock === 'other' || lock === 'both';
     const hasServerProposals = Boolean(proposalMeta && proposalMeta.count > 0);
-    const isSubmitted = hasServerProposals || (isLocalSubmitted && (!liveStatus || !liveStatus.proposals));
 
-    // Base Status
+    // Stale local submitted record cleanup:
+    // If key is approved/merged or server confirmed 0 proposals, purge stale local flag
+    let isLocalSubmitted = isSubmittedKey(currentLang, item.key);
+    if (isLocalSubmitted && (approvedEntry || isMerged || (liveStatus && liveStatus.proposals && !hasServerProposals))) {
+      const subMap = getSubmittedTranslations(currentLang);
+      if (subMap && subMap[item.key]) {
+        delete subMap[item.key];
+        safeStorageSet(`tunetastic_submitted_${currentLang}`, JSON.stringify(subMap));
+      }
+      isLocalSubmitted = false;
+    }
+
+    const isSubmitted = Boolean(hasServerProposals || isLocalSubmitted);
+    const isApproved = Boolean(approvedEntry);
+    const isTranslated = Boolean(isMerged || (catalogTrans && catalogTrans.trim()));
+
+    // Base Primary Status
     let baseStatus = 'available';
-    if (approvedEntry) {
+    if (isApproved) {
       baseStatus = 'approved';
-    } else if (isMerged || (catalogTrans && catalogTrans.trim())) {
+    } else if (isTranslated) {
       baseStatus = 'translated';
     } else if (isSubmitted) {
       baseStatus = 'submitted';
@@ -1341,26 +1355,16 @@
       baseStatus = 'mine';
     }
 
-    // Handle stale local submitted record cleanup
-    if (isLocalSubmitted && (approvedEntry || isMerged || (liveStatus && liveStatus.proposals && !hasServerProposals))) {
-      const subMap = getSubmittedTranslations(currentLang);
-      if (subMap && subMap[item.key]) {
-        delete subMap[item.key];
-        safeStorageSet(`tunetastic_submitted_${currentLang}`, JSON.stringify(subMap));
-      }
-    }
-
     // Determine Display Text & Read-Only state
     let displayText = '';
     let isReadOnly = false;
     let placeholderText = 'Type translation here...';
     let showSuggestBtn = false;
-    let showViewSubmissionsBtn = false;
 
-    if (baseStatus === 'approved') {
-      if (hasServerProposals) {
-        showViewSubmissionsBtn = true;
-      }
+    // View Submissions button is strictly shown ONLY when there is a submitted proposal!
+    const showViewSubmissionsBtn = isSubmitted;
+
+    if (isApproved) {
       if (hasLocalDraft) {
         displayText = localDraft;
         isReadOnly = false;
@@ -1372,13 +1376,10 @@
         placeholderText = 'Approved translation. Click Suggest Alternative to propose edits.';
         showSuggestBtn = true;
       }
-    } else if (baseStatus === 'translated') {
+    } else if (isTranslated) {
       const translatedVal = isMerged
         ? (mergedEntry.value || mergedEntry.translation || catalogTrans || '')
         : (catalogTrans || '');
-      if (hasServerProposals) {
-        showViewSubmissionsBtn = true;
-      }
       if (hasLocalDraft) {
         displayText = localDraft;
         isReadOnly = false;
@@ -1390,20 +1391,19 @@
         placeholderText = 'Existing translation. Click Suggest Alternative to propose edits.';
         showSuggestBtn = true;
       }
-    } else if (baseStatus === 'submitted') {
-      showViewSubmissionsBtn = true;
+    } else if (isSubmitted) {
       showSuggestBtn = false;
-      isReadOnly = false; // Enabled per user request!
+      isReadOnly = false;
       if (hasLocalDraft) {
         displayText = localDraft;
         placeholderText = 'Type alternative suggestion here...';
       } else {
-        displayText = ''; // Empty text field per user request
+        displayText = '';
         placeholderText = 'Type alternative suggestion here...';
       }
-    } else if (baseStatus === 'other') {
+    } else if (isOtherDrafting) {
       showSuggestBtn = false;
-      isReadOnly = false; // Enabled per user request!
+      isReadOnly = false;
       if (hasLocalDraft) {
         displayText = localDraft;
         placeholderText = 'In progress by another contributor... Type to suggest alternative.';
@@ -1418,25 +1418,31 @@
       placeholderText = 'Type translation here...';
     }
 
-    // Build Badges Array
+    // Build Badges Array (Dual Badges: Approved + Submitted, Already Translated + Submitted)
     const badges = [];
-    if (baseStatus === 'approved') {
+    if (isApproved) {
       badges.push({ label: 'Approved', pillClass: 'pill-approved', dotClass: 'dot-approved' });
+      if (isSubmitted) {
+        badges.push({ label: 'Submitted', pillClass: 'pill-submitted', dotClass: 'dot-submitted' });
+      }
       if (isOtherDrafting) {
         badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
       }
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
       }
-    } else if (baseStatus === 'translated') {
+    } else if (isTranslated) {
       badges.push({ label: 'Already Translated', pillClass: 'pill-translated', dotClass: 'dot-translated' });
+      if (isSubmitted) {
+        badges.push({ label: 'Submitted', pillClass: 'pill-submitted', dotClass: 'dot-submitted' });
+      }
       if (isOtherDrafting) {
         badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
       }
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
       }
-    } else if (baseStatus === 'submitted') {
+    } else if (isSubmitted) {
       badges.push({ label: 'Submitted', pillClass: 'pill-submitted', dotClass: 'dot-submitted' });
       if (isOtherDrafting) {
         badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
@@ -1444,7 +1450,7 @@
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
       }
-    } else if (baseStatus === 'other') {
+    } else if (isOtherDrafting) {
       badges.push({ label: 'In Progress By Others', pillClass: 'pill-draft-other', dotClass: 'dot-in-progress' });
       if (hasLocalDraft) {
         badges.push({ label: 'Drafted By You', pillClass: 'pill-draft-mine', dotClass: 'dot-draft' });
@@ -1459,6 +1465,9 @@
 
     return {
       status: baseStatus,
+      isApproved,
+      isTranslated,
+      isSubmitted,
       hasLocalDraft,
       isOtherDrafting,
       isReadOnly,
@@ -1479,16 +1488,16 @@
     return catalog.items.filter(item => {
       const statusInfo = getItemStatusInfo(item);
 
-      if (currentFilter === 'available' && (statusInfo.status !== 'available' || statusInfo.hasLocalDraft)) return false;
+      if (currentFilter === 'available' && (statusInfo.isApproved || statusInfo.isTranslated || statusInfo.isSubmitted || statusInfo.hasLocalDraft)) return false;
       if (currentFilter === 'mine' && !statusInfo.hasLocalDraft) return false;
       if (currentFilter === 'other' && !statusInfo.isOtherDrafting) return false;
-      if (currentFilter === 'submitted' && statusInfo.status !== 'submitted') return false;
-      if (currentFilter === 'approved' && statusInfo.status !== 'approved') return false;
-      if (currentFilter === 'translated' && statusInfo.status !== 'translated') return false;
+      if (currentFilter === 'submitted' && !statusInfo.isSubmitted) return false;
+      if (currentFilter === 'approved' && !statusInfo.isApproved) return false;
+      if (currentFilter === 'translated' && (!statusInfo.isTranslated || statusInfo.isApproved)) return false;
 
       // Legacy filter fallback
-      if (currentFilter === 'missing' && (statusInfo.status !== 'available' || statusInfo.hasLocalDraft)) return false;
-      if (currentFilter === 'completed' && statusInfo.status !== 'translated' && statusInfo.status !== 'approved') return false;
+      if (currentFilter === 'missing' && (statusInfo.isApproved || statusInfo.isTranslated || statusInfo.isSubmitted || statusInfo.hasLocalDraft)) return false;
+      if (currentFilter === 'completed' && !statusInfo.isTranslated && !statusInfo.isApproved) return false;
 
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
@@ -1704,10 +1713,10 @@
       const statusInfo = getItemStatusInfo(item);
       if (statusInfo.hasLocalDraft) counts.mine++;
       if (statusInfo.isOtherDrafting) counts.other++;
-      if (statusInfo.status === 'approved') counts.approved++;
-      if (statusInfo.status === 'translated') counts.translated++;
-      if (statusInfo.status === 'submitted') counts.submitted++;
-      if (statusInfo.status === 'available' && !statusInfo.hasLocalDraft) counts.available++;
+      if (statusInfo.isApproved) counts.approved++;
+      if (statusInfo.isTranslated && !statusInfo.isApproved) counts.translated++;
+      if (statusInfo.isSubmitted) counts.submitted++;
+      if (!statusInfo.isApproved && !statusInfo.isTranslated && !statusInfo.isSubmitted && !statusInfo.hasLocalDraft) counts.available++;
       if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
     });
 
