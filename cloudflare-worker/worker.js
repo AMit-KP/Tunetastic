@@ -430,15 +430,52 @@ export default {
               `</details>\n\n` +
               `👉 [Review & Approve in Portal](https://${env.GITHUB_OWNER || "AMit-KP"}.github.io/${env.GITHUB_REPO || "Tunetastic"}/#admin)`;
 
-            await fetch(`https://api.github.com/repos/${env.GITHUB_OWNER || "AMit-KP"}/${env.GITHUB_REPO || "Tunetastic"}/issues/${env.TRACKER_ISSUE_NUMBER}/comments`, {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
-                "User-Agent": "Tunetastic-L10n-Bot",
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ body: commentBody })
-            });
+            const owner = env.GITHUB_OWNER || "AMit-KP";
+            const repo = env.GITHUB_REPO || "Tunetastic";
+            const issueNum = String(env.TRACKER_ISSUE_NUMBER || "143");
+            const workflowRef = env.GITHUB_WORKFLOW_REF || "gh-pages";
+
+            // Attempt to dispatch GitHub Actions workflow so comment is posted by github-actions[bot]
+            let dispatched = false;
+            try {
+              const dispatchRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/notify-submission.yml/dispatches`, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+                  "Accept": "application/vnd.github+json",
+                  "User-Agent": "Tunetastic-L10n-Bot",
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  ref: workflowRef,
+                  inputs: {
+                    commentBody: commentBody,
+                    issueNumber: issueNum
+                  }
+                })
+              });
+              if (dispatchRes.status === 204 || dispatchRes.ok) {
+                dispatched = true;
+              } else {
+                const errText = await dispatchRes.text();
+                console.warn(`Workflow dispatch returned ${dispatchRes.status}: ${errText}. Falling back to direct comment.`);
+              }
+            } catch (dispErr) {
+              console.warn("Workflow dispatch error, falling back to direct comment:", dispErr);
+            }
+
+            // Fallback: direct issue comment if workflow dispatch was not triggered
+            if (!dispatched) {
+              await fetch(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNum}/comments`, {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+                  "User-Agent": "Tunetastic-L10n-Bot",
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ body: commentBody })
+              });
+            }
           } catch (botErr) {
             console.error("Failed to post GitHub comment:", botErr);
           }
@@ -472,7 +509,7 @@ export default {
           return jsonResponse({ error: "This exact translation has already been suggested." }, 409, corsHeaders);
         }
 
-        const sanitizedContributor = String(contributor).replace(/^@+/, "").slice(0, 50).trim() || "Unknown";
+        const sanitizedContributor = String(contributor).slice(0, 50).trim() || "Unknown";
         proposals.push({
           id: `p_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
           text,
@@ -672,9 +709,8 @@ export default {
 
         // 4. Create Pull Request
         const contributorsList = Array.from(contributorsSet)
-          .map(c => String(c).replace(/^@+/, "").trim())
-          .filter(Boolean)
-          .map(c => "@" + c);
+          .map(c => String(c).trim())
+          .filter(Boolean);
         const coAuthors = Array.from(contributorsSet)
           .map(c => String(c).replace(/^@+/, "").trim())
           .filter(Boolean)
