@@ -112,9 +112,10 @@
     search: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5" stroke-linecap="round"/></svg>`,
     rocket: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg>`,
     eye: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>`,
-    arrowLeft: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8H2.5m0 0l4.5-4.5M2.5 8l4.5 4.5"/></svg>`,
-    arrowRight: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8h11m0 0l-4.5-4.5m4.5 4.5l-4.5 4.5"/></svg>`,
-    trash: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M5.3 4V2.5a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1V4m2 0v9.5a1.5 1.5 0 0 1-1.5 1.5h-6.4A1.5 1.5 0 0 1 3.3 13.5V4"/></svg>`
+    arrowLeft: `<svg class="svg-icon" viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z"></path></svg>`,
+    arrowRight: `<svg class="svg-icon" viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path fill-rule="evenodd" d="M8.22 3.47a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L11.19 9H3.75a.75.75 0 010-1.5h7.44L8.22 4.53a.75.75 0 010-1.06z"></path></svg>`,
+    trash: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M5.3 4V2.5a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1V4m2 0v9.5a1.5 1.5 0 0 1-1.5 1.5h-6.4A1.5 1.5 0 0 1 3.3 13.5V4"/></svg>`,
+    gitPullRequest: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path fill-rule="evenodd" d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"></path></svg>`
   };
 
   let catalog = null;
@@ -1313,6 +1314,8 @@
   function getItemStatusInfo(item) {
     const approvedEntry = liveStatus && liveStatus.approved ? liveStatus.approved[item.key] : null;
     const approvedText = getApprovedTranslation(item.key);
+    const mergedEntry = liveStatus && liveStatus.merged ? liveStatus.merged[item.key] : null;
+    const isMerged = Boolean(mergedEntry);
     const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
     const isLocalSubmitted = isSubmittedKey(currentLang, item.key);
     const catalogTrans = getCatalogTranslation(currentLang, item.key);
@@ -1328,10 +1331,10 @@
     let baseStatus = 'available';
     if (approvedEntry) {
       baseStatus = 'approved';
+    } else if (isMerged || (catalogTrans && catalogTrans.trim())) {
+      baseStatus = 'translated';
     } else if (isSubmitted) {
       baseStatus = 'submitted';
-    } else if (catalogTrans && catalogTrans.trim()) {
-      baseStatus = 'translated';
     } else if (isOtherDrafting) {
       baseStatus = 'other';
     } else if (hasLocalDraft) {
@@ -1339,7 +1342,7 @@
     }
 
     // Handle stale local submitted record cleanup
-    if (isLocalSubmitted && (approvedEntry || (liveStatus && liveStatus.proposals && !hasServerProposals))) {
+    if (isLocalSubmitted && (approvedEntry || isMerged || (liveStatus && liveStatus.proposals && !hasServerProposals))) {
       const subMap = getSubmittedTranslations(currentLang);
       if (subMap && subMap[item.key]) {
         delete subMap[item.key];
@@ -1370,6 +1373,9 @@
         showSuggestBtn = true;
       }
     } else if (baseStatus === 'translated') {
+      const translatedVal = isMerged
+        ? (mergedEntry.value || mergedEntry.translation || catalogTrans || '')
+        : (catalogTrans || '');
       if (hasServerProposals) {
         showViewSubmissionsBtn = true;
       }
@@ -1379,7 +1385,7 @@
         placeholderText = 'Edit existing translation...';
         showSuggestBtn = false;
       } else {
-        displayText = catalogTrans || '';
+        displayText = translatedVal;
         isReadOnly = true;
         placeholderText = 'Existing translation. Click Suggest Alternative to propose edits.';
         showSuggestBtn = true;
@@ -1983,6 +1989,12 @@
     savedAuthor = String(savedAuthor).trim();
     document.getElementById('submit-author-input').value = savedAuthor;
 
+    const confirmBtn = document.getElementById('modal-confirm-submit-btn');
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Submit';
+    }
+
     submitModal.classList.add('active');
   }
 
@@ -2181,7 +2193,7 @@
 
   async function loadAdminQueue() {
     const container = document.getElementById('admin-submissions-container');
-    container.innerHTML = `<div style="text-align: center; padding: 48px; color: var(--text-secondary);"><div class="loading-spinner"></div>Connecting to review queue...</div>`;
+    if (!container) return;
 
     if (!sessionAdminPassword) {
       try {
@@ -2191,6 +2203,13 @@
         return;
       }
     }
+
+    container.innerHTML = `
+      <div style="text-align: center; padding: 48px; color: var(--text-secondary);">
+        <span class="loading-spinner" style="width: 22px; height: 22px; display: inline-block; vertical-align: middle; margin-right: 8px;"></span>
+        Synchronizing Git PR status and loading languages...
+      </div>
+    `;
 
     try {
       const res = await fetch(`${WORKER_URL}/api/pending`, {
@@ -2209,245 +2228,32 @@
 
       const data = await res.json();
       const pendingItems = data.pending || [];
-      document.getElementById('admin-pending-badge').textContent = `${pendingItems.length} Keys Submitted`;
+      const approvedPerLang = data.approved || {};
 
-      if (pendingItems.length === 0) {
-        container.innerHTML = `
-          <div style="text-align: center; padding: 48px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
-            ${ICONS.checkCircle} The review queue is completely clear! No community proposals are submitted.
-          </div>
-        `;
-        return;
+      let totalApprovedCount = 0;
+      for (const map of Object.values(approvedPerLang)) {
+        totalApprovedCount += Object.keys(map).length;
       }
 
-      // Ensure catalog is loaded to look up English source and app context
-      if (!catalog || !catalog.items || catalog.items.length === 0) {
-        await loadCatalog();
+      const pendingBadge = document.getElementById('admin-pending-badge');
+      if (pendingBadge) {
+        pendingBadge.textContent = `${pendingItems.length} Submissions Pending`;
       }
-      const catMap = new Map();
-      if (catalog && catalog.items) {
-        catalog.items.forEach(i => catMap.set(i.key, i));
-      }
-
-      let remainingCount = pendingItems.length;
-      function updatePendingCount() {
-        remainingCount = Math.max(0, remainingCount - 1);
-        const badge = document.getElementById('admin-pending-badge');
-        if (badge) {
-          badge.textContent = `${remainingCount} ${remainingCount === 1 ? 'Key' : 'Keys'} Submitted`;
-        }
-        if (remainingCount === 0) {
-          setTimeout(() => {
-            container.innerHTML = `
-              <div style="text-align: center; padding: 48px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
-                ${ICONS.checkCircle} The review queue is completely clear! No community proposals are submitted.
-              </div>
-            `;
-          }, 1200);
-        }
+      const approvedBadge = document.getElementById('admin-approved-badge');
+      if (approvedBadge) {
+        approvedBadge.textContent = `${totalApprovedCount} Approved (Staged)`;
       }
 
-      container.innerHTML = '';
-      pendingItems.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'studio-card';
-        card.id = `admin-card-${item.language}-${item.key}`;
+      // Sync All button state
+      const syncAllBtn = document.getElementById('admin-sync-pr-btn');
+      if (syncAllBtn) {
+        syncAllBtn.disabled = totalApprovedCount === 0;
+        syncAllBtn.style.opacity = totalApprovedCount === 0 ? '0.5' : '1';
+        syncAllBtn.style.cursor = totalApprovedCount === 0 ? 'not-allowed' : 'pointer';
+        syncAllBtn.title = totalApprovedCount === 0 ? 'No approved translations available to sync' : `Sync all ${totalApprovedCount} approved translations to Git`;
+      }
 
-        const proposals = item.proposals || [];
-        const langMeta = resolveLanguageMeta(item.language) || { name: item.language };
-        const catItem = catMap.get(item.key);
-        const sourceText = catItem ? catItem.source : '';
-        const appContext = catItem ? catItem.comment : '';
-
-        let proposalsHtml = '';
-        proposals.forEach((p, idx) => {
-          const isSelected = idx === 0;
-          proposalsHtml += `
-            <label class="proposal-item ${isSelected ? 'selected' : ''}" data-key="${item.key}" data-val="${escapeHtml(p.text)}" data-author="${escapeHtml(p.contributor)}">
-              <input type="radio" name="prop-${item.language}-${item.key}" class="proposal-radio" ${isSelected ? 'checked' : ''}>
-              <div class="proposal-meta">
-                <div class="proposal-text">"${escapeHtml(p.text)}"</div>
-                <div class="proposal-author">Option ${idx + 1} • by ${escapeHtml(p.contributor || 'Unknown')}</div>
-              </div>
-            </label>
-          `;
-        });
-
-        card.innerHTML = `
-          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
-            <div>
-              <span class="card-key-pill">${escapeHtml(item.key)}</span>
-              <span class="studio-pill" style="margin-left: 8px;">${escapeHtml(formatLanguageDisplayName(langMeta, item.language))} • ${item.language}</span>
-            </div>
-            <div class="admin-card-actions">
-              <button class="btn btn-sm btn-glass admin-clear-btn" data-lang="${item.language}" data-key="${item.key}" title="Discard and clear all submissions for this key" style="display: inline-flex; align-items: center; gap: 6px;">
-                ${ICONS.trash} Clear Submissions
-              </button>
-              <button class="btn btn-sm btn-primary-gradient admin-approve-btn" data-lang="${item.language}" data-key="${item.key}" style="display: inline-flex; align-items: center; gap: 6px;">
-                ${ICONS.check} Approve Selected
-              </button>
-            </div>
-          </div>
-
-          <!-- English Source & App Context Box -->
-          <div class="admin-review-source">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-              <span style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">English Source</span>
-              ${appContext ? `<span style="font-size: 11px; color: var(--text-tertiary); max-width: 65%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(appContext)}">${escapeHtml(appContext)}</span>` : ''}
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-              <div style="font-size: 14.5px; font-weight: 600; color: var(--text-primary); line-height: 1.5; word-break: break-word; user-select: text;">
-                ${escapeHtml(sourceText || '-')}
-              </div>
-              ${sourceText ? `
-                <button class="copy-mini-btn admin-copy-source-btn" data-text="${escapeHtml(sourceText)}" title="Copy English source" style="flex-shrink: 0; padding: 3px 8px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(255,255,255,0.04); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                  ${ICONS.copy} Copy
-                </button>
-              ` : ''}
-            </div>
-          </div>
-
-          <div style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
-            Submitted Options (${proposals.length})
-          </div>
-
-          <div class="proposal-stack" id="stack-${item.language}-${item.key}">
-            ${proposalsHtml}
-          </div>
-
-          <div style="margin-top: 10px;">
-            <label style="font-size: 11px; color: var(--text-tertiary);">Custom tweak (if needed):</label>
-            <input type="text" class="form-input" id="tweak-${item.language}-${item.key}" value="${escapeHtml(proposals[0]?.text || '')}">
-          </div>
-        `;
-
-        container.appendChild(card);
-
-        // Click to select radio item and populate tweak input
-        const radioItems = card.querySelectorAll('.proposal-item');
-        radioItems.forEach(ri => {
-          ri.onclick = () => {
-            radioItems.forEach(r => r.classList.remove('selected'));
-            ri.classList.add('selected');
-            ri.querySelector('input').checked = true;
-            document.getElementById(`tweak-${item.language}-${item.key}`).value = ri.getAttribute('data-val');
-          };
-        });
-
-        // 1-Click copy English source
-        const copySourceBtn = card.querySelector('.admin-copy-source-btn');
-        if (copySourceBtn) {
-          copySourceBtn.onclick = () => {
-            const textToCopy = copySourceBtn.getAttribute('data-text') || '';
-            navigator.clipboard.writeText(textToCopy);
-            copySourceBtn.innerHTML = `${ICONS.check} Copied!`;
-            copySourceBtn.classList.add('copied');
-            showToast("English source copied!");
-            setTimeout(() => {
-              copySourceBtn.innerHTML = `${ICONS.copy} Copy`;
-              copySourceBtn.classList.remove('copied');
-            }, 1800);
-          };
-        }
-
-        // Clear all submissions for this key
-        const clearBtn = card.querySelector('.admin-clear-btn');
-        if (clearBtn) {
-          clearBtn.onclick = async () => {
-            const numOptions = proposals.length;
-            const confirmMsg = `Are you sure you want to discard and clear all ${numOptions} submitted option(s) for "${item.key}"?`;
-            if (!confirm(confirmMsg)) return;
-
-            clearBtn.disabled = true;
-            clearBtn.textContent = 'Clearing...';
-
-            try {
-              const cRes = await fetch(`${WORKER_URL}/api/reject`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${sessionAdminPassword}`
-                },
-                body: JSON.stringify({
-                  language: item.language,
-                  key: item.key
-                })
-              });
-
-              if (cRes.ok) {
-                if (liveStatus && liveStatus.proposals && liveStatus.proposals[item.key]) {
-                  delete liveStatus.proposals[item.key];
-                }
-                card.style.opacity = '0.5';
-                card.innerHTML = `<div style="padding: 18px; color: #f87171; font-weight: 600;">${ICONS.trash} Cleared! All submissions for "${item.key}" have been discarded.</div>`;
-                showToast(`Cleared submissions for "${item.key}"`);
-                updatePendingCount();
-              } else {
-                const errData = await cRes.json().catch(() => ({}));
-                alert("Failed to clear submissions: " + (errData.error || cRes.statusText));
-                clearBtn.disabled = false;
-                clearBtn.innerHTML = `${ICONS.trash} Clear Submissions`;
-              }
-            } catch (e) {
-              alert("Error clearing submissions: " + e.message);
-              clearBtn.disabled = false;
-              clearBtn.innerHTML = `${ICONS.trash} Clear Submissions`;
-            }
-          };
-        }
-
-        // Approve single key
-        const approveBtn = card.querySelector('.admin-approve-btn');
-        approveBtn.onclick = async () => {
-          const selectedText = document.getElementById(`tweak-${item.language}-${item.key}`).value;
-          const selectedItem = card.querySelector('.proposal-item.selected');
-          const contributor = selectedItem ? selectedItem.getAttribute('data-author') : 'Unknown';
-
-          approveBtn.disabled = true;
-          approveBtn.textContent = 'Approving...';
-
-          try {
-            const aRes = await fetch(`${WORKER_URL}/api/approve`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionAdminPassword}`
-              },
-              body: JSON.stringify({
-                language: item.language,
-                key: item.key,
-                selectedText,
-                contributor
-              })
-            });
-
-            if (aRes.ok) {
-              if (!liveStatus) liveStatus = {};
-              if (!liveStatus.approved) liveStatus.approved = {};
-              liveStatus.approved[item.key] = {
-                value: selectedText,
-                translation: selectedText,
-                contributor
-              };
-              if (liveStatus && liveStatus.proposals && liveStatus.proposals[item.key]) {
-                delete liveStatus.proposals[item.key];
-              }
-              card.style.opacity = '0.5';
-              card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">${ICONS.check} Approved! Key "${item.key}" is staged on server. Click "Sync Approved to Git" when ready to create a PR.</div>`;
-              showToast(`Approved "${item.key}"!`);
-              updatePendingCount();
-            } else {
-              alert("Failed to approve.");
-              approveBtn.disabled = false;
-              approveBtn.innerHTML = `${ICONS.check} Approve Selected`;
-            }
-          } catch (e) {
-            alert("Error: " + e.message);
-            approveBtn.disabled = false;
-            approveBtn.innerHTML = `${ICONS.check} Approve Selected`;
-          }
-        };
-      });
+      await renderAdminDashboard(pendingItems, approvedPerLang, container);
     } catch (err) {
       container.innerHTML = `
         <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass);">
@@ -2458,8 +2264,384 @@
     }
   }
 
-  // Automated Pull Request Creation Action
-  async function triggerSyncPr() {
+  async function renderAdminDashboard(pendingItems, approvedPerLang, container) {
+    if (!catalog || !catalog.items || catalog.items.length === 0) {
+      await loadCatalog();
+    }
+    const catMap = new Map();
+    if (catalog && catalog.items) {
+      catalog.items.forEach(i => catMap.set(i.key, i));
+    }
+
+    // Collect all unique languages
+    const langSet = new Set();
+    pendingItems.forEach(p => langSet.add(p.language));
+    Object.keys(approvedPerLang).forEach(l => langSet.add(l));
+    const allLangs = Array.from(langSet).sort();
+
+    if (allLangs.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 56px 24px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
+          <div style="font-size: 36px; margin-bottom: 12px;">🎉</div>
+          <h3 style="color: var(--text-primary); margin-bottom: 6px; font-size: 18px;">Everything is Up to Date!</h3>
+          <p style="font-size: 14px; max-width: 520px; margin: 0 auto; line-height: 1.5;">
+            No pending submissions require review, and no approved translations are waiting for Git synchronization.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = '';
+
+    allLangs.forEach(lang => {
+      const langMeta = resolveLanguageMeta(lang) || { name: lang, native: lang, flag: '🌐' };
+      const langPending = pendingItems.filter(p => p.language === lang);
+      const langApproved = approvedPerLang[lang] || {};
+      const approvedKeys = Object.keys(langApproved);
+      const openPr = approvedKeys.map(k => langApproved[k]).find(a => a.prNumber && a.prState === 'open');
+
+      const groupCard = document.createElement('div');
+      groupCard.className = 'admin-lang-group';
+      groupCard.id = `admin-lang-${lang}`;
+
+      // 1. Language Group Header
+      const prPillHtml = openPr
+        ? `<a href="${openPr.prUrl || '#'}" target="_blank" rel="noopener" class="admin-pr-link" title="Open Pull Request on GitHub">${ICONS.gitPullRequest} PR #${openPr.prNumber} (Open) ↗</a>`
+        : '';
+
+      const syncBtnDisabled = approvedKeys.length === 0;
+
+      groupCard.innerHTML = `
+        <div class="admin-lang-header">
+          <div class="admin-lang-info">
+            <span class="admin-lang-flag">${langMeta.flag || '🌐'}</span>
+            <div class="admin-lang-names">
+              <h3 class="admin-lang-title">${escapeHtml(formatLanguageDisplayName(langMeta, lang))}</h3>
+              <span class="admin-lang-code">${lang}</span>
+            </div>
+            <div class="admin-lang-badges">
+              <span class="studio-pill ${langPending.length > 0 ? 'pill-draft-mine' : 'pill-available'}">${langPending.length} Pending</span>
+              <span class="studio-pill ${approvedKeys.length > 0 ? 'pill-approved' : 'pill-available'}">${approvedKeys.length} Approved</span>
+              ${prPillHtml}
+            </div>
+          </div>
+          <div class="admin-lang-actions">
+            <button class="btn btn-sm btn-primary-gradient admin-lang-sync-btn" data-lang="${lang}" ${syncBtnDisabled ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''} title="${syncBtnDisabled ? 'No approved translations to sync' : `Create PR for ${approvedKeys.length} ${langMeta.name || lang} translations`}">
+              <svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path fill-rule="evenodd" d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"></path></svg>
+              Sync ${escapeHtml(langMeta.name || lang)} to Git (Create PR)
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-lang-content">
+          <!-- SUBGROUP: Pending Review Proposals -->
+          <div class="admin-subgroup" style="${langPending.length === 0 ? 'display: none;' : ''}">
+            <div class="admin-subgroup-title">
+              <span>Pending Review (${langPending.length})</span>
+            </div>
+            <div class="admin-pending-container" id="pending-container-${lang}" style="display: flex; flex-direction: column; gap: 14px;"></div>
+          </div>
+
+          <!-- SUBGROUP: Approved Staged Translations -->
+          <div class="admin-subgroup" style="margin-top: ${langPending.length > 0 ? '22px' : '0'};">
+            <div class="admin-subgroup-title">
+              <span>Approved Translations (${approvedKeys.length})</span>
+              <span style="font-size: 11px; font-weight: 500; color: var(--text-tertiary); text-transform: none; letter-spacing: normal;">Staged on server for Git synchronization</span>
+            </div>
+            <div class="admin-approved-container" id="approved-container-${lang}"></div>
+          </div>
+        </div>
+      `;
+
+      container.appendChild(groupCard);
+
+      // Wire per-language Sync button
+      const langSyncBtn = groupCard.querySelector('.admin-lang-sync-btn');
+      if (langSyncBtn && !syncBtnDisabled) {
+        langSyncBtn.onclick = () => triggerSyncPr(lang, langSyncBtn);
+      }
+
+      // Render Pending Cards for this language
+      const pendingContainer = groupCard.querySelector(`#pending-container-${lang}`);
+      if (pendingContainer && langPending.length > 0) {
+        langPending.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'studio-card';
+          card.id = `admin-card-${item.language}-${item.key}`;
+
+          const proposals = item.proposals || [];
+          const catItem = catMap.get(item.key);
+          const sourceText = catItem ? catItem.source : '';
+          const appContext = catItem ? catItem.comment : '';
+
+          let proposalsHtml = '';
+          proposals.forEach((p, idx) => {
+            const isSelected = idx === 0;
+            const authorClean = String(p.contributor || 'Unknown').replace(/^@+/, '');
+            proposalsHtml += `
+              <label class="proposal-item ${isSelected ? 'selected' : ''}" data-key="${item.key}" data-val="${escapeHtml(p.text)}" data-author="${escapeHtml(authorClean)}">
+                <input type="radio" name="prop-${item.language}-${item.key}" class="proposal-radio" ${isSelected ? 'checked' : ''}>
+                <div class="proposal-meta">
+                  <div class="proposal-text">"${escapeHtml(p.text)}"</div>
+                  <div class="proposal-author">Option ${idx + 1} • by ${escapeHtml(authorClean)}</div>
+                </div>
+              </label>
+            `;
+          });
+
+          card.innerHTML = `
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+              <div>
+                <span class="card-key-pill">${escapeHtml(item.key)}</span>
+              </div>
+              <div class="admin-card-actions">
+                <button class="btn btn-sm btn-glass admin-clear-btn" data-lang="${item.language}" data-key="${item.key}" title="Discard and clear all submissions for this key" style="display: inline-flex; align-items: center; gap: 6px;">
+                  ${ICONS.trash} Clear Submissions
+                </button>
+                <button class="btn btn-sm btn-primary-gradient admin-approve-btn" data-lang="${item.language}" data-key="${item.key}" style="display: inline-flex; align-items: center; gap: 6px;">
+                  ${ICONS.check} Approve Selected
+                </button>
+              </div>
+            </div>
+
+            <!-- English Source & App Context Box -->
+            <div class="admin-review-source" style="margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">English Source</span>
+                ${appContext ? `<span style="font-size: 11px; color: var(--text-tertiary); max-width: 65%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(appContext)}">${escapeHtml(appContext)}</span>` : ''}
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+                <div style="font-size: 14.5px; font-weight: 600; color: var(--text-primary); line-height: 1.5; word-break: break-word; user-select: text;">
+                  ${escapeHtml(sourceText || '-')}
+                </div>
+                ${sourceText ? `
+                  <button class="copy-mini-btn admin-copy-source-btn" data-text="${escapeHtml(sourceText)}" title="Copy English source" style="flex-shrink: 0; padding: 3px 8px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(255,255,255,0.04); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    ${ICONS.copy} Copy
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+              Submitted Options (${proposals.length})
+            </div>
+
+            <div class="proposal-stack" id="stack-${item.language}-${item.key}">
+              ${proposalsHtml}
+            </div>
+
+            <div style="margin-top: 10px;">
+              <label style="font-size: 11px; color: var(--text-tertiary);">Custom tweak (if needed):</label>
+              <input type="text" class="form-input" id="tweak-${item.language}-${item.key}" value="${escapeHtml(proposals[0]?.text || '')}">
+            </div>
+          `;
+
+          pendingContainer.appendChild(card);
+
+          // Radio selection
+          const radioItems = card.querySelectorAll('.proposal-item');
+          radioItems.forEach(ri => {
+            ri.onclick = () => {
+              radioItems.forEach(r => r.classList.remove('selected'));
+              ri.classList.add('selected');
+              ri.querySelector('input').checked = true;
+              document.getElementById(`tweak-${item.language}-${item.key}`).value = ri.getAttribute('data-val');
+            };
+          });
+
+          // Copy English source
+          const copySourceBtn = card.querySelector('.admin-copy-source-btn');
+          if (copySourceBtn) {
+            copySourceBtn.onclick = () => {
+              const textToCopy = copySourceBtn.getAttribute('data-text') || '';
+              navigator.clipboard.writeText(textToCopy);
+              copySourceBtn.innerHTML = `${ICONS.check} Copied!`;
+              copySourceBtn.classList.add('copied');
+              showToast("English source copied!");
+              setTimeout(() => {
+                copySourceBtn.innerHTML = `${ICONS.copy} Copy`;
+                copySourceBtn.classList.remove('copied');
+              }, 1800);
+            };
+          }
+
+          // Clear submissions
+          const clearBtn = card.querySelector('.admin-clear-btn');
+          if (clearBtn) {
+            clearBtn.onclick = async () => {
+              if (!confirm(`Are you sure you want to discard and clear all ${proposals.length} submitted option(s) for "${item.key}"?`)) return;
+              clearBtn.disabled = true;
+              clearBtn.textContent = 'Clearing...';
+              try {
+                const cRes = await fetch(`${WORKER_URL}/api/reject`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionAdminPassword}` },
+                  body: JSON.stringify({ language: item.language, key: item.key })
+                });
+                if (cRes.ok) {
+                  showToast(`Cleared submissions for "${item.key}"`);
+                  loadAdminQueue();
+                } else {
+                  alert("Failed to clear submissions.");
+                  clearBtn.disabled = false;
+                  clearBtn.innerHTML = `${ICONS.trash} Clear Submissions`;
+                }
+              } catch (e) {
+                alert("Error: " + e.message);
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = `${ICONS.trash} Clear Submissions`;
+              }
+            };
+          }
+
+          // Approve selected
+          const approveBtn = card.querySelector('.admin-approve-btn');
+          approveBtn.onclick = async () => {
+            const selectedText = document.getElementById(`tweak-${item.language}-${item.key}`).value;
+            const selectedItem = card.querySelector('.proposal-item.selected');
+            const contributor = selectedItem ? selectedItem.getAttribute('data-author') : 'Unknown';
+
+            approveBtn.disabled = true;
+            approveBtn.textContent = 'Approving...';
+
+            try {
+              const aRes = await fetch(`${WORKER_URL}/api/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionAdminPassword}` },
+                body: JSON.stringify({
+                  language: item.language,
+                  key: item.key,
+                  selectedText,
+                  contributor
+                })
+              });
+
+              if (aRes.ok) {
+                showToast(`Approved "${item.key}"!`);
+                loadAdminQueue();
+              } else {
+                alert("Failed to approve.");
+                approveBtn.disabled = false;
+                approveBtn.innerHTML = `${ICONS.check} Approve Selected`;
+              }
+            } catch (e) {
+              alert("Error: " + e.message);
+              approveBtn.disabled = false;
+              approveBtn.innerHTML = `${ICONS.check} Approve Selected`;
+            }
+          };
+        });
+      }
+
+      // Render Approved Translations for this language
+      const approvedContainer = groupCard.querySelector(`#approved-container-${lang}`);
+      if (approvedContainer) {
+        if (approvedKeys.length === 0) {
+          approvedContainer.innerHTML = `
+            <div style="padding: 16px; background: rgba(255,255,255,0.015); border: 1px dashed var(--border-glass); border-radius: var(--radius-md); font-size: 13px; color: var(--text-tertiary); text-align: center;">
+              No approved translations staged for ${escapeHtml(langMeta.name || lang)} yet.
+            </div>
+          `;
+        } else {
+          const approvedTable = document.createElement('div');
+          approvedTable.className = 'admin-approved-table';
+
+          approvedKeys.forEach(k => {
+            const aObj = langApproved[k];
+            const catItem = catMap.get(k);
+            const src = catItem ? catItem.source : '';
+            const val = aObj.value || aObj.translation || '';
+            const contrib = String(aObj.contributor || 'Unknown').replace(/^@+/, '');
+
+            let syncStatusHtml = '';
+            if (aObj.prNumber) {
+              syncStatusHtml = `
+                <a href="${aObj.prUrl || '#'}" target="_blank" rel="noopener" class="admin-pr-link">
+                  ${ICONS.gitPullRequest} PR #${aObj.prNumber} (${aObj.prState || 'Open'}) ↗
+                </a>
+              `;
+            } else {
+              syncStatusHtml = `
+                <span class="admin-ready-badge">
+                  ${ICONS.check} Ready to Sync
+                </span>
+              `;
+            }
+
+            const row = document.createElement('div');
+            row.className = 'admin-approved-row';
+            row.id = `approved-row-${lang}-${k}`;
+
+            row.innerHTML = `
+              <div class="approved-key-col">
+                <span class="card-key-pill" title="${escapeHtml(k)}">${escapeHtml(k)}</span>
+                ${catItem && catItem.comment ? `<div class="approved-context-text" title="${escapeHtml(catItem.comment)}">${escapeHtml(catItem.comment)}</div>` : ''}
+              </div>
+
+              <div class="approved-source-col">
+                <div class="approved-col-label">English Source</div>
+                <div class="approved-source-text">${escapeHtml(src || '-')}</div>
+              </div>
+
+              <div class="approved-trans-col">
+                <div class="approved-col-label">Approved Translation</div>
+                <div class="approved-val-text">${escapeHtml(val)}</div>
+                <div class="approved-author-text">By ${escapeHtml(contrib)} ${aObj.approvedAt ? `• ${formatTimeAgo(aObj.approvedAt)}` : ''}</div>
+              </div>
+
+              <div class="approved-status-col">
+                <div class="approved-col-label">Git Sync Status</div>
+                <div>${syncStatusHtml}</div>
+              </div>
+
+              <div class="approved-action-col">
+                <button class="btn btn-sm btn-glass admin-unapprove-btn" data-lang="${lang}" data-key="${escapeHtml(k)}" title="Remove this translation from approved staging">
+                  ${ICONS.trash} Remove
+                </button>
+              </div>
+            `;
+
+            approvedTable.appendChild(row);
+
+            // Wire unapprove / remove button
+            const removeBtn = row.querySelector('.admin-unapprove-btn');
+            if (removeBtn) {
+              removeBtn.onclick = async () => {
+                if (!confirm(`Remove "${k}" from approved staging? It will no longer be synced to Git.`)) return;
+                removeBtn.disabled = true;
+                removeBtn.textContent = 'Removing...';
+                try {
+                  const uRes = await fetch(`${WORKER_URL}/api/unapprove`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionAdminPassword}` },
+                    body: JSON.stringify({ language: lang, key: k })
+                  });
+                  if (uRes.ok) {
+                    showToast(`Removed "${k}" from staging`);
+                    loadAdminQueue();
+                  } else {
+                    alert("Failed to remove translation.");
+                    removeBtn.disabled = false;
+                    removeBtn.innerHTML = `${ICONS.trash} Remove`;
+                  }
+                } catch (e) {
+                  alert("Error: " + e.message);
+                  removeBtn.disabled = false;
+                  removeBtn.innerHTML = `${ICONS.trash} Remove`;
+                }
+              };
+            }
+          });
+
+          approvedContainer.appendChild(approvedTable);
+        }
+      }
+    });
+  }
+
+  // Automated Pull Request Creation Action (Single Language or All)
+  async function triggerSyncPr(targetLanguage = null, triggerBtn = null) {
     if (!sessionAdminPassword) {
       try {
         await requestAdminAuth();
@@ -2468,12 +2650,15 @@
       }
     }
 
-    const prBtn = document.getElementById('admin-sync-pr-btn');
+    const prBtn = triggerBtn || document.getElementById('admin-sync-pr-btn');
     const resultBanner = document.getElementById('admin-pr-result');
 
-    prBtn.disabled = true;
-    prBtn.innerHTML = `<span class="loading-spinner"></span> Creating Sync PR...`;
-    resultBanner.style.display = 'none';
+    const originalBtnHtml = prBtn ? prBtn.innerHTML : '';
+    if (prBtn) {
+      prBtn.disabled = true;
+      prBtn.innerHTML = `<span class="loading-spinner"></span> Creating Sync PR...`;
+    }
+    if (resultBanner) resultBanner.style.display = 'none';
 
     try {
       const res = await fetch(`${WORKER_URL}/api/sync-pr`, {
@@ -2481,20 +2666,25 @@
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionAdminPassword}`
-        }
+        },
+        body: JSON.stringify({
+          language: (targetLanguage && targetLanguage !== "all") ? targetLanguage : "all"
+        })
       });
 
       const data = await res.json();
       if (res.ok) {
-        resultBanner.style.display = 'block';
-        resultBanner.innerHTML = `
-          <h4 style="color: var(--status-success); margin-bottom: 6px;">${ICONS.checkCircle} Pull Request #${data.pr_number} Successfully Opened!</h4>
-          <p style="font-size: 13.5px; margin-bottom: 10px;">
-            A dedicated sync branch <code>${data.branch}</code> was created and populated with your approved translations.
-          </p>
-          <a href="${data.pr_url}" target="_blank" rel="noopener">View and Merge PR #${data.pr_number} on GitHub ${ICONS.arrowRight}</a>
-        `;
-        showToast("Pull Request created on GitHub!");
+        if (resultBanner) {
+          resultBanner.style.display = 'block';
+          resultBanner.innerHTML = `
+            <h4 style="color: var(--status-success); margin-bottom: 6px;">${ICONS.checkCircle} Pull Request #${data.pr_number} Successfully Opened!</h4>
+            <p style="font-size: 13.5px; margin-bottom: 10px;">
+              A dedicated sync branch <code>${data.branch}</code> was created on GitHub with your approved translations.
+            </p>
+            <a href="${data.pr_url}" target="_blank" rel="noopener" style="font-weight: 700; color: #a78bfa; text-decoration: underline;">View and Merge PR #${data.pr_number} on GitHub ${ICONS.arrowRight}</a>
+          `;
+        }
+        showToast(`Pull Request #${data.pr_number} created on GitHub!`);
         loadAdminQueue();
       } else {
         alert(data.error || "Failed to create PR.");
@@ -2502,8 +2692,10 @@
     } catch (err) {
       alert("Error triggering sync PR: " + err.message);
     } finally {
-      prBtn.disabled = false;
-      prBtn.innerHTML = `<span class="btn-icon">${ICONS.rocket}</span> Sync Approved to Git (Create PR)`;
+      if (prBtn) {
+        prBtn.disabled = false;
+        prBtn.innerHTML = originalBtnHtml;
+      }
     }
   }
 

@@ -109,6 +109,97 @@ function mergeReswXml(existingXml, newTranslations) {
   return xml;
 }
 
+
+async function syncPrStatuses(env, owner, repo) {
+  if (!env.GITHUB_TOKEN) return;
+  try {
+    const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
+    const prCache = new Map();
+
+    for (const item of list.keys) {
+      const lang = item.name.replace("approved:", "");
+      const raw = await env.SUBMISSIONS.get(item.name);
+      if (!raw) continue;
+      let approvedMap = JSON.parse(raw);
+      let changed = false;
+      const mergedKeys = {};
+
+      for (const [key, obj] of Object.entries(approvedMap)) {
+        if (!obj.prNumber) continue;
+
+        let prInfo = prCache.get(obj.prNumber);
+        if (!prInfo) {
+          try {
+            const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${obj.prNumber}`, {
+              headers: {
+                "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+                "User-Agent": "Tunetastic-L10n-Bot"
+              }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              prInfo = {
+                state: data.state, // "open" or "closed"
+                merged_at: data.merged_at, // string ISO or null
+                html_url: data.html_url
+              };
+              prCache.set(obj.prNumber, prInfo);
+            }
+          } catch (e) {
+            console.warn(`Could not check PR #${obj.prNumber}:`, e);
+          }
+        }
+
+        if (prInfo) {
+          if (prInfo.state === "closed" && prInfo.merged_at) {
+            // PR IS MERGED (DONE!)
+            mergedKeys[key] = {
+              value: obj.value,
+              translation: obj.translation || obj.value,
+              contributor: obj.contributor,
+              mergedAt: prInfo.merged_at,
+              prNumber: obj.prNumber
+            };
+            delete approvedMap[key];
+            changed = true;
+          } else if (prInfo.state === "closed" && !prInfo.merged_at) {
+            // PR IS CLOSED WITHOUT MERGE!
+            delete obj.prNumber;
+            delete obj.prUrl;
+            delete obj.prBranch;
+            delete obj.prState;
+            delete obj.syncedAt;
+            changed = true;
+          } else if (prInfo.state === "open") {
+            if (obj.prState !== "open") {
+              obj.prState = "open";
+              changed = true;
+            }
+          }
+        }
+      }
+
+      if (Object.keys(mergedKeys).length > 0) {
+        const mergedKey = `merged:${lang}`;
+        const existingMergedRaw = await env.SUBMISSIONS.get(mergedKey);
+        const existingMerged = existingMergedRaw ? JSON.parse(existingMergedRaw) : {};
+        Object.assign(existingMerged, mergedKeys);
+        await env.SUBMISSIONS.put(mergedKey, JSON.stringify(existingMerged));
+      }
+
+      if (changed) {
+        if (Object.keys(approvedMap).length === 0) {
+          await env.SUBMISSIONS.delete(item.name);
+        } else {
+          await env.SUBMISSIONS.put(item.name, JSON.stringify(approvedMap));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("syncPrStatuses error:", err);
+  }
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = getCorsHeaders(request);
@@ -325,7 +416,11 @@ export default {
           }
         } catch {}
 
-        return jsonResponse({ locks: activeLocks, approved, proposals: proposalsSummary }, 200, corsHeaders);
+        // Merged (PR merged into repository)
+        const mergedRaw = await env.SUBMISSIONS.get(`merged:${lang}`);
+        const merged = mergedRaw ? JSON.parse(mergedRaw) : {};
+
+        return jsonResponse({ locks: activeLocks, approved, merged, proposals: proposalsSummary }, 200, corsHeaders);
       }
 
       // -----------------------------------------------------------------------
@@ -540,8 +635,15 @@ export default {
           return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
         }
 
+        const owner = env.GITHUB_OWNER || "AMit-KP";
+        const repo = env.GITHUB_REPO || "Tunetastic";
+
+        // Automatically sync PR statuses with GitHub (merged vs closed vs open)
+        await syncPrStatuses(env, owner, repo);
+
+        // Fetch all pending proposals
         const list = await env.SUBMISSIONS.list({ prefix: "proposals:" });
-        const items = [];
+        const pendingItems = [];
         for (const item of list.keys) {
           // Format: proposals:<lang>:<key>
           const parts = item.name.split(":");
@@ -549,10 +651,25 @@ export default {
           const key = parts.slice(2).join(":");
           const raw = await env.SUBMISSIONS.get(item.name);
           if (raw) {
-            items.push({ language: lang, key, proposals: JSON.parse(raw) });
+            pendingItems.push({ language: lang, key, proposals: JSON.parse(raw) });
           }
         }
-        return jsonResponse({ pending: items }, 200, corsHeaders);
+
+        // Fetch all approved translations
+        const approvedList = await env.SUBMISSIONS.list({ prefix: "approved:" });
+        const approvedPerLang = {};
+        for (const item of approvedList.keys) {
+          const lang = item.name.replace("approved:", "");
+          const raw = await env.SUBMISSIONS.get(item.name);
+          if (raw) {
+            const data = JSON.parse(raw);
+            if (Object.keys(data).length > 0) {
+              approvedPerLang[lang] = data;
+            }
+          }
+        }
+
+        return jsonResponse({ pending: pendingItems, approved: approvedPerLang }, 200, corsHeaders);
       }
 
       if (path === "/api/approve" && request.method === "POST") {
@@ -651,34 +768,51 @@ export default {
         const repo = env.GITHUB_REPO || "Tunetastic";
         const baseBranch = "feature/localization";
 
-        // Fetch all approved translations
-        const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
-        if (list.keys.length === 0) {
-          return jsonResponse({ error: "No approved translations available to sync." }, 400, corsHeaders);
-        }
+        let bodyJson = {};
+        try {
+          bodyJson = await request.json();
+        } catch {}
+
+        const targetLang = (bodyJson.language && bodyJson.language !== "all") ? bodyJson.language : null;
 
         const approvedPerLang = {};
         const contributorsSet = new Set();
         const langSummaries = [];
 
-        for (const item of list.keys) {
-          const lang = item.name.replace("approved:", "");
-          const raw = await env.SUBMISSIONS.get(item.name);
+        if (targetLang) {
+          const raw = await env.SUBMISSIONS.get(`approved:${targetLang}`);
           if (raw) {
             const data = JSON.parse(raw);
             const count = Object.keys(data).length;
             if (count > 0) {
-              approvedPerLang[lang] = data;
+              approvedPerLang[targetLang] = data;
               for (const v of Object.values(data)) {
                 if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
               }
-              langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
+              langSummaries.push(`- **\`${targetLang}\`**: ${count} string(s)`);
+            }
+          }
+        } else {
+          const list = await env.SUBMISSIONS.list({ prefix: "approved:" });
+          for (const item of list.keys) {
+            const lang = item.name.replace("approved:", "");
+            const raw = await env.SUBMISSIONS.get(item.name);
+            if (raw) {
+              const data = JSON.parse(raw);
+              const count = Object.keys(data).length;
+              if (count > 0) {
+                approvedPerLang[lang] = data;
+                for (const v of Object.values(data)) {
+                  if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
+                }
+                langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
+              }
             }
           }
         }
 
         if (Object.keys(approvedPerLang).length === 0) {
-          return jsonResponse({ error: "No translations found in approved queue." }, 400, corsHeaders);
+          return jsonResponse({ error: targetLang ? `No approved translations found for ${targetLang}.` : "No translations found in approved queue." }, 400, corsHeaders);
         }
 
         // 1. Get HEAD commit of base branch
@@ -694,8 +828,8 @@ export default {
         const refData = await refRes.json();
         const baseSha = refData.object.sha;
 
-        // 2. Create new branch: l10n/community-sync-<timestamp>
-        const syncBranch = `l10n/community-sync-${Date.now()}`;
+        // 2. Create new branch: l10n/sync-<lang>-<timestamp> or l10n/community-sync-<timestamp>
+        const syncBranch = targetLang ? `l10n/sync-${targetLang}-${Date.now()}` : `l10n/community-sync-${Date.now()}`;
         const createBranchRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
           method: "POST",
           headers: {
@@ -713,7 +847,6 @@ export default {
         }
 
         // 3. For each language, update Strings/<lang>/Resources.resw
-        // If file doesn't exist, use en-US as base template
         let enUsXml = "";
         const enUsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/Strings/en-US/Resources.resw?ref=${syncBranch}`, {
           headers: { "Authorization": `Bearer ${env.GITHUB_TOKEN}`, "User-Agent": "Tunetastic-L10n-Bot" }
@@ -737,7 +870,6 @@ export default {
             fileSha = fileData.sha;
           }
 
-          // Build dictionary of key -> value
           const dict = {};
           for (const [k, obj] of Object.entries(translationsMap)) {
             dict[k] = obj.value;
@@ -764,10 +896,14 @@ export default {
           });
         }
 
-        // 4. Create Pull Request (Never add @ to contributors and never add fake email links)
+        // 4. Create Pull Request
         const contributorsList = Array.from(contributorsSet)
           .map(c => String(c).replace(/^@+/, "").trim())
           .filter(Boolean);
+
+        const prTitle = targetLang
+          ? `feat(l10n): sync ${targetLang} translations (${Object.keys(approvedPerLang[targetLang] || {}).length} string(s))`
+          : `feat(l10n): sync community translations [${Object.keys(approvedPerLang).join(", ")}]`;
 
         const prBody =
           `## 🌐 Community Localization Sync\n\n` +
@@ -786,7 +922,7 @@ export default {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            title: `feat(l10n): sync community translations [${Object.keys(approvedPerLang).join(", ")}]`,
+            title: prTitle,
             head: syncBranch,
             base: baseBranch,
             body: prBody
@@ -799,18 +935,59 @@ export default {
 
         const prData = await prRes.json();
 
-        // Safe Cloudflare Retention: WE DO NOT DELETE APPROVED STRINGS HERE!
-        // Staged translations remain intact in KV until safely purged after PR merge.
+        // 5. Track which approved change is linked to which PR!
+        for (const [lang, translationsMap] of Object.entries(approvedPerLang)) {
+          const approvedKey = `approved:${lang}`;
+          const currentRaw = await env.SUBMISSIONS.get(approvedKey);
+          if (currentRaw) {
+            const currentMap = JSON.parse(currentRaw);
+            for (const k of Object.keys(translationsMap)) {
+              if (currentMap[k]) {
+                currentMap[k].prNumber = prData.number;
+                currentMap[k].prUrl = prData.html_url;
+                currentMap[k].prBranch = syncBranch;
+                currentMap[k].prState = "open";
+                currentMap[k].syncedAt = new Date().toISOString();
+              }
+            }
+            await env.SUBMISSIONS.put(approvedKey, JSON.stringify(currentMap));
+          }
+        }
 
         return jsonResponse({
           success: true,
           pr_url: prData.html_url,
           pr_number: prData.number,
-          branch: syncBranch
+          branch: syncBranch,
+          language: targetLang || "all"
         }, 200, corsHeaders);
       }
 
       // -----------------------------------------------------------------------
+      
+      // Un-approve / Delete single approved key
+      if ((path === "/api/unapprove" || path === "/api/delete-approved") && request.method === "POST") {
+        if (!verifyAdminAuth(request, env)) {
+          return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
+        }
+        const { language, key } = await request.json();
+        if (!language || !key) {
+          return jsonResponse({ error: "Missing language or key" }, 400, corsHeaders);
+        }
+        const approvedKey = `approved:${language}`;
+        const raw = await env.SUBMISSIONS.get(approvedKey);
+        if (raw) {
+          const map = JSON.parse(raw);
+          delete map[key];
+          if (Object.keys(map).length === 0) {
+            await env.SUBMISSIONS.delete(approvedKey);
+          } else {
+            await env.SUBMISSIONS.put(approvedKey, JSON.stringify(map));
+          }
+        }
+        return jsonResponse({ success: true, key }, 200, corsHeaders);
+      }
+
       // 5. POST-MERGE SAFE CLEANUP (/api/cleanup-synced)
       // -----------------------------------------------------------------------
       if (path === "/api/cleanup-synced" && request.method === "POST") {

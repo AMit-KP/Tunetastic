@@ -2893,3 +2893,206 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   border-radius: var(--radius-md);
   padding: 10px 14px;
 }
+
+
+/* Redesigned Admin Hub Language Groups & Approved Staging */
+.admin-lang-group {
+  background: var(--surface-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(16px);
+  transition: all var(--transition-normal);
+}
+
+.admin-lang-group:hover {
+  border-color: rgba(96, 205, 255, 0.3);
+}
+
+.admin-lang-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-glass);
+  margin-bottom: 18px;
+}
+
+.admin-lang-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-lang-flag {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.admin-lang-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-lang-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.admin-lang-code {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.admin-lang-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: 8px;
+}
+
+.admin-subgroup {
+  margin-bottom: 22px;
+}
+
+.admin-subgroup-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.admin-approved-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-approved-row {
+  display: grid;
+  grid-template-columns: 220px 1.2fr 1.2fr 140px auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.admin-approved-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(96, 205, 255, 0.25);
+}
+
+@media (max-width: 950px) {
+  .admin-approved-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+.approved-col-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.approved-key-col {
+  min-width: 0;
+}
+
+.approved-context-text {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.approved-source-text {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.approved-val-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #34d399;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.approved-author-text {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 3px;
+}
+
+.admin-pr-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a78bfa;
+  text-decoration: none;
+  padding: 4px 9px;
+  background: rgba(167, 139, 250, 0.12);
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.admin-pr-link:hover {
+  background: rgba(167, 139, 250, 0.25);
+  border-color: rgba(167, 139, 250, 0.65);
+  color: #c4b5fd;
+}
+
+.admin-ready-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #34d399;
+  padding: 3px 8px;
+  background: rgba(52, 211, 153, 0.1);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-radius: var(--radius-sm);
+}
+
+.admin-unapprove-btn {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  padding: 5px 10px !important;
+  font-size: 11px !important;
+}
+
+.admin-unapprove-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(248, 113, 113, 0.6) !important;
+  color: #fca5a5 !important;
+}
