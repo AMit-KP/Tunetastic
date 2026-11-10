@@ -2583,22 +2583,6 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   transform: translateY(-2px);
 }
 
-.admin-pr-result-banner {
-  background: rgba(0, 230, 118, 0.12);
-  border: 1px solid rgba(0, 230, 118, 0.4);
-  border-radius: var(--radius-lg);
-  padding: 18px 24px;
-  margin-bottom: 24px;
-  color: var(--text-primary);
-  animation: fadeIn 0.4s ease;
-  line-height: 1.6;
-}
-
-.admin-pr-result-banner a {
-  color: var(--accent-cyan);
-  text-decoration: underline;
-  font-weight: 700;
-}
 
 .proposal-stack {
   display: flex;

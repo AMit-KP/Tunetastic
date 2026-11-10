@@ -2668,14 +2668,12 @@
     }
 
     const prBtn = triggerBtn || document.getElementById('admin-sync-pr-btn');
-    const resultBanner = document.getElementById('admin-pr-result');
 
     const originalBtnHtml = prBtn ? prBtn.innerHTML : '';
     if (prBtn) {
       prBtn.disabled = true;
       prBtn.innerHTML = `<span class="loading-spinner"></span> Creating Sync PR...`;
     }
-    if (resultBanner) resultBanner.style.display = 'none';
 
     try {
       const res = await fetch(`${WORKER_URL}/api/sync-pr`, {
@@ -2691,16 +2689,6 @@
 
       const data = await res.json();
       if (res.ok) {
-        if (resultBanner) {
-          resultBanner.style.display = 'block';
-          resultBanner.innerHTML = `
-            <h4 style="color: var(--status-success); margin-bottom: 6px;">${ICONS.checkCircle} Pull Request #${data.pr_number} Successfully Opened!</h4>
-            <p style="font-size: 13.5px; margin-bottom: 10px;">
-              A dedicated sync branch <code>${data.branch}</code> was created on GitHub with your approved translations.
-            </p>
-            <a href="${data.pr_url}" target="_blank" rel="noopener" style="font-weight: 700; color: #a78bfa; text-decoration: underline;">View and Merge PR #${data.pr_number} on GitHub ${ICONS.arrowRight}</a>
-          `;
-        }
         showToast(`Pull Request #${data.pr_number} created on GitHub!`);
         loadAdminQueue();
       } else {
