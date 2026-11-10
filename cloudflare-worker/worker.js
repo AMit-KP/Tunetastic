@@ -681,6 +681,7 @@ export default {
           }
         } catch {}
 
+        const mergedPerLang = {};
         for (const lang of candidateLangs) {
           const raw = await env.SUBMISSIONS.get(`approved:${lang}`);
           if (raw) {
@@ -691,9 +692,18 @@ export default {
               }
             } catch {}
           }
+          const mergedRaw = await env.SUBMISSIONS.get(`merged:${lang}`);
+          if (mergedRaw) {
+            try {
+              const mData = JSON.parse(mergedRaw);
+              if (Object.keys(mData).length > 0) {
+                mergedPerLang[lang] = mData;
+              }
+            } catch {}
+          }
         }
 
-        return jsonResponse({ pending: pendingItems, approved: approvedPerLang }, 200, corsHeaders);
+        return jsonResponse({ pending: pendingItems, approved: approvedPerLang, merged: mergedPerLang }, 200, corsHeaders);
       }
 
       if (path === "/api/approve" && request.method === "POST") {
@@ -747,13 +757,49 @@ export default {
         const approvedKey = `approved:${language}`;
         const existingRaw = await env.SUBMISSIONS.get(approvedKey);
         const approvedMap = existingRaw ? JSON.parse(existingRaw) : {};
-        approvedMap[key] = {
+
+        // If this key was already approved, merge previous contributors so everyone keeps credit
+        const prevApproved = approvedMap[key];
+        if (prevApproved) {
+          if (Array.isArray(prevApproved.contributors)) {
+            prevApproved.contributors.forEach(c => {
+              const clean = String(c || "").replace(/^@+/, "").trim();
+              if (clean && clean.toLowerCase() !== "unknown") allContribs.add(clean);
+            });
+          } else if (prevApproved.contributor && prevApproved.contributor !== "Unknown") {
+            String(prevApproved.contributor).split(",").forEach(c => {
+              const clean = c.replace(/^@+/, "").trim();
+              if (clean && clean.toLowerCase() !== "unknown") allContribs.add(clean);
+            });
+          }
+        }
+
+        const finalContributorsList = Array.from(allContribs);
+        const finalCombinedContributor = finalContributorsList.length > 0
+          ? finalContributorsList.join(", ")
+          : (contributor || "Unknown");
+
+        const updatedApprovedEntry = {
           value: selectedText,
           translation: selectedText,
-          contributor: combinedContributor,
-          contributors: contributorsList.length > 0 ? contributorsList : [combinedContributor],
+          contributor: finalCombinedContributor,
+          contributors: finalContributorsList.length > 0 ? finalContributorsList : [finalCombinedContributor],
           approvedAt: new Date().toISOString()
         };
+
+        // If string was previously linked to a PR and text changed, reset prNumber so it is marked Ready to Sync
+        if (prevApproved && prevApproved.prNumber && prevApproved.value !== selectedText) {
+          updatedApprovedEntry.previousPrNumber = prevApproved.prNumber;
+          // prNumber omitted so it can be synced in the next PR
+        } else if (prevApproved && prevApproved.prNumber) {
+          updatedApprovedEntry.prNumber = prevApproved.prNumber;
+          updatedApprovedEntry.prUrl = prevApproved.prUrl;
+          updatedApprovedEntry.prBranch = prevApproved.prBranch;
+          updatedApprovedEntry.prState = prevApproved.prState;
+          updatedApprovedEntry.syncedAt = prevApproved.syncedAt;
+        }
+
+        approvedMap[key] = updatedApprovedEntry;
         await env.SUBMISSIONS.put(approvedKey, JSON.stringify(approvedMap));
 
         // Maintain approved_languages index for zero-lag instant lookups

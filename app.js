@@ -2239,6 +2239,7 @@
       const data = await res.json();
       const pendingItems = data.pending || [];
       const approvedPerLang = data.approved || {};
+      const mergedPerLang = data.merged || {};
 
       // Resilient fallback: Merge liveStatus.approved if available for current language
       if (currentLang && liveStatus && liveStatus.approved && Object.keys(liveStatus.approved).length > 0) {
@@ -2270,7 +2271,7 @@
         syncAllBtn.title = totalApprovedCount === 0 ? 'No approved translations available to sync' : `Sync all ${totalApprovedCount} approved translations to Git`;
       }
 
-      await renderAdminDashboard(pendingItems, approvedPerLang, container);
+      await renderAdminDashboard(pendingItems, approvedPerLang, mergedPerLang, container);
     } catch (err) {
       container.innerHTML = `
         <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass);">
@@ -2281,7 +2282,7 @@
     }
   }
 
-  async function renderAdminDashboard(pendingItems, approvedPerLang, container) {
+  async function renderAdminDashboard(pendingItems, approvedPerLang, mergedPerLang = {}, container) {
     if (!catalog || !catalog.items || catalog.items.length === 0) {
       await loadCatalog();
     }
@@ -2315,8 +2316,19 @@
       const langMeta = resolveLanguageMeta(lang) || { name: lang, native: lang, flag: '🌐' };
       const langPending = pendingItems.filter(p => p.language === lang);
       const langApproved = approvedPerLang[lang] || {};
+      const langMerged = mergedPerLang[lang] || {};
       const approvedKeys = Object.keys(langApproved);
       const openPr = approvedKeys.map(k => langApproved[k]).find(a => a.prNumber && a.prState === 'open');
+
+      // Calculate overwrite proposals vs new submissions
+      const overwriteItems = langPending.filter(p => {
+        const hasAppr = langApproved[p.key] && (langApproved[p.key].value || langApproved[p.key].translation);
+        const hasMerg = langMerged[p.key] && (langMerged[p.key].value || langMerged[p.key].translation);
+        const hasCat = getCatalogTranslation(lang, p.key);
+        return Boolean(hasAppr || hasMerg || (hasCat && hasCat.trim()));
+      });
+      const overwriteCount = overwriteItems.length;
+      const newCount = langPending.length - overwriteCount;
 
       const groupCard = document.createElement('div');
       groupCard.className = 'admin-lang-group';
@@ -2354,8 +2366,17 @@
         <div class="admin-lang-content">
           <!-- SUBGROUP: Pending Review Proposals -->
           <div class="admin-subgroup" style="${langPending.length === 0 ? 'display: none;' : ''}">
-            <div class="admin-subgroup-title">
-              <span>Pending Review (${langPending.length})</span>
+            <div class="admin-subgroup-title" style="flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span>Pending Review (${langPending.length})</span>
+                ${overwriteCount > 0 ? `
+                  <div class="admin-pending-filter-tabs" id="filter-tabs-${lang}">
+                    <button class="admin-filter-pill active" data-filter="all" data-lang="${lang}">All (${langPending.length})</button>
+                    <button class="admin-filter-pill" data-filter="new" data-lang="${lang}">New (${newCount})</button>
+                    <button class="admin-filter-pill pill-warn" data-filter="overwrites" data-lang="${lang}">Overwrites (${overwriteCount})</button>
+                  </div>
+                ` : ''}
+              </div>
             </div>
             <div class="admin-pending-container" id="pending-container-${lang}" style="display: flex; flex-direction: column; gap: 14px;"></div>
           </div>
@@ -2379,6 +2400,27 @@
         langSyncBtn.onclick = () => triggerSyncPr(lang, langSyncBtn);
       }
 
+      // Wire pending filter buttons (All / New / Overwrites)
+      const filterPills = groupCard.querySelectorAll(`.admin-filter-pill[data-lang="${lang}"]`);
+      filterPills.forEach(pill => {
+        pill.onclick = () => {
+          filterPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          const filterMode = pill.getAttribute('data-filter');
+          const cards = groupCard.querySelectorAll(`#pending-container-${lang} .studio-card`);
+          cards.forEach(c => {
+            const isOvr = c.getAttribute('data-is-overwrite') === 'true';
+            if (filterMode === 'all') {
+              c.style.display = '';
+            } else if (filterMode === 'new') {
+              c.style.display = !isOvr ? '' : 'none';
+            } else if (filterMode === 'overwrites') {
+              c.style.display = isOvr ? '' : 'none';
+            }
+          });
+        };
+      });
+
       // Render Pending Cards for this language
       const pendingContainer = groupCard.querySelector(`#pending-container-${lang}`);
       if (pendingContainer && langPending.length > 0) {
@@ -2391,6 +2433,85 @@
           const catItem = catMap.get(item.key);
           const sourceText = catItem ? catItem.source : '';
           const appContext = catItem ? catItem.comment : '';
+
+          // Determine if this submission overwrites an approved or translated string
+          const approvedObj = langApproved[item.key];
+          const mergedObj = langMerged[item.key];
+          const catalogTrans = getCatalogTranslation(item.language, item.key);
+
+          let overwriteType = null; // 'approved' | 'translated' | null
+          let previousText = '';
+          let previousMeta = '';
+
+          if (approvedObj && (approvedObj.value || approvedObj.translation)) {
+            overwriteType = 'approved';
+            previousText = approvedObj.value || approvedObj.translation;
+            const author = Array.isArray(approvedObj.contributors) && approvedObj.contributors.length > 0
+              ? approvedObj.contributors.join(', ')
+              : (approvedObj.contributor || 'Maintainer');
+            previousMeta = `Staged as Approved (by ${author}${approvedObj.prNumber ? ` • PR #${approvedObj.prNumber}` : ''})`;
+          } else if (mergedObj && (mergedObj.value || mergedObj.translation)) {
+            overwriteType = 'translated';
+            previousText = mergedObj.value || mergedObj.translation;
+            previousMeta = `Merged in Git repository (${mergedObj.prNumber ? `PR #${mergedObj.prNumber}` : 'Merged'})`;
+          } else if (catalogTrans && catalogTrans.trim()) {
+            overwriteType = 'translated';
+            previousText = catalogTrans.trim();
+            previousMeta = `Official in App / Resources.resw`;
+          }
+
+          card.setAttribute('data-is-overwrite', overwriteType ? 'true' : 'false');
+
+          const overwritePillHtml = overwriteType === 'approved'
+            ? `<span class="admin-overwrite-pill overwrite-approved" title="This string was already approved! Reviewing will update the approved translation."><svg class="svg-icon" viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2l6 11H2zM8 6v3m0 2h.01"/></svg> Overwrite: Approved</span>`
+            : (overwriteType === 'translated'
+              ? `<span class="admin-overwrite-pill overwrite-translated" title="This string is already active in the app! Reviewing will revise the official translation."><svg class="svg-icon" viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg> Revision: Translated</span>`
+              : '');
+
+          const diffBoxHtml = overwriteType ? `
+            <div class="admin-diff-card ${overwriteType === 'approved' ? 'diff-approved' : 'diff-translated'}">
+              <div class="admin-diff-header">
+                <div class="diff-header-title">
+                  ${overwriteType === 'approved'
+                    ? `<span class="diff-icon-amber"><svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2l6 11H2zM8 6v3m0 2h.01"/></svg></span> <strong>POTENTIAL OVERWRITE:</strong> This string is already staged as <strong>Approved</strong>`
+                    : `<span class="diff-icon-cyan"><svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg></span> <strong>PROPOSED REVISION:</strong> This string is already <strong>Translated</strong> in the application`}
+                </div>
+                <div class="diff-header-meta">${escapeHtml(previousMeta)}</div>
+              </div>
+
+              <div class="admin-diff-body">
+                <!-- What was Before -->
+                <div class="diff-pane diff-pane-before">
+                  <div class="diff-pane-label">
+                    <span class="diff-tag diff-tag-before">WHAT WAS BEFORE</span>
+                    <span class="diff-state-hint">${overwriteType === 'approved' ? 'Staged Translation' : 'Active Translation'}</span>
+                  </div>
+                  <div class="diff-pane-text diff-text-before">
+                    "${escapeHtml(previousText)}"
+                  </div>
+                </div>
+
+                <!-- Arrow -->
+                <div class="diff-arrow-divider">
+                  <svg class="svg-icon" viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="2" y1="8" x2="14" y2="8"></line>
+                    <polyline points="9 3 14 8 9 13"></polyline>
+                  </svg>
+                </div>
+
+                <!-- What is Suggested -->
+                <div class="diff-pane diff-pane-after">
+                  <div class="diff-pane-label">
+                    <span class="diff-tag diff-tag-after">WHAT IS SUGGESTED</span>
+                    <span class="diff-state-hint" id="diff-after-author-${item.language}-${item.key}">Option 1 • by ${escapeHtml(String(proposals[0]?.contributor || 'Unknown').replace(/^@+/, ''))}</span>
+                  </div>
+                  <div class="diff-pane-text diff-text-after" id="diff-after-text-${item.language}-${item.key}">
+                    "${escapeHtml(proposals[0]?.text || '')}"
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : '';
 
           let proposalsHtml = '';
           proposals.forEach((p, idx) => {
@@ -2409,8 +2530,9 @@
 
           card.innerHTML = `
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-              <div>
+              <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                 <span class="card-key-pill">${escapeHtml(item.key)}</span>
+                ${overwritePillHtml}
               </div>
               <div class="admin-card-actions">
                 <button class="btn btn-sm btn-glass admin-clear-btn" data-lang="${item.language}" data-key="${item.key}" title="Discard and clear all submissions for this key" style="display: inline-flex; align-items: center; gap: 6px;">
@@ -2440,6 +2562,9 @@
               </div>
             </div>
 
+            <!-- What was Before vs What is Suggested Comparison -->
+            ${diffBoxHtml}
+
             <div style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
               Submitted Options (${proposals.length})
             </div>
@@ -2456,16 +2581,38 @@
 
           pendingContainer.appendChild(card);
 
-          // Radio selection
+          // Radio selection with real-time diff preview sync
           const radioItems = card.querySelectorAll('.proposal-item');
           radioItems.forEach(ri => {
             ri.onclick = () => {
               radioItems.forEach(r => r.classList.remove('selected'));
               ri.classList.add('selected');
               ri.querySelector('input').checked = true;
-              document.getElementById(`tweak-${item.language}-${item.key}`).value = ri.getAttribute('data-val');
+              const val = ri.getAttribute('data-val') || '';
+              document.getElementById(`tweak-${item.language}-${item.key}`).value = val;
+
+              // Live update of Suggested diff pane
+              const diffText = card.querySelector(`#diff-after-text-${item.language}-${item.key}`);
+              if (diffText) diffText.textContent = `"${val}"`;
+              const diffAuthor = card.querySelector(`#diff-after-author-${item.language}-${item.key}`);
+              if (diffAuthor) {
+                const authorClean = ri.getAttribute('data-author') || 'Unknown';
+                const metaText = ri.querySelector('.proposal-author')?.textContent || `by ${authorClean}`;
+                diffAuthor.textContent = metaText;
+              }
             };
           });
+
+          // Tweak input with real-time diff preview sync
+          const tweakInput = card.querySelector(`#tweak-${item.language}-${item.key}`);
+          if (tweakInput) {
+            tweakInput.oninput = () => {
+              const diffText = card.querySelector(`#diff-after-text-${item.language}-${item.key}`);
+              if (diffText) diffText.textContent = `"${tweakInput.value}"`;
+              const diffAuthor = card.querySelector(`#diff-after-author-${item.language}-${item.key}`);
+              if (diffAuthor) diffAuthor.textContent = 'Custom tweak (editing)';
+            };
+          }
 
           // Copy English source
           const copySourceBtn = card.querySelector('.admin-copy-source-btn');
@@ -2583,6 +2730,7 @@
             const catItem = catMap.get(k);
             const src = catItem ? catItem.source : '';
             const val = aObj.value || aObj.translation || '';
+            const hasPendingSuggestion = langPending.some(p => p.key === k);
             let contrib = '';
             if (Array.isArray(aObj.contributors) && aObj.contributors.length > 0) {
               contrib = aObj.contributors.map(c => String(c).replace(/^@+/, '').trim()).filter(Boolean).join(', ');
@@ -2623,6 +2771,7 @@
               <div class="approved-trans-col">
                 <div class="approved-col-label">Approved Translation</div>
                 <div class="approved-val-text">${escapeHtml(val)}</div>
+                ${hasPendingSuggestion ? `<div class="admin-pending-overwrite-badge"><svg class="svg-icon" viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2l6 11H2zM8 6v3m0 2h.01"/></svg> New Suggestion Pending Review Above</div>` : ''}
                 <div class="approved-author-text">By ${escapeHtml(contrib)} ${aObj.approvedAt ? `• ${formatTimeAgo(aObj.approvedAt)}` : ''}</div>
               </div>
 

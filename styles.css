@@ -3080,3 +3080,220 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   border-color: rgba(248, 113, 113, 0.6) !important;
   color: #fca5a5 !important;
 }
+
+/* Admin Overwrite & Revision Badges and Diff Comparison Card */
+.admin-overwrite-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.3px;
+  margin-left: 8px;
+  text-transform: uppercase;
+}
+
+.admin-overwrite-pill.overwrite-approved {
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+}
+
+.admin-overwrite-pill.overwrite-translated {
+  background: rgba(56, 189, 248, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+}
+
+.admin-diff-card {
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.admin-diff-card.diff-approved {
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.admin-diff-card.diff-translated {
+  background: rgba(56, 189, 248, 0.05);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.admin-diff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.diff-header-title {
+  font-size: 12.5px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-icon-amber {
+  color: #fbbf24;
+  display: inline-flex;
+  align-items: center;
+}
+
+.diff-icon-cyan {
+  color: #38bdf8;
+  display: inline-flex;
+  align-items: center;
+}
+
+.diff-header-meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.admin-diff-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .admin-diff-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.diff-pane {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.diff-pane-before {
+  border-left: 3px solid #f87171;
+}
+
+.diff-pane-after {
+  border-left: 3px solid #34d399;
+}
+
+.diff-pane-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.diff-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.diff-tag-before {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.diff-tag-after {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+}
+
+.diff-state-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.diff-pane-text {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.diff-text-before {
+  color: #fca5a5;
+  text-decoration: line-through;
+  text-decoration-color: rgba(248, 113, 113, 0.5);
+}
+
+.diff-text-after {
+  color: #6ee7b7;
+}
+
+.diff-arrow-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+.admin-pending-filter-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-filter-pill {
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-glass);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-filter-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.admin-filter-pill.active {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: rgba(0, 229, 255, 0.5);
+  color: var(--accent-cyan);
+}
+
+.admin-filter-pill.pill-warn.active {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.admin-pending-overwrite-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  margin-top: 5px;
+}
