@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.6.3">
+  <link rel="stylesheet" href="styles.css?v=2.6.4">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -93,9 +93,12 @@
           <span>Tunetastic Localization Studio • 100% Open Source</span>
         </div>
         
-        <h1 class="hero-headline">
+        <h1 class="hero-headline" style="margin-bottom: 14px;">
           Tune Tunetastic to <br><span class="gradient-text">Your Native Language</span>
         </h1>
+        <p class="hero-subtext">
+          Help localize Tunetastic for music lovers worldwide. No GitHub account or technical Git setup required — translate directly in your browser with real-time WinUI preview, instant cloud autosave, and full community recognition.
+        </p>
 
         <!-- 4-Step Contributor Workflow Guidance -->
         <div class="workflow-grid">
@@ -105,8 +108,8 @@
               <span>01</span>
             </div>
             <div class="workflow-content">
-              <h3>Select &amp; Start Translating</h3>
-              <p>Pick your language below. No account or login needed. Your draft autosaves automatically with a 48-hour sliding window so you can pause and resume anytime.</p>
+              <h3>Pick a Language &amp; Start</h3>
+              <p>Choose your language below. No login or sign-up needed. A 48-hour sliding cloud draft automatically autosaves your progress so you can pause and resume anytime in standard browser tabs.</p>
             </div>
           </div>
 
@@ -117,7 +120,7 @@
             </div>
             <div class="workflow-content">
               <h3>Translate with App Context</h3>
-              <p>See exactly where every phrase appears in Tunetastic (Player, Settings, Dialogs). Watch simulated WinUI flyouts update live while keeping tokens like <code>{0}</code> safe.</p>
+              <p>Every phrase displays its exact UI location (Player, Equalizer, Settings, Dialogs). Watch simulated WinUI flyouts update live while smart validation safeguards format tokens like <code>{0}</code>.</p>
             </div>
           </div>
 
@@ -127,8 +130,8 @@
               <span>03</span>
             </div>
             <div class="workflow-content">
-              <h3>Suggest Alternatives</h3>
-              <p>Already translated or in progress? Suggest alternative phrasings (up to 10 community proposals per string). The best quality translation wins.</p>
+              <h3>Propose or Suggest Alternatives</h3>
+              <p>Translate untranslated keys, or click <strong>Suggest Alternative</strong> on already translated or approved strings to propose better phrasings (up to 10 community proposals). Maintainers compare before-and-after diffs to select the best quality translation.</p>
             </div>
           </div>
 
@@ -138,10 +141,34 @@
               <span>04</span>
             </div>
             <div class="workflow-content">
-              <h3>Earn Contributor Credit</h3>
-              <p>Enter your name or email id or GitHub handle or alias/username when submitting. Approved translations are credited in official project release notes, issue trackers, and Git commit history.</p>
+              <h3>Earn Full Community Credit</h3>
+              <p>Sign submissions with your name, nickname, or GitHub handle. When suggestions are reviewed, <strong>all contributors</strong> who submitted proposals earn credit in automated Pull Requests, release notes, and GitHub issue trackers!</p>
             </div>
           </div>
+        </div>
+
+        <!-- Translation Status Reference Bar -->
+        <div class="status-legend-bar">
+          <div class="status-legend-title">Translation Status Guide:</div>
+          <div class="status-legend-items">
+            <div class="status-legend-item">
+              <span class="studio-pill pill-available">Available</span>
+              <span>Needs translation</span>
+            </div>
+            <div class="status-legend-item">
+              <span class="studio-pill pill-draft-mine">Submitted</span>
+              <span>In review queue</span>
+            </div>
+            <div class="status-legend-item">
+              <span class="studio-pill pill-approved">Approved</span>
+              <span>Staged for Git PR</span>
+            </div>
+            <div class="status-legend-item">
+              <span class="studio-pill pill-translated">Translated</span>
+              <span>Live in Tunetastic</span>
+            </div>
+          </div>
+          <div class="status-legend-hint">Tip: Click <strong>Suggest Alternative</strong> on any string to propose refinements!</div>
         </div>
       </div>
 
@@ -474,6 +501,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.6.3"></script>
+  <script src="app.js?v=2.6.4"></script>
 </body>
 </html>
