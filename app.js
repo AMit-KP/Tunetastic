@@ -1906,7 +1906,7 @@
 
     const btn = document.getElementById('modal-confirm-submit-btn');
     btn.disabled = true;
-    btn.textContent = 'Submitting to Staging...';
+    btn.textContent = 'Submitting...';
 
     try {
       const res = await fetch(`${WORKER_URL}/api/submit`, {
@@ -1976,7 +1976,7 @@
       alert("Could not reach staging server: " + err.message);
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Send to Staging';
+      btn.textContent = 'Submit';
     }
   }
 
