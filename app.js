@@ -2019,7 +2019,7 @@
           });
         } catch {}
 
-        showToast(`Successfully submitted ${data.acceptedCount || count} strings to staging!`);
+        showToast(`Successfully submitted ${data.acceptedCount || count} translations!`);
         await fetchLiveStatus();
         renderCards();
         updateWorkspaceStats();
@@ -2027,7 +2027,7 @@
         alert(data.error || "Submission failed.");
       }
     } catch (err) {
-      alert("Could not reach staging server: " + err.message);
+      alert("Could not reach server: " + err.message);
     } finally {
       btn.disabled = false;
       btn.textContent = 'Submit';
@@ -2095,7 +2095,7 @@
           }
         } catch (e) {
           if (errorEl) {
-            errorEl.textContent = 'Could not reach staging server: ' + e.message;
+            errorEl.textContent = 'Could not reach server: ' + e.message;
             errorEl.style.display = 'block';
           }
           submitBtn.disabled = false;
@@ -2120,7 +2120,7 @@
 
   async function loadAdminQueue() {
     const container = document.getElementById('admin-submissions-container');
-    container.innerHTML = `<div style="text-align: center; padding: 48px; color: var(--text-secondary);"><div class="loading-spinner"></div>Connecting to staging storage...</div>`;
+    container.innerHTML = `<div style="text-align: center; padding: 48px; color: var(--text-secondary);"><div class="loading-spinner"></div>Connecting to review queue...</div>`;
 
     if (!sessionAdminPassword) {
       try {
@@ -2262,7 +2262,7 @@
     } catch (err) {
       container.innerHTML = `
         <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass);">
-          <h4 style="color: var(--status-warning);">Could not reach staging server</h4>
+          <h4 style="color: var(--status-warning);">Could not reach server</h4>
           <p style="font-size: 13.5px; color: var(--text-secondary);">${escapeHtml(err.message)}</p>
         </div>
       `;
