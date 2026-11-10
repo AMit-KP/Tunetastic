@@ -2119,7 +2119,7 @@
       input.value = '';
       if (errorEl) errorEl.style.display = 'none';
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Unlock Console';
+      submitBtn.textContent = 'Unlock';
       modal.classList.add('active');
       input.focus();
 
@@ -2151,7 +2151,7 @@
               errorEl.style.display = 'block';
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Unlock Console';
+            submitBtn.textContent = 'Unlock';
             input.select();
           }
         } catch (e) {
@@ -2160,7 +2160,7 @@
             errorEl.style.display = 'block';
           }
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Unlock Console';
+          submitBtn.textContent = 'Unlock';
         }
       };
 
