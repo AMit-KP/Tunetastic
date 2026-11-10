@@ -1807,6 +1807,8 @@
 
     if (cleanAuthor && cleanAuthor !== 'Unknown') {
       safeStorageSet('tunetastic_author', cleanAuthor);
+    } else {
+      safeStorageRemove('tunetastic_author');
     }
 
     const confirmBtn = document.getElementById('suggest-confirm-btn');
@@ -1875,6 +1877,8 @@
     const author = cleanAuthor || 'Unknown';
     if (cleanAuthor && cleanAuthor !== 'Unknown') {
       safeStorageSet('tunetastic_author', cleanAuthor);
+    } else {
+      safeStorageRemove('tunetastic_author');
     }
 
     const translations = getAllLocalTranslations(currentLang);
@@ -2320,12 +2324,54 @@
 
     // Submit modal triggers
     document.getElementById('ws-submit-btn').onclick = openSubmitModal;
-    document.getElementById('modal-cancel-btn').onclick = () => { submitModal.classList.remove('active'); };
+    document.getElementById('modal-cancel-btn').onclick = () => {
+      const input = document.getElementById('submit-author-input');
+      const val = input ? input.value.replace(/^@+/, '').trim() : '';
+      if (val) {
+        safeStorageSet('tunetastic_author', val);
+      } else {
+        safeStorageRemove('tunetastic_author');
+      }
+      submitModal.classList.remove('active');
+    };
     document.getElementById('modal-confirm-submit-btn').onclick = submitTranslations;
 
+    const submitAuthorInput = document.getElementById('submit-author-input');
+    if (submitAuthorInput) {
+      submitAuthorInput.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/^@+/, '').trim();
+        if (val) {
+          safeStorageSet('tunetastic_author', val);
+        } else {
+          safeStorageRemove('tunetastic_author');
+        }
+      });
+    }
+
     // Suggest modal triggers
-    document.getElementById('suggest-cancel-btn').onclick = () => { suggestModal.classList.remove('active'); };
+    document.getElementById('suggest-cancel-btn').onclick = () => {
+      const input = document.getElementById('suggest-author-input');
+      const val = input ? input.value.replace(/^@+/, '').trim() : '';
+      if (val) {
+        safeStorageSet('tunetastic_author', val);
+      } else {
+        safeStorageRemove('tunetastic_author');
+      }
+      suggestModal.classList.remove('active');
+    };
     document.getElementById('suggest-confirm-btn').onclick = submitSuggestion;
+
+    const suggestAuthorInput = document.getElementById('suggest-author-input');
+    if (suggestAuthorInput) {
+      suggestAuthorInput.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/^@+/, '').trim();
+        if (val) {
+          safeStorageSet('tunetastic_author', val);
+        } else {
+          safeStorageRemove('tunetastic_author');
+        }
+      });
+    }
 
     // Admin review triggers
     document.getElementById('admin-refresh-btn').onclick = loadAdminQueue;
