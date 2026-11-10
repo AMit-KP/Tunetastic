@@ -889,17 +889,48 @@
 
   function unlockForSuggestion(item, card) {
     const textarea = card.querySelector('textarea.translation-textarea');
-    const existingVal = textarea && textarea.value ? textarea.value : (getCatalogTranslation(currentLang, item.key) || '');
+    const approvedText = getApprovedTranslation(item.key);
+    const catalogTrans = getCatalogTranslation(currentLang, item.key) || '';
+    const localDraft = getLocalDraft(currentLang, item.key);
+
+    // Keep approved/translated text so the user can make edits to it
+    const existingVal = (localDraft && localDraft.trim())
+      ? localDraft
+      : ((textarea && textarea.value && textarea.value.trim()) ? textarea.value : (approvedText || catalogTrans || ''));
+
     setLocalTranslation(currentLang, item.key, existingVal);
     scheduleDraftAutosave(item.key, existingVal);
 
     if (textarea) {
+      textarea.value = existingVal;
       textarea.readOnly = false;
       textarea.style.opacity = '1';
       textarea.style.cursor = 'text';
       textarea.style.background = '';
+      autoResizeTextarea(textarea);
       textarea.focus();
       textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
+
+    // Update Live Preview row
+    const previewTransEl = card.querySelector('.preview-trans-text');
+    const previewTargetRow = card.querySelector('.preview-row-target');
+    if (previewTransEl) {
+      const rendered = renderSimulatedText(existingVal, item.placeholders);
+      previewTransEl.innerHTML = rendered || '<span class="preview-empty">No translation yet</span>';
+      if (previewTargetRow) {
+        previewTargetRow.setAttribute('title', existingVal ? `Translation Preview: ${existingVal}` : 'Translation Preview: No translation yet');
+      }
+    }
+
+    // Check placeholder tokens
+    if (item.placeholders && item.placeholders.length > 0) {
+      const tokenWarn = card.querySelector('.token-missing-alert');
+      const check = validateTokens(item.source, existingVal, item.placeholders);
+      if (tokenWarn) {
+        tokenWarn.style.display = check.isValid ? 'none' : 'flex';
+        tokenWarn.innerHTML = check.isValid ? '' : `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
+      }
     }
 
     const updatedStatus = getItemStatusInfo(item);
@@ -1271,8 +1302,17 @@
     return { isValid: missing.length === 0, missing };
   }
 
+  function getApprovedTranslation(key) {
+    if (!liveStatus || !liveStatus.approved) return '';
+    const entry = liveStatus.approved[key];
+    if (!entry) return '';
+    if (typeof entry === 'string') return entry;
+    return entry.value || entry.translation || '';
+  }
+
   function getItemStatusInfo(item) {
     const approvedEntry = liveStatus && liveStatus.approved ? liveStatus.approved[item.key] : null;
+    const approvedText = getApprovedTranslation(item.key);
     const proposalMeta = liveStatus && liveStatus.proposals ? liveStatus.proposals[item.key] : null;
     const isLocalSubmitted = isSubmittedKey(currentLang, item.key);
     const catalogTrans = getCatalogTranslation(currentLang, item.key);
@@ -1299,7 +1339,7 @@
     }
 
     // Handle stale local submitted record cleanup
-    if (isLocalSubmitted && liveStatus && liveStatus.proposals && !hasServerProposals) {
+    if (isLocalSubmitted && (approvedEntry || (liveStatus && liveStatus.proposals && !hasServerProposals))) {
       const subMap = getSubmittedTranslations(currentLang);
       if (subMap && subMap[item.key]) {
         delete subMap[item.key];
@@ -1315,18 +1355,24 @@
     let showViewSubmissionsBtn = false;
 
     if (baseStatus === 'approved') {
+      if (hasServerProposals) {
+        showViewSubmissionsBtn = true;
+      }
       if (hasLocalDraft) {
         displayText = localDraft;
         isReadOnly = false;
         placeholderText = 'Edit approved translation...';
         showSuggestBtn = false;
       } else {
-        displayText = approvedEntry.translation || '';
+        displayText = approvedText;
         isReadOnly = true;
         placeholderText = 'Approved translation. Click Suggest Alternative to propose edits.';
         showSuggestBtn = true;
       }
     } else if (baseStatus === 'translated') {
+      if (hasServerProposals) {
+        showViewSubmissionsBtn = true;
+      }
       if (hasLocalDraft) {
         displayText = localDraft;
         isReadOnly = false;
@@ -2376,12 +2422,13 @@
             });
 
             if (aRes.ok) {
-              if (liveStatus && liveStatus.approved && item.language === currentLang) {
-                liveStatus.approved[item.key] = {
-                  translation: selectedText,
-                  contributor
-                };
-              }
+              if (!liveStatus) liveStatus = {};
+              if (!liveStatus.approved) liveStatus.approved = {};
+              liveStatus.approved[item.key] = {
+                value: selectedText,
+                translation: selectedText,
+                contributor
+              };
               if (liveStatus && liveStatus.proposals && liveStatus.proposals[item.key]) {
                 delete liveStatus.proposals[item.key];
               }

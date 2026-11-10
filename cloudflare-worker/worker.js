@@ -571,6 +571,7 @@ export default {
         const approvedMap = existingRaw ? JSON.parse(existingRaw) : {};
         approvedMap[key] = {
           value: selectedText,
+          translation: selectedText,
           contributor: contributor || "Unknown",
           approvedAt: new Date().toISOString()
         };
