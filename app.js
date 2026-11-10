@@ -841,18 +841,9 @@
   function updateCardBadgesAndActions(card, item, statusInfo) {
     const badgesContainer = card.querySelector('.card-badges');
     if (badgesContainer) {
-      badgesContainer.querySelectorAll('.card-status-pill').forEach(el => el.remove());
-      const tokenBadge = badgesContainer.querySelector('[id^="token-badge-"]');
-      statusInfo.badges.forEach(b => {
-        const pill = document.createElement('span');
-        pill.className = `studio-pill card-status-pill ${b.pillClass}`;
-        pill.innerHTML = `<span class="status-dot ${b.dotClass}"></span> ${b.label}`;
-        if (tokenBadge) {
-          badgesContainer.insertBefore(pill, tokenBadge);
-        } else {
-          badgesContainer.appendChild(pill);
-        }
-      });
+      badgesContainer.innerHTML = statusInfo.badges.map(b =>
+        `<span class="studio-pill card-status-pill ${b.pillClass}"><span class="status-dot ${b.dotClass}"></span> ${b.label}</span>`
+      ).join('');
     }
 
     const actionsBar = card.querySelector('.target-column .column-actions-bar');
@@ -1518,7 +1509,6 @@
           </div>
           <div class="card-badges">
             ${badgesHtml}
-            ${hasPlaceholders ? `<span class="studio-pill ${tokenStatus.isValid ? 'pill-tokens' : 'pill-error'}" id="token-badge-${item.key}">Tokens (${item.placeholders.map(p => p.token).join('')})</span>` : ''}
           </div>
         </div>
 
@@ -1607,22 +1597,13 @@
           // Validate Tokens
           if (hasPlaceholders) {
             const tokenWarn = card.querySelector('.token-missing-alert');
-            const tokenBadge = card.querySelector('[id^="token-badge-"]');
             const check = validateTokens(item.source, val, item.placeholders);
             if (check.isValid) {
               if (tokenWarn) tokenWarn.style.display = 'none';
-              if (tokenBadge) {
-                tokenBadge.className = 'studio-pill pill-tokens';
-                tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
-              }
             } else {
               if (tokenWarn) {
                 tokenWarn.style.display = 'flex';
                 tokenWarn.innerHTML = `${ICONS.alert} Missing placeholder token: <strong>${check.missing.join(', ')}</strong>`;
-              }
-              if (tokenBadge) {
-                tokenBadge.className = 'studio-pill pill-error';
-                tokenBadge.innerHTML = `Tokens (${item.placeholders.map(p => p.token).join('')})`;
               }
             }
           }
