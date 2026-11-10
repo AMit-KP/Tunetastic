@@ -2864,3 +2864,32 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 }
 
 
+
+/* Admin Review Queue Enhancements */
+.admin-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-clear-btn {
+  color: #f87171 !important;
+  background: rgba(239, 68, 68, 0.08) !important;
+  border: 1px solid rgba(248, 113, 113, 0.32) !important;
+  transition: all 0.2s ease;
+}
+
+.admin-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.22) !important;
+  border-color: rgba(248, 113, 113, 0.65) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+.admin-review-source {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}

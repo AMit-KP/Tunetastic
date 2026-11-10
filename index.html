@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.5.4">
+  <link rel="stylesheet" href="styles.css?v=2.5.5">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -296,6 +296,7 @@
         </div>
         <div class="section-actions">
           <button class="btn btn-glass" id="admin-refresh-btn"><svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.6 8A5.6 5.6 0 1 1 8 2.4c2.2 0 4.1 1.2 5.1 3M14 2v4h-4"/></svg> Refresh Queue</button>
+          <button class="btn btn-glass admin-clear-btn" id="admin-clear-all-btn" title="Discard all submissions across all keys" style="display: inline-flex; align-items: center; gap: 6px;"><svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M5.3 4V2.5a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1V4m2 0v9.5a1.5 1.5 0 0 1-1.5 1.5h-6.4A1.5 1.5 0 0 1 3.3 13.5V4"/></svg> Clear All</button>
           <button class="btn btn-primary-gradient" id="admin-sync-pr-btn"><span class="btn-icon"><svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path fill-rule="evenodd" d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"></path></svg></span> Sync Approved to Git (Create PR)</button>
         </div>
       </div>
@@ -478,6 +479,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.5.4"></script>
+  <script src="app.js?v=2.5.5"></script>
 </body>
 </html>

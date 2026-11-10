@@ -579,7 +579,63 @@ export default {
         // Delete proposals for this key since it is now approved
         await env.SUBMISSIONS.delete(`proposals:${language}:${key}`);
 
+        // Clean up proposals summary index
+        try {
+          const summaryKey = `proposals_summary:${language}`;
+          const existingRaw = await env.SUBMISSIONS.get(summaryKey);
+          if (existingRaw) {
+            const summary = JSON.parse(existingRaw);
+            delete summary[key];
+            await env.SUBMISSIONS.put(summaryKey, JSON.stringify(summary));
+          }
+        } catch {}
+
         return jsonResponse({ success: true, key, approvedValue: selectedText }, 200, corsHeaders);
+      }
+
+      // Clear / Reject all proposals for a single key
+      if ((path === "/api/reject" || path === "/api/clear-proposals") && request.method === "POST") {
+        if (!verifyAdminAuth(request, env)) {
+          return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
+        }
+
+        const { language, key } = await request.json();
+        if (!language || !key) {
+          return jsonResponse({ error: "Missing language or key" }, 400, corsHeaders);
+        }
+
+        // Delete proposals for this key
+        await env.SUBMISSIONS.delete(`proposals:${language}:${key}`);
+
+        // Clean up proposals summary index
+        try {
+          const summaryKey = `proposals_summary:${language}`;
+          const existingRaw = await env.SUBMISSIONS.get(summaryKey);
+          if (existingRaw) {
+            const summary = JSON.parse(existingRaw);
+            delete summary[key];
+            await env.SUBMISSIONS.put(summaryKey, JSON.stringify(summary));
+          }
+        } catch {}
+
+        return jsonResponse({ success: true, key }, 200, corsHeaders);
+      }
+
+      // Batch Clear all proposals
+      if (path === "/api/clear-all" && request.method === "POST") {
+        if (!verifyAdminAuth(request, env)) {
+          return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
+        }
+        const { language } = await request.json();
+        const prefix = language ? `proposals:${language}:` : "proposals:";
+        const list = await env.SUBMISSIONS.list({ prefix });
+        for (const item of list.keys) {
+          await env.SUBMISSIONS.delete(item.name);
+        }
+        if (language) {
+          await env.SUBMISSIONS.delete(`proposals_summary:${language}`);
+        }
+        return jsonResponse({ success: true, count: list.keys.length }, 200, corsHeaders);
       }
 
       // -----------------------------------------------------------------------

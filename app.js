@@ -113,7 +113,8 @@
     rocket: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M9.5.5C8 2 7.7 4.2 8.3 5.7L4.1 9.9c-.3.3-.4.8-.2 1.2l1 2c.2.4.6.6 1 .5l2.2-.4 4.2-4.2c1.5.6 3.7.3 5.2-1.2 0 0 .5-2-1.2-3.7S12.6.5 9.5.5zM3.4 12.6l-2 2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2-2-1.4-1.4z"/></svg>`,
     eye: `<svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>`,
     arrowLeft: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8H2.5m0 0l4.5-4.5M2.5 8l4.5 4.5"/></svg>`,
-    arrowRight: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8h11m0 0l-4.5-4.5m4.5 4.5l-4.5 4.5"/></svg>`
+    arrowRight: `<svg class="svg-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8h11m0 0l-4.5-4.5m4.5 4.5l-4.5 4.5"/></svg>`,
+    trash: `<svg class="svg-icon" viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M5.3 4V2.5a1 1 0 0 1 1-1h3.4a1 1 0 0 1 1 1V4m2 0v9.5a1.5 1.5 0 0 1-1.5 1.5h-6.4A1.5 1.5 0 0 1 3.3 13.5V4"/></svg>`
   };
 
   let catalog = null;
@@ -2173,6 +2174,33 @@
         return;
       }
 
+      // Ensure catalog is loaded to look up English source and app context
+      if (!catalog || !catalog.items || catalog.items.length === 0) {
+        await loadCatalog();
+      }
+      const catMap = new Map();
+      if (catalog && catalog.items) {
+        catalog.items.forEach(i => catMap.set(i.key, i));
+      }
+
+      let remainingCount = pendingItems.length;
+      function updatePendingCount() {
+        remainingCount = Math.max(0, remainingCount - 1);
+        const badge = document.getElementById('admin-pending-badge');
+        if (badge) {
+          badge.textContent = `${remainingCount} ${remainingCount === 1 ? 'Key' : 'Keys'} Submitted`;
+        }
+        if (remainingCount === 0) {
+          setTimeout(() => {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 48px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); color: var(--text-secondary);">
+                ${ICONS.checkCircle} The review queue is completely clear! No community proposals are submitted.
+              </div>
+            `;
+          }, 1200);
+        }
+      }
+
       container.innerHTML = '';
       pendingItems.forEach(item => {
         const card = document.createElement('div');
@@ -2181,6 +2209,9 @@
 
         const proposals = item.proposals || [];
         const langMeta = resolveLanguageMeta(item.language) || { name: item.language };
+        const catItem = catMap.get(item.key);
+        const sourceText = catItem ? catItem.source : '';
+        const appContext = catItem ? catItem.comment : '';
 
         let proposalsHtml = '';
         proposals.forEach((p, idx) => {
@@ -2197,14 +2228,41 @@
         });
 
         card.innerHTML = `
-          <div class="card-header">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
             <div>
               <span class="card-key-pill">${escapeHtml(item.key)}</span>
               <span class="studio-pill" style="margin-left: 8px;">${escapeHtml(formatLanguageDisplayName(langMeta, item.language))} • ${item.language}</span>
             </div>
-            <button class="btn btn-sm btn-primary-gradient admin-approve-btn" data-lang="${item.language}" data-key="${item.key}">
-              ${ICONS.check} Approve Selected
-            </button>
+            <div class="admin-card-actions">
+              <button class="btn btn-sm btn-glass admin-clear-btn" data-lang="${item.language}" data-key="${item.key}" title="Discard and clear all submissions for this key" style="display: inline-flex; align-items: center; gap: 6px;">
+                ${ICONS.trash} Clear Submissions
+              </button>
+              <button class="btn btn-sm btn-primary-gradient admin-approve-btn" data-lang="${item.language}" data-key="${item.key}" style="display: inline-flex; align-items: center; gap: 6px;">
+                ${ICONS.check} Approve Selected
+              </button>
+            </div>
+          </div>
+
+          <!-- English Source & App Context Box -->
+          <div class="admin-review-source">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">English Source</span>
+              ${appContext ? `<span style="font-size: 11px; color: var(--text-tertiary); max-width: 65%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(appContext)}">${escapeHtml(appContext)}</span>` : ''}
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+              <div style="font-size: 14.5px; font-weight: 600; color: var(--text-primary); line-height: 1.5; word-break: break-word; user-select: text;">
+                ${escapeHtml(sourceText || '-')}
+              </div>
+              ${sourceText ? `
+                <button class="copy-mini-btn admin-copy-source-btn" data-text="${escapeHtml(sourceText)}" title="Copy English source" style="flex-shrink: 0; padding: 3px 8px; font-size: 11px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(255,255,255,0.04); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                  ${ICONS.copy} Copy
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+            Submitted Options (${proposals.length})
           </div>
 
           <div class="proposal-stack" id="stack-${item.language}-${item.key}">
@@ -2229,6 +2287,68 @@
             document.getElementById(`tweak-${item.language}-${item.key}`).value = ri.getAttribute('data-val');
           };
         });
+
+        // 1-Click copy English source
+        const copySourceBtn = card.querySelector('.admin-copy-source-btn');
+        if (copySourceBtn) {
+          copySourceBtn.onclick = () => {
+            const textToCopy = copySourceBtn.getAttribute('data-text') || '';
+            navigator.clipboard.writeText(textToCopy);
+            copySourceBtn.innerHTML = `${ICONS.check} Copied!`;
+            copySourceBtn.classList.add('copied');
+            showToast("English source copied!");
+            setTimeout(() => {
+              copySourceBtn.innerHTML = `${ICONS.copy} Copy`;
+              copySourceBtn.classList.remove('copied');
+            }, 1800);
+          };
+        }
+
+        // Clear all submissions for this key
+        const clearBtn = card.querySelector('.admin-clear-btn');
+        if (clearBtn) {
+          clearBtn.onclick = async () => {
+            const numOptions = proposals.length;
+            const confirmMsg = `Are you sure you want to discard and clear all ${numOptions} submitted option(s) for "${item.key}"?`;
+            if (!confirm(confirmMsg)) return;
+
+            clearBtn.disabled = true;
+            clearBtn.textContent = 'Clearing...';
+
+            try {
+              const cRes = await fetch(`${WORKER_URL}/api/reject`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${sessionAdminPassword}`
+                },
+                body: JSON.stringify({
+                  language: item.language,
+                  key: item.key
+                })
+              });
+
+              if (cRes.ok) {
+                if (liveStatus && liveStatus.proposals && liveStatus.proposals[item.key]) {
+                  delete liveStatus.proposals[item.key];
+                }
+                card.style.opacity = '0.5';
+                card.innerHTML = `<div style="padding: 18px; color: #f87171; font-weight: 600;">${ICONS.trash} Cleared! All submissions for "${item.key}" have been discarded.</div>`;
+                showToast(`Cleared submissions for "${item.key}"`);
+                updatePendingCount();
+              } else {
+                const errData = await cRes.json().catch(() => ({}));
+                alert("Failed to clear submissions: " + (errData.error || cRes.statusText));
+                clearBtn.disabled = false;
+                clearBtn.innerHTML = `${ICONS.trash} Clear Submissions`;
+              }
+            } catch (e) {
+              alert("Error clearing submissions: " + e.message);
+              clearBtn.disabled = false;
+              clearBtn.innerHTML = `${ICONS.trash} Clear Submissions`;
+            }
+          };
+        }
 
         // Approve single key
         const approveBtn = card.querySelector('.admin-approve-btn');
@@ -2262,14 +2382,22 @@
                   contributor
                 };
               }
+              if (liveStatus && liveStatus.proposals && liveStatus.proposals[item.key]) {
+                delete liveStatus.proposals[item.key];
+              }
               card.style.opacity = '0.5';
               card.innerHTML = `<div style="padding: 18px; color: var(--status-success); font-weight: 700;">${ICONS.check} Approved! Key "${item.key}" is staged on server. Click "Sync Approved to Git" when ready to create a PR.</div>`;
               showToast(`Approved "${item.key}"!`);
+              updatePendingCount();
             } else {
               alert("Failed to approve.");
+              approveBtn.disabled = false;
+              approveBtn.innerHTML = `${ICONS.check} Approve Selected`;
             }
           } catch (e) {
             alert("Error: " + e.message);
+            approveBtn.disabled = false;
+            approveBtn.innerHTML = `${ICONS.check} Approve Selected`;
           }
         };
       });
@@ -2469,6 +2597,44 @@
     // Admin review triggers
     document.getElementById('admin-refresh-btn').onclick = loadAdminQueue;
     document.getElementById('admin-sync-pr-btn').onclick = triggerSyncPr;
+    const clearAllBtn = document.getElementById('admin-clear-all-btn');
+    if (clearAllBtn) {
+      clearAllBtn.onclick = async () => {
+        if (!sessionAdminPassword) {
+          try {
+            await requestAdminAuth();
+          } catch {
+            return;
+          }
+        }
+        if (!confirm("Are you sure you want to discard and clear ALL community submissions across all keys? This cannot be undone.")) {
+          return;
+        }
+        clearAllBtn.disabled = true;
+        clearAllBtn.innerHTML = '<span class="loading-spinner"></span> Clearing...';
+        try {
+          const res = await fetch(`${WORKER_URL}/api/clear-all`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${sessionAdminPassword}`
+            },
+            body: JSON.stringify({})
+          });
+          if (res.ok) {
+            showToast("All submissions have been cleared!");
+            loadAdminQueue();
+          } else {
+            alert("Failed to clear submissions.");
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        } finally {
+          clearAllBtn.disabled = false;
+          clearAllBtn.innerHTML = `${ICONS.trash} Clear All`;
+        }
+      };
+    }
 
     // Filter tabs
     document.querySelectorAll('.filter-tab').forEach(pill => {
