@@ -165,6 +165,7 @@ async function syncPrStatuses(env, owner, repo) {
               value: obj.value,
               translation: obj.translation || obj.value,
               contributor: obj.contributor,
+              contributors: obj.contributors || (obj.contributor ? String(obj.contributor).split(",").map(s => s.trim()) : []),
               mergedAt: prInfo.merged_at,
               prNumber: obj.prNumber
             };
@@ -700,10 +701,47 @@ export default {
           return jsonResponse({ error: "Unauthorized" }, 401, corsHeaders);
         }
 
-        const { language, key, selectedText, contributor } = await request.json();
+        const { language, key, selectedText, contributor, contributors } = await request.json();
         if (!language || !key || selectedText === undefined) {
           return jsonResponse({ error: "Missing required approval fields" }, 400, corsHeaders);
         }
+
+        // Collect all contributors who submitted proposals/suggestions for this key
+        const allContribs = new Set();
+        if (contributor && contributor !== "Unknown") {
+          String(contributor).split(",").forEach(c => {
+            const clean = c.replace(/^@+/, "").trim();
+            if (clean && clean.toLowerCase() !== "unknown") allContribs.add(clean);
+          });
+        }
+        if (Array.isArray(contributors)) {
+          contributors.forEach(c => {
+            const clean = String(c || "").replace(/^@+/, "").trim();
+            if (clean && clean.toLowerCase() !== "unknown") allContribs.add(clean);
+          });
+        }
+
+        // Also inspect existing proposals in KV before deleting so no contributor is missed
+        try {
+          const proposalKey = `proposals:${language}:${key}`;
+          const existingPropsRaw = await env.SUBMISSIONS.get(proposalKey);
+          if (existingPropsRaw) {
+            const existingProps = JSON.parse(existingPropsRaw);
+            if (Array.isArray(existingProps)) {
+              existingProps.forEach(p => {
+                const clean = String(p.contributor || "").replace(/^@+/, "").trim();
+                if (clean && clean.toLowerCase() !== "unknown") allContribs.add(clean);
+              });
+            }
+          }
+        } catch (e) {
+          console.warn("Could not read proposals during approve:", e);
+        }
+
+        const contributorsList = Array.from(allContribs);
+        const combinedContributor = contributorsList.length > 0
+          ? contributorsList.join(", ")
+          : (contributor || "Unknown");
 
         // Save into approved:<lang>
         const approvedKey = `approved:${language}`;
@@ -712,7 +750,8 @@ export default {
         approvedMap[key] = {
           value: selectedText,
           translation: selectedText,
-          contributor: contributor || "Unknown",
+          contributor: combinedContributor,
+          contributors: contributorsList.length > 0 ? contributorsList : [combinedContributor],
           approvedAt: new Date().toISOString()
         };
         await env.SUBMISSIONS.put(approvedKey, JSON.stringify(approvedMap));
@@ -812,6 +851,22 @@ export default {
         const contributorsSet = new Set();
         const langSummaries = [];
 
+        const addContributorsFromItem = (v) => {
+          if (!v) return;
+          if (Array.isArray(v.contributors)) {
+            v.contributors.forEach(c => {
+              const clean = String(c || "").replace(/^@+/, "").trim();
+              if (clean && clean.toLowerCase() !== "unknown") contributorsSet.add(clean);
+            });
+          }
+          if (v.contributor && v.contributor !== "Unknown") {
+            String(v.contributor).split(",").forEach(c => {
+              const clean = c.replace(/^@+/, "").trim();
+              if (clean && clean.toLowerCase() !== "unknown") contributorsSet.add(clean);
+            });
+          }
+        };
+
         if (targetLang) {
           const raw = await env.SUBMISSIONS.get(`approved:${targetLang}`);
           if (raw) {
@@ -820,7 +875,7 @@ export default {
             if (count > 0) {
               approvedPerLang[targetLang] = data;
               for (const v of Object.values(data)) {
-                if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
+                addContributorsFromItem(v);
               }
               langSummaries.push(`- **\`${targetLang}\`**: ${count} string(s)`);
             }
@@ -845,7 +900,7 @@ export default {
                 if (count > 0) {
                   approvedPerLang[lang] = data;
                   for (const v of Object.values(data)) {
-                    if (v.contributor && v.contributor !== "Unknown") contributorsSet.add(v.contributor);
+                    addContributorsFromItem(v);
                   }
                   langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
                 }

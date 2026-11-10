@@ -2517,7 +2517,20 @@
           approveBtn.onclick = async () => {
             const selectedText = document.getElementById(`tweak-${item.language}-${item.key}`).value;
             const selectedItem = card.querySelector('.proposal-item.selected');
-            const contributor = selectedItem ? selectedItem.getAttribute('data-author') : 'Unknown';
+            const selectedContributor = selectedItem ? selectedItem.getAttribute('data-author') : 'Unknown';
+
+            // Collect all unique contributors who submitted suggestions for this key so everyone gets credit
+            const allKeyContributors = new Set();
+            if (selectedContributor && selectedContributor !== 'Unknown') {
+              allKeyContributors.add(selectedContributor);
+            }
+            (item.proposals || []).forEach(p => {
+              const pAuthor = String(p.contributor || '').replace(/^@+/, '').trim();
+              if (pAuthor && pAuthor !== 'Unknown') {
+                allKeyContributors.add(pAuthor);
+              }
+            });
+            const contributorsArray = Array.from(allKeyContributors);
 
             approveBtn.disabled = true;
             approveBtn.textContent = 'Approving...';
@@ -2530,7 +2543,8 @@
                   language: item.language,
                   key: item.key,
                   selectedText,
-                  contributor
+                  contributor: selectedContributor,
+                  contributors: contributorsArray
                 })
               });
 
@@ -2569,7 +2583,12 @@
             const catItem = catMap.get(k);
             const src = catItem ? catItem.source : '';
             const val = aObj.value || aObj.translation || '';
-            const contrib = String(aObj.contributor || 'Unknown').replace(/^@+/, '');
+            let contrib = '';
+            if (Array.isArray(aObj.contributors) && aObj.contributors.length > 0) {
+              contrib = aObj.contributors.map(c => String(c).replace(/^@+/, '').trim()).filter(Boolean).join(', ');
+            } else {
+              contrib = String(aObj.contributor || 'Unknown').replace(/^@+/, '');
+            }
 
             let syncStatusHtml = '';
             if (aObj.prNumber) {
