@@ -535,8 +535,8 @@ export default {
 
             const owner = env.GITHUB_OWNER || "AMit-KP";
             const repo = env.GITHUB_REPO || "Tunetastic";
-            const issueNum = String(env.TRACKER_ISSUE_NUMBER || "143");
-            const workflowRef = env.GITHUB_WORKFLOW_REF || "gh-pages";
+            const issueNum = String(env.TRACKER_ISSUE_NUMBER || "144");
+            const workflowRef = env.GITHUB_WORKFLOW_REF || "Development";
 
             // Attempt to dispatch GitHub Actions workflow so comment is posted by github-actions[bot]
             let dispatched = false;

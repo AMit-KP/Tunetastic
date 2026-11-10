@@ -10,7 +10,7 @@ on:
       issueNumber:
         description: 'Target GitHub Issue Number'
         required: false
-        default: '143'
+        default: '144'
         type: string
 
 permissions:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const issueNum = parseInt(context.payload.inputs.issueNumber || '143', 10);
+            const issueNum = parseInt(context.payload.inputs.issueNumber || '144', 10);
             const commentBody = context.payload.inputs.commentBody;
             await github.rest.issues.createComment({
               owner: context.repo.owner,
