@@ -1,0 +1,34 @@
+name: Translation Submission Notification Bot
+
+on:
+  workflow_dispatch:
+    inputs:
+      commentBody:
+        description: 'Formatted markdown comment body'
+        required: true
+        type: string
+      issueNumber:
+        description: 'Target GitHub Issue Number'
+        required: false
+        default: '144'
+        type: string
+
+permissions:
+  issues: write
+
+jobs:
+  post-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post Comment as github-actions[bot]
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNum = parseInt(context.payload.inputs.issueNumber || '144', 10);
+            const commentBody = context.payload.inputs.commentBody;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNum,
+              body: commentBody
+            });
