@@ -799,6 +799,7 @@
   let isPollingActive = false;
 
   function startLiveStatusPolling() {
+    if (isIncognitoMode) return;
     stopLiveStatusPolling();
     livePollingTimer = setInterval(pollLiveStatus, 4000);
   }
@@ -811,7 +812,7 @@
   }
 
   async function pollLiveStatus() {
-    if (isPollingActive) return;
+    if (isIncognitoMode || isPollingActive) return;
     if (!workspaceView || !workspaceView.classList.contains('active') || !currentLang) return;
     if (isDraftPendingResumption) return;
 
@@ -2933,6 +2934,7 @@
 
     // Immediate active editing lock release on tab close or page exit
     window.addEventListener('pagehide', () => {
+      if (isIncognitoMode) return;
       const lang = currentLang || safeStorageGet('tunetastic_last_lang');
       if (!lang || !SESSION_ID) return;
       const url = `${WORKER_URL}/api/drafts/release-lock?lang=${encodeURIComponent(lang)}&sid=${encodeURIComponent(SESSION_ID)}`;
