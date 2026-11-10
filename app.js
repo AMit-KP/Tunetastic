@@ -1853,7 +1853,7 @@
         proposals.push({
           id: 'local_' + Date.now(),
           text: localEntry.text,
-          contributor: localEntry.contributor || 'You',
+          contributor: localEntry.contributor || safeStorageGet('tunetastic_author') || 'Anonymous',
           sessionId: SESSION_ID,
           timestamp: localEntry.timestamp ? new Date(localEntry.timestamp).toISOString() : new Date().toISOString()
         });
@@ -1875,11 +1875,8 @@
       return;
     }
 
-    const currentAuthor = (safeStorageGet('tunetastic_author') || '').replace(/^@+/, '').toLowerCase();
-
     listEl.innerHTML = proposals.map((p, idx) => {
       const rawContributor = p.contributor ? String(p.contributor).replace(/^@+/, '').trim() : 'Unknown';
-      const isMine = (p.sessionId && p.sessionId === SESSION_ID) || (currentAuthor && rawContributor.toLowerCase() === currentAuthor);
       const timeStr = formatTimeAgo(p.timestamp);
 
       return `
@@ -1887,7 +1884,7 @@
           <div style="flex: 1; min-width: 0;">
             <div style="color: var(--text-primary); font-size: 13.5px; font-weight: 500; word-break: break-word; line-height: 1.4;">${escapeHtml(p.text)}</div>
             <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span>By <strong style="color: var(--text-secondary);">${escapeHtml(rawContributor)}</strong>${isMine ? ' <span class="studio-pill pill-draft-mine" style="font-size: 9px; padding: 1px 6px; margin-left: 4px;">You</span>' : ''}</span>
+              <span>By <strong style="color: var(--text-secondary);">${escapeHtml(rawContributor)}</strong></span>
               ${timeStr ? `<span>•</span><span>${escapeHtml(timeStr)}</span>` : ''}
               <span style="opacity: 0.6;">(#${idx + 1})</span>
             </div>
