@@ -69,20 +69,20 @@
   }
 
   function getOrCreateSessionId() {
-    // Check sessionStorage first: ensures separate incognito tabs/windows each get their own distinct session!
+    // Check localStorage first: preserves session across browser restarts for zero-login 48h drafts
     let sid = null;
     try {
-      sid = window.sessionStorage.getItem('tunetastic_session_id');
+      sid = window.localStorage.getItem('tunetastic_session_id');
       if (!sid) {
         sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
-        window.sessionStorage.setItem('tunetastic_session_id', sid);
+        window.localStorage.setItem('tunetastic_session_id', sid);
       }
     } catch {
       try {
-        sid = window.localStorage.getItem('tunetastic_session_id');
+        sid = window.sessionStorage.getItem('tunetastic_session_id');
         if (!sid) {
           sid = 's_' + (crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).substring(2) + Date.now().toString(36)));
-          window.localStorage.setItem('tunetastic_session_id', sid);
+          window.sessionStorage.setItem('tunetastic_session_id', sid);
         }
       } catch {
         sid = 's_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -530,51 +530,10 @@
     }
   }
 
-  // Immediate active lock cleanup on page navigation / tab close
-  function releaseActiveLocksOnExit() {
-    if (isIncognitoMode) return;
-    const lang = currentLang || safeStorageGet('tunetastic_last_lang');
-    if (!lang || !SESSION_ID) return;
-
-    const queryUrl = `${WORKER_URL}/api/drafts/release-lock?lang=${encodeURIComponent(lang)}&sessionId=${encodeURIComponent(SESSION_ID)}&_t=${Date.now()}`;
-    const payload = JSON.stringify({
-      language: lang,
-      sessionId: SESSION_ID
-    });
-
-    // Layer 1: Modern fetch with keepalive: true (Outlives tab/window close in Chromium & Incognito)
-    try {
-      if (typeof fetch === 'function') {
-        fetch(queryUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Session-ID': SESSION_ID },
-          body: payload,
-          keepalive: true,
-          mode: 'cors'
-        }).catch(() => {});
-      }
-    } catch (e) {}
-
-    // Layer 2: navigator.sendBeacon
-    try {
-      if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
-        const blob = new Blob([payload], { type: 'text/plain' });
-        navigator.sendBeacon(queryUrl, blob);
-      }
-    } catch (e) {}
-
-    // Layer 3: Image ping fallback (GET request without CORS preflight; works from file:///, localhost, and all Incognito modes)
-    try {
-      const img = new Image();
-      img.src = queryUrl;
-    } catch (e) {}
-  }
-
   function showView(viewName) {
     if (viewName !== 'workspace') {
       stopLiveStatusPolling();
       stopDraftTimer();
-      releaseActiveLocksOnExit();
     }
     homeView.classList.remove('active');
     workspaceView.classList.remove('active');
@@ -2460,10 +2419,6 @@
         pollLiveStatus();
       }
     });
-
-    // Immediate active lock cleanup on page navigation / tab close
-    window.addEventListener('pagehide', releaseActiveLocksOnExit);
-    window.addEventListener('beforeunload', releaseActiveLocksOnExit);
   }
 
   async function checkAndShowIncognitoWarning() {
