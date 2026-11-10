@@ -828,12 +828,7 @@
       const newProposals = JSON.stringify(liveStatus.proposals || {});
 
       if (prevLocks !== newLocks || prevApproved !== newApproved || prevProposals !== newProposals) {
-        const isUserTyping = Boolean(document.activeElement && document.activeElement.tagName === 'TEXTAREA');
-        if (!isUserTyping) {
-          renderCards();
-        } else {
-          syncLiveStatusToDOM();
-        }
+        syncLiveStatusToDOM();
         updateWorkspaceStats();
       }
     } catch (e) {
@@ -1006,12 +1001,7 @@
                 })
               });
               await fetchLiveStatus();
-              const isUserTyping = Boolean(document.activeElement && document.activeElement.tagName === 'TEXTAREA');
-              if (!isUserTyping) {
-                renderCards();
-              } else {
-                syncLiveStatusToDOM();
-              }
+              syncLiveStatusToDOM();
               updateWorkspaceStats();
             } catch (e) {
               console.warn("Failed to re-acquire draft locks on resumption:", e);
