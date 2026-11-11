@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.6.5">
+  <link rel="stylesheet" href="styles.css?v=2.7.0">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -207,21 +207,62 @@
             </div>
           </div>
 
-          <!-- Glowing Progress Bar Track -->
-          <div class="ws-progress-wrap">
-            <div class="glowing-progress-track">
-              <div class="glowing-progress-fill" id="workspace-progress-fill" style="width: 0%;"></div>
-            </div>
-            <div class="ws-metrics-row">
-              <div class="ws-save-indicator" id="auto-save-indicator">
-                <span class="save-dot"></span> Saved to Browser
+          <!-- Interactive Workspace Analytics Hub (Donut Chart & Distribution Stream) -->
+          <div class="ws-progress-wrap ws-analytics-hub">
+            <!-- Hidden backward-compat progress fill anchor -->
+            <div class="glowing-progress-fill" id="workspace-progress-fill" style="display: none; width: 0%;"></div>
+
+            <!-- Left: Interactive SVG Donut Chart with Dynamic Center HUD -->
+            <div class="ws-donut-col">
+              <div class="ws-donut-frame" id="ws-donut-frame" title="Interactive Translation Progress Donut Chart">
+                <svg class="ws-donut-svg" viewBox="0 0 100 100" width="104" height="104">
+                  <!-- Base Circular Track -->
+                  <circle class="donut-track" cx="50" cy="50" r="38" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="11" />
+                  <!-- Dynamic Segments Group (rotated -90deg so 0 starts at 12 o'clock) -->
+                  <g id="donut-segments-group" transform="rotate(-90 50 50)"></g>
+                </svg>
+                <!-- Dynamic Center HUD -->
+                <div class="donut-center-hud" id="donut-center-hud">
+                  <span class="donut-hud-pct" id="donut-hud-pct">0%</span>
+                  <span class="donut-hud-label" id="donut-hud-label">Complete</span>
+                  <span class="donut-hud-sub" id="donut-hud-sub">0 / 0</span>
+                </div>
               </div>
-              <div class="ws-metrics-pills">
-                <span class="metric-pill"><strong id="ws-done-count">0</strong> <span class="metric-label">Translated</span></span>
-                <span class="metric-sep">•</span>
-                <span class="metric-pill"><strong id="ws-missing-count">828</strong> <span class="metric-label">Remaining</span></span>
-                <span class="metric-sep">•</span>
-                <span class="metric-pill"><strong id="ws-tokens-count">0</strong> <span class="metric-label">Tokens Guarded</span></span>
+            </div>
+
+            <!-- Right: Analytics Details & Stream -->
+            <div class="ws-analytics-body">
+              <!-- Top: Segmented Multi-Color Distribution Stream Bar -->
+              <div class="ws-stream-bar-wrap">
+                <div class="ws-stream-bar" id="ws-stream-bar" title="Status Distribution across Catalog"></div>
+              </div>
+
+              <!-- Middle: Interactive Click-to-Filter Status Chips Matrix -->
+              <div class="ws-status-matrix" id="ws-status-matrix">
+                <!-- Injected dynamically by updateWorkspaceStats() -->
+              </div>
+
+              <!-- Bottom: Meta Row (Autosave, Guarded Tokens, Remaining, Done) -->
+              <div class="ws-metrics-row ws-analytics-subrow">
+                <div class="ws-save-indicator" id="auto-save-indicator">
+                  <span class="save-dot"></span> Saved to Browser
+                </div>
+                <div class="ws-metrics-pills">
+                  <span class="metric-pill metric-pill-link" id="metric-chip-tokens" title="Tokens and variables ({0}, \n) automatically guarded from accidental corruption">
+                    <svg class="svg-icon" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: #60cdff;">
+                      <path d="M8 1.5l5 2.5v4c0 3.5-2.5 6-5 7-2.5-1-5-3.5-5-7v-4l5-2.5z"/>
+                    </svg>
+                    <strong id="ws-tokens-count">0</strong> <span class="metric-label">Guarded Tokens</span>
+                  </span>
+                  <span class="metric-sep">•</span>
+                  <span class="metric-pill metric-pill-link" id="metric-chip-remaining" title="Click to filter untranslated strings awaiting work">
+                    <strong id="ws-missing-count">0</strong> <span class="metric-label">Remaining</span>
+                  </span>
+                  <span class="metric-sep">•</span>
+                  <span class="metric-pill metric-pill-link" id="metric-chip-done" title="Click to filter completed strings">
+                    <strong id="ws-done-count">0</strong> <span class="metric-label">Completed</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -474,6 +515,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.6.9"></script>
+  <script src="app.js?v=2.7.0"></script>
 </body>
 </html>
