@@ -116,12 +116,21 @@ Configure encrypted secrets via Wrangler CLI or the Cloudflare Dashboard:
 
 ## 🔄 Translation Lifecycle & Statuses
 
-| Status | Badge | Description |
-| :--- | :--- | :--- |
-| **Available** | <span style="color:#34d399">🟢 Available</span> | String needs translation; ready for community proposals. |
-| **Submitted** | <span style="color:#60cdff">🔵 Submitted</span> | One or more community proposals submitted and awaiting maintainer review. |
-| **Approved** | <span style="color:#fbbf24">🟡 Approved</span> | Reviewed and approved by a maintainer; staged on the server for Git sync. |
-| **Translated** | <span style="color:#a78bfa">🟣 Translated</span> | Merged into the official app codebase (`Strings/<lang>/Resources.resw`). |
+Each string in the localization workspace carries a real-time status badge matching the filter tabs:
+
+| Status | UI Badge | Dot Color | Description |
+| :--- | :--- | :--- | :--- |
+| **Need Translation** | `Need Translation` | Slate / Neutral (`#64748b`) | Untranslated string waiting for initial community translation. |
+| **Drafted By You** | `Drafted By You` | Purple (`#a78bfa`) | Unsubmitted draft saved in your browser session (backed by 48-hour cloud autosave). |
+| **In Progress By Others** | `In Progress By Others` | Orange (`#ea580c`) | Currently being drafted by another contributor in an active editing session. |
+| **Submitted** | `Submitted` | Blue (`#3b82f6`) | Community proposal(s) submitted to the server, awaiting maintainer review in `#admin`. |
+| **Approved** | `Approved` | Gold / Yellow (`#facc15`) | Reviewed and approved by a maintainer; staged on the server ready for Git PR sync. |
+| **Already Translated** | `Already Translated` | Green (`#2ed573`) | Official translation merged into Tunetastic's `.resw` resource dictionary. |
+
+### Dual Badges (Revisions & Overwrites)
+When an alternative suggestion is submitted for a string that is already approved or translated, the Studio displays **Dual Badges**:
+* `[ Approved ]` + `[ Submitted ]` — An existing approved translation with a pending community alternative.
+* `[ Already Translated ]` + `[ Submitted ]` — An official active translation with a pending community revision.
 
 > [!TIP]
 > **Refining Existing Strings**: Community members can click **Suggest Alternative** on strings with *any* status to propose improved phrasings. Maintainers receive a visual diff showing what was before and what was suggested.
@@ -133,5 +142,6 @@ Configure encrypted secrets via Wrangler CLI or the Cloudflare Dashboard:
 We welcome translations in all languages!
 1. Visit [**amit-kp.github.io/Tunetastic**](https://amit-kp.github.io/Tunetastic/).
 2. Select your native language.
-3. Translate available strings or suggest alternative improvements.
+3. Translate strings that need translation or suggest alternative improvements.
 4. Click **Submit Work** and enter your name or handle to receive official credit.
+
