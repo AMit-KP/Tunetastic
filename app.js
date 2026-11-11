@@ -489,21 +489,6 @@
         }
       }
 
-      // Ensure community target locales are available to translate even before their first .resw is merged
-      for (const [code, meta] of Object.entries(KNOWN_LOCALES)) {
-        if (!catalog.languages[code]) {
-          catalog.languages[code] = {
-            code,
-            translatedCount: 0,
-            totalCount: catalog.totalStrings || 840,
-            progressPct: 0,
-            translations: {},
-            hasResw: false,
-            ...meta
-          };
-        }
-      }
-
       if (document.getElementById('stat-total-strings')) {
         document.getElementById('stat-total-strings').textContent = catalog.totalStrings || 828;
       }
@@ -511,22 +496,11 @@
         document.getElementById('stat-lang-count').textContent = Object.keys(catalog.languages).length;
       }
     } catch (err) {
-      console.warn('Using default catalog layout.', err);
+      console.warn('Could not load catalog.json:', err);
       catalog = {
         version: "2.0",
-        totalStrings: 828,
-        languages: {
-          "es-ES": resolveLanguageMeta("es-ES"),
-          "de-DE": resolveLanguageMeta("de-DE"),
-          "fr-FR": resolveLanguageMeta("fr-FR"),
-          "hi-IN": resolveLanguageMeta("hi-IN"),
-          "ja-JP": resolveLanguageMeta("ja-JP"),
-          "ru-RU": resolveLanguageMeta("ru-RU"),
-          "pt-BR": resolveLanguageMeta("pt-BR"),
-          "it-IT": resolveLanguageMeta("it-IT"),
-          "zh-CN": resolveLanguageMeta("zh-CN"),
-          "ar-SA": resolveLanguageMeta("ar-SA")
-        },
+        totalStrings: 0,
+        languages: {},
         items: []
       };
     }
@@ -644,6 +618,19 @@
     const rawLangs = Object.values(catalog.languages).filter(l => l.code !== 'qps-ploc');
     const badge = document.getElementById('lang-counter-badge');
     if (badge) badge.textContent = `${rawLangs.length} Locales Active`;
+
+    if (rawLangs.length === 0) {
+      languagesGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; color: var(--text-secondary); background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px dashed var(--border-glass);">
+          <div style="font-size: 32px; margin-bottom: 12px;">🌐</div>
+          <h4 style="color: var(--text-primary); margin-bottom: 6px;">No Languages Active Yet</h4>
+          <p style="font-size: 13.5px; max-width: 480px; margin: 0 auto; line-height: 1.5;">
+            Add a language directory and <code>Resources.resw</code> file under <code>Strings/</code> in the C# application repository to automatically enable it here.
+          </p>
+        </div>
+      `;
+      return;
+    }
 
     // Detected language comes 1st; remaining languages are randomized on each refresh
     const langs = getPrioritizedHomeLanguages(rawLangs);
