@@ -160,6 +160,97 @@
   // Active Key for Modals
   let activeViewSubmissionsItem = null;
 
+  // =========================================================================
+  // [DEV_SIMULATION_START] - Set to false or delete this block to remove later
+  // =========================================================================
+  const ENABLE_DEV_SIMULATION = true;
+  const SIM_LANG_CODE = "sim-DEV";
+
+  const SIMULATION_DATA = {
+    meta: {
+      code: "sim-DEV",
+      name: "Simulation Lab",
+      native: "🧪 Simulation Lab",
+      country: "un",
+      flagHtml: `<span style="font-size: 24px; line-height: 1; display: inline-block;">🧪</span>`,
+      totalCount: 840,
+      translatedCount: 4,
+      progressPct: 1,
+      hasResw: true
+    },
+    // Official translations in app (Already Translated - Green)
+    translations: {
+      "AppTitle.Text": "Tunetastic [Official Build]",
+      "SearchBox.PlaceholderText": "Search music library...",
+      "ThemeButton_ToolTip": "Switch Dark or Light Theme",
+      "ShuffleButton_ToolTip": "Random shuffle playback"
+    },
+    // User local drafts (Drafted By You - Purple)
+    drafts: {
+      "VolumeMuteButton_ToolTip": "Mute or Unmute Volume"
+    },
+    // Live Cloudflare status (Locks, Approved, Proposals)
+    liveStatus: {
+      locks: {
+        "NextButton_ToolTip": "other",             // Orange: In Progress By Others
+        "VolumeMuteButton_ToolTip": "mine"         // Purple: Drafted By You
+      },
+      approved: {
+        // Yellow: Approved (Staged in Admin)
+        "PlayPauseButton_ToolTip": {
+          value: "Play or Pause Track",
+          translation: "Play or Pause Track",
+          contributor: "Priya",
+          contributors: ["Priya"],
+          approvedAt: new Date(Date.now() - 3600000).toISOString()
+        },
+        // Dual Badge: [ Approved ] + [ Submitted ] (Overwrite suggestion on approved string)
+        "PreviousButton_ToolTip": {
+          value: "Skip to Previous Track",
+          translation: "Skip to Previous Track",
+          contributor: "Rahul",
+          contributors: ["Rahul"],
+          approvedAt: new Date(Date.now() - 7200000).toISOString()
+        }
+      },
+      proposals: {
+        // Blue: Submitted (on untranslated string)
+        "RewindButton_ToolTip": { count: 2, isFull: false },
+        // Dual Badge: [ Approved ] + [ Submitted ]
+        "PreviousButton_ToolTip": { count: 1, isFull: false },
+        // Dual Badge: [ Already Translated ] + [ Submitted ] (Overwrite suggestion on translated string)
+        "AppTitle.Text": { count: 2, isFull: false }
+      }
+    },
+    // Detailed proposal history for View Submissions modal & Admin console
+    proposals: {
+      "RewindButton_ToolTip": [
+        { id: "sim_p1", text: "Rewind 5 Seconds", contributor: "Amit", timestamp: new Date(Date.now() - 3600000).toISOString() },
+        { id: "sim_p2", text: "Jump Back 5s", contributor: "Sarah", timestamp: new Date(Date.now() - 7200000).toISOString() }
+      ],
+      "PreviousButton_ToolTip": [
+        { id: "sim_p3", text: "Previous Song / Rewind", contributor: "Carlos", timestamp: new Date(Date.now() - 1800000).toISOString() }
+      ],
+      "AppTitle.Text": [
+        { id: "sim_p4", text: "Tunetastic Music", contributor: "Dev", timestamp: new Date(Date.now() - 5400000).toISOString() },
+        { id: "sim_p5", text: "Tunetastic Player", contributor: "Elena", timestamp: new Date(Date.now() - 9000000).toISOString() }
+      ]
+    }
+  };
+
+  function applySimulationCatalog(cat) {
+    if (!ENABLE_DEV_SIMULATION || !cat) return;
+    if (!cat.languages) cat.languages = {};
+    cat.languages[SIM_LANG_CODE] = {
+      ...SIMULATION_DATA.meta,
+      totalCount: cat.totalStrings || 840,
+      translations: { ...SIMULATION_DATA.translations }
+    };
+  }
+  // =========================================================================
+  // [DEV_SIMULATION_END]
+  // =========================================================================
+
   // -------------------------------------------------------------------------
   // 2. DYNAMIC LANGUAGE METADATA (Intl.DisplayNames & Real Flag Icons)
   // -------------------------------------------------------------------------
@@ -191,6 +282,7 @@
 
   function resolveLanguageMeta(code) {
     if (!code || code === 'qps-ploc' || code.toLowerCase().includes('ploc')) return null;
+    if (ENABLE_DEV_SIMULATION && code === SIM_LANG_CODE) return SIMULATION_DATA.meta;
 
     if (KNOWN_LOCALES[code]) {
       const k = KNOWN_LOCALES[code];
@@ -480,6 +572,10 @@
       }
       delete catalog.languages['qps-ploc'];
 
+      if (ENABLE_DEV_SIMULATION) {
+        applySimulationCatalog(catalog);
+      }
+
       // Enhance languages discovered from .resw files in the C# repository
       for (const code of Object.keys(catalog.languages)) {
         catalog.languages[code].hasResw = true;
@@ -754,6 +850,10 @@
       console.warn("Background workspace sync error:", e);
     }
 
+    if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
+      currentDrafts = { ...SIMULATION_DATA.drafts };
+    }
+
     // Render cards and update stats
     renderCards();
     updateWorkspaceStats();
@@ -763,6 +863,10 @@
   }
 
   async function fetchLiveStatus() {
+    if (ENABLE_DEV_SIMULATION && currentLang === SIM_LANG_CODE) {
+      liveStatus = JSON.parse(JSON.stringify(SIMULATION_DATA.liveStatus));
+      return;
+    }
     try {
       const res = await fetch(`${WORKER_URL}/api/status?lang=${currentLang}`, {
         headers: { 'X-Session-ID': SESSION_ID }
@@ -1905,14 +2009,18 @@
     }
 
     let proposals = [];
-    try {
-      const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
-      if (res.ok) {
-        const data = await res.json();
-        proposals = Array.isArray(data.proposals) ? data.proposals : [];
+    if (ENABLE_DEV_SIMULATION && currentLang === SIM_LANG_CODE && SIMULATION_DATA.proposals[item.key]) {
+      proposals = SIMULATION_DATA.proposals[item.key];
+    } else {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
+        if (res.ok) {
+          const data = await res.json();
+          proposals = Array.isArray(data.proposals) ? data.proposals : [];
+        }
+      } catch (e) {
+        console.warn("Could not fetch submissions for key:", e);
       }
-    } catch (e) {
-      console.warn("Could not fetch submissions for key:", e);
     }
 
     // Fallback: If server returned no proposals (e.g. offline/mock), check local submitted store
@@ -2225,11 +2333,15 @@
     if (!container) return;
 
     if (!sessionAdminPassword) {
-      try {
-        await requestAdminAuth();
-      } catch {
-        window.location.hash = '#home';
-        return;
+      if (ENABLE_DEV_SIMULATION) {
+        sessionAdminPassword = "sim_dev_bypass";
+      } else {
+        try {
+          await requestAdminAuth();
+        } catch {
+          window.location.hash = '#home';
+          return;
+        }
       }
     }
 
@@ -2241,24 +2353,43 @@
     `;
 
     try {
-      const res = await fetch(`${WORKER_URL}/api/pending`, {
-        headers: { 'Authorization': `Bearer ${sessionAdminPassword}` }
-      });
-      if (res.status === 401) {
-        sessionAdminPassword = '';
-        container.innerHTML = `
-          <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); text-align: center;">
-            <h4 style="color: #f87171;">Session Expired or Invalid Password</h4>
-            <button class="btn btn-primary-gradient" style="margin-top: 14px;" onclick="loadAdminQueue()">Re-authenticate</button>
-          </div>
-        `;
-        return;
+      let pendingItems = [];
+      let approvedPerLang = {};
+      let mergedPerLang = {};
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/pending`, {
+          headers: { 'Authorization': `Bearer ${sessionAdminPassword}` }
+        });
+        if (res.status === 401 && !ENABLE_DEV_SIMULATION) {
+          sessionAdminPassword = '';
+          container.innerHTML = `
+            <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); text-align: center;">
+              <h4 style="color: #f87171;">Session Expired or Invalid Password</h4>
+              <button class="btn btn-primary-gradient" style="margin-top: 14px;" onclick="loadAdminQueue()">Re-authenticate</button>
+            </div>
+          `;
+          return;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          pendingItems = data.pending || [];
+          approvedPerLang = data.approved || {};
+          mergedPerLang = data.merged || {};
+        }
+      } catch (networkErr) {
+        if (!ENABLE_DEV_SIMULATION) throw networkErr;
       }
 
-      const data = await res.json();
-      const pendingItems = data.pending || [];
-      const approvedPerLang = data.approved || {};
-      const mergedPerLang = data.merged || {};
+      if (ENABLE_DEV_SIMULATION) {
+        pendingItems = pendingItems.filter(p => p.language !== SIM_LANG_CODE);
+        pendingItems.push(
+          { language: SIM_LANG_CODE, key: "RewindButton_ToolTip", proposals: SIMULATION_DATA.proposals["RewindButton_ToolTip"] },
+          { language: SIM_LANG_CODE, key: "PreviousButton_ToolTip", proposals: SIMULATION_DATA.proposals["PreviousButton_ToolTip"] },
+          { language: SIM_LANG_CODE, key: "AppTitle.Text", proposals: SIMULATION_DATA.proposals["AppTitle.Text"] }
+        );
+        approvedPerLang[SIM_LANG_CODE] = { ...SIMULATION_DATA.liveStatus.approved };
+      }
 
       // Resilient fallback: Merge liveStatus.approved if available for current language
       if (currentLang && liveStatus && liveStatus.approved && Object.keys(liveStatus.approved).length > 0) {
@@ -2653,6 +2784,13 @@
           const clearBtn = card.querySelector('.admin-clear-btn');
           if (clearBtn) {
             clearBtn.onclick = async () => {
+              if (ENABLE_DEV_SIMULATION && item.language === SIM_LANG_CODE) {
+                delete SIMULATION_DATA.liveStatus.proposals[item.key];
+                delete SIMULATION_DATA.proposals[item.key];
+                showToast(`Cleared submissions for "${item.key}" (Simulated)`);
+                loadAdminQueue();
+                return;
+              }
               if (!confirm(`Are you sure you want to discard and clear all ${proposals.length} submitted option(s) for "${item.key}"?`)) return;
               clearBtn.disabled = true;
               clearBtn.textContent = 'Clearing...';
@@ -2697,6 +2835,21 @@
               }
             });
             const contributorsArray = Array.from(allKeyContributors);
+
+            if (ENABLE_DEV_SIMULATION && item.language === SIM_LANG_CODE) {
+              SIMULATION_DATA.liveStatus.approved[item.key] = {
+                value: selectedText,
+                translation: selectedText,
+                contributor: selectedContributor,
+                contributors: contributorsArray,
+                approvedAt: new Date().toISOString()
+              };
+              delete SIMULATION_DATA.liveStatus.proposals[item.key];
+              delete SIMULATION_DATA.proposals[item.key];
+              showToast(`Approved "${item.key}"! (Simulated)`);
+              loadAdminQueue();
+              return;
+            }
 
             approveBtn.disabled = true;
             approveBtn.textContent = 'Approving...';
@@ -2846,6 +2999,10 @@
 
   // Automated Pull Request Creation Action (Single Language or All)
   async function triggerSyncPr(targetLanguage = null, triggerBtn = null) {
+    if (ENABLE_DEV_SIMULATION && (targetLanguage === SIM_LANG_CODE || !targetLanguage || targetLanguage === "all")) {
+      showToast("Simulation: Pull Request creation simulated successfully!");
+      return;
+    }
     if (!sessionAdminPassword) {
       try {
         await requestAdminAuth();
