@@ -2037,9 +2037,23 @@
       }
       for (const k of Object.keys(translations)) {
         const item = catMap.get(k);
+        const catalogTrans = getCatalogTranslation(currentLang, k);
+        const appr = liveStatus && liveStatus.approved ? liveStatus.approved[k] : null;
+        let prevVal = '';
+        let prevStatus = '';
+        if (appr && (appr.value || appr.translation)) {
+          prevVal = appr.value || appr.translation;
+          prevStatus = 'Approved';
+        } else if (catalogTrans && catalogTrans.trim()) {
+          prevVal = catalogTrans.trim();
+          prevStatus = 'Already Translated';
+        }
+
         details[k] = {
           source: (item && item.source) || '',
-          context: (item && item.comment) || ''
+          context: (item && item.comment) || '',
+          previousTranslation: prevVal,
+          previousStatus: prevStatus
         };
       }
 

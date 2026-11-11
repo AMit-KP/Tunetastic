@@ -449,6 +449,12 @@ export default {
         const duplicates = [];
         const fullSlots = [];
 
+        let approvedMap = {};
+        try {
+          const approvedRaw = await env.SUBMISSIONS.get(`approved:${language}`);
+          if (approvedRaw) approvedMap = JSON.parse(approvedRaw);
+        } catch {}
+
         for (const [k, text] of Object.entries(translations)) {
           const proposalKey = `proposals:${language}:${k}`;
           const raw = await env.SUBMISSIONS.get(proposalKey);
@@ -479,7 +485,20 @@ export default {
           await env.SUBMISSIONS.put(proposalKey, JSON.stringify(proposals));
           const kSource = (details && details[k] && details[k].source) ? details[k].source : "";
           const kContext = (details && details[k] && details[k].context) ? details[k].context : "";
-          accepted.push({ key: k, text, source: kSource, context: kContext });
+          let kPrevTrans = (details && details[k] && details[k].previousTranslation) ? details[k].previousTranslation : "";
+          let kPrevStatus = (details && details[k] && details[k].previousStatus) ? details[k].previousStatus : "";
+          if (!kPrevTrans && approvedMap[k] && (approvedMap[k].value || approvedMap[k].translation)) {
+            kPrevTrans = approvedMap[k].value || approvedMap[k].translation;
+            kPrevStatus = "Approved";
+          }
+          accepted.push({
+            key: k,
+            text,
+            source: kSource,
+            context: kContext,
+            previousTranslation: kPrevTrans,
+            previousStatus: kPrevStatus
+          });
         }
 
         // Update proposals summary index
@@ -518,16 +537,31 @@ export default {
         if (env.GITHUB_TOKEN && env.TRACKER_ISSUE_NUMBER && accepted.length > 0) {
           try {
             const escapeCell = (val) => String(val || "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ").trim() || "-";
-            const tableRows = accepted.slice(0, 100).map(a =>
-              `| \`${a.key}\` | ${escapeCell(a.context)} | ${escapeCell(a.source)} | \`${escapeCell(a.text)}\` |`
-            ).join("\n");
+            const tableRows = accepted.slice(0, 100).map(a => {
+              let transCell = `\`${escapeCell(a.text)}\``;
+              if (a.previousTranslation && a.previousTranslation.trim()) {
+                const prevClean = escapeCell(a.previousTranslation);
+                const statusTag = a.previousStatus ? ` *(${a.previousStatus})*` : "";
+                transCell += `<br>↳ ⚠️ *Replaces:* ~~\`${prevClean}\`~~${statusTag}`;
+              }
+              return `| \`${a.key}\` | ${escapeCell(a.context)} | ${escapeCell(a.source)} | ${transCell} |`;
+            }).join("\n");
+
+            const overwriteCount = accepted.filter(a => a.previousTranslation && a.previousTranslation.trim()).length;
+            const newCount = accepted.length - overwriteCount;
+            let countSummary = `${accepted.length} string(s)`;
+            if (overwriteCount > 0 && newCount > 0) {
+              countSummary += ` *(${newCount} new, ${overwriteCount} suggestion(s) on existing)*`;
+            } else if (overwriteCount > 0) {
+              countSummary += ` *(all ${overwriteCount} suggestion(s) on existing)*`;
+            }
 
             const commentBody =
               `🌐 **New Translation Submission for \`${language}\`**\n\n` +
               `- **Contributor:** ${sanitizedContributor.replace(/^@+/, "")}\n` +
-              `- **Strings Submitted:** ${accepted.length} string(s)\n` +
+              `- **Strings Submitted:** ${countSummary}\n` +
               `- **Timestamp:** ${formatToIST(new Date())}\n\n` +
-              `<details>\n<summary><b>Click to view translated strings (${accepted.length})</b></summary>\n\n` +
+              `<details open>\n<summary><b>Click to view translated strings (${accepted.length})</b></summary>\n\n` +
               `| Key | App Context | English Source | Submitted Translation |\n` +
               `| :--- | :--- | :--- | :--- |\n` +
               `${tableRows}\n\n` +
