@@ -103,18 +103,6 @@ def sync_catalog(csharp_repo_root: Path, output_catalog_path: Path, placeholders
             }
             verified_translations[code] = translated_keys
 
-    # Ensure standard community languages are present in the catalog even before first merge
-    default_locales = ["es-ES", "de-DE", "fr-FR", "hi-IN", "ja-JP", "ru-RU", "pt-BR", "it-IT", "zh-CN", "ar-SA"]
-    for d_code in default_locales:
-        if d_code not in available_languages:
-            available_languages[d_code] = {
-                "code": d_code,
-                "translatedCount": 0,
-                "totalCount": len(master_strings),
-                "progressPct": 0,
-                "translations": {}
-            }
-
     # Build Items
     token_pattern = re.compile(r"\{(\d+)\}")
     items = []

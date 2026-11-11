@@ -1,78 +1,7 @@
 {
   "version": "2.0",
   "totalStrings": 840,
-  "languages": {
-    "es-ES": {
-      "code": "es-ES",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "de-DE": {
-      "code": "de-DE",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "fr-FR": {
-      "code": "fr-FR",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "hi-IN": {
-      "code": "hi-IN",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "ja-JP": {
-      "code": "ja-JP",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "ru-RU": {
-      "code": "ru-RU",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "pt-BR": {
-      "code": "pt-BR",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "it-IT": {
-      "code": "it-IT",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "zh-CN": {
-      "code": "zh-CN",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "ar-SA": {
-      "code": "ar-SA",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    }
-  },
+  "languages": {},
   "items": [
     {
       "key": "AppTitle.Text",

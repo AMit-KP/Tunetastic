@@ -475,14 +475,32 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       catalog = await res.json();
 
-      // Clean out qps-ploc and dynamically enhance metadata
-      if (catalog.languages) {
-        delete catalog.languages['qps-ploc'];
-        for (const code of Object.keys(catalog.languages)) {
-          const dynamicMeta = resolveLanguageMeta(code);
-          if (dynamicMeta) {
-            catalog.languages[code] = { ...catalog.languages[code], ...dynamicMeta };
-          }
+      if (!catalog.languages) {
+        catalog.languages = {};
+      }
+      delete catalog.languages['qps-ploc'];
+
+      // Enhance languages discovered from .resw files in the C# repository
+      for (const code of Object.keys(catalog.languages)) {
+        catalog.languages[code].hasResw = true;
+        const dynamicMeta = resolveLanguageMeta(code);
+        if (dynamicMeta) {
+          catalog.languages[code] = { ...catalog.languages[code], ...dynamicMeta };
+        }
+      }
+
+      // Ensure community target locales are available to translate even before their first .resw is merged
+      for (const [code, meta] of Object.entries(KNOWN_LOCALES)) {
+        if (!catalog.languages[code]) {
+          catalog.languages[code] = {
+            code,
+            translatedCount: 0,
+            totalCount: catalog.totalStrings || 840,
+            progressPct: 0,
+            translations: {},
+            hasResw: false,
+            ...meta
+          };
         }
       }
 
