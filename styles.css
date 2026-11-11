@@ -1331,47 +1331,9 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   transition: fill 0.2s ease;
 }
 
-.ws-progress-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
-.ws-progress-pct-badge {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--accent-cyan);
-  background: rgba(96, 205, 255, 0.12);
-  border: 1px solid rgba(96, 205, 255, 0.28);
-  height: 24px;
-  padding: 0 10px;
-  border-radius: var(--radius-pill);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-sizing: border-box;
-  opacity: 1;
-  max-width: 250px;
-  transform: scale(1);
-  white-space: nowrap;
-  will-change: opacity, max-width, transform;
-  transition: opacity 0.15s ease,
-              max-width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.15s ease;
-}
 
-.workspace-hero-card.is-condensed .ws-progress-pct-badge {
-  opacity: 0;
-  max-width: 0;
-  padding: 0;
-  margin: 0;
-  border-width: 0;
-  pointer-events: none;
-  overflow: hidden;
-  transform: scale(0.7);
-}
+
 
 .ws-save-indicator {
   display: inline-flex;

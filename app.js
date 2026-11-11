@@ -1886,8 +1886,7 @@
     const remaining = total - completed;
     const pct = Math.round((completed / total) * 100) || 0;
 
-    const pctLabel = document.getElementById('ws-pct-label');
-    if (pctLabel) pctLabel.textContent = `${pct}% Complete (${completed}/${total})`;
+
 
     const progressFill = document.getElementById('workspace-progress-fill');
     if (progressFill) progressFill.style.width = `${pct}%`;
