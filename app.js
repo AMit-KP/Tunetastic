@@ -241,6 +241,54 @@
   function applySimulationCatalog(cat) {
     if (!ENABLE_DEV_SIMULATION || !cat) return;
     if (!cat.languages) cat.languages = {};
+
+    // Generate balanced simulated distribution across catalog items for rich UI visualization
+    if (cat.items && cat.items.length > 20) {
+      const items = cat.items;
+      // 1. Translated: items 0 to 259 (~260 items)
+      for (let i = 0; i < Math.min(260, items.length); i++) {
+        const k = items[i].key;
+        if (!SIMULATION_DATA.translations[k]) {
+          SIMULATION_DATA.translations[k] = `[Sim-Translated] ${items[i].en}`;
+        }
+      }
+      // 2. Approved: items 260 to 399 (~140 items)
+      for (let i = 260; i < Math.min(400, items.length); i++) {
+        const k = items[i].key;
+        if (!SIMULATION_DATA.liveStatus.approved[k]) {
+          SIMULATION_DATA.liveStatus.approved[k] = {
+            value: `[Sim-Approved] ${items[i].en}`,
+            translation: `[Sim-Approved] ${items[i].en}`,
+            contributor: 'Community Contributor',
+            contributors: ['Community Contributor'],
+            approvedAt: new Date(Date.now() - 3600000).toISOString()
+          };
+        }
+      }
+      // 3. Submitted: items 400 to 489 (~90 items)
+      for (let i = 400; i < Math.min(490, items.length); i++) {
+        const k = items[i].key;
+        if (!SIMULATION_DATA.liveStatus.proposals[k]) {
+          SIMULATION_DATA.liveStatus.proposals[k] = { count: 1, isFull: false };
+        }
+      }
+      // 4. Drafted by you: items 490 to 539 (~50 items)
+      for (let i = 490; i < Math.min(540, items.length); i++) {
+        const k = items[i].key;
+        if (!SIMULATION_DATA.drafts[k]) {
+          SIMULATION_DATA.drafts[k] = `[Sim-Draft] ${items[i].en}`;
+        }
+      }
+      // 5. In progress by others: items 540 to 579 (~40 items)
+      for (let i = 540; i < Math.min(580, items.length); i++) {
+        const k = items[i].key;
+        if (!SIMULATION_DATA.liveStatus.locks[k]) {
+          SIMULATION_DATA.liveStatus.locks[k] = 'other';
+        }
+      }
+      // Remaining items 580 to 839 (~260 items) remain untranslated (Need Translation)!
+    }
+
     cat.languages[SIM_LANG_CODE] = {
       ...SIMULATION_DATA.meta,
       totalCount: cat.totalStrings || 840,
@@ -1902,13 +1950,10 @@
     lastWorkspaceStats = { total, completed, remaining, pct, counts };
 
     renderDonutChart(catData, total, completed, pct);
-    renderStreamBar(catData, total);
-    renderStatusChipsMatrix(catData);
-    syncFilterPillActiveStates();
   }
 
   // -------------------------------------------------------------------------
-  // 6a-1. INTERACTIVE DONUT CHART & ANALYTICS VISUALIZER
+  // 6a-1. INTERACTIVE TRANSLATION PIE CHART
   // -------------------------------------------------------------------------
 
   function updateCenterHudDefault(pct, completed, total) {
@@ -1933,8 +1978,8 @@
     if (!group) return;
 
     group.innerHTML = '';
-    const R = 38;
-    const C = 2 * Math.PI * R; // ~238.76104
+    const R = 50;
+    const C = 2 * Math.PI * R; // ~314.159265
 
     updateCenterHudDefault(pct, completed, total);
 
@@ -1942,44 +1987,23 @@
 
     const activeCats = catData.filter(c => c.count > 0);
     const hasMultiple = activeCats.length > 1;
-    const gap = hasMultiple ? 1.8 : 0;
-
-    // Calculate arc lengths ensuring minimum visibility for small slices
-    let rawArcs = {};
-    const minArc = 7.0; // Minimum arc in pixels so 1-3 strings are easily visible and clickable
-    let totalOtherArcs = 0;
-    const availCat = activeCats.find(c => c.key === 'available');
-
-    activeCats.forEach(cat => {
-      const natural = (cat.count / total) * C;
-      if (availCat && cat.key !== 'available') {
-        const visual = Math.max(minArc, natural);
-        rawArcs[cat.key] = visual;
-        totalOtherArcs += visual;
-      } else {
-        rawArcs[cat.key] = natural;
-      }
-    });
-
-    if (availCat) {
-      rawArcs['available'] = Math.max(minArc, C - totalOtherArcs);
-    }
+    const gap = hasMultiple ? 2.0 : 0;
 
     let cumulativeOffset = 0;
 
     activeCats.forEach(cat => {
-      const rawArc = rawArcs[cat.key] || ((cat.count / total) * C);
+      const rawArc = (cat.count / total) * C;
       const visibleArc = Math.max(1.0, rawArc - gap);
       const remainingCircumference = C - visibleArc;
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('class', `donut-segment segment-${cat.key}`);
-      circle.setAttribute('cx', '50');
-      circle.setAttribute('cy', '50');
+      circle.setAttribute('cx', '70');
+      circle.setAttribute('cy', '70');
       circle.setAttribute('r', `${R}`);
       circle.setAttribute('fill', 'none');
       circle.setAttribute('stroke', cat.color);
-      circle.setAttribute('stroke-width', '11');
+      circle.setAttribute('stroke-width', '22');
       circle.setAttribute('stroke-dasharray', `${visibleArc} ${remainingCircumference}`);
       circle.setAttribute('stroke-dashoffset', `${-cumulativeOffset}`);
       circle.setAttribute('data-key', cat.key);
@@ -2012,107 +2036,28 @@
     });
   }
 
-  function renderStreamBar(catData, total) {
-    const bar = document.getElementById('ws-stream-bar');
-    if (!bar) return;
-    bar.innerHTML = '';
-    if (total === 0) return;
-
-    catData.forEach(cat => {
-      if (cat.count <= 0) return;
-      const pct = (cat.count / total) * 100;
-      const seg = document.createElement('div');
-      seg.className = `stream-bar-segment stream-${cat.key}`;
-      seg.style.width = `${pct}%`;
-      seg.style.backgroundColor = cat.color;
-      seg.style.boxShadow = `0 0 8px ${cat.glow}`;
-      seg.setAttribute('data-key', cat.key);
-      seg.setAttribute('data-filter', cat.filter);
-      seg.setAttribute('title', `${cat.label}: ${cat.count} (${pct.toFixed(pct < 1 ? 1 : 0)}%) • Click to filter`);
-
-      seg.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
-      seg.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
-      seg.addEventListener('click', (e) => {
-        e.stopPropagation();
-        triggerWorkspaceFilter(cat.filter);
-      });
-
-      bar.appendChild(seg);
-    });
-  }
-
-  function renderStatusChipsMatrix(catData) {
-    const matrix = document.getElementById('ws-status-matrix');
-    if (!matrix) return;
-    matrix.innerHTML = '';
-
-    catData.forEach(cat => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = `ws-status-chip chip-${cat.key}${cat.count === 0 ? ' is-zero' : ''}${cat.filter === currentFilter ? ' active' : ''}`;
-      chip.setAttribute('data-key', cat.key);
-      chip.setAttribute('data-filter', cat.filter);
-      chip.setAttribute('title', `Filter: ${cat.label} (${cat.count} strings)`);
-
-      chip.innerHTML = `
-        <span class="chip-dot" style="background: ${cat.color}; box-shadow: 0 0 6px ${cat.glow};"></span>
-        <span class="chip-label">${cat.label}</span>
-        <span class="chip-count">${cat.count}</span>
-      `;
-
-      chip.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
-      chip.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        triggerWorkspaceFilter(cat.filter);
-      });
-
-      matrix.appendChild(chip);
-    });
-  }
-
   function highlightWorkspaceCategory(catKey) {
     if (!catalog || !catalog.items || !currentWorkspaceCategories) return;
     const total = catalog.items.length;
     const cat = currentWorkspaceCategories.find(c => c.key === catKey);
     if (!cat) return;
 
-    // 1. Highlight matching donut slice, dim others
+    // Highlight matching donut slice, dim others
     document.querySelectorAll('.donut-segment').forEach(s => {
       if (s.getAttribute('data-key') === catKey) {
         s.classList.add('is-hovered');
-        s.style.strokeWidth = '14.5px';
-        s.style.filter = `drop-shadow(0 0 8px ${cat.color})`;
+        s.style.strokeWidth = '26px';
+        s.style.filter = `drop-shadow(0 0 10px ${cat.color})`;
         s.style.opacity = '1';
       } else {
         s.classList.remove('is-hovered');
-        s.style.strokeWidth = '11px';
+        s.style.strokeWidth = '22px';
         s.style.filter = '';
         s.style.opacity = '0.35';
       }
     });
 
-    // 2. Highlight matching stream bar segment, dim others
-    document.querySelectorAll('.stream-bar-segment').forEach(s => {
-      if (s.getAttribute('data-key') === catKey) {
-        s.classList.add('is-hovered');
-        s.style.opacity = '1';
-      } else {
-        s.classList.remove('is-hovered');
-        s.style.opacity = '0.35';
-      }
-    });
-
-    // 3. Highlight matching status chip
-    document.querySelectorAll('.ws-status-chip').forEach(ch => {
-      if (ch.getAttribute('data-key') === catKey) {
-        ch.classList.add('is-hovered');
-      } else {
-        ch.classList.remove('is-hovered');
-      }
-    });
-
-    // 4. Update Center HUD with vivid slice details
+    // Update Center HUD with slice details
     const hudPct = document.getElementById('donut-hud-pct');
     const hudLbl = document.getElementById('donut-hud-label');
     const hudSub = document.getElementById('donut-hud-sub');
@@ -2133,26 +2078,13 @@
   }
 
   function unhighlightWorkspaceCategory() {
-    // 1. Reset all donut segments
     document.querySelectorAll('.donut-segment').forEach(s => {
       s.classList.remove('is-hovered');
-      s.style.strokeWidth = '11px';
+      s.style.strokeWidth = '22px';
       s.style.filter = '';
       s.style.opacity = '1';
     });
 
-    // 2. Reset stream bar segments
-    document.querySelectorAll('.stream-bar-segment').forEach(s => {
-      s.classList.remove('is-hovered');
-      s.style.opacity = '1';
-    });
-
-    // 3. Reset chips
-    document.querySelectorAll('.ws-status-chip').forEach(ch => {
-      ch.classList.remove('is-hovered');
-    });
-
-    // 4. Restore Default Center HUD
     if (lastWorkspaceStats) {
       updateCenterHudDefault(lastWorkspaceStats.pct, lastWorkspaceStats.completed, lastWorkspaceStats.total);
     }
@@ -2167,15 +2099,10 @@
       currentFilter = targetFilter;
       currentPage = 1;
       renderCards();
-      syncFilterPillActiveStates();
     }
   }
 
-  function syncFilterPillActiveStates() {
-    document.querySelectorAll('.ws-status-chip').forEach(ch => {
-      ch.classList.toggle('active', ch.getAttribute('data-filter') === currentFilter);
-    });
-  }
+  function syncFilterPillActiveStates() {}
 
   // -------------------------------------------------------------------------
   // 6b. 48-HOUR SLIDING DRAFT TIMER
@@ -3525,19 +3452,8 @@
         currentFilter = target.getAttribute('data-filter');
         currentPage = 1;
         renderCards();
-        syncFilterPillActiveStates();
       });
     });
-
-    // Metric chips click-to-filter
-    const chipRemaining = document.getElementById('metric-chip-remaining');
-    if (chipRemaining) {
-      chipRemaining.addEventListener('click', () => triggerWorkspaceFilter('available'));
-    }
-    const chipDone = document.getElementById('metric-chip-done');
-    if (chipDone) {
-      chipDone.addEventListener('click', () => triggerWorkspaceFilter('translated'));
-    }
 
     // Search input
     searchInput.addEventListener('input', (e) => {

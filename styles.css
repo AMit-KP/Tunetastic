@@ -1259,67 +1259,58 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 }
 
 /* =========================================================================
-   INTERACTIVE WORKSPACE ANALYTICS HUB & DONUT CHART
+   INTERACTIVE WORKSPACE PIE CHART
    ========================================================================= */
 
-.ws-progress-wrap {
+.ws-progress-wrap.ws-pie-wrap {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 22px;
-  max-height: 200px;
+  justify-content: center;
+  padding: 8px 0 2px 0;
+  max-height: 180px;
   opacity: 1;
-  overflow: hidden;
-  transform: translateY(0);
-  margin-top: 14px;
+  overflow: visible;
+  margin-top: 8px;
   will-change: opacity, max-height, transform;
   transition: opacity 0.18s ease,
-              max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              max-height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.18s ease;
 }
 
-.workspace-hero-card.is-condensed .ws-progress-wrap {
+.workspace-hero-card.is-condensed .ws-progress-wrap.ws-pie-wrap {
   max-height: 0;
   opacity: 0;
   margin: 0;
   padding: 0;
   pointer-events: none;
   transform: translateY(-6px);
+  overflow: hidden;
 }
 
-/* Donut Column */
-.ws-donut-col {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ws-donut-frame {
+.ws-pie-frame {
   position: relative;
-  width: 104px;
-  height: 104px;
+  width: 140px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
   user-select: none;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
 }
 
-.ws-donut-svg {
-  width: 104px;
-  height: 104px;
+.ws-pie-svg {
+  width: 140px;
+  height: 140px;
   overflow: visible;
 }
 
-.donut-track {
-  stroke: rgba(255, 255, 255, 0.08);
-  transition: stroke 0.3s ease;
+.pie-bg-track {
+  stroke: rgba(255, 255, 255, 0.06);
 }
 
 .donut-segment {
   fill: none;
-  stroke-width: 11;
-  stroke-linecap: round;
+  stroke-width: 22;
   cursor: pointer;
   transition: stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.22s ease,
@@ -1330,12 +1321,12 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 
 .donut-segment:hover,
 .donut-segment.is-hovered {
-  stroke-width: 14.5;
-  filter: drop-shadow(0 0 8px currentColor);
+  stroke-width: 26;
+  filter: drop-shadow(0 0 10px currentColor);
   opacity: 1 !important;
 }
 
-/* Dynamic Center HUD inside Donut */
+/* Dynamic Center HUD inside Pie */
 .donut-center-hud {
   position: absolute;
   top: 50%;
@@ -1347,31 +1338,33 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   justify-content: center;
   text-align: center;
   pointer-events: none;
-  width: 68px;
-  height: 68px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(14, 21, 37, 0.88) 0%, rgba(9, 13, 22, 0.45) 100%);
+  background: radial-gradient(circle, rgba(14, 21, 37, 0.94) 0%, rgba(9, 13, 22, 0.7) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .donut-hud-pct {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.5px;
   line-height: 1;
   color: var(--accent-cyan);
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .donut-hud-label {
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   color: var(--text-tertiary);
   margin-top: 3px;
   line-height: 1;
   transition: color 0.2s ease;
-  max-width: 66px;
+  max-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1381,148 +1374,9 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   font-size: 8.5px;
   font-weight: 600;
   color: var(--text-tertiary);
-  opacity: 0.75;
+  opacity: 0.8;
   margin-top: 2px;
   line-height: 1;
-}
-
-/* Right Analytics Body */
-.ws-analytics-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-
-/* Distribution Stream Ribbon Bar */
-.ws-stream-bar-wrap {
-  width: 100%;
-}
-
-.ws-stream-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  display: flex;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
-  position: relative;
-}
-
-.stream-bar-segment {
-  height: 100%;
-  min-width: 6px;
-  cursor: pointer;
-  transition: width 0.4s var(--ease-spring),
-              filter 0.2s ease,
-              opacity 0.2s ease,
-              transform 0.15s ease;
-  position: relative;
-}
-
-.stream-bar-segment:hover,
-.stream-bar-segment.is-hovered {
-  filter: brightness(1.3) drop-shadow(0 0 6px currentColor);
-  transform: scaleY(1.35);
-  z-index: 2;
-  opacity: 1 !important;
-}
-
-/* Status Chips Matrix */
-.ws-status-matrix {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.ws-status-chip {
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-pill);
-  padding: 4px 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  user-select: none;
-  line-height: 1;
-}
-
-.ws-status-chip:hover,
-.ws-status-chip.is-hovered {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.22);
-  color: var(--text-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.ws-status-chip.active {
-  background: rgba(96, 205, 255, 0.14);
-  border-color: rgba(96, 205, 255, 0.5);
-  color: #fff;
-  box-shadow: 0 0 10px rgba(96, 205, 255, 0.28);
-}
-
-.ws-status-chip.is-zero {
-  opacity: 0.5;
-}
-.ws-status-chip.is-zero:hover {
-  opacity: 0.85;
-}
-
-.chip-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: inline-block;
-}
-
-.chip-label {
-  color: var(--text-secondary);
-}
-
-.chip-count {
-  font-weight: 700;
-  color: var(--text-primary);
-  font-size: 11.5px;
-  margin-left: 1px;
-}
-
-/* Sub-row with autosave & guarded tokens */
-.ws-analytics-subrow {
-  margin-top: 2px;
-}
-
-.metric-pill-link {
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.metric-pill-link:hover {
-  color: var(--accent-cyan);
-}
-.metric-pill-link:hover strong {
-  color: var(--accent-cyan);
-}
-
-@media (max-width: 840px) {
-  .ws-progress-wrap {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    max-height: 380px;
-  }
-  .ws-donut-col {
-    justify-content: flex-start;
-  }
 }
 
 .ws-progress-info {
