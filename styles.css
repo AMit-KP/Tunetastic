@@ -838,54 +838,41 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   letter-spacing: 0.3px;
 }
 
-/* Donut Meter */
+/* Card Interactive Donut / Pie Chart */
 .card-donut-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 14px 0 20px;
   position: relative;
+  user-select: none;
 }
 
 .donut-svg {
-  transform: rotate(-90deg);
-  filter: drop-shadow(0 0 14px rgba(96, 205, 255, 0.25));
+  overflow: visible;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.45));
 }
 
 .donut-bg-ring {
   stroke: rgba(255, 255, 255, 0.08);
 }
 
-.donut-val-ring {
-  transition: stroke-dashoffset 1.4s var(--ease-spring);
-  stroke-linecap: round;
+.card-donut-slice {
+  cursor: pointer;
+  transition: stroke-width 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.2s ease,
+              opacity 0.2s ease;
 }
 
-.donut-center-info {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
+.card-donut-slice:hover {
+  stroke-width: 20px !important;
+  filter: drop-shadow(0 0 10px currentColor);
+  opacity: 1 !important;
 }
 
-.donut-pct-text {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  color: #ffffff;
-  line-height: 1.1;
-}
-
-.donut-pct-sub {
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--text-tertiary);
-  font-weight: 600;
-  opacity: 0.75;
-  margin-top: 2px;
+.card-donut-hud text {
+  font-family: var(--font-display, system-ui, -apple-system, sans-serif);
+  transition: fill 0.2s ease;
 }
 
 /* Card Bottom Stats */

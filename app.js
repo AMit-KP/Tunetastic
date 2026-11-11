@@ -755,6 +755,69 @@
   // 4. HOME VIEW: DYNAMIC CIRCULAR GAUGES & LANGUAGE CARDS
   // -------------------------------------------------------------------------
 
+  function getLanguageBreakdown(langCode) {
+    const total = (catalog && catalog.items && catalog.items.length) || (catalog && catalog.totalStrings) || 840;
+    let counts = {
+      translated: 0,
+      approved: 0,
+      submitted: 0,
+      mine: 0,
+      other: 0,
+      available: 0
+    };
+
+    if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
+      counts.translated = Object.keys(SIMULATION_DATA.translations || {}).length;
+      counts.approved = Object.keys(SIMULATION_DATA.liveStatus.approved || {}).length;
+      counts.submitted = Object.keys(SIMULATION_DATA.liveStatus.proposals || {}).length;
+      counts.mine = Object.keys(SIMULATION_DATA.drafts || {}).length;
+      counts.other = Object.keys(SIMULATION_DATA.liveStatus.locks || {}).length;
+      const taken = counts.translated + counts.approved + counts.submitted + counts.mine + counts.other;
+      counts.available = Math.max(0, total - taken);
+    } else {
+      const localTrans = getAllLocalTranslations(langCode) || {};
+      const draftsRaw = safeStorageGet(`tunetastic_drafts_${langCode}`);
+      let drafts = {};
+      try { if (draftsRaw) drafts = JSON.parse(draftsRaw); } catch (e) {}
+      const submitted = getSubmittedTranslations(langCode) || {};
+
+      if (catalog && catalog.items && catalog.items.length > 0) {
+        catalog.items.forEach(item => {
+          const trans = getCatalogTranslation(langCode, item.key);
+          const hasLocalDraft = Boolean(drafts[item.key]);
+          const isSub = Boolean(submitted[item.key]);
+          if (trans && trans.trim()) {
+            counts.translated++;
+          } else if (isSub) {
+            counts.submitted++;
+          } else if (hasLocalDraft) {
+            counts.mine++;
+          } else {
+            counts.available++;
+          }
+        });
+      } else {
+        const localDoneCount = Object.keys(localTrans).length;
+        counts.translated = localDoneCount;
+        counts.available = Math.max(0, total - localDoneCount);
+      }
+    }
+
+    const completed = counts.translated + counts.approved + counts.mine;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    const catData = [
+      { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573' },
+      { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15' },
+      { key: 'submitted', label: 'Submitted', count: counts.submitted, color: '#3b82f6' },
+      { key: 'mine', label: 'Drafted', count: counts.mine, color: '#a78bfa' },
+      { key: 'other', label: 'In Progress', count: counts.other, color: '#ea580c' },
+      { key: 'available', label: 'Need Translation', count: counts.available, color: '#64748b' }
+    ];
+
+    return { total, completed, pct, counts, catData };
+  }
+
   function renderHomeLanguages() {
     languagesGrid.innerHTML = '';
     if (!catalog || !catalog.languages) return;
@@ -781,29 +844,47 @@
 
     langs.forEach((lang, index) => {
       const meta = resolveLanguageMeta(lang.code) || lang;
-      const localTrans = getAllLocalTranslations(lang.code) || {};
-      const localDoneCount = Object.keys(localTrans).length;
-      const count = Math.max(lang.translatedCount || 0, localDoneCount);
-      const total = lang.totalCount || catalog.totalStrings || 828;
-      const pct = Math.min(100, Math.round((count / total) * 100));
-      const left = Math.max(0, total - count);
+      const breakdown = getLanguageBreakdown(lang.code);
+      const total = breakdown.total;
+      const completed = breakdown.completed;
+      const pct = breakdown.pct;
+      const catData = breakdown.catData;
 
       const card = document.createElement('div');
       card.className = 'lang-card-item lang-card';
       card.style.setProperty('--i', index);
       card.onclick = () => { window.location.hash = `#translate/${lang.code}`; };
 
-      // High-resolution SVG Donut Calculations (r=40, circumference = 251.327)
-      const r = 40;
-      const circ = 2 * Math.PI * r;
-      const offset = circ * (1 - pct / 100);
+      // High-resolution Segmented Pie Chart for Language Card
+      // Center (52, 52), R = 38, C = 2 * PI * 38 ~ 238.76104
+      const R = 38;
+      const C = 2 * Math.PI * R;
+      const activeCats = catData.filter(c => c.count > 0);
+      const hasMultiple = activeCats.length > 1;
+      const gap = hasMultiple ? 1.8 : 0;
 
-      // Color stop selection based on %
-      let gradStart = '#ef4444';
-      let gradEnd = '#f59e0b';
-      if (pct >= 30) { gradStart = '#f59e0b'; gradEnd = '#60cdff'; }
-      if (pct >= 70) { gradStart = '#60cdff'; gradEnd = '#00f5d4'; }
-      if (pct === 100) { gradStart = '#00f5d4'; gradEnd = '#10b981'; }
+      let slicesHtml = '';
+      let cumulativeOffset = 0;
+
+      activeCats.forEach(cat => {
+        const rawArc = (cat.count / total) * C;
+        const visibleArc = Math.max(1.0, rawArc - gap);
+        const remainingCirc = C - visibleArc;
+        const catPct = total > 0 ? ((cat.count / total) * 100).toFixed(0) : 0;
+
+        slicesHtml += `
+          <circle class="card-donut-slice slice-${cat.key}"
+            cx="52" cy="52" r="${R}" fill="none"
+            stroke="${cat.color}" stroke-width="16"
+            stroke-dasharray="${visibleArc} ${remainingCirc}"
+            stroke-dashoffset="${-cumulativeOffset}"
+            data-key="${cat.key}" data-label="${cat.label}" data-count="${cat.count}" data-color="${cat.color}"
+            data-pct="${catPct}%">
+            <title>${cat.label}: ${cat.count} (${catPct}%)</title>
+          </circle>
+        `;
+        cumulativeOffset += rawArc;
+      });
 
       card.innerHTML = `
         <div class="card-top-profile">
@@ -816,31 +897,76 @@
 
         <div class="card-donut-wrap">
           <svg class="donut-svg" width="104" height="104" viewBox="0 0 104 104">
-            <defs>
-              <linearGradient id="meter-grad-${lang.code}" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="${gradStart}" />
-                <stop offset="100%" stop-color="${gradEnd}" />
-              </linearGradient>
-            </defs>
-            <circle class="donut-bg-ring" cx="52" cy="52" r="${r}" fill="none" stroke-width="8"></circle>
-            <circle class="donut-val-ring" cx="52" cy="52" r="${r}" fill="none"
-              stroke="url(#meter-grad-${lang.code})" stroke-width="8"
-              stroke-dasharray="${circ}" stroke-dashoffset="${offset}"></circle>
+            <!-- Background Circular Track -->
+            <circle class="donut-bg-ring" cx="52" cy="52" r="${R}" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="16"></circle>
+            <!-- Slices Group (rotated -90deg so 12 o'clock is 0) -->
+            <g class="card-donut-slices" transform="rotate(-90 52 52)">
+              ${slicesHtml}
+            </g>
+            <!-- Central Core Disc -->
+            <circle cx="52" cy="52" r="28" fill="rgba(12, 18, 32, 0.96)" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1"></circle>
+            <!-- Integrated SVG Text HUD -->
+            <g class="card-donut-hud" style="pointer-events: none; user-select: none;">
+              <text class="card-hud-pct" x="52" y="47" text-anchor="middle" fill="#60cdff" font-size="15" font-weight="800" font-family="system-ui, -apple-system, sans-serif">${pct}%</text>
+              <text class="card-hud-label" x="52" y="58" text-anchor="middle" fill="#94a3b8" font-size="6.5" font-weight="700" letter-spacing="0.4" font-family="system-ui, -apple-system, sans-serif">COMPLETE</text>
+              <text class="card-hud-sub" x="52" y="67" text-anchor="middle" fill="#64748b" font-size="6" font-weight="600" font-family="system-ui, -apple-system, sans-serif">${completed} / ${total}</text>
+            </g>
           </svg>
-          <div class="donut-center-info">
-            <span class="donut-pct-text">${pct}%</span>
-            <span class="donut-pct-sub">${pct === 100 ? 'Done' : 'Complete'}</span>
-          </div>
         </div>
 
         <div class="card-stats-footer">
-          <div class="card-strings-badge ${pct === 100 ? 'status-done' : (count > 0 ? 'status-progress' : 'status-empty')}">
+          <div class="card-strings-badge ${pct === 100 ? 'status-done' : (completed > 0 ? 'status-progress' : 'status-empty')}">
             <span class="strings-dot"></span>
-            <span class="strings-count"><strong class="highlight-count">${count}</strong><span class="sep-slash">/</span>${total} strings</span>
+            <span class="strings-count"><strong class="highlight-count">${completed}</strong><span class="sep-slash">/</span>${total} strings</span>
           </div>
           <span class="action-chip">Translate <span class="action-arrow">${ICONS.arrowRight}</span></span>
         </div>
       `;
+
+      // Slice hover interactivity on each card
+      const slices = card.querySelectorAll('.card-donut-slice');
+      const hudPct = card.querySelector('.card-hud-pct');
+      const hudLbl = card.querySelector('.card-hud-label');
+      const hudSub = card.querySelector('.card-hud-sub');
+
+      slices.forEach(slice => {
+        slice.addEventListener('mouseenter', (e) => {
+          e.stopPropagation();
+          const label = slice.getAttribute('data-label') || '';
+          const count = slice.getAttribute('data-count') || '0';
+          const slicePct = slice.getAttribute('data-pct') || '0%';
+          const color = slice.getAttribute('data-color') || '#60cdff';
+
+          if (hudPct) {
+            hudPct.textContent = slicePct;
+            hudPct.setAttribute('fill', color);
+          }
+          if (hudLbl) {
+            hudLbl.textContent = label.toUpperCase();
+            hudLbl.setAttribute('fill', color);
+          }
+          if (hudSub) {
+            hudSub.textContent = `${count} strings`;
+            hudSub.setAttribute('fill', '#94a3b8');
+          }
+        });
+
+        slice.addEventListener('mouseleave', (e) => {
+          e.stopPropagation();
+          if (hudPct) {
+            hudPct.textContent = `${pct}%`;
+            hudPct.setAttribute('fill', '#60cdff');
+          }
+          if (hudLbl) {
+            hudLbl.textContent = 'COMPLETE';
+            hudLbl.setAttribute('fill', '#94a3b8');
+          }
+          if (hudSub) {
+            hudSub.textContent = `${completed} / ${total}`;
+            hudSub.setAttribute('fill', '#64748b');
+          }
+        });
+      });
 
       languagesGrid.appendChild(card);
     });
