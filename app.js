@@ -1957,19 +1957,23 @@
   // -------------------------------------------------------------------------
 
   function updateCenterHudDefault(pct, completed, total) {
-    const hudPct = document.getElementById('donut-hud-pct');
-    const hudLbl = document.getElementById('donut-hud-label');
-    const hudSub = document.getElementById('donut-hud-sub');
+    const hudPct = document.getElementById('pie-hud-pct') || document.getElementById('donut-hud-pct');
+    const hudLbl = document.getElementById('pie-hud-label') || document.getElementById('donut-hud-label');
+    const hudSub = document.getElementById('pie-hud-sub') || document.getElementById('donut-hud-sub');
     if (hudPct) {
       hudPct.textContent = `${pct}%`;
-      hudPct.style.color = 'var(--accent-cyan)';
+      hudPct.setAttribute('fill', '#60cdff');
+      hudPct.style.color = '#60cdff';
     }
     if (hudLbl) {
-      hudLbl.textContent = 'Complete';
+      hudLbl.textContent = 'COMPLETE';
+      hudLbl.setAttribute('fill', '#94a3b8');
       hudLbl.style.color = 'var(--text-tertiary)';
     }
     if (hudSub) {
       hudSub.textContent = `${completed} / ${total}`;
+      hudSub.setAttribute('fill', '#64748b');
+      hudSub.style.color = 'var(--text-tertiary)';
     }
   }
 
@@ -1978,8 +1982,9 @@
     if (!group) return;
 
     group.innerHTML = '';
-    const R = 50;
-    const C = 2 * Math.PI * R; // ~314.159265
+    // Radius 56 inside 160x160 viewBox gives a 112px diameter circle centered at (80, 80)
+    const R = 56;
+    const C = 2 * Math.PI * R; // ~351.858377
 
     updateCenterHudDefault(pct, completed, total);
 
@@ -1987,7 +1992,7 @@
 
     const activeCats = catData.filter(c => c.count > 0);
     const hasMultiple = activeCats.length > 1;
-    const gap = hasMultiple ? 2.0 : 0;
+    const gap = hasMultiple ? 2.5 : 0;
 
     let cumulativeOffset = 0;
 
@@ -1998,12 +2003,12 @@
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('class', `donut-segment segment-${cat.key}`);
-      circle.setAttribute('cx', '70');
-      circle.setAttribute('cy', '70');
+      circle.setAttribute('cx', '80');
+      circle.setAttribute('cy', '80');
       circle.setAttribute('r', `${R}`);
       circle.setAttribute('fill', 'none');
       circle.setAttribute('stroke', cat.color);
-      circle.setAttribute('stroke-width', '22');
+      circle.setAttribute('stroke-width', '26');
       circle.setAttribute('stroke-dasharray', `${visibleArc} ${remainingCircumference}`);
       circle.setAttribute('stroke-dashoffset', `${-cumulativeOffset}`);
       circle.setAttribute('data-key', cat.key);
@@ -2046,41 +2051,45 @@
     document.querySelectorAll('.donut-segment').forEach(s => {
       if (s.getAttribute('data-key') === catKey) {
         s.classList.add('is-hovered');
-        s.style.strokeWidth = '26px';
-        s.style.filter = `drop-shadow(0 0 10px ${cat.color})`;
+        s.style.strokeWidth = '32px';
+        s.style.filter = `drop-shadow(0 0 12px ${cat.color})`;
         s.style.opacity = '1';
       } else {
         s.classList.remove('is-hovered');
-        s.style.strokeWidth = '22px';
+        s.style.strokeWidth = '26px';
         s.style.filter = '';
         s.style.opacity = '0.35';
       }
     });
 
-    // Update Center HUD with slice details
-    const hudPct = document.getElementById('donut-hud-pct');
-    const hudLbl = document.getElementById('donut-hud-label');
-    const hudSub = document.getElementById('donut-hud-sub');
+    // Update Center SVG HUD with slice details
+    const hudPct = document.getElementById('pie-hud-pct') || document.getElementById('donut-hud-pct');
+    const hudLbl = document.getElementById('pie-hud-label') || document.getElementById('donut-hud-label');
+    const hudSub = document.getElementById('pie-hud-sub') || document.getElementById('donut-hud-sub');
     const pctVal = total > 0 ? (cat.count / total) * 100 : 0;
     const pctStr = pctVal > 0 && pctVal < 1 ? pctVal.toFixed(1) + '%' : `${Math.round(pctVal)}%`;
 
     if (hudPct) {
       hudPct.textContent = pctStr;
+      hudPct.setAttribute('fill', cat.color);
       hudPct.style.color = cat.color;
     }
     if (hudLbl) {
-      hudLbl.textContent = cat.label;
+      hudLbl.textContent = cat.label.toUpperCase();
+      hudLbl.setAttribute('fill', cat.color);
       hudLbl.style.color = cat.color;
     }
     if (hudSub) {
       hudSub.textContent = `${cat.count} string${cat.count === 1 ? '' : 's'}`;
+      hudSub.setAttribute('fill', '#94a3b8');
+      hudSub.style.color = 'var(--text-tertiary)';
     }
   }
 
   function unhighlightWorkspaceCategory() {
     document.querySelectorAll('.donut-segment').forEach(s => {
       s.classList.remove('is-hovered');
-      s.style.strokeWidth = '22px';
+      s.style.strokeWidth = '26px';
       s.style.filter = '';
       s.style.opacity = '1';
     });

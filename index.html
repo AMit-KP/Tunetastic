@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=2.7.0">
+  <link rel="stylesheet" href="styles.css?v=3.1.0">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="icon" type="image/png" href="assets/logo-dark.png">
   <link rel="apple-touch-icon" href="assets/app-icon.png">
@@ -211,26 +211,33 @@
           </div>
 
           <!-- Interactive Translation Progress Pie Chart -->
-          <div class="ws-progress-wrap ws-pie-wrap">
+          <div class="ws-progress-wrap ws-pie-wrap" style="display: flex; align-items: center; justify-content: center; margin: 12px 0 6px 0;">
             <!-- Hidden backward-compat anchors -->
             <div class="glowing-progress-fill" id="workspace-progress-fill" style="display: none; width: 0%;"></div>
             <span id="ws-tokens-count" style="display: none;">0</span>
             <span id="ws-missing-count" style="display: none;">0</span>
             <span id="ws-done-count" style="display: none;">0</span>
 
-            <div class="ws-pie-frame" id="ws-pie-frame" title="Interactive Translation Progress Pie Chart">
-              <svg class="ws-pie-svg" viewBox="0 0 140 140" width="140" height="140">
-                <!-- Base Circular Track -->
-                <circle class="pie-bg-track" cx="70" cy="70" r="50" fill="none" stroke="rgba(255, 255, 255, 0.06)" stroke-width="22" />
+            <div class="ws-pie-frame" id="ws-pie-frame" title="Interactive Translation Progress Pie Chart" style="position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+              <svg class="ws-pie-svg" viewBox="0 0 160 160" width="160" height="160" style="overflow: visible;">
+                <defs>
+                  <filter id="pie-slice-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="currentColor" flood-opacity="0.6"/>
+                  </filter>
+                </defs>
+                <!-- Base Circular Background Track -->
+                <circle class="pie-bg-track" cx="80" cy="80" r="56" fill="none" stroke="rgba(255, 255, 255, 0.07)" stroke-width="26" />
                 <!-- Dynamic Slices Group (rotated -90deg so 12 o'clock is 0) -->
-                <g id="donut-segments-group" transform="rotate(-90 70 70)"></g>
+                <g id="donut-segments-group" transform="rotate(-90 80 80)"></g>
+                <!-- Central Core Background Disc -->
+                <circle cx="80" cy="80" r="42" fill="rgba(12, 18, 32, 0.96)" stroke="rgba(255, 255, 255, 0.07)" stroke-width="1" />
+                <!-- Integrated SVG Text HUD (strictly in SVG coordinate space so it can NEVER detach) -->
+                <g class="pie-svg-hud" style="pointer-events: none; user-select: none;">
+                  <text id="pie-hud-pct" x="80" y="74" text-anchor="middle" fill="#60cdff" font-size="22" font-weight="800" font-family="system-ui, -apple-system, sans-serif">0%</text>
+                  <text id="pie-hud-label" x="80" y="88" text-anchor="middle" fill="#94a3b8" font-size="9.5" font-weight="700" letter-spacing="0.5" font-family="system-ui, -apple-system, sans-serif">COMPLETE</text>
+                  <text id="pie-hud-sub" x="80" y="100" text-anchor="middle" fill="#64748b" font-size="9" font-weight="600" font-family="system-ui, -apple-system, sans-serif">0 / 0</text>
+                </g>
               </svg>
-              <!-- Dynamic Center HUD -->
-              <div class="donut-center-hud" id="donut-center-hud">
-                <span class="donut-hud-pct" id="donut-hud-pct">0%</span>
-                <span class="donut-hud-label" id="donut-hud-label">Complete</span>
-                <span class="donut-hud-sub" id="donut-hud-sub">0 / 0</span>
-              </div>
             </div>
           </div>
         </div>
@@ -482,6 +489,6 @@
   </div>
 
   <script src="detectIncognito.min.js"></script>
-  <script src="app.js?v=2.7.0"></script>
+  <script src="app.js?v=3.1.0"></script>
 </body>
 </html>
