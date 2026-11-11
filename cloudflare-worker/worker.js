@@ -54,6 +54,30 @@ function formatToIST(date = new Date()) {
   }
 }
 
+const KNOWN_LANG_NAMES = {
+  "hi-IN": "Hindi",
+  "es-ES": "Spanish",
+  "de-DE": "German",
+  "fr-FR": "French",
+  "ja-JP": "Japanese",
+  "ru-RU": "Russian",
+  "pt-BR": "Portuguese",
+  "it-IT": "Italian",
+  "zh-CN": "Chinese",
+  "ar-SA": "Arabic"
+};
+
+function getLanguageLabel(code) {
+  if (!code) return "";
+  if (KNOWN_LANG_NAMES[code]) return `${KNOWN_LANG_NAMES[code]} (${code})`;
+  try {
+    const dn = new Intl.DisplayNames(["en"], { type: "language" });
+    const name = dn.of(code.split("-")[0]);
+    if (name) return `${name} (${code})`;
+  } catch {}
+  return code;
+}
+
 function getSessionId(request) {
   const sid = request.headers.get("X-Session-ID") || "";
   return sid.replace(/[^a-zA-Z0-9_\-]/g, "").slice(0, 64) || "anon";
@@ -957,7 +981,7 @@ export default {
               for (const v of Object.values(data)) {
                 addContributorsFromItem(v);
               }
-              langSummaries.push(`- **\`${targetLang}\`**: ${count} string(s)`);
+              langSummaries.push(`- **${getLanguageLabel(targetLang)}**: ${count} string(s)`);
             }
           }
         } else {
@@ -982,7 +1006,7 @@ export default {
                   for (const v of Object.values(data)) {
                     addContributorsFromItem(v);
                   }
-                  langSummaries.push(`- **\`${lang}\`**: ${count} string(s)`);
+                  langSummaries.push(`- **${getLanguageLabel(lang)}**: ${count} string(s)`);
                 }
               } catch {}
             }
@@ -1079,9 +1103,24 @@ export default {
           .map(c => String(c).replace(/^@+/, "").trim())
           .filter(Boolean);
 
-        const prTitle = targetLang
-          ? `feat(l10n): sync ${targetLang} translations (${Object.keys(approvedPerLang[targetLang] || {}).length} string(s))`
-          : `feat(l10n): sync community translations [${Object.keys(approvedPerLang).join(", ")}]`;
+        let prTitle = "";
+        if (targetLang) {
+          const targetCount = Object.keys(approvedPerLang[targetLang] || {}).length;
+          const targetLabel = getLanguageLabel(targetLang);
+          const stringLabel = targetCount === 1 ? "1 string" : `${targetCount} strings`;
+          prTitle = `Sync community translations: ${targetLabel} (${stringLabel})`;
+        } else {
+          const langCodes = Object.keys(approvedPerLang);
+          const langCount = langCodes.length;
+          const langCountLabel = langCount === 1 ? "1 language" : `${langCount} languages`;
+          const langListStr = langCodes.map(l => getLanguageLabel(l)).join(", ");
+          let totalStrings = 0;
+          for (const map of Object.values(approvedPerLang)) {
+            totalStrings += Object.keys(map).length;
+          }
+          const totalStringsLabel = totalStrings === 1 ? "1 string" : `${totalStrings} strings`;
+          prTitle = `Sync community translations: ${langCountLabel} [${langListStr}] (${totalStringsLabel})`;
+        }
 
         const prBody =
           `## 🌐 Community Localization Sync\n\n` +
