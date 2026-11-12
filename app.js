@@ -2179,6 +2179,7 @@
         hudCounterAnimId = requestAnimationFrame(tick);
       } else {
         hudPct.textContent = `${targetPct}%`;
+        hudCounterAnimId = null;
       }
     }
     hudCounterAnimId = requestAnimationFrame(tick);
@@ -2191,7 +2192,7 @@
     if (hudPct) {
       if (animate && pct > 0) {
         animateCenterCounter(pct);
-      } else {
+      } else if (!hudCounterAnimId) {
         hudPct.textContent = `${pct}%`;
       }
       hudPct.setAttribute('fill', '#60cdff');
@@ -2226,10 +2227,6 @@
     const pathsGroup = document.getElementById('hero-connector-paths');
     const pillsGroup = document.getElementById('hero-satellite-pills');
     if (!segmentsGroup || !pathsGroup || !pillsGroup) return;
-
-    segmentsGroup.innerHTML = '';
-    pathsGroup.innerHTML = '';
-    pillsGroup.innerHTML = '';
 
     // Center donut specs: R_mid = 62, stroke-width = 28 -> Outer rim R_outer = 76
     const R_mid = 62;
@@ -2311,59 +2308,107 @@
     const hasMultiple = activeCats.length > 1;
     const gap = hasMultiple ? 1.5 : 0;
 
+    // Check if initial DOM elements already exist in segmentsGroup
+    const existingCircles = segmentsGroup.querySelectorAll('.donut-segment');
+    const isInitialBuild = existingCircles.length === 0;
+
+    if (isInitialBuild) {
+      segmentsGroup.innerHTML = '';
+      pathsGroup.innerHTML = '<path id="hero-single-pointer-path" class="single-pointer-path" d="" stroke="#60cdff" />';
+      pillsGroup.innerHTML = '';
+    }
+
     let curDashOffset = 0;
     WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
       const g = sliceGeo[cat.key];
-      if (g.count > 0) {
-        const visibleArc = Math.max(1.0, g.arcLength - gap);
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('class', `donut-segment segment-${cat.key}`);
-        const segIdx = activeCats.indexOf(cat);
-        circle.style.animationDelay = `${(segIdx * 0.08 + 0.04).toFixed(2)}s`;
-        circle.setAttribute('cx', '0');
-        circle.setAttribute('cy', '0');
-        circle.setAttribute('r', `${R_mid}`);
-        circle.setAttribute('fill', 'none');
-        circle.setAttribute('stroke', cat.color);
-        circle.setAttribute('stroke-width', `${strokeW}`);
-        circle.setAttribute('stroke-dasharray', `${visibleArc.toFixed(2)} ${(C - visibleArc).toFixed(2)}`);
-        circle.setAttribute('stroke-dashoffset', `${(-curDashOffset).toFixed(2)}`);
-        circle.setAttribute('data-key', cat.key);
-        circle.setAttribute('data-filter', cat.filter);
-        circle.setAttribute('data-label', cat.label);
-        circle.setAttribute('data-count', g.count);
-        circle.setAttribute('role', 'button');
-        circle.setAttribute('tabindex', '0');
+      const visibleArc = Math.max(1.0, g.arcLength - gap);
 
-        circle.addEventListener('mousedown', e => e.preventDefault());
-        circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
-        circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
-        circle.addEventListener('focus', () => highlightWorkspaceCategory(cat.key));
-        circle.addEventListener('blur', () => unhighlightWorkspaceCategory());
-        circle.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
+      if (isInitialBuild) {
+        if (g.count > 0) {
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('class', `donut-segment segment-${cat.key}`);
+          const segIdx = activeCats.indexOf(cat);
+          circle.style.animationDelay = `${(segIdx * 0.08 + 0.04).toFixed(2)}s`;
+          circle.setAttribute('cx', '0');
+          circle.setAttribute('cy', '0');
+          circle.setAttribute('r', `${R_mid}`);
+          circle.setAttribute('fill', 'none');
+          circle.setAttribute('stroke', cat.color);
+          circle.setAttribute('stroke-width', `${strokeW}`);
+          circle.setAttribute('stroke-dasharray', `${visibleArc.toFixed(2)} ${(C - visibleArc).toFixed(2)}`);
+          circle.setAttribute('stroke-dashoffset', `${(-curDashOffset).toFixed(2)}`);
+          circle.setAttribute('data-key', cat.key);
+          circle.setAttribute('data-filter', cat.filter);
+          circle.setAttribute('data-label', cat.label);
+          circle.setAttribute('data-count', g.count);
+          circle.setAttribute('role', 'button');
+          circle.setAttribute('tabindex', '0');
+
+          circle.addEventListener('mousedown', e => e.preventDefault());
+          circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
+          circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
+          circle.addEventListener('focus', () => highlightWorkspaceCategory(cat.key));
+          circle.addEventListener('blur', () => unhighlightWorkspaceCategory());
+          circle.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              triggerWorkspaceFilter(cat.filter);
+            }
+          });
+          circle.addEventListener('click', e => {
+            e.stopPropagation();
+            circle.blur();
             triggerWorkspaceFilter(cat.filter);
-          }
-        });
-        circle.addEventListener('click', e => {
-          e.stopPropagation();
-          circle.blur();
-          triggerWorkspaceFilter(cat.filter);
-        });
+          });
 
-        segmentsGroup.appendChild(circle);
-        curDashOffset += g.arcLength;
+          segmentsGroup.appendChild(circle);
+          curDashOffset += g.arcLength;
+        }
+      } else {
+        // In-place update: smooth geometry adjustment without restarting animations or flickering
+        let circle = segmentsGroup.querySelector(`.segment-${cat.key}`);
+        if (!circle && g.count > 0) {
+          circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('class', `donut-segment segment-${cat.key}`);
+          circle.setAttribute('cx', '0');
+          circle.setAttribute('cy', '0');
+          circle.setAttribute('r', `${R_mid}`);
+          circle.setAttribute('fill', 'none');
+          circle.setAttribute('stroke', cat.color);
+          circle.setAttribute('stroke-width', `${strokeW}`);
+          circle.setAttribute('data-key', cat.key);
+          circle.setAttribute('data-filter', cat.filter);
+          circle.setAttribute('data-label', cat.label);
+          circle.setAttribute('role', 'button');
+          circle.setAttribute('tabindex', '0');
+          circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
+          circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
+          circle.addEventListener('click', e => {
+            e.stopPropagation();
+            circle.blur();
+            triggerWorkspaceFilter(cat.filter);
+          });
+          segmentsGroup.appendChild(circle);
+        }
+        if (circle) {
+          if (g.count > 0) {
+            circle.style.display = '';
+            circle.setAttribute('stroke-dasharray', `${visibleArc.toFixed(2)} ${(C - visibleArc).toFixed(2)}`);
+            circle.setAttribute('stroke-dashoffset', `${(-curDashOffset).toFixed(2)}`);
+            circle.setAttribute('data-count', g.count);
+            curDashOffset += g.arcLength;
+          } else {
+            circle.style.display = 'none';
+            circle.setAttribute('data-count', '0');
+          }
+        }
       }
     });
 
     // Save slice geometry globally for dynamic pointer line calculation
     lastWorkspaceSliceGeo = sliceGeo;
 
-    // Single contextual pointer beam container (Option 2: Active-Only Single Pointer Beam)
-    pathsGroup.innerHTML = '<path id="hero-single-pointer-path" class="single-pointer-path" d="" stroke="#60cdff" />';
-
-    // Step 3: Render Symmetrical Satellite Pills
+    // Step 3: Render or Update Symmetrical Satellite Pills
     WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
       const g = sliceGeo[cat.key];
       const isLeft = cat.side === 'left';
@@ -2371,63 +2416,92 @@
       const boxY = CIRCUIT_PILL_BOX_Y[cat.row];
       const isZero = g.count === 0;
 
-      // Create ForeignObject Pill Element
-      const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-      fo.setAttribute('class', isLeft ? `pill-fo-left row-${cat.row}` : `pill-fo-right row-${cat.row}`);
-      fo.setAttribute('x', `${boxX}`);
-      fo.setAttribute('y', `${boxY}`);
-      fo.setAttribute('width', '190');
-      fo.setAttribute('height', '34');
-      fo.setAttribute('style', 'overflow: visible; outline: none !important; border: none !important;');
+      if (isInitialBuild) {
+        // Create ForeignObject Pill Element
+        const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+        fo.setAttribute('class', isLeft ? `pill-fo-left row-${cat.row}` : `pill-fo-right row-${cat.row}`);
+        fo.setAttribute('x', `${boxX}`);
+        fo.setAttribute('y', `${boxY}`);
+        fo.setAttribute('width', '190');
+        fo.setAttribute('height', '34');
+        fo.setAttribute('style', 'overflow: visible; outline: none !important; border: none !important;');
 
-      const pillDiv = document.createElement('div');
-      pillDiv.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
-      pillDiv.setAttribute('data-key', cat.key);
-      pillDiv.setAttribute('data-filter', cat.filter);
+        const pillDiv = document.createElement('div');
+        pillDiv.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+        pillDiv.setAttribute('data-key', cat.key);
+        pillDiv.setAttribute('data-filter', cat.filter);
 
-      if (isZero) {
-        // Zero-count standby pill: perfectly aligned in row, no pointer beam
-        pillDiv.className = 'satellite-pill pill-zero';
-        pillDiv.title = `0 strings in ${cat.label}`;
-        pillDiv.innerHTML = `
-          <div class="pill-left-content"><span class="dot"></span><span>${cat.label}</span></div>
-          <div><strong>0</strong><span class="sub"> 0%</span></div>
-        `;
+        if (isZero) {
+          // Zero-count standby pill: perfectly aligned in row, no pointer beam
+          pillDiv.className = 'satellite-pill pill-zero';
+          pillDiv.title = `0 strings in ${cat.label}`;
+          pillDiv.innerHTML = `
+            <div class="pill-left-content"><span class="dot"></span><span>${cat.label}</span></div>
+            <div><strong>0</strong><span class="sub"> 0%</span></div>
+          `;
+        } else {
+          pillDiv.className = `satellite-pill pill-${cat.key}`;
+          if (currentFilter === cat.filter) pillDiv.classList.add('is-active-filter');
+          pillDiv.style.borderColor = `${cat.color}40`;
+          pillDiv.style.background = `${cat.color}14`;
+          pillDiv.innerHTML = `
+            <div class="pill-left-content">
+              <span class="dot" style="background: ${cat.color}; box-shadow: 0 0 6px ${cat.color};"></span>
+              <span>${cat.label}</span>
+            </div>
+            <div>
+              <strong style="color: ${cat.color};">${g.count}</strong>
+              <span class="sub" style="color: #cbd5e1;"> ${g.pct}%</span>
+            </div>
+          `;
+
+          pillDiv.addEventListener('mousedown', e => {
+            e.preventDefault(); // Prevents focus rectangle in Chrome / WebKit
+          });
+          pillDiv.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
+          pillDiv.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
+          pillDiv.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            pillDiv.blur();
+            if (fo && fo.blur) fo.blur();
+            if (window.getSelection) {
+              try { window.getSelection().removeAllRanges(); } catch {}
+            }
+            triggerWorkspaceFilter(cat.filter);
+          });
+        }
+
+        fo.appendChild(pillDiv);
+        pillsGroup.appendChild(fo);
       } else {
-        pillDiv.className = `satellite-pill pill-${cat.key}`;
-        if (currentFilter === cat.filter) pillDiv.classList.add('is-active-filter');
-        pillDiv.style.borderColor = `${cat.color}40`;
-        pillDiv.style.background = `${cat.color}14`;
-        pillDiv.innerHTML = `
-          <div class="pill-left-content">
-            <span class="dot" style="background: ${cat.color}; box-shadow: 0 0 6px ${cat.color};"></span>
-            <span>${cat.label}</span>
-          </div>
-          <div>
-            <strong style="color: ${cat.color};">${g.count}</strong>
-            <span class="sub" style="color: #cbd5e1;"> ${g.pct}%</span>
-          </div>
-        `;
-
-        pillDiv.addEventListener('mousedown', e => {
-          e.preventDefault(); // Prevents focus rectangle in Chrome / WebKit
-        });
-        pillDiv.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
-        pillDiv.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
-        pillDiv.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          pillDiv.blur();
-          if (fo && fo.blur) fo.blur();
-          if (window.getSelection) {
-            try { window.getSelection().removeAllRanges(); } catch {}
+        // In-place update: update existing pill text & classes without DOM destruction
+        const pillDiv = pillsGroup.querySelector(`[data-key="${cat.key}"]`);
+        if (pillDiv) {
+          if (isZero) {
+            pillDiv.className = 'satellite-pill pill-zero';
+            pillDiv.title = `0 strings in ${cat.label}`;
+            pillDiv.innerHTML = `
+              <div class="pill-left-content"><span class="dot"></span><span>${cat.label}</span></div>
+              <div><strong>0</strong><span class="sub"> 0%</span></div>
+            `;
+          } else {
+            pillDiv.className = `satellite-pill pill-${cat.key}${currentFilter === cat.filter ? ' is-active-filter' : ''}`;
+            pillDiv.style.borderColor = `${cat.color}40`;
+            pillDiv.style.background = `${cat.color}14`;
+            pillDiv.innerHTML = `
+              <div class="pill-left-content">
+                <span class="dot" style="background: ${cat.color}; box-shadow: 0 0 6px ${cat.color};"></span>
+                <span>${cat.label}</span>
+              </div>
+              <div>
+                <strong style="color: ${cat.color};">${g.count}</strong>
+                <span class="sub" style="color: #cbd5e1;"> ${g.pct}%</span>
+              </div>
+            `;
           }
-          triggerWorkspaceFilter(cat.filter);
-        });
+        }
       }
-
-      fo.appendChild(pillDiv);
-      pillsGroup.appendChild(fo);
     });
 
     // Synchronize active filter selection
@@ -2647,6 +2721,53 @@
     }
     if (liveStatus && liveStatus.approved) {
       Object.keys(liveStatus.approved).forEach(k => completedKeys.add(k));
+    }
+
+    const existingPanel = hud.querySelector('.eq-panel');
+    if (existingPanel) {
+      // In-place update: update existing rows without DOM destruction or animation restarts
+      const existingRows = existingPanel.querySelectorAll('.eq-row');
+      sections.forEach((sec, sIdx) => {
+        let totalSec = 0;
+        let doneSec = 0;
+        catalog.items.forEach(item => {
+          const searchStr = (item.key + ' ' + (item.comment || '')).toLowerCase();
+          if (sec.match(searchStr)) {
+            totalSec++;
+            if (completedKeys.has(item.key)) doneSec++;
+          }
+        });
+        if (totalSec === 0) totalSec = 1;
+        const pct = Math.min(100, Math.round((doneSec / totalSec) * 100));
+
+        let activeBars = 1;
+        let color = '#fb923c';
+        if (pct >= 90) { activeBars = 4; color = '#2ed573'; }
+        else if (pct >= 60) { activeBars = 3; color = '#38bdf8'; }
+        else if (pct >= 30) { activeBars = 2; color = '#facc15'; }
+        else if (pct > 0) { activeBars = 1; color = '#fb923c'; }
+        else { activeBars = 0; color = '#64748b'; }
+
+        const row = existingRows[sIdx];
+        if (row) {
+          const pctEl = row.querySelector('.eq-pct');
+          if (pctEl) {
+            pctEl.textContent = `${pct}%`;
+            pctEl.style.color = color;
+          }
+          const bars = row.querySelectorAll('.eq-bar');
+          for (let b = 0; b < 4; b++) {
+            const bar = bars[b];
+            if (bar) {
+              const isActive = b < activeBars;
+              const bg = isActive ? color : 'rgba(255, 255, 255, 0.1)';
+              bar.style.background = bg;
+              bar.classList.toggle('is-animated', isActive);
+            }
+          }
+        }
+      });
+      return;
     }
 
     let rowsHtml = '';
