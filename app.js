@@ -814,9 +814,11 @@
       }
     }
 
-    const completed = counts.translated + counts.approved + counts.mine;
+    // Total percentile done is strictly approved + translated on both charts
+    const completed = counts.translated + counts.approved;
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+    // Full 6-category status distribution for Workspace (inside view)
     const catData = [
       { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573', glow: 'rgba(46, 213, 115, 0.55)', filter: 'translated' },
       { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15', glow: 'rgba(250, 204, 21, 0.55)', filter: 'approved' },
@@ -826,7 +828,16 @@
       { key: 'available', label: 'Need Translation', count: counts.available, color: '#64748b', glow: 'rgba(100, 116, 139, 0.45)', filter: 'available' }
     ];
 
-    return { total, completed, pct, counts, catData };
+    // Simplified 3-category status distribution for Home Screen cards (outside view):
+    // Only Translated, Approved, and Need Translation (all remaining non-done strings)
+    const homeNeedTranslation = Math.max(0, total - (counts.translated + counts.approved));
+    const homeCatData = [
+      { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573' },
+      { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15' },
+      { key: 'available', label: 'Need Translation', count: homeNeedTranslation, color: '#64748b' }
+    ];
+
+    return { total, completed, pct, counts, catData, homeCatData };
   }
 
   function renderHomeLanguages() {
@@ -859,7 +870,7 @@
       const total = breakdown.total;
       const completed = breakdown.completed;
       const pct = breakdown.pct;
-      const catData = breakdown.catData;
+      const catData = breakdown.homeCatData || breakdown.catData;
 
       const card = document.createElement('div');
       card.className = 'lang-card-item lang-card';
@@ -940,6 +951,7 @@
       const hudSub = card.querySelector('.card-hud-sub');
 
       slices.forEach(slice => {
+        slice.addEventListener('mousedown', (e) => e.preventDefault());
         slice.addEventListener('mouseenter', (e) => {
           e.stopPropagation();
           const label = slice.getAttribute('data-label') || '';
@@ -2121,6 +2133,9 @@
 
       const catPct = ((cat.count / total) * 100).toFixed(cat.count > 0 && (cat.count / total) * 100 < 1 ? 1 : 0);
 
+      circle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+      });
       circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
       circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
       circle.addEventListener('focus', () => highlightWorkspaceCategory(cat.key));
@@ -2133,6 +2148,7 @@
       });
       circle.addEventListener('click', (e) => {
         e.stopPropagation();
+        circle.blur();
         triggerWorkspaceFilter(cat.filter);
       });
 

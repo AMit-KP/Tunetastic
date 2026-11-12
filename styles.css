@@ -1274,6 +1274,32 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   overflow: hidden;
 }
 
+.ws-pie-frame,
+.ws-pie-frame:focus,
+.ws-pie-frame:focus-visible,
+.ws-pie-svg,
+.ws-pie-svg:focus,
+.ws-pie-svg:focus-visible,
+.donut-segment,
+.donut-segment:focus,
+.donut-segment:focus-visible,
+.donut-segment:active,
+.card-donut-wrap,
+.card-donut-wrap:focus,
+.card-donut-wrap:focus-visible,
+.donut-svg,
+.donut-svg:focus,
+.donut-svg:focus-visible,
+.card-donut-slice,
+.card-donut-slice:focus,
+.card-donut-slice:focus-visible,
+.card-donut-slice:active {
+  outline: none !important;
+  outline-width: 0 !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 .ws-pie-frame {
   position: relative;
   width: 160px;
