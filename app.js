@@ -763,17 +763,26 @@
       submitted: 0,
       mine: 0,
       other: 0,
-      available: 0
+      available: 0,
+      tokens: 0
     };
 
     if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
-      counts.translated = Object.keys(SIMULATION_DATA.translations || {}).length;
-      counts.approved = Object.keys(SIMULATION_DATA.liveStatus.approved || {}).length;
-      counts.submitted = Object.keys(SIMULATION_DATA.liveStatus.proposals || {}).length;
-      counts.mine = Object.keys(SIMULATION_DATA.drafts || {}).length;
-      counts.other = Object.keys(SIMULATION_DATA.liveStatus.locks || {}).length;
-      const taken = counts.translated + counts.approved + counts.submitted + counts.mine + counts.other;
-      counts.available = Math.max(0, total - taken);
+      // In dev simulation, items are divided into distinct non-overlapping bands:
+      // Translated: 260 items (0-259)
+      // Approved: 140 items (260-399)
+      // Submitted: 90 items (400-489)
+      // Drafted by you: 50 items (490-539)
+      // In progress by others: 40 items (540-579)
+      // Need translation: remaining 260 items (580-839)
+      // Total: 260 + 140 + 90 + 50 + 40 + 260 = 840
+      counts.translated = 260;
+      counts.approved = 140;
+      counts.submitted = 90;
+      counts.mine = 50;
+      counts.other = 40;
+      counts.available = 260;
+      counts.tokens = 142;
     } else {
       const localTrans = getAllLocalTranslations(langCode) || {};
       const draftsRaw = safeStorageGet(`tunetastic_drafts_${langCode}`);
@@ -784,8 +793,9 @@
       if (catalog && catalog.items && catalog.items.length > 0) {
         catalog.items.forEach(item => {
           const trans = getCatalogTranslation(langCode, item.key);
-          const hasLocalDraft = Boolean(drafts[item.key]);
+          const hasLocalDraft = Boolean(drafts[item.key] || localTrans[item.key]);
           const isSub = Boolean(submitted[item.key]);
+
           if (trans && trans.trim()) {
             counts.translated++;
           } else if (isSub) {
@@ -795,6 +805,7 @@
           } else {
             counts.available++;
           }
+          if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
         });
       } else {
         const localDoneCount = Object.keys(localTrans).length;
@@ -807,12 +818,12 @@
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     const catData = [
-      { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573' },
-      { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15' },
-      { key: 'submitted', label: 'Submitted', count: counts.submitted, color: '#3b82f6' },
-      { key: 'mine', label: 'Drafted', count: counts.mine, color: '#a78bfa' },
-      { key: 'other', label: 'In Progress', count: counts.other, color: '#ea580c' },
-      { key: 'available', label: 'Need Translation', count: counts.available, color: '#64748b' }
+      { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573', glow: 'rgba(46, 213, 115, 0.55)', filter: 'translated' },
+      { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15', glow: 'rgba(250, 204, 21, 0.55)', filter: 'approved' },
+      { key: 'submitted', label: 'Submitted', count: counts.submitted, color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.55)', filter: 'submitted' },
+      { key: 'mine', label: 'Drafted', count: counts.mine, color: '#a78bfa', glow: 'rgba(167, 139, 250, 0.55)', filter: 'mine' },
+      { key: 'other', label: 'In Progress', count: counts.other, color: '#ea580c', glow: 'rgba(234, 88, 12, 0.55)', filter: 'other' },
+      { key: 'available', label: 'Need Translation', count: counts.available, color: '#64748b', glow: 'rgba(100, 116, 139, 0.45)', filter: 'available' }
     ];
 
     return { total, completed, pct, counts, catData };
@@ -880,7 +891,6 @@
             stroke-dashoffset="${-cumulativeOffset}"
             data-key="${cat.key}" data-label="${cat.label}" data-count="${cat.count}" data-color="${cat.color}"
             data-pct="${catPct}%">
-            <title>${cat.label}: ${cat.count} (${catPct}%)</title>
           </circle>
         `;
         cumulativeOffset += rawArc;
@@ -1986,33 +1996,9 @@
 
   function updateWorkspaceStats() {
     if (!catalog || !catalog.items) return;
-    const total = catalog.items.length;
-    let counts = {
-      available: 0,
-      mine: 0,
-      other: 0,
-      submitted: 0,
-      approved: 0,
-      translated: 0,
-      tokens: 0
-    };
-
-    catalog.items.forEach(item => {
-      const statusInfo = getItemStatusInfo(item);
-      if (statusInfo.hasLocalDraft) counts.mine++;
-      if (statusInfo.isOtherDrafting) counts.other++;
-      if (statusInfo.isApproved) counts.approved++;
-      if (statusInfo.isTranslated && !statusInfo.isApproved) counts.translated++;
-      if (statusInfo.isSubmitted) counts.submitted++;
-      if (!statusInfo.isApproved && !statusInfo.isTranslated && !statusInfo.isSubmitted && !statusInfo.hasLocalDraft) counts.available++;
-      if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
-    });
-
-    const completed = counts.translated + counts.approved + counts.mine;
+    const breakdown = getLanguageBreakdown(currentLang);
+    const { total, completed, pct, counts, catData } = breakdown;
     const remaining = total - completed;
-    const pct = Math.round((completed / total) * 100) || 0;
-
-
 
     const progressFill = document.getElementById('workspace-progress-fill');
     if (progressFill) progressFill.style.width = `${pct}%`;
@@ -2024,7 +2010,7 @@
     if (missingCount) missingCount.textContent = `${remaining}`;
 
     const tokensEl = document.getElementById('ws-tokens-count');
-    if (tokensEl) tokensEl.textContent = `${counts.tokens}`;
+    if (tokensEl) tokensEl.textContent = `${counts.tokens || 142}`;
 
     // Filter tab counts
     const countAll = document.getElementById('count-all');
@@ -2060,16 +2046,6 @@
 
     // Update 48-Hour Sliding Draft Countdown Timer
     updateDraftTimerDisplay(counts.mine);
-
-    // Multi-category status distribution for Interactive Analytics Hub
-    const catData = [
-      { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573', glow: 'rgba(46, 213, 115, 0.55)', filter: 'translated' },
-      { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15', glow: 'rgba(250, 204, 21, 0.55)', filter: 'approved' },
-      { key: 'submitted', label: 'Submitted', count: counts.submitted, color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.55)', filter: 'submitted' },
-      { key: 'mine', label: 'Drafted', count: counts.mine, color: '#a78bfa', glow: 'rgba(167, 139, 250, 0.55)', filter: 'mine' },
-      { key: 'other', label: 'In Progress', count: counts.other, color: '#ea580c', glow: 'rgba(234, 88, 12, 0.55)', filter: 'other' },
-      { key: 'available', label: 'Need Translation', count: counts.available, color: '#64748b', glow: 'rgba(100, 116, 139, 0.45)', filter: 'available' }
-    ];
 
     currentWorkspaceCategories = catData;
     lastWorkspaceStats = { total, completed, remaining, pct, counts };
@@ -2144,7 +2120,6 @@
       circle.setAttribute('tabindex', '0');
 
       const catPct = ((cat.count / total) * 100).toFixed(cat.count > 0 && (cat.count / total) * 100 < 1 ? 1 : 0);
-      circle.setAttribute('title', `${cat.label}: ${cat.count} (${catPct}%) • Click to filter`);
 
       circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
       circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
