@@ -123,7 +123,7 @@
   let currentFilter = 'all';
   let searchQuery = '';
   let currentPage = 1;
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 10;
 
   // Cloudflare Worker Staging Endpoint
   const WORKER_URL = window.TUNETASTIC_WORKER_URL || "https://tunetastic-l10n-staging.amit-ku-p-2806.workers.dev";
@@ -1004,10 +1004,64 @@
   // 5. WORKSPACE VIEW: LIVE AUTOSAVE & DRAFT RESUMPTION
   // -------------------------------------------------------------------------
 
+  function recordDraftKeyTime(lang, key, isDeleted = false) {
+    try {
+      const raw = safeStorageGet(`tunetastic_draft_times_${lang}`, true) || safeStorageGet(`tunetastic_draft_times_${lang}`, false);
+      const times = raw ? JSON.parse(raw) : {};
+      if (isDeleted) {
+        delete times[key];
+      } else {
+        times[key] = Date.now();
+      }
+      safeStorageSet(`tunetastic_draft_times_${lang}`, JSON.stringify(times), true);
+      safeStorageSet(`tunetastic_draft_times_${lang}`, JSON.stringify(times), false);
+    } catch {}
+  }
+
+  function getInitialWorkspacePage(langCode) {
+    try {
+      // 1. Check if there are drafted strings with edit timestamps (load last drafted position by time)
+      const rawTimes = safeStorageGet(`tunetastic_draft_times_${langCode}`, true) || safeStorageGet(`tunetastic_draft_times_${langCode}`, false);
+      const times = rawTimes ? JSON.parse(rawTimes) : {};
+      const localDrafts = getAllLocalTranslations(langCode);
+      
+      let activeDrafts = { ...localDrafts };
+      if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE && typeof SIMULATION_DATA !== 'undefined' && SIMULATION_DATA.drafts) {
+        activeDrafts = { ...SIMULATION_DATA.drafts, ...localDrafts };
+      }
+
+      // Filter to keys that are actually currently drafted and have recorded timestamps
+      const validDraftKeys = Object.keys(times).filter(k => Boolean(activeDrafts[k]));
+      if (validDraftKeys.length > 0) {
+        // Sort descending by edit timestamp (most recently edited string first)
+        validDraftKeys.sort((a, b) => (times[b] || 0) - (times[a] || 0));
+        const latestKey = validDraftKeys[0];
+
+        // Find this key in catalog items
+        if (catalog && catalog.items && catalog.items.length > 0) {
+          const itemIdx = catalog.items.findIndex(it => it.key === latestKey);
+          if (itemIdx !== -1) {
+            const pageForDraft = Math.floor(itemIdx / PAGE_SIZE) + 1;
+            return pageForDraft;
+          }
+        }
+      }
+
+      // 2. Fall back to remembering which page number user was last in
+      const savedPage = parseInt(safeStorageGet(`tunetastic_last_page_${langCode}`), 10);
+      if (savedPage && !isNaN(savedPage) && savedPage >= 1) {
+        return savedPage;
+      }
+    } catch (e) {
+      console.warn('Error determining initial page:', e);
+    }
+    return 1;
+  }
+
   async function openWorkspace(langCode) {
     currentLang = langCode;
     safeStorageSet('tunetastic_last_lang', langCode);
-    currentPage = 1;
+    currentPage = getInitialWorkspacePage(langCode);
     currentFilter = 'all';
     searchQuery = '';
     if (searchInput) searchInput.value = '';
@@ -1436,6 +1490,7 @@
             currentDrafts = {};
             safeStorageRemove(`tunetastic_l10n_${currentLang}`);
             safeStorageRemove(`tunetastic_draft_updated_${currentLang}`);
+            safeStorageRemove(`tunetastic_draft_times_${currentLang}`);
 
             // Clear in-memory locks for this session immediately
             if (liveStatus && liveStatus.locks) {
@@ -1846,6 +1901,10 @@
 
     const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
     if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    if (currentLang && currentFilter === 'all' && !searchQuery) {
+      safeStorageSet(`tunetastic_last_page_${currentLang}`, String(currentPage));
+    }
 
     const startIdx = (currentPage - 1) * PAGE_SIZE;
     const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
@@ -2995,6 +3054,7 @@
         // Clear local active drafts
         safeStorageRemove(`tunetastic_l10n_${currentLang}`);
         safeStorageRemove(`tunetastic_draft_updated_${currentLang}`);
+        safeStorageRemove(`tunetastic_draft_times_${currentLang}`);
         currentDrafts = {};
 
         // Clear in-memory locks for this session immediately
@@ -3842,7 +3902,7 @@
 
   function getLocalTranslation(lang, key) {
     try {
-      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true) || safeStorageGet(`tunetastic_l10n_${lang}`, false);
       if (!stored) return '';
       const map = JSON.parse(stored);
       return map[key] || '';
@@ -3853,29 +3913,44 @@
 
   function setLocalTranslation(lang, key, value, updateTimestamp = true) {
     try {
-      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true);
+      if (ENABLE_DEV_SIMULATION && lang === SIM_LANG_CODE && typeof SIMULATION_DATA !== 'undefined' && SIMULATION_DATA.drafts) {
+        if (value && value.trim()) {
+          SIMULATION_DATA.drafts[key] = value;
+        } else {
+          delete SIMULATION_DATA.drafts[key];
+        }
+      }
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true) || safeStorageGet(`tunetastic_l10n_${lang}`, false);
       const map = stored ? JSON.parse(stored) : {};
       if (value && value.trim()) {
         map[key] = value;
         if (updateTimestamp) {
-          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()), true);
+          const nowStr = String(Date.now());
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, nowStr, true);
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, nowStr, false);
+          recordDraftKeyTime(lang, key, false);
         }
       } else {
         delete map[key];
+        recordDraftKeyTime(lang, key, true);
         if (Object.keys(map).length === 0) {
           safeStorageRemove(`tunetastic_draft_updated_${lang}`);
+          safeStorageRemove(`tunetastic_draft_times_${lang}`);
         } else if (updateTimestamp) {
-          safeStorageSet(`tunetastic_draft_updated_${lang}`, String(Date.now()), true);
+          const nowStr = String(Date.now());
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, nowStr, true);
+          safeStorageSet(`tunetastic_draft_updated_${lang}`, nowStr, false);
         }
       }
       safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map), true);
+      safeStorageSet(`tunetastic_l10n_${lang}`, JSON.stringify(map), false);
       updateDraftTimerDisplay();
     } catch (e) {}
   }
 
   function getAllLocalTranslations(lang) {
     try {
-      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true);
+      const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true) || safeStorageGet(`tunetastic_l10n_${lang}`, false);
       return stored ? JSON.parse(stored) : {};
     } catch {
       return {};

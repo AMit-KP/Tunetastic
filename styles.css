@@ -68,6 +68,43 @@
   padding: 0;
 }
 
+/* ── Custom Studio Glass Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(9, 13, 22, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(96, 205, 255, 0.55);
+  box-shadow: 0 0 10px rgba(96, 205, 255, 0.4);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: rgba(96, 205, 255, 0.8);
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(9, 13, 22, 0.7);
+}
+
+/* Firefox scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) rgba(9, 13, 22, 0.7);
+}
+
 html, body, #workspace-view, .workspace-sticky-group, .studio-cards-list, .studio-card {
   overflow-anchor: none;
 }
