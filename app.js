@@ -160,144 +160,7 @@
   // Active Key for Modals
   let activeViewSubmissionsItem = null;
 
-  // =========================================================================
-  // [DEV_SIMULATION_START] - Set to false or delete this block to remove later
-  // =========================================================================
-  const ENABLE_DEV_SIMULATION = true;
-  const SIM_LANG_CODE = "sim-DEV";
 
-  const SIMULATION_DATA = {
-    meta: {
-      code: "sim-DEV",
-      name: "Simulation Lab",
-      native: "Simulation Lab",
-      country: "un",
-      flagHtml: `<span style="font-size: 24px; line-height: 1; display: inline-block;">🧪</span>`,
-      totalCount: 840,
-      translatedCount: 4,
-      progressPct: 1,
-      hasResw: true
-    },
-    // Official translations in app (Already Translated - Green)
-    translations: {
-      "AppTitle.Text": "Tunetastic [Official Build]",
-      "SearchBox.PlaceholderText": "Search music library...",
-      "ThemeButton_ToolTip": "Switch Dark or Light Theme",
-      "ShuffleButton_ToolTip": "Random shuffle playback"
-    },
-    // User local drafts (Drafted By You - Purple)
-    drafts: {
-      "VolumeMuteButton_ToolTip": "Mute or Unmute Volume"
-    },
-    // Live Cloudflare status (Locks, Approved, Proposals)
-    liveStatus: {
-      locks: {
-        "NextButton_ToolTip": "other",             // Orange: In Progress By Others
-        "VolumeMuteButton_ToolTip": "mine"         // Purple: Drafted By You
-      },
-      approved: {
-        // Yellow: Approved (Staged in Admin)
-        "PlayPauseButton_ToolTip": {
-          value: "Play or Pause Track",
-          translation: "Play or Pause Track",
-          contributor: "Priya",
-          contributors: ["Priya"],
-          approvedAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        // Dual Badge: [ Approved ] + [ Submitted ] (Overwrite suggestion on approved string)
-        "PreviousButton_ToolTip": {
-          value: "Skip to Previous Track",
-          translation: "Skip to Previous Track",
-          contributor: "Rahul",
-          contributors: ["Rahul"],
-          approvedAt: new Date(Date.now() - 7200000).toISOString()
-        }
-      },
-      proposals: {
-        // Blue: Submitted (on untranslated string)
-        "RewindButton_ToolTip": { count: 2, isFull: false },
-        // Dual Badge: [ Approved ] + [ Submitted ]
-        "PreviousButton_ToolTip": { count: 1, isFull: false },
-        // Dual Badge: [ Already Translated ] + [ Submitted ] (Overwrite suggestion on translated string)
-        "AppTitle.Text": { count: 2, isFull: false }
-      }
-    },
-    // Detailed proposal history for View Submissions modal & Admin console
-    proposals: {
-      "RewindButton_ToolTip": [
-        { id: "sim_p1", text: "Rewind 5 Seconds", contributor: "Amit", timestamp: new Date(Date.now() - 3600000).toISOString() },
-        { id: "sim_p2", text: "Jump Back 5s", contributor: "Sarah", timestamp: new Date(Date.now() - 7200000).toISOString() }
-      ],
-      "PreviousButton_ToolTip": [
-        { id: "sim_p3", text: "Previous Song / Rewind", contributor: "Carlos", timestamp: new Date(Date.now() - 1800000).toISOString() }
-      ],
-      "AppTitle.Text": [
-        { id: "sim_p4", text: "Tunetastic Music", contributor: "Dev", timestamp: new Date(Date.now() - 5400000).toISOString() },
-        { id: "sim_p5", text: "Tunetastic Player", contributor: "Elena", timestamp: new Date(Date.now() - 9000000).toISOString() }
-      ]
-    }
-  };
-
-  function applySimulationCatalog(cat) {
-    if (!ENABLE_DEV_SIMULATION || !cat) return;
-    if (!cat.languages) cat.languages = {};
-
-    // Generate balanced simulated distribution across catalog items for rich UI visualization
-    if (cat.items && cat.items.length > 20) {
-      const items = cat.items;
-      // 1. Translated: items 0 to 259 (~260 items)
-      for (let i = 0; i < Math.min(260, items.length); i++) {
-        const k = items[i].key;
-        if (!SIMULATION_DATA.translations[k]) {
-          SIMULATION_DATA.translations[k] = `[Sim-Translated] ${items[i].en}`;
-        }
-      }
-      // 2. Approved: items 260 to 399 (~140 items)
-      for (let i = 260; i < Math.min(400, items.length); i++) {
-        const k = items[i].key;
-        if (!SIMULATION_DATA.liveStatus.approved[k]) {
-          SIMULATION_DATA.liveStatus.approved[k] = {
-            value: `[Sim-Approved] ${items[i].en}`,
-            translation: `[Sim-Approved] ${items[i].en}`,
-            contributor: 'Community Contributor',
-            contributors: ['Community Contributor'],
-            approvedAt: new Date(Date.now() - 3600000).toISOString()
-          };
-        }
-      }
-      // 3. Submitted: items 400 to 489 (~90 items)
-      for (let i = 400; i < Math.min(490, items.length); i++) {
-        const k = items[i].key;
-        if (!SIMULATION_DATA.liveStatus.proposals[k]) {
-          SIMULATION_DATA.liveStatus.proposals[k] = { count: 1, isFull: false };
-        }
-      }
-      // 4. Drafted by you: items 490 to 539 (~50 items)
-      for (let i = 490; i < Math.min(540, items.length); i++) {
-        const k = items[i].key;
-        if (!SIMULATION_DATA.drafts[k]) {
-          SIMULATION_DATA.drafts[k] = `[Sim-Draft] ${items[i].en}`;
-        }
-      }
-      // 5. In progress by others: items 540 to 579 (~40 items)
-      for (let i = 540; i < Math.min(580, items.length); i++) {
-        const k = items[i].key;
-        if (!SIMULATION_DATA.liveStatus.locks[k]) {
-          SIMULATION_DATA.liveStatus.locks[k] = 'other';
-        }
-      }
-      // Remaining items 580 to 839 (~260 items) remain untranslated (Need Translation)!
-    }
-
-    cat.languages[SIM_LANG_CODE] = {
-      ...SIMULATION_DATA.meta,
-      totalCount: cat.totalStrings || 840,
-      translations: { ...SIMULATION_DATA.translations }
-    };
-  }
-  // =========================================================================
-  // [DEV_SIMULATION_END]
-  // =========================================================================
 
   // -------------------------------------------------------------------------
   // 2. DYNAMIC LANGUAGE METADATA (Intl.DisplayNames & Real Flag Icons)
@@ -330,7 +193,6 @@
 
   function resolveLanguageMeta(code) {
     if (!code || code === 'qps-ploc' || code.toLowerCase().includes('ploc')) return null;
-    if (ENABLE_DEV_SIMULATION && code === SIM_LANG_CODE) return SIMULATION_DATA.meta;
 
     if (KNOWN_LOCALES[code]) {
       const k = KNOWN_LOCALES[code];
@@ -620,9 +482,6 @@
       }
       delete catalog.languages['qps-ploc'];
 
-      if (ENABLE_DEV_SIMULATION) {
-        applySimulationCatalog(catalog);
-      }
 
       // Enhance languages discovered from .resw files in the C# repository
       for (const code of Object.keys(catalog.languages)) {
@@ -773,51 +632,33 @@
       tokens: 0
     };
 
-    if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
-      // In dev simulation, items are divided into distinct non-overlapping bands:
-      // Translated: 260 items (0-259)
-      // Approved: 140 items (260-399)
-      // Submitted: 90 items (400-489)
-      // Drafted by you: 50 items (490-539)
-      // In progress by others: 40 items (540-579)
-      // Need translation: remaining 260 items (580-839)
-      // Total: 260 + 140 + 90 + 50 + 40 + 260 = 840
-      counts.translated = 260;
-      counts.approved = 140;
-      counts.submitted = 90;
-      counts.mine = 50;
-      counts.other = 40;
-      counts.available = 260;
-      counts.tokens = 142;
+    const localTrans = getAllLocalTranslations(langCode) || {};
+    const draftsRaw = safeStorageGet(`tunetastic_drafts_${langCode}`);
+    let drafts = {};
+    try { if (draftsRaw) drafts = JSON.parse(draftsRaw); } catch (e) {}
+    const submitted = getSubmittedTranslations(langCode) || {};
+
+    if (catalog && catalog.items && catalog.items.length > 0) {
+      catalog.items.forEach(item => {
+        const trans = getCatalogTranslation(langCode, item.key);
+        const hasLocalDraft = Boolean(drafts[item.key] || localTrans[item.key]);
+        const isSub = Boolean(submitted[item.key]);
+
+        if (trans && trans.trim()) {
+          counts.translated++;
+        } else if (isSub) {
+          counts.submitted++;
+        } else if (hasLocalDraft) {
+          counts.mine++;
+        } else {
+          counts.available++;
+        }
+        if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
+      });
     } else {
-      const localTrans = getAllLocalTranslations(langCode) || {};
-      const draftsRaw = safeStorageGet(`tunetastic_drafts_${langCode}`);
-      let drafts = {};
-      try { if (draftsRaw) drafts = JSON.parse(draftsRaw); } catch (e) {}
-      const submitted = getSubmittedTranslations(langCode) || {};
-
-      if (catalog && catalog.items && catalog.items.length > 0) {
-        catalog.items.forEach(item => {
-          const trans = getCatalogTranslation(langCode, item.key);
-          const hasLocalDraft = Boolean(drafts[item.key] || localTrans[item.key]);
-          const isSub = Boolean(submitted[item.key]);
-
-          if (trans && trans.trim()) {
-            counts.translated++;
-          } else if (isSub) {
-            counts.submitted++;
-          } else if (hasLocalDraft) {
-            counts.mine++;
-          } else {
-            counts.available++;
-          }
-          if (item.placeholders && item.placeholders.length > 0) counts.tokens++;
-        });
-      } else {
-        const localDoneCount = Object.keys(localTrans).length;
-        counts.translated = localDoneCount;
-        counts.available = Math.max(0, total - localDoneCount);
-      }
+      const localDoneCount = Object.keys(localTrans).length;
+      counts.translated = localDoneCount;
+      counts.available = Math.max(0, total - localDoneCount);
     }
 
     // Total percentile done is strictly approved + translated on both charts
@@ -1025,10 +866,7 @@
       const times = rawTimes ? JSON.parse(rawTimes) : {};
       const localDrafts = getAllLocalTranslations(langCode);
       
-      let activeDrafts = { ...localDrafts };
-      if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE && typeof SIMULATION_DATA !== 'undefined' && SIMULATION_DATA.drafts) {
-        activeDrafts = { ...SIMULATION_DATA.drafts, ...localDrafts };
-      }
+      const activeDrafts = { ...localDrafts };
 
       // Filter to keys that are actually currently drafted and have recorded timestamps
       const validDraftKeys = Object.keys(times).filter(k => Boolean(activeDrafts[k]));
@@ -1095,9 +933,6 @@
       p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
     });
 
-    if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
-      currentDrafts = { ...SIMULATION_DATA.drafts };
-    }
 
     // Trigger studio boot-up entrance animation once on fresh workspace open
     if (heroCard) {
@@ -1134,10 +969,6 @@
   }
 
   async function fetchLiveStatus() {
-    if (ENABLE_DEV_SIMULATION && currentLang === SIM_LANG_CODE) {
-      liveStatus = JSON.parse(JSON.stringify(SIMULATION_DATA.liveStatus));
-      return;
-    }
     try {
       const res = await fetch(`${WORKER_URL}/api/status?lang=${currentLang}`, {
         headers: { 'X-Session-ID': SESSION_ID }
@@ -2977,18 +2808,14 @@
     }
 
     let proposals = [];
-    if (ENABLE_DEV_SIMULATION && currentLang === SIM_LANG_CODE && SIMULATION_DATA.proposals[item.key]) {
-      proposals = SIMULATION_DATA.proposals[item.key];
-    } else {
-      try {
-        const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
-        if (res.ok) {
-          const data = await res.json();
-          proposals = Array.isArray(data.proposals) ? data.proposals : [];
-        }
-      } catch (e) {
-        console.warn("Could not fetch submissions for key:", e);
+    try {
+      const res = await fetch(`${WORKER_URL}/api/proposals?lang=${currentLang}&key=${encodeURIComponent(item.key)}`);
+      if (res.ok) {
+        const data = await res.json();
+        proposals = Array.isArray(data.proposals) ? data.proposals : [];
       }
+    } catch (e) {
+      console.warn("Could not fetch submissions for key:", e);
     }
 
     // Fallback: If server returned no proposals (e.g. offline/mock), check local submitted store
@@ -3302,15 +3129,11 @@
     if (!container) return;
 
     if (!sessionAdminPassword) {
-      if (ENABLE_DEV_SIMULATION) {
-        sessionAdminPassword = "sim_dev_bypass";
-      } else {
-        try {
-          await requestAdminAuth();
-        } catch {
-          window.location.hash = '#home';
-          return;
-        }
+      try {
+        await requestAdminAuth();
+      } catch {
+        window.location.hash = '#home';
+        return;
       }
     }
 
@@ -3326,38 +3149,24 @@
       let approvedPerLang = {};
       let mergedPerLang = {};
 
-      try {
-        const res = await fetch(`${WORKER_URL}/api/pending`, {
-          headers: { 'Authorization': `Bearer ${sessionAdminPassword}` }
-        });
-        if (res.status === 401 && !ENABLE_DEV_SIMULATION) {
-          sessionAdminPassword = '';
-          container.innerHTML = `
-            <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); text-align: center;">
-              <h4 style="color: #f87171;">Session Expired or Invalid Password</h4>
-              <button class="btn btn-primary-gradient" style="margin-top: 14px;" onclick="loadAdminQueue()">Re-authenticate</button>
-            </div>
-          `;
-          return;
-        }
-        if (res.ok) {
-          const data = await res.json();
-          pendingItems = data.pending || [];
-          approvedPerLang = data.approved || {};
-          mergedPerLang = data.merged || {};
-        }
-      } catch (networkErr) {
-        if (!ENABLE_DEV_SIMULATION) throw networkErr;
+      const res = await fetch(`${WORKER_URL}/api/pending`, {
+        headers: { 'Authorization': `Bearer ${sessionAdminPassword}` }
+      });
+      if (res.status === 401) {
+        sessionAdminPassword = '';
+        container.innerHTML = `
+          <div style="padding: 28px; background: var(--surface-glass); border-radius: var(--radius-xl); border: 1px solid var(--border-glass); text-align: center;">
+            <h4 style="color: #f87171;">Session Expired or Invalid Password</h4>
+            <button class="btn btn-primary-gradient" style="margin-top: 14px;" onclick="loadAdminQueue()">Re-authenticate</button>
+          </div>
+        `;
+        return;
       }
-
-      if (ENABLE_DEV_SIMULATION) {
-        pendingItems = pendingItems.filter(p => p.language !== SIM_LANG_CODE);
-        pendingItems.push(
-          { language: SIM_LANG_CODE, key: "RewindButton_ToolTip", proposals: SIMULATION_DATA.proposals["RewindButton_ToolTip"] },
-          { language: SIM_LANG_CODE, key: "PreviousButton_ToolTip", proposals: SIMULATION_DATA.proposals["PreviousButton_ToolTip"] },
-          { language: SIM_LANG_CODE, key: "AppTitle.Text", proposals: SIMULATION_DATA.proposals["AppTitle.Text"] }
-        );
-        approvedPerLang[SIM_LANG_CODE] = { ...SIMULATION_DATA.liveStatus.approved };
+      if (res.ok) {
+        const data = await res.json();
+        pendingItems = data.pending || [];
+        approvedPerLang = data.approved || {};
+        mergedPerLang = data.merged || {};
       }
 
       // Resilient fallback: Merge liveStatus.approved if available for current language
@@ -3753,13 +3562,6 @@
           const clearBtn = card.querySelector('.admin-clear-btn');
           if (clearBtn) {
             clearBtn.onclick = async () => {
-              if (ENABLE_DEV_SIMULATION && item.language === SIM_LANG_CODE) {
-                delete SIMULATION_DATA.liveStatus.proposals[item.key];
-                delete SIMULATION_DATA.proposals[item.key];
-                showToast(`Cleared submissions for "${item.key}" (Simulated)`);
-                loadAdminQueue();
-                return;
-              }
               if (!confirm(`Are you sure you want to discard and clear all ${proposals.length} submitted option(s) for "${item.key}"?`)) return;
               clearBtn.disabled = true;
               clearBtn.textContent = 'Clearing...';
@@ -3804,21 +3606,6 @@
               }
             });
             const contributorsArray = Array.from(allKeyContributors);
-
-            if (ENABLE_DEV_SIMULATION && item.language === SIM_LANG_CODE) {
-              SIMULATION_DATA.liveStatus.approved[item.key] = {
-                value: selectedText,
-                translation: selectedText,
-                contributor: selectedContributor,
-                contributors: contributorsArray,
-                approvedAt: new Date().toISOString()
-              };
-              delete SIMULATION_DATA.liveStatus.proposals[item.key];
-              delete SIMULATION_DATA.proposals[item.key];
-              showToast(`Approved "${item.key}"! (Simulated)`);
-              loadAdminQueue();
-              return;
-            }
 
             approveBtn.disabled = true;
             approveBtn.textContent = 'Approving...';
@@ -3968,10 +3755,6 @@
 
   // Automated Pull Request Creation Action (Single Language or All)
   async function triggerSyncPr(targetLanguage = null, triggerBtn = null) {
-    if (ENABLE_DEV_SIMULATION && (targetLanguage === SIM_LANG_CODE || !targetLanguage || targetLanguage === "all")) {
-      showToast("Simulation: Pull Request creation simulated successfully!");
-      return;
-    }
     if (!sessionAdminPassword) {
       try {
         await requestAdminAuth();
@@ -4034,13 +3817,6 @@
 
   function setLocalTranslation(lang, key, value, updateTimestamp = true) {
     try {
-      if (ENABLE_DEV_SIMULATION && lang === SIM_LANG_CODE && typeof SIMULATION_DATA !== 'undefined' && SIMULATION_DATA.drafts) {
-        if (value && value.trim()) {
-          SIMULATION_DATA.drafts[key] = value;
-        } else {
-          delete SIMULATION_DATA.drafts[key];
-        }
-      }
       const stored = safeStorageGet(`tunetastic_l10n_${lang}`, true) || safeStorageGet(`tunetastic_l10n_${lang}`, false);
       const map = stored ? JSON.parse(stored) : {};
       if (value && value.trim()) {
