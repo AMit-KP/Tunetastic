@@ -2083,12 +2083,37 @@
   const CIRCUIT_ROW_Y = { 1: 42, 2: 115, 3: 188 };
   const CIRCUIT_PILL_BOX_Y = { 1: 25, 2: 98, 3: 171 };
 
-  function updateCenterHudDefault(pct, completed, total) {
+  let hudCounterAnimId = null;
+  function animateCenterCounter(targetPct) {
+    const hudPct = document.getElementById('pie-hud-pct') || document.getElementById('donut-hud-pct');
+    if (!hudPct) return;
+    if (hudCounterAnimId) cancelAnimationFrame(hudCounterAnimId);
+    const duration = 750;
+    const start = performance.now();
+    function tick(now) {
+      const p = Math.min(1, (now - start) / duration);
+      const ease = 1 - Math.pow(1 - p, 3);
+      const cur = Math.round(targetPct * ease);
+      hudPct.textContent = `${cur}%`;
+      if (p < 1) {
+        hudCounterAnimId = requestAnimationFrame(tick);
+      } else {
+        hudPct.textContent = `${targetPct}%`;
+      }
+    }
+    hudCounterAnimId = requestAnimationFrame(tick);
+  }
+
+  function updateCenterHudDefault(pct, completed, total, animate = false) {
     const hudPct = document.getElementById('pie-hud-pct') || document.getElementById('donut-hud-pct');
     const hudLbl = document.getElementById('pie-hud-label') || document.getElementById('donut-hud-label');
     const hudSub = document.getElementById('pie-hud-sub') || document.getElementById('donut-hud-sub');
     if (hudPct) {
-      hudPct.textContent = `${pct}%`;
+      if (animate && pct > 0) {
+        animateCenterCounter(pct);
+      } else {
+        hudPct.textContent = `${pct}%`;
+      }
       hudPct.setAttribute('fill', '#60cdff');
       hudPct.style.color = '#60cdff';
     }
@@ -2134,7 +2159,7 @@
     const Cx = 395;
     const Cy = 115;
 
-    updateCenterHudDefault(pct, completed, total);
+    updateCenterHudDefault(pct, completed, total, true);
 
     if (total === 0) return;
 
@@ -2213,6 +2238,8 @@
         const visibleArc = Math.max(1.0, g.arcLength - gap);
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('class', `donut-segment segment-${cat.key}`);
+        const segIdx = activeCats.indexOf(cat);
+        circle.style.animationDelay = `${(segIdx * 0.08 + 0.04).toFixed(2)}s`;
         circle.setAttribute('cx', '0');
         circle.setAttribute('cy', '0');
         circle.setAttribute('r', `${R_mid}`);
@@ -2266,6 +2293,7 @@
 
       // Create ForeignObject Pill Element
       const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+      fo.setAttribute('class', isLeft ? `pill-fo-left row-${cat.row}` : `pill-fo-right row-${cat.row}`);
       fo.setAttribute('x', `${boxX}`);
       fo.setAttribute('y', `${boxY}`);
       fo.setAttribute('width', '190');

@@ -1436,11 +1436,27 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   fill: none;
   stroke-width: 28;
   cursor: pointer;
+  animation: donutLaserSweep 0.75s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  transform-origin: 0 0;
   transition: stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.22s ease,
               opacity 0.2s ease,
               stroke-dasharray 0.4s var(--ease-spring),
               stroke-dashoffset 0.4s var(--ease-spring);
+}
+
+@keyframes donutLaserSweep {
+  0% {
+    stroke-dashoffset: 390;
+    opacity: 0;
+    filter: drop-shadow(0 0 16px currentColor);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .donut-segment:hover,
@@ -1450,9 +1466,70 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   opacity: 1 !important;
 }
 
+.pie-svg-hud {
+  animation: pieHudBloom 0.75s var(--ease-spring) backwards;
+  animation-delay: 0.08s;
+  transform-origin: 0 0;
+}
+
+@keyframes pieHudBloom {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+    filter: drop-shadow(0 0 12px rgba(96, 205, 255, 0.8));
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 8px rgba(96, 205, 255, 0.35));
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: none;
+  }
+}
+
 .pie-svg-hud text {
   font-family: var(--font-display, system-ui, -apple-system, sans-serif);
   transition: fill 0.2s ease;
+}
+
+/* Satellite Pills Inward Cascade Entrance */
+.pill-fo-left {
+  animation: pillSlideInLeft 0.5s var(--ease-spring) backwards;
+}
+.pill-fo-left.row-1 { animation-delay: 0.12s; }
+.pill-fo-left.row-2 { animation-delay: 0.22s; }
+.pill-fo-left.row-3 { animation-delay: 0.32s; }
+
+.pill-fo-right {
+  animation: pillSlideInRight 0.5s var(--ease-spring) backwards;
+}
+.pill-fo-right.row-1 { animation-delay: 0.12s; }
+.pill-fo-right.row-2 { animation-delay: 0.22s; }
+.pill-fo-right.row-3 { animation-delay: 0.32s; }
+
+@keyframes pillSlideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pillSlideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Satellite Pills */
@@ -1676,6 +1753,19 @@ foreignObject:focus-within {
   flex-direction: column;
   gap: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  animation: eqPanelBoot 0.6s var(--ease-spring) backwards;
+  animation-delay: 0.18s;
+}
+
+@keyframes eqPanelBoot {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .eq-header {
