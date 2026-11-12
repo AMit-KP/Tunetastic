@@ -2515,18 +2515,12 @@
       else if (pct > 0) { activeBars = 1; color = '#fb923c'; }
       else { activeBars = 0; color = '#64748b'; }
 
-      const barHeights = [6, 10, 13, 16];
-      let barsHtml = '';
-      for (let b = 0; b < 4; b++) {
-        const isActive = b < activeBars;
-        const bg = isActive ? color : 'rgba(255, 255, 255, 0.1)';
-        barsHtml += `<span class="eq-bar" style="height: ${barHeights[b]}px; background: ${bg};"></span>`;
-      }
-
       rowsHtml += `
         <div class="eq-row">
           <span class="eq-label">${sec.label}</span>
-          <div class="eq-bars">${barsHtml}</div>
+          <div class="eq-track">
+            <div class="eq-fill" style="width: ${pct}%; background: ${color};"></div>
+          </div>
           <span class="eq-pct" style="color: ${color};">${pct}%</span>
         </div>
       `;
