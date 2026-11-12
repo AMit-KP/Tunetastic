@@ -1339,19 +1339,101 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
+  outline: none !important;
+  outline-width: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.satellite-pill,
+.satellite-pill *,
+.satellite-pill:focus,
+.satellite-pill:focus-visible,
+.satellite-pill:active,
+.satellite-pill:focus-within,
+.satellite-pill.is-active-filter,
+.satellite-pill.is-active-filter:focus,
+.satellite-pill.is-active-filter:focus-visible,
+.satellite-pill.is-active-filter:active {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+foreignObject,
+foreignObject *,
+foreignObject:focus,
+foreignObject:focus-visible,
+foreignObject:active,
+foreignObject:focus-within {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  border: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+#ws-hero-circuit-svg,
+#ws-hero-circuit-svg *,
+#ws-hero-circuit-svg:focus,
+#ws-hero-circuit-svg:focus-visible {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 .satellite-pill:hover,
 .satellite-pill.is-hovered {
   transform: translateY(-1.5px) scale(1.02);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-  border-color: currentColor;
+  outline: none !important;
+  outline-width: 0 !important;
 }
 
 .satellite-pill.is-active-filter {
-  box-shadow: 0 0 16px currentColor;
-  border-color: currentColor;
+  outline: none !important;
+  outline-width: 0 !important;
+}
+
+.satellite-pill.pill-available.is-active-filter,
+.satellite-pill.pill-available:hover {
+  border-color: #64748b !important;
+  box-shadow: 0 0 16px rgba(100, 116, 139, 0.6) !important;
+}
+
+.satellite-pill.pill-other.is-active-filter,
+.satellite-pill.pill-other:hover {
+  border-color: #f97316 !important;
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.6) !important;
+}
+
+.satellite-pill.pill-mine.is-active-filter,
+.satellite-pill.pill-mine:hover {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.6) !important;
+}
+
+.satellite-pill.pill-translated.is-active-filter,
+.satellite-pill.pill-translated:hover {
+  border-color: #2ed573 !important;
+  box-shadow: 0 0 16px rgba(46, 213, 115, 0.6) !important;
+}
+
+.satellite-pill.pill-approved.is-active-filter,
+.satellite-pill.pill-approved:hover {
+  border-color: #facc15 !important;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.6) !important;
+}
+
+.satellite-pill.pill-submitted.is-active-filter,
+.satellite-pill.pill-submitted:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.6) !important;
 }
 
 .satellite-pill .pill-left-content {
@@ -1408,6 +1490,21 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 .satellite-pill.pill-zero strong,
 .satellite-pill.pill-zero span {
   color: #64748b !important;
+}
+
+/* Dynamic Single Pointer Beam (Option 2) */
+.single-pointer-path {
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.single-pointer-path.is-active {
+  opacity: 1;
 }
 
 /* Dynamic Circuit Connector Paths */

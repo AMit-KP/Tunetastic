@@ -2005,6 +2005,7 @@
 
   let currentWorkspaceCategories = null;
   let lastWorkspaceStats = null;
+  let lastWorkspaceSliceGeo = null;
 
   function updateWorkspaceStats() {
     if (!catalog || !catalog.items) return;
@@ -2213,22 +2214,27 @@
       }
     });
 
-    // Step 3: Render Satellite Pills & Dynamic Circuit Connector Paths
+    // Save slice geometry globally for dynamic pointer line calculation
+    lastWorkspaceSliceGeo = sliceGeo;
+
+    // Single contextual pointer beam container (Option 2: Active-Only Single Pointer Beam)
+    pathsGroup.innerHTML = '<path id="hero-single-pointer-path" class="single-pointer-path" d="" stroke="#60cdff" />';
+
+    // Step 3: Render Symmetrical Satellite Pills
     WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
       const g = sliceGeo[cat.key];
       const isLeft = cat.side === 'left';
-      const targetX = isLeft ? 200 : 590;
-      const targetY = CIRCUIT_ROW_Y[cat.row];
       const boxX = isLeft ? 10 : 590;
       const boxY = CIRCUIT_PILL_BOX_Y[cat.row];
       const isZero = g.count === 0;
 
-      // Create Pill Element
+      // Create ForeignObject Pill Element
       const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
       fo.setAttribute('x', `${boxX}`);
       fo.setAttribute('y', `${boxY}`);
       fo.setAttribute('width', '190');
       fo.setAttribute('height', '34');
+      fo.setAttribute('style', 'overflow: visible; outline: none !important; border: none !important;');
 
       const pillDiv = document.createElement('div');
       pillDiv.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
@@ -2236,8 +2242,7 @@
       pillDiv.setAttribute('data-filter', cat.filter);
 
       if (isZero) {
-        // Any category with 0 count has NO slice in the donut, so NO connector line is drawn.
-        // It displays as a clean standby pill in its row.
+        // Zero-count standby pill: perfectly aligned in row, no pointer beam
         pillDiv.className = 'satellite-pill pill-zero';
         pillDiv.title = `0 strings in ${cat.label}`;
         pillDiv.innerHTML = `
@@ -2260,95 +2265,130 @@
           </div>
         `;
 
+        pillDiv.addEventListener('mousedown', e => {
+          e.preventDefault(); // Prevents focus rectangle in Chrome / WebKit
+        });
         pillDiv.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
         pillDiv.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
         pillDiv.addEventListener('click', e => {
+          e.preventDefault();
           e.stopPropagation();
+          pillDiv.blur();
+          if (fo && fo.blur) fo.blur();
+          if (window.getSelection) {
+            try { window.getSelection().removeAllRanges(); } catch {}
+          }
           triggerWorkspaceFilter(cat.filter);
         });
-
-        // Dynamic Connector Path
-        // If slice is large (> 60 deg), connect to the ideal angle closest to its pill row!
-        const IDEAL_CLOCK_ANGLES = {
-          'available': 5.498,   // 10:30 o'clock
-          'other': 4.712,       // 9:00 o'clock
-          'mine': 3.927,        // 7:30 o'clock
-          'translated': 0.785,  // 1:30 o'clock
-          'approved': 1.571,    // 3:00 o'clock
-          'submitted': 2.356    // 4:30 o'clock
-        };
-
-        const idealClock = IDEAL_CLOCK_ANGLES[cat.key];
-        let connectClock = g.midAngle;
-
-        if (g.angleSpan > 1.05) {
-          const minA = g.startAngle + 0.08;
-          const maxA = g.endAngle - 0.08;
-          if (idealClock >= minA && idealClock <= maxA) {
-            connectClock = idealClock;
-          } else {
-            const dMin = Math.abs(idealClock - minA);
-            const dMax = Math.abs(idealClock - maxA);
-            connectClock = dMin < dMax ? minA : maxA;
-          }
-        }
-
-        const screenAngle = connectClock - (Math.PI / 2);
-        const Sx = Cx + R_outer * Math.cos(screenAngle);
-        const Sy = Cy + R_outer * Math.sin(screenAngle);
-        let pathD = '';
-
-        if (isLeft) {
-          // LEFT SIDE
-          const dy = targetY - Sy;
-          if (Math.abs(dy) <= 3) {
-            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${targetX} ${targetY}`;
-          } else if (Sy > 185) {
-            const dropY = 208;
-            const railX = 274;
-            const chamferX = railX - Math.abs(dropY - targetY);
-            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${Sx.toFixed(1)} ${dropY} L ${railX} ${dropY} L ${chamferX.toFixed(1)} ${targetY} L ${targetX} ${targetY}`;
-          } else {
-            const leadIn = 15;
-            const diagEnd = targetX + leadIn; // 215
-            const diagStart = diagEnd + Math.abs(dy);
-            const safeDiagStart = Math.min(diagStart, 274);
-            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${safeDiagStart.toFixed(1)} ${Sy.toFixed(1)} L ${diagEnd} ${targetY} L ${targetX} ${targetY}`;
-          }
-        } else {
-          // RIGHT SIDE
-          const dy = targetY - Sy;
-          if (Math.abs(dy) <= 3) {
-            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${targetX} ${targetY}`;
-          } else if (Sy > 185) {
-            const dropY = 210;
-            const railX = 520;
-            const chamferX = railX + Math.abs(dropY - targetY);
-            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${Sx.toFixed(1)} ${dropY} L ${railX} ${dropY} L ${chamferX.toFixed(1)} ${targetY} L ${targetX} ${targetY}`;
-          } else {
-            const leadIn = 15;
-            const diagEnd = targetX - leadIn; // 575
-            const diagStart = diagEnd - Math.abs(dy);
-            const safeDiagStart = Math.max(diagStart, 516);
-            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${safeDiagStart.toFixed(1)} ${Sy.toFixed(1)} L ${diagEnd} ${targetY} L ${targetX} ${targetY}`;
-          }
-        }
-
-        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        pathEl.setAttribute('d', pathD);
-        pathEl.setAttribute('class', `circuit-connector-path path-${cat.key}`);
-        pathEl.setAttribute('stroke', cat.color);
-        pathEl.setAttribute('data-key', cat.key);
-        pathEl.style.filter = `drop-shadow(0 0 3px ${cat.glow})`;
-        pathsGroup.appendChild(pathEl);
       }
 
       fo.appendChild(pillDiv);
       pillsGroup.appendChild(fo);
     });
+
+    // Synchronize active filter selection
+    syncFilterPillActiveStates();
   }
 
-  function highlightWorkspaceCategory(catKey) {
+  function drawSinglePointerPath(catKey) {
+    const line = document.getElementById('hero-single-pointer-path');
+    if (!line || !lastWorkspaceSliceGeo) return;
+    const g = lastWorkspaceSliceGeo[catKey];
+    const cat = WORKSPACE_CIRCUIT_CATEGORIES.find(c => c.key === catKey);
+    if (!g || !cat || g.count === 0) {
+      clearSinglePointerPath();
+      return;
+    }
+
+    const Cx = 395, Cy = 115, R_outer = 76;
+    const isLeft = cat.side === 'left';
+    const targetX = isLeft ? 200 : 590;
+    const targetY = CIRCUIT_ROW_Y[cat.row];
+
+    const IDEAL_CLOCK_ANGLES = {
+      'available': 5.498,   // 10:30 o'clock
+      'other': 4.712,       // 9:00 o'clock
+      'mine': 3.927,        // 7:30 o'clock
+      'translated': 0.785,  // 1:30 o'clock
+      'approved': 1.571,    // 3:00 o'clock
+      'submitted': 2.356    // 4:30 o'clock
+    };
+
+    const idealClock = IDEAL_CLOCK_ANGLES[cat.key];
+    let connectClock = g.midAngle;
+
+    if (g.angleSpan > 1.05) {
+      const minA = g.startAngle + 0.12;
+      const maxA = g.endAngle - 0.12;
+      if (idealClock >= minA && idealClock <= maxA) {
+        connectClock = idealClock;
+      } else {
+        const dMin = Math.abs(idealClock - minA);
+        const dMax = Math.abs(idealClock - maxA);
+        connectClock = dMin < dMax ? minA : maxA;
+      }
+    }
+
+    const screenAngle = connectClock - (Math.PI / 2);
+    const Sx = Cx + R_outer * Math.cos(screenAngle);
+    const Sy = Cy + R_outer * Math.sin(screenAngle);
+
+    let pathD = '';
+    if (isLeft) {
+      if (Sy > 175 && targetY >= 180) {
+        const dropY = 210;
+        const dropX = Sx - (dropY - Sy);
+        const railX = 274;
+        const chamferX = railX - Math.abs(dropY - targetY);
+        pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${dropX.toFixed(1)} ${dropY} L ${railX} ${dropY} L ${chamferX.toFixed(1)} ${targetY} L ${targetX} ${targetY}`;
+      } else {
+        const dy = targetY - Sy;
+        if (Math.abs(dy) <= 3) {
+          pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${targetX} ${targetY}`;
+        } else {
+          const leadIn = 15;
+          const diagEnd = targetX + leadIn; // 215
+          const diagStart = diagEnd + Math.abs(dy);
+          const safeDiagStart = Math.min(diagStart, 274);
+          pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${safeDiagStart.toFixed(1)} ${Sy.toFixed(1)} L ${diagEnd} ${targetY} L ${targetX} ${targetY}`;
+        }
+      }
+    } else {
+      if (Sy > 175 && targetY >= 180) {
+        const dropY = 210;
+        const dropX = Sx + (dropY - Sy);
+        const railX = 520;
+        const chamferX = railX + Math.abs(dropY - targetY);
+        pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${dropX.toFixed(1)} ${dropY} L ${railX} ${dropY} L ${chamferX.toFixed(1)} ${targetY} L ${targetX} ${targetY}`;
+      } else {
+        const dy = targetY - Sy;
+        if (Math.abs(dy) <= 3) {
+          pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${targetX} ${targetY}`;
+        } else {
+          const leadIn = 15;
+          const diagEnd = targetX - leadIn; // 575
+          const diagStart = diagEnd - Math.abs(dy);
+          const safeDiagStart = Math.max(diagStart, 516);
+          pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${safeDiagStart.toFixed(1)} ${Sy.toFixed(1)} L ${diagEnd} ${targetY} L ${targetX} ${targetY}`;
+        }
+      }
+    }
+
+    line.setAttribute('d', pathD);
+    line.setAttribute('stroke', cat.color);
+    line.style.filter = `drop-shadow(0 0 6px ${cat.color})`;
+    line.classList.add('is-active');
+  }
+
+  function clearSinglePointerPath() {
+    const line = document.getElementById('hero-single-pointer-path');
+    if (line) {
+      line.classList.remove('is-active');
+      line.setAttribute('d', '');
+    }
+  }
+
+  function highlightWorkspaceCategory(catKey, isPersistent = false) {
     if (!catalog || !catalog.items || !currentWorkspaceCategories) return;
     const total = catalog.items.length;
     const cat = currentWorkspaceCategories.find(c => c.key === catKey);
@@ -2369,17 +2409,6 @@
       }
     });
 
-    // Highlight matching connector path, dim others
-    document.querySelectorAll('.circuit-connector-path').forEach(p => {
-      if (p.getAttribute('data-key') === catKey) {
-        p.classList.add('is-hovered');
-        p.classList.remove('is-dimmed');
-      } else {
-        p.classList.remove('is-hovered');
-        p.classList.add('is-dimmed');
-      }
-    });
-
     // Highlight matching pill
     document.querySelectorAll('.satellite-pill').forEach(pill => {
       if (pill.getAttribute('data-key') === catKey) {
@@ -2388,6 +2417,9 @@
         pill.classList.remove('is-hovered');
       }
     });
+
+    // Draw single pointer beam to the hovered/selected category
+    drawSinglePointerPath(catKey);
 
     // Update Center SVG HUD with slice details
     const hudPct = document.getElementById('pie-hud-pct') || document.getElementById('donut-hud-pct');
@@ -2414,6 +2446,16 @@
   }
 
   function unhighlightWorkspaceCategory() {
+    // If a filter is currently active, restore that active filter's highlight and pointer!
+    if (currentFilter && currentFilter !== 'all') {
+      const activeCat = WORKSPACE_CIRCUIT_CATEGORIES.find(c => c.filter === currentFilter);
+      if (activeCat && lastWorkspaceSliceGeo && lastWorkspaceSliceGeo[activeCat.key] && lastWorkspaceSliceGeo[activeCat.key].count > 0) {
+        highlightWorkspaceCategory(activeCat.key, true);
+        return;
+      }
+    }
+
+    // Otherwise, restore default donut state
     document.querySelectorAll('.donut-segment').forEach(s => {
       s.classList.remove('is-hovered');
       s.style.strokeWidth = '28px';
@@ -2421,14 +2463,11 @@
       s.style.opacity = '1';
     });
 
-    document.querySelectorAll('.circuit-connector-path').forEach(p => {
-      p.classList.remove('is-hovered');
-      p.classList.remove('is-dimmed');
-    });
-
     document.querySelectorAll('.satellite-pill').forEach(pill => {
       pill.classList.remove('is-hovered');
     });
+
+    clearSinglePointerPath();
 
     if (lastWorkspaceStats) {
       updateCenterHudDefault(lastWorkspaceStats.pct, lastWorkspaceStats.completed, lastWorkspaceStats.total);
@@ -2513,10 +2552,28 @@
       currentFilter = targetFilter;
       currentPage = 1;
       renderCards();
+      syncFilterPillActiveStates();
     }
   }
 
-  function syncFilterPillActiveStates() {}
+  function syncFilterPillActiveStates() {
+    document.querySelectorAll('.satellite-pill').forEach(pill => {
+      const filter = pill.getAttribute('data-filter');
+      const isActive = (currentFilter === filter);
+      pill.classList.toggle('is-active-filter', isActive);
+    });
+
+    if (currentFilter && currentFilter !== 'all') {
+      const cat = WORKSPACE_CIRCUIT_CATEGORIES.find(c => c.filter === currentFilter);
+      if (cat && lastWorkspaceSliceGeo && lastWorkspaceSliceGeo[cat.key] && lastWorkspaceSliceGeo[cat.key].count > 0) {
+        highlightWorkspaceCategory(cat.key, true);
+      } else {
+        unhighlightWorkspaceCategory();
+      }
+    } else {
+      unhighlightWorkspaceCategory();
+    }
+  }
 
   // -------------------------------------------------------------------------
   // 6b. 48-HOUR SLIDING DRAFT TIMER
@@ -3866,6 +3923,7 @@
         currentFilter = target.getAttribute('data-filter');
         currentPage = 1;
         renderCards();
+        syncFilterPillActiveStates();
       });
     });
 
