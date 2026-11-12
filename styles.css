@@ -1246,6 +1246,138 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 }
 
 /* =========================================================================
+   CONDENSED MIDDLE PROGRESS BAR (Morphed from Donut Ring on Scroll)
+   ========================================================================= */
+.ws-hero-condensed-bar {
+  flex: 1;
+  max-width: 480px;
+  margin: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px) scale(0.96);
+  will-change: opacity, transform;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workspace-hero-card.is-condensed .ws-hero-condensed-bar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.condensed-pct-badge {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent-cyan, #38bdf8);
+  background: rgba(56, 189, 248, 0.12);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.condensed-track-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 170px;
+}
+
+.condensed-progress-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(0, 0, 0, 0.4);
+  transform-origin: center center;
+}
+
+.workspace-hero-card.is-condensed .condensed-progress-bar {
+  animation: condensedUnrollGlow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes condensedUnrollGlow {
+  0% {
+    transform: scaleX(0.2) scaleY(1.6);
+    filter: brightness(2) drop-shadow(0 0 14px rgba(56, 189, 248, 0.8));
+    opacity: 0.2;
+  }
+  60% {
+    transform: scaleX(1.02) scaleY(1.1);
+    filter: brightness(1.3) drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1) scaleY(1);
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.3));
+    opacity: 1;
+  }
+}
+
+.condensed-seg {
+  height: 100%;
+  cursor: pointer;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+}
+
+.condensed-seg:hover {
+  filter: brightness(1.25) saturate(1.2);
+}
+
+.condensed-hud-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.condensed-hud-counts {
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  color: #cbd5e1;
+}
+
+/* Donut cut and unroll upward on condense */
+#donut-center-group {
+  transform-origin: 395px 115px;
+  will-change: transform, opacity;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.25s ease;
+}
+
+.workspace-hero-card.is-condensed #donut-center-group {
+  transform: translate(395px, 20px) scale(0.3);
+  opacity: 0;
+}
+
+.workspace-hero-card #hero-satellite-pills,
+.workspace-hero-card #hero-connector-paths,
+.workspace-hero-card .ws-app-readiness-hud {
+  transition: opacity 0.2s ease;
+}
+
+.workspace-hero-card.is-condensed #hero-satellite-pills,
+.workspace-hero-card.is-condensed #hero-connector-paths,
+.workspace-hero-card.is-condensed .ws-app-readiness-hud {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* =========================================================================
    INTERACTIVE WORKSPACE PIE CHART
    ========================================================================= */
 

@@ -189,6 +189,18 @@
               </div>
             </div>
 
+            <!-- Middle Slot: Condensed Animated Multi-Segment Progress Bar -->
+            <div class="ws-hero-condensed-bar" id="ws-hero-condensed-bar" title="Total Translation Progress">
+              <span class="condensed-pct-badge" id="condensed-pct-badge">0%</span>
+              <div class="condensed-track-wrap">
+                <div class="condensed-progress-bar" id="condensed-progress-bar"></div>
+                <div class="condensed-hud-meta">
+                  <span class="condensed-hud-label" id="condensed-hud-label">PROGRESS</span>
+                  <span class="condensed-hud-counts" id="condensed-hud-counts">0 / 0 DONE</span>
+                </div>
+              </div>
+            </div>
+
             <div class="ws-header-actions">
               <div class="ws-save-indicator" id="auto-save-indicator" title="Changes automatically saved to your browser and cloud.">
                 <span class="save-dot"></span> Saved to Browser
@@ -227,7 +239,7 @@
                     </filter>
                   </defs>
                   <!-- Donut Chart in Center (395, 115) -->
-                  <g transform="translate(395, 115)">
+                  <g id="donut-center-group" transform="translate(395, 115)">
                     <!-- Background Circular Track -->
                     <circle class="pie-bg-track" cx="0" cy="0" r="62" fill="none" stroke="rgba(255, 255, 255, 0.07)" stroke-width="28" />
                     <!-- Dynamic Slices Group (rotated -90deg so 12 o'clock is 0) -->

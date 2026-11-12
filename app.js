@@ -2102,6 +2102,18 @@
       hudSub.setAttribute('fill', '#64748b');
       hudSub.style.color = 'var(--text-tertiary)';
     }
+
+    // Also synchronize condensed header progress bar
+    const condPct = document.getElementById('condensed-pct-badge');
+    const condCounts = document.getElementById('condensed-hud-counts');
+    const condLabel = document.getElementById('condensed-hud-label');
+    if (condPct) {
+      condPct.textContent = `${pct}%`;
+      condPct.style.color = 'var(--accent-cyan, #38bdf8)';
+      condPct.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+    }
+    if (condLabel) condLabel.textContent = 'PROGRESS';
+    if (condCounts) condCounts.textContent = `${completed} / ${total} DONE`;
   }
 
   function renderDonutChart(catData, total, completed, pct) {
@@ -2129,6 +2141,30 @@
     // Map catData into quick lookup
     const countMap = {};
     catData.forEach(c => { countMap[c.key] = c.count; });
+
+    // Render Condensed Progress Bar Segments in Header Middle Slot
+    const condBar = document.getElementById('condensed-progress-bar');
+    if (condBar) {
+      condBar.innerHTML = '';
+      WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
+        const cnt = countMap[cat.key] || 0;
+        if (cnt > 0) {
+          const segFrac = (cnt / total) * 100;
+          const segEl = document.createElement('div');
+          segEl.className = `condensed-seg seg-${cat.key}`;
+          segEl.style.width = `${segFrac.toFixed(2)}%`;
+          segEl.style.background = cat.color;
+          segEl.style.boxShadow = `0 0 8px ${cat.color}80`;
+          segEl.title = `${cat.label}: ${cnt} (${Math.round(segFrac)}%)`;
+          segEl.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            triggerWorkspaceFilter(cat.filter);
+          });
+          condBar.appendChild(segEl);
+        }
+      });
+    }
 
     // Step 1: Calculate cumulative angles for slices
     let cumulativeClockAngle = 0; // In radians, 0 = 12 o'clock
@@ -2443,6 +2479,18 @@
       hudSub.setAttribute('fill', '#94a3b8');
       hudSub.style.color = 'var(--text-tertiary)';
     }
+
+    // Also update condensed header badge if active
+    const condPct = document.getElementById('condensed-pct-badge');
+    const condCounts = document.getElementById('condensed-hud-counts');
+    const condLabel = document.getElementById('condensed-hud-label');
+    if (condPct) {
+      condPct.textContent = pctStr;
+      condPct.style.color = cat.color;
+      condPct.style.borderColor = `${cat.color}60`;
+    }
+    if (condLabel) condLabel.textContent = cat.label.toUpperCase();
+    if (condCounts) condCounts.textContent = `${cat.count} string${cat.count === 1 ? '' : 's'}`;
   }
 
   function unhighlightWorkspaceCategory() {
