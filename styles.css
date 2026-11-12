@@ -24,8 +24,8 @@
   /* Accents & Neon Glows */
   --accent-cyan: #60cdff;
   --accent-cyan-glow: rgba(96, 205, 255, 0.4);
-  --accent-purple: #a78bfa;
-  --accent-purple-glow: rgba(167, 139, 250, 0.4);
+  --accent-purple: #a855f7;
+  --accent-purple-glow: rgba(168, 85, 247, 0.4);
   --accent-pink: #f472b6;
   --accent-emerald: #00f5d4;
   --accent-emerald-glow: rgba(0, 245, 212, 0.4);
@@ -1896,13 +1896,13 @@ foreignObject:focus-within {
 }
 
 .filter-status-dot.dot-draft {
-  background: #a78bfa;
-  box-shadow: 0 0 6px rgba(167, 139, 250, 0.7);
+  background: #a855f7;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.7);
 }
 
 .filter-status-dot.dot-in-progress {
-  background: #ea580c;
-  box-shadow: 0 0 6px rgba(234, 88, 12, 0.7);
+  background: #f97316;
+  box-shadow: 0 0 6px rgba(249, 115, 22, 0.7);
 }
 
 .filter-status-dot.dot-submitted {
@@ -2169,23 +2169,23 @@ foreignObject:focus-within {
 }
 
 .pill-draft-mine {
-  background: rgba(167, 139, 250, 0.14);
-  color: #c4b5fd;
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(168, 85, 247, 0.14);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.35);
 }
 .pill-draft-mine .status-dot {
-  background: #a78bfa;
-  box-shadow: 0 0 6px #a78bfa;
+  background: #a855f7;
+  box-shadow: 0 0 6px #a855f7;
 }
 
 .pill-draft-other {
-  background: rgba(234, 88, 12, 0.14);
-  color: #fb923c;
-  border: 1px solid rgba(234, 88, 12, 0.35);
+  background: rgba(249, 115, 22, 0.14);
+  color: #fdba74;
+  border: 1px solid rgba(249, 115, 22, 0.35);
 }
 .pill-draft-other .status-dot {
-  background: #ea580c;
-  box-shadow: 0 0 6px #ea580c;
+  background: #f97316;
+  box-shadow: 0 0 6px #f97316;
 }
 
 .pill-submitted {
@@ -2523,8 +2523,8 @@ foreignObject:focus-within {
 
 /* Transcreation Hint */
 .transcreation-hint-card {
-  background: rgba(167, 139, 250, 0.08);
-  border: 1px solid rgba(167, 139, 250, 0.25);
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.25);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   font-size: 13px;
@@ -3358,19 +3358,19 @@ foreignObject:focus-within {
   gap: 5px;
   font-size: 12px;
   font-weight: 600;
-  color: #a78bfa;
+  color: #a855f7;
   text-decoration: none;
   padding: 4px 9px;
-  background: rgba(167, 139, 250, 0.12);
-  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.35);
   border-radius: var(--radius-sm);
   transition: all 0.2s ease;
 }
 
 .admin-pr-link:hover {
-  background: rgba(167, 139, 250, 0.25);
-  border-color: rgba(167, 139, 250, 0.65);
-  color: #c4b5fd;
+  background: rgba(168, 85, 247, 0.25);
+  border-color: rgba(168, 85, 247, 0.65);
+  color: #d8b4fe;
 }
 
 .admin-ready-badge {

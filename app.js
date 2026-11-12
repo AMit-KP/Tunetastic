@@ -823,8 +823,8 @@
       { key: 'translated', label: 'Translated', count: counts.translated, color: '#2ed573', glow: 'rgba(46, 213, 115, 0.55)', filter: 'translated' },
       { key: 'approved', label: 'Approved', count: counts.approved, color: '#facc15', glow: 'rgba(250, 204, 21, 0.55)', filter: 'approved' },
       { key: 'submitted', label: 'Submitted', count: counts.submitted, color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.55)', filter: 'submitted' },
-      { key: 'mine', label: 'Drafted', count: counts.mine, color: '#a78bfa', glow: 'rgba(167, 139, 250, 0.55)', filter: 'mine' },
-      { key: 'other', label: 'In Progress', count: counts.other, color: '#ea580c', glow: 'rgba(234, 88, 12, 0.55)', filter: 'other' },
+      { key: 'mine', label: 'Drafted', count: counts.mine, color: '#a855f7', glow: 'rgba(168, 85, 247, 0.55)', filter: 'mine' },
+      { key: 'other', label: 'In Progress', count: counts.other, color: '#f97316', glow: 'rgba(249, 115, 22, 0.55)', filter: 'other' },
       { key: 'available', label: 'Need Translation', count: counts.available, color: '#64748b', glow: 'rgba(100, 116, 139, 0.45)', filter: 'available' }
     ];
 
