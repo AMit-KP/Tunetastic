@@ -1436,13 +1436,16 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   fill: none;
   stroke-width: 28;
   cursor: pointer;
-  animation: donutLaserSweep 0.75s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   transform-origin: 0 0;
   transition: stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.22s ease,
               opacity 0.2s ease,
               stroke-dasharray 0.4s var(--ease-spring),
               stroke-dashoffset 0.4s var(--ease-spring);
+}
+
+.workspace-hero-card.is-booting .donut-segment {
+  animation: donutLaserSweep 0.75s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 @keyframes donutLaserSweep {
@@ -1467,9 +1470,12 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 }
 
 .pie-svg-hud {
+  transform-origin: 0 0;
+}
+
+.workspace-hero-card.is-booting .pie-svg-hud {
   animation: pieHudBloom 0.75s var(--ease-spring) backwards;
   animation-delay: 0.08s;
-  transform-origin: 0 0;
 }
 
 @keyframes pieHudBloom {
@@ -1496,19 +1502,19 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 }
 
 /* Satellite Pills Inward Cascade Entrance */
-.pill-fo-left {
+.workspace-hero-card.is-booting .pill-fo-left {
   animation: pillSlideInLeft 0.5s var(--ease-spring) backwards;
 }
-.pill-fo-left.row-1 { animation-delay: 0.12s; }
-.pill-fo-left.row-2 { animation-delay: 0.22s; }
-.pill-fo-left.row-3 { animation-delay: 0.32s; }
+.workspace-hero-card.is-booting .pill-fo-left.row-1 { animation-delay: 0.12s; }
+.workspace-hero-card.is-booting .pill-fo-left.row-2 { animation-delay: 0.22s; }
+.workspace-hero-card.is-booting .pill-fo-left.row-3 { animation-delay: 0.32s; }
 
-.pill-fo-right {
+.workspace-hero-card.is-booting .pill-fo-right {
   animation: pillSlideInRight 0.5s var(--ease-spring) backwards;
 }
-.pill-fo-right.row-1 { animation-delay: 0.12s; }
-.pill-fo-right.row-2 { animation-delay: 0.22s; }
-.pill-fo-right.row-3 { animation-delay: 0.32s; }
+.workspace-hero-card.is-booting .pill-fo-right.row-1 { animation-delay: 0.12s; }
+.workspace-hero-card.is-booting .pill-fo-right.row-2 { animation-delay: 0.22s; }
+.workspace-hero-card.is-booting .pill-fo-right.row-3 { animation-delay: 0.32s; }
 
 @keyframes pillSlideInLeft {
   0% {
@@ -1753,6 +1759,9 @@ foreignObject:focus-within {
   flex-direction: column;
   gap: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.workspace-hero-card.is-booting .eq-panel {
   animation: eqPanelBoot 0.6s var(--ease-spring) backwards;
   animation-delay: 0.18s;
 }

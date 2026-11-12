@@ -674,6 +674,12 @@
     if (viewName !== 'workspace') {
       stopLiveStatusPolling();
       stopDraftTimer();
+      const heroCard = document.querySelector('.workspace-hero-card');
+      if (heroCard) heroCard.classList.remove('is-booting');
+      const segmentsGroup = document.getElementById('donut-segments-group');
+      const pillsGroup = document.getElementById('hero-satellite-pills');
+      if (segmentsGroup) segmentsGroup.innerHTML = '';
+      if (pillsGroup) pillsGroup.innerHTML = '';
     }
     homeView.classList.remove('active');
     workspaceView.classList.remove('active');
@@ -1035,7 +1041,27 @@
       p.classList.toggle('active', p.getAttribute('data-filter') === 'all');
     });
 
-    // Always fetch live status (read-only for all sessions including incognito). Check resumption for standard sessions.
+    if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
+      currentDrafts = { ...SIMULATION_DATA.drafts };
+    }
+
+    // Trigger studio boot-up entrance animation once on fresh workspace open
+    if (heroCard) {
+      heroCard.classList.remove('is-booting');
+      void heroCard.offsetWidth; // Force reflow so entrance keyframes trigger cleanly
+      heroCard.classList.add('is-booting');
+      setTimeout(() => {
+        if (heroCard) heroCard.classList.remove('is-booting');
+      }, 900);
+    }
+
+    // Render cards and update stats immediately (t=0ms) with entrance counter
+    renderCards();
+    updateWorkspaceStats(true);
+    updateSaveIndicatorUi();
+    startDraftTimer();
+
+    // Background sync: network fetch in parallel
     try {
       const syncTasks = [fetchLiveStatus()];
       if (!isIncognitoMode) {
@@ -1046,16 +1072,11 @@
       console.warn("Background workspace sync error:", e);
     }
 
-    if (ENABLE_DEV_SIMULATION && langCode === SIM_LANG_CODE) {
-      currentDrafts = { ...SIMULATION_DATA.drafts };
-    }
-
-    // Render cards and update stats
+    // Background sync complete: silently update cards and stats with live data (without re-triggering entrance)
     renderCards();
-    updateWorkspaceStats();
+    updateWorkspaceStats(false);
     updateSaveIndicatorUi();
     startLiveStatusPolling();
-    startDraftTimer();
   }
 
   async function fetchLiveStatus() {
@@ -2007,7 +2028,7 @@
   let lastWorkspaceStats = null;
   let lastWorkspaceSliceGeo = null;
 
-  function updateWorkspaceStats() {
+  function updateWorkspaceStats(animate = false) {
     if (!catalog || !catalog.items) return;
     const breakdown = getLanguageBreakdown(currentLang);
     const { total, completed, pct, counts, catData } = breakdown;
@@ -2063,7 +2084,7 @@
     currentWorkspaceCategories = catData;
     lastWorkspaceStats = { total, completed, remaining, pct, counts };
 
-    renderDonutChart(catData, total, completed, pct);
+    renderDonutChart(catData, total, completed, pct, animate);
     renderAppReadinessHud();
   }
 
@@ -2091,7 +2112,7 @@
     const duration = 750;
     const start = performance.now();
     function tick(now) {
-      const p = Math.min(1, (now - start) / duration);
+      const p = Math.max(0, Math.min(1, (now - start) / duration));
       const ease = 1 - Math.pow(1 - p, 3);
       const cur = Math.round(targetPct * ease);
       hudPct.textContent = `${cur}%`;
@@ -2141,7 +2162,7 @@
     if (condCounts) condCounts.textContent = `${completed} / ${total} DONE`;
   }
 
-  function renderDonutChart(catData, total, completed, pct) {
+  function renderDonutChart(catData, total, completed, pct, animate = false) {
     const segmentsGroup = document.getElementById('donut-segments-group');
     const pathsGroup = document.getElementById('hero-connector-paths');
     const pillsGroup = document.getElementById('hero-satellite-pills');
@@ -2159,7 +2180,7 @@
     const Cx = 395;
     const Cy = 115;
 
-    updateCenterHudDefault(pct, completed, total, true);
+    updateCenterHudDefault(pct, completed, total, animate);
 
     if (total === 0) return;
 
