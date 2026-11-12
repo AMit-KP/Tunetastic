@@ -1254,7 +1254,7 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   align-items: center;
   justify-content: center;
   padding: 8px 0 2px 0;
-  max-height: 180px;
+  max-height: 280px;
   opacity: 1;
   overflow: visible;
   margin-top: 8px;
@@ -1274,46 +1274,25 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
   overflow: hidden;
 }
 
-.ws-pie-frame,
-.ws-pie-frame:focus,
-.ws-pie-frame:focus-visible,
-.ws-pie-svg,
-.ws-pie-svg:focus,
-.ws-pie-svg:focus-visible,
-.donut-segment,
-.donut-segment:focus,
-.donut-segment:focus-visible,
-.donut-segment:active,
-.card-donut-wrap,
-.card-donut-wrap:focus,
-.card-donut-wrap:focus-visible,
-.donut-svg,
-.donut-svg:focus,
-.donut-svg:focus-visible,
-.card-donut-slice,
-.card-donut-slice:focus,
-.card-donut-slice:focus-visible,
-.card-donut-slice:active {
-  outline: none !important;
-  outline-width: 0 !important;
-  box-shadow: none !important;
-  -webkit-tap-highlight-color: transparent !important;
-}
-
-.ws-pie-frame {
-  position: relative;
-  width: 160px;
-  height: 160px;
+/* Symmetrical Circuit Visual Stage: Donut + Satellite Pills + Audio HUD */
+.ws-hero-visual-stage {
   display: flex;
   align-items: center;
-  justify-content: center;
-  user-select: none;
-  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5));
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
 }
 
-.ws-pie-svg {
-  width: 160px;
-  height: 160px;
+.ws-hero-stage-inner {
+  flex: 1;
+  max-width: 820px;
+  height: 230px;
+  position: relative;
+}
+
+.ws-hero-circuit-svg {
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 
@@ -1323,7 +1302,7 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 
 .donut-segment {
   fill: none;
-  stroke-width: 26;
+  stroke-width: 28;
   cursor: pointer;
   transition: stroke-width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
               filter 0.22s ease,
@@ -1334,7 +1313,7 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 
 .donut-segment:hover,
 .donut-segment.is-hovered {
-  stroke-width: 32;
+  stroke-width: 34;
   filter: drop-shadow(0 0 12px currentColor);
   opacity: 1 !important;
 }
@@ -1342,6 +1321,199 @@ body.rtl-mode #nav-home-btn:hover .btn-arrow-icon {
 .pie-svg-hud text {
   font-family: var(--font-display, system-ui, -apple-system, sans-serif);
   transition: fill 0.2s ease;
+}
+
+/* Satellite Pills */
+.satellite-pill {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.satellite-pill:hover,
+.satellite-pill.is-hovered {
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  border-color: currentColor;
+}
+
+.satellite-pill.is-active-filter {
+  box-shadow: 0 0 16px currentColor;
+  border-color: currentColor;
+}
+
+.satellite-pill .pill-left-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.satellite-pill .dot {
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.satellite-pill:hover .dot,
+.satellite-pill.is-hovered .dot {
+  transform: scale(1.25);
+}
+
+.satellite-pill strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: #fff;
+}
+
+.satellite-pill .sub {
+  font-size: 10px;
+  color: #94a3b8;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Muted Zero State Standby Pill */
+.satellite-pill.pill-zero {
+  opacity: 0.35;
+  background: rgba(15, 23, 42, 0.4);
+  border-color: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+  cursor: default;
+}
+
+.satellite-pill.pill-zero:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.satellite-pill.pill-zero .dot {
+  background: transparent !important;
+  border: 1.5px solid #64748b !important;
+  box-shadow: none !important;
+}
+
+.satellite-pill.pill-zero strong,
+.satellite-pill.pill-zero span {
+  color: #64748b !important;
+}
+
+/* Dynamic Circuit Connector Paths */
+.circuit-connector-path {
+  fill: none;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.95;
+  transition: stroke-width 0.22s ease, stroke-opacity 0.22s ease, filter 0.22s ease;
+  pointer-events: none;
+}
+
+.circuit-connector-path.is-dimmed {
+  stroke-opacity: 0.2;
+  filter: none !important;
+}
+
+.circuit-connector-path.is-hovered {
+  stroke-width: 2.8;
+  stroke-opacity: 1;
+  filter: drop-shadow(0 0 6px currentColor) !important;
+}
+
+/* App Section Readiness Equalizer HUD */
+.ws-app-readiness-hud {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.eq-panel {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.eq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.eq-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.eq-label {
+  color: #cbd5e1;
+  font-weight: 500;
+  width: 65px;
+  white-space: nowrap;
+}
+
+.eq-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+  flex: 1;
+  margin: 0 14px;
+}
+
+.eq-bar {
+  width: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+}
+
+.eq-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e2e8f0;
+  width: 36px;
+  text-align: right;
+}
+
+@media (max-width: 1100px) {
+  .ws-hero-visual-stage {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .ws-hero-stage-inner {
+    width: 100%;
+    max-width: 790px;
+  }
+  .ws-app-readiness-hud {
+    width: 100%;
+    max-width: 500px;
+  }
 }
 
 

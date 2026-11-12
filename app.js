@@ -2063,11 +2063,24 @@
     lastWorkspaceStats = { total, completed, remaining, pct, counts };
 
     renderDonutChart(catData, total, completed, pct);
+    renderAppReadinessHud();
   }
 
   // -------------------------------------------------------------------------
-  // 6a-1. INTERACTIVE TRANSLATION PIE CHART
+  // 6a-1. INTERACTIVE TRANSLATION PIE CHART & SATELLITE CIRCUIT
   // -------------------------------------------------------------------------
+
+  const WORKSPACE_CIRCUIT_CATEGORIES = [
+    { key: 'translated', label: 'Translated', side: 'right', row: 1, color: '#2ed573', glow: 'rgba(46, 213, 115, 0.65)', filter: 'translated' },
+    { key: 'approved', label: 'Approved', side: 'right', row: 2, color: '#facc15', glow: 'rgba(250, 204, 21, 0.65)', filter: 'approved' },
+    { key: 'submitted', label: 'Submitted', side: 'right', row: 3, color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.65)', filter: 'submitted' },
+    { key: 'mine', label: 'Your Drafts', side: 'left', row: 3, color: '#a855f7', glow: 'rgba(168, 85, 247, 0.65)', filter: 'mine' },
+    { key: 'other', label: 'In Progress', side: 'left', row: 2, color: '#f97316', glow: 'rgba(249, 115, 22, 0.65)', filter: 'other' },
+    { key: 'available', label: 'Need Translation', side: 'left', row: 1, color: '#64748b', glow: 'rgba(100, 116, 139, 0.45)', filter: 'available' }
+  ];
+
+  const CIRCUIT_ROW_Y = { 1: 42, 2: 115, 3: 188 };
+  const CIRCUIT_PILL_BOX_Y = { 1: 25, 2: 98, 3: 171 };
 
   function updateCenterHudDefault(pct, completed, total) {
     const hudPct = document.getElementById('pie-hud-pct') || document.getElementById('donut-hud-pct');
@@ -2091,69 +2104,247 @@
   }
 
   function renderDonutChart(catData, total, completed, pct) {
-    const group = document.getElementById('donut-segments-group');
-    if (!group) return;
+    const segmentsGroup = document.getElementById('donut-segments-group');
+    const pathsGroup = document.getElementById('hero-connector-paths');
+    const pillsGroup = document.getElementById('hero-satellite-pills');
+    if (!segmentsGroup || !pathsGroup || !pillsGroup) return;
 
-    group.innerHTML = '';
-    // Radius 56 inside 160x160 viewBox gives a 112px diameter circle centered at (80, 80)
-    const R = 56;
-    const C = 2 * Math.PI * R; // ~351.858377
+    segmentsGroup.innerHTML = '';
+    pathsGroup.innerHTML = '';
+    pillsGroup.innerHTML = '';
+
+    // Center donut specs: R_mid = 62, stroke-width = 28 -> Outer rim R_outer = 76
+    const R_mid = 62;
+    const strokeW = 28;
+    const R_outer = R_mid + (strokeW / 2); // 76
+    const C = 2 * Math.PI * R_mid; // ~389.557489
+    const Cx = 395;
+    const Cy = 115;
 
     updateCenterHudDefault(pct, completed, total);
 
     if (total === 0) return;
 
-    const activeCats = catData.filter(c => c.count > 0);
+    // Map catData into quick lookup
+    const countMap = {};
+    catData.forEach(c => { countMap[c.key] = c.count; });
+
+    // Step 1: Calculate cumulative angles for slices
+    let cumulativeClockAngle = 0; // In radians, 0 = 12 o'clock
+    const sliceGeo = {};
+
+    WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
+      const cnt = countMap[cat.key] || 0;
+      const frac = total > 0 ? (cnt / total) : 0;
+      const arcLength = frac * C;
+      const angleSpan = frac * 2 * Math.PI;
+
+      const startAngle = cumulativeClockAngle;
+      const endAngle = cumulativeClockAngle + angleSpan;
+      const midAngle = startAngle + (angleSpan / 2);
+
+      // Screen angle in radians (0 = 3 o'clock / +X, clockwise)
+      const screenMid = midAngle - (Math.PI / 2);
+      const rimX = Cx + R_outer * Math.cos(screenMid);
+      const rimY = Cy + R_outer * Math.sin(screenMid);
+
+      sliceGeo[cat.key] = {
+        count: cnt,
+        pct: Math.round(frac * 100),
+        frac,
+        arcLength,
+        angleSpan,
+        startAngle,
+        endAngle,
+        midAngle,
+        rimX,
+        rimY
+      };
+
+      cumulativeClockAngle += angleSpan;
+    });
+
+    // Step 2: Render Slices
+    const activeCats = WORKSPACE_CIRCUIT_CATEGORIES.filter(c => (countMap[c.key] || 0) > 0);
     const hasMultiple = activeCats.length > 1;
-    const gap = hasMultiple ? 2.5 : 0;
+    const gap = hasMultiple ? 1.5 : 0;
 
-    let cumulativeOffset = 0;
+    let curDashOffset = 0;
+    WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
+      const g = sliceGeo[cat.key];
+      if (g.count > 0) {
+        const visibleArc = Math.max(1.0, g.arcLength - gap);
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', `donut-segment segment-${cat.key}`);
+        circle.setAttribute('cx', '0');
+        circle.setAttribute('cy', '0');
+        circle.setAttribute('r', `${R_mid}`);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', cat.color);
+        circle.setAttribute('stroke-width', `${strokeW}`);
+        circle.setAttribute('stroke-dasharray', `${visibleArc.toFixed(2)} ${(C - visibleArc).toFixed(2)}`);
+        circle.setAttribute('stroke-dashoffset', `${(-curDashOffset).toFixed(2)}`);
+        circle.setAttribute('data-key', cat.key);
+        circle.setAttribute('data-filter', cat.filter);
+        circle.setAttribute('data-label', cat.label);
+        circle.setAttribute('data-count', g.count);
+        circle.setAttribute('role', 'button');
+        circle.setAttribute('tabindex', '0');
 
-    activeCats.forEach(cat => {
-      const rawArc = (cat.count / total) * C;
-      const visibleArc = Math.max(1.0, rawArc - gap);
-      const remainingCircumference = C - visibleArc;
-
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('class', `donut-segment segment-${cat.key}`);
-      circle.setAttribute('cx', '80');
-      circle.setAttribute('cy', '80');
-      circle.setAttribute('r', `${R}`);
-      circle.setAttribute('fill', 'none');
-      circle.setAttribute('stroke', cat.color);
-      circle.setAttribute('stroke-width', '26');
-      circle.setAttribute('stroke-dasharray', `${visibleArc} ${remainingCircumference}`);
-      circle.setAttribute('stroke-dashoffset', `${-cumulativeOffset}`);
-      circle.setAttribute('data-key', cat.key);
-      circle.setAttribute('data-filter', cat.filter);
-      circle.setAttribute('data-label', cat.label);
-      circle.setAttribute('data-count', cat.count);
-      circle.setAttribute('role', 'button');
-      circle.setAttribute('tabindex', '0');
-
-      const catPct = ((cat.count / total) * 100).toFixed(cat.count > 0 && (cat.count / total) * 100 < 1 ? 1 : 0);
-
-      circle.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-      });
-      circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
-      circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
-      circle.addEventListener('focus', () => highlightWorkspaceCategory(cat.key));
-      circle.addEventListener('blur', () => unhighlightWorkspaceCategory());
-      circle.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
+        circle.addEventListener('mousedown', e => e.preventDefault());
+        circle.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
+        circle.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
+        circle.addEventListener('focus', () => highlightWorkspaceCategory(cat.key));
+        circle.addEventListener('blur', () => unhighlightWorkspaceCategory());
+        circle.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            triggerWorkspaceFilter(cat.filter);
+          }
+        });
+        circle.addEventListener('click', e => {
+          e.stopPropagation();
+          circle.blur();
           triggerWorkspaceFilter(cat.filter);
-        }
-      });
-      circle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        circle.blur();
-        triggerWorkspaceFilter(cat.filter);
-      });
+        });
 
-      group.appendChild(circle);
-      cumulativeOffset += rawArc;
+        segmentsGroup.appendChild(circle);
+        curDashOffset += g.arcLength;
+      }
+    });
+
+    // Step 3: Render Satellite Pills & Dynamic Circuit Connector Paths
+    WORKSPACE_CIRCUIT_CATEGORIES.forEach(cat => {
+      const g = sliceGeo[cat.key];
+      const isLeft = cat.side === 'left';
+      const targetX = isLeft ? 200 : 590;
+      const targetY = CIRCUIT_ROW_Y[cat.row];
+      const boxX = isLeft ? 10 : 590;
+      const boxY = CIRCUIT_PILL_BOX_Y[cat.row];
+      const isZero = g.count === 0;
+
+      // Create Pill Element
+      const fo = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+      fo.setAttribute('x', `${boxX}`);
+      fo.setAttribute('y', `${boxY}`);
+      fo.setAttribute('width', '190');
+      fo.setAttribute('height', '34');
+
+      const pillDiv = document.createElement('div');
+      pillDiv.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+      pillDiv.setAttribute('data-key', cat.key);
+      pillDiv.setAttribute('data-filter', cat.filter);
+
+      if (isZero) {
+        // Any category with 0 count has NO slice in the donut, so NO connector line is drawn.
+        // It displays as a clean standby pill in its row.
+        pillDiv.className = 'satellite-pill pill-zero';
+        pillDiv.title = `0 strings in ${cat.label}`;
+        pillDiv.innerHTML = `
+          <div class="pill-left-content"><span class="dot"></span><span>${cat.label}</span></div>
+          <div><strong>0</strong><span class="sub"> 0%</span></div>
+        `;
+      } else {
+        pillDiv.className = `satellite-pill pill-${cat.key}`;
+        if (currentFilter === cat.filter) pillDiv.classList.add('is-active-filter');
+        pillDiv.style.borderColor = `${cat.color}40`;
+        pillDiv.style.background = `${cat.color}14`;
+        pillDiv.innerHTML = `
+          <div class="pill-left-content">
+            <span class="dot" style="background: ${cat.color}; box-shadow: 0 0 6px ${cat.color};"></span>
+            <span>${cat.label}</span>
+          </div>
+          <div>
+            <strong style="color: ${cat.color};">${g.count}</strong>
+            <span class="sub" style="color: #cbd5e1;"> ${g.pct}%</span>
+          </div>
+        `;
+
+        pillDiv.addEventListener('mouseenter', () => highlightWorkspaceCategory(cat.key));
+        pillDiv.addEventListener('mouseleave', () => unhighlightWorkspaceCategory());
+        pillDiv.addEventListener('click', e => {
+          e.stopPropagation();
+          triggerWorkspaceFilter(cat.filter);
+        });
+
+        // Dynamic Connector Path
+        // If slice is large (> 60 deg), connect to the ideal angle closest to its pill row!
+        const IDEAL_CLOCK_ANGLES = {
+          'available': 5.498,   // 10:30 o'clock
+          'other': 4.712,       // 9:00 o'clock
+          'mine': 3.927,        // 7:30 o'clock
+          'translated': 0.785,  // 1:30 o'clock
+          'approved': 1.571,    // 3:00 o'clock
+          'submitted': 2.356    // 4:30 o'clock
+        };
+
+        const idealClock = IDEAL_CLOCK_ANGLES[cat.key];
+        let connectClock = g.midAngle;
+
+        if (g.angleSpan > 1.05) {
+          const minA = g.startAngle + 0.08;
+          const maxA = g.endAngle - 0.08;
+          if (idealClock >= minA && idealClock <= maxA) {
+            connectClock = idealClock;
+          } else {
+            const dMin = Math.abs(idealClock - minA);
+            const dMax = Math.abs(idealClock - maxA);
+            connectClock = dMin < dMax ? minA : maxA;
+          }
+        }
+
+        const screenAngle = connectClock - (Math.PI / 2);
+        const Sx = Cx + R_outer * Math.cos(screenAngle);
+        const Sy = Cy + R_outer * Math.sin(screenAngle);
+        let pathD = '';
+
+        if (isLeft) {
+          // LEFT SIDE
+          const dy = targetY - Sy;
+          if (Math.abs(dy) <= 3) {
+            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${targetX} ${targetY}`;
+          } else if (Sy > 185) {
+            const dropY = 208;
+            const railX = 274;
+            const chamferX = railX - Math.abs(dropY - targetY);
+            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${Sx.toFixed(1)} ${dropY} L ${railX} ${dropY} L ${chamferX.toFixed(1)} ${targetY} L ${targetX} ${targetY}`;
+          } else {
+            const leadIn = 15;
+            const diagEnd = targetX + leadIn; // 215
+            const diagStart = diagEnd + Math.abs(dy);
+            const safeDiagStart = Math.min(diagStart, 274);
+            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${safeDiagStart.toFixed(1)} ${Sy.toFixed(1)} L ${diagEnd} ${targetY} L ${targetX} ${targetY}`;
+          }
+        } else {
+          // RIGHT SIDE
+          const dy = targetY - Sy;
+          if (Math.abs(dy) <= 3) {
+            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${targetX} ${targetY}`;
+          } else if (Sy > 185) {
+            const dropY = 210;
+            const railX = 520;
+            const chamferX = railX + Math.abs(dropY - targetY);
+            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${Sx.toFixed(1)} ${dropY} L ${railX} ${dropY} L ${chamferX.toFixed(1)} ${targetY} L ${targetX} ${targetY}`;
+          } else {
+            const leadIn = 15;
+            const diagEnd = targetX - leadIn; // 575
+            const diagStart = diagEnd - Math.abs(dy);
+            const safeDiagStart = Math.max(diagStart, 516);
+            pathD = `M ${Sx.toFixed(1)} ${Sy.toFixed(1)} L ${safeDiagStart.toFixed(1)} ${Sy.toFixed(1)} L ${diagEnd} ${targetY} L ${targetX} ${targetY}`;
+          }
+        }
+
+        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathEl.setAttribute('d', pathD);
+        pathEl.setAttribute('class', `circuit-connector-path path-${cat.key}`);
+        pathEl.setAttribute('stroke', cat.color);
+        pathEl.setAttribute('data-key', cat.key);
+        pathEl.style.filter = `drop-shadow(0 0 3px ${cat.glow})`;
+        pathsGroup.appendChild(pathEl);
+      }
+
+      fo.appendChild(pillDiv);
+      pillsGroup.appendChild(fo);
     });
   }
 
@@ -2167,14 +2358,34 @@
     document.querySelectorAll('.donut-segment').forEach(s => {
       if (s.getAttribute('data-key') === catKey) {
         s.classList.add('is-hovered');
-        s.style.strokeWidth = '32px';
-        s.style.filter = `drop-shadow(0 0 12px ${cat.color})`;
+        s.style.strokeWidth = '34px';
+        s.style.filter = `drop-shadow(0 0 14px ${cat.color})`;
         s.style.opacity = '1';
       } else {
         s.classList.remove('is-hovered');
-        s.style.strokeWidth = '26px';
+        s.style.strokeWidth = '28px';
         s.style.filter = '';
-        s.style.opacity = '0.35';
+        s.style.opacity = '0.28';
+      }
+    });
+
+    // Highlight matching connector path, dim others
+    document.querySelectorAll('.circuit-connector-path').forEach(p => {
+      if (p.getAttribute('data-key') === catKey) {
+        p.classList.add('is-hovered');
+        p.classList.remove('is-dimmed');
+      } else {
+        p.classList.remove('is-hovered');
+        p.classList.add('is-dimmed');
+      }
+    });
+
+    // Highlight matching pill
+    document.querySelectorAll('.satellite-pill').forEach(pill => {
+      if (pill.getAttribute('data-key') === catKey) {
+        pill.classList.add('is-hovered');
+      } else {
+        pill.classList.remove('is-hovered');
       }
     });
 
@@ -2205,14 +2416,92 @@
   function unhighlightWorkspaceCategory() {
     document.querySelectorAll('.donut-segment').forEach(s => {
       s.classList.remove('is-hovered');
-      s.style.strokeWidth = '26px';
+      s.style.strokeWidth = '28px';
       s.style.filter = '';
       s.style.opacity = '1';
+    });
+
+    document.querySelectorAll('.circuit-connector-path').forEach(p => {
+      p.classList.remove('is-hovered');
+      p.classList.remove('is-dimmed');
+    });
+
+    document.querySelectorAll('.satellite-pill').forEach(pill => {
+      pill.classList.remove('is-hovered');
     });
 
     if (lastWorkspaceStats) {
       updateCenterHudDefault(lastWorkspaceStats.pct, lastWorkspaceStats.completed, lastWorkspaceStats.total);
     }
+  }
+
+  function renderAppReadinessHud() {
+    const hud = document.getElementById('ws-app-readiness-hud');
+    if (!hud || !catalog || !catalog.items) return;
+
+    const sections = [
+      { key: 'player', label: 'Player UI', match: t => t.includes('player') || t.includes('playback') || t.includes('volume') || t.includes('rewind') || t.includes('forward') || t.includes('shuffle') || t.includes('repeat') },
+      { key: 'library', label: 'Library', match: t => t.includes('library') || t.includes('songs') || t.includes('album') || t.includes('artist') || t.includes('search') || t.includes('sort') || t.includes('filter') || t.includes('folder') },
+      { key: 'playlists', label: 'Playlists', match: t => t.includes('playlist') || t.includes('queue') || t.includes('favorite') || t.includes('recent') },
+      { key: 'settings', label: 'Settings', match: t => t.includes('setting') || t.includes('theme') || t.includes('about') || t.includes('config') || t.includes('version') || t.includes('license') }
+    ];
+
+    const completedKeys = new Set();
+    if (catalog.languages && catalog.languages[currentLang] && catalog.languages[currentLang].translations) {
+      Object.keys(catalog.languages[currentLang].translations).forEach(k => completedKeys.add(k));
+    }
+    if (liveStatus && liveStatus.approved) {
+      Object.keys(liveStatus.approved).forEach(k => completedKeys.add(k));
+    }
+
+    let rowsHtml = '';
+    sections.forEach(sec => {
+      let totalSec = 0;
+      let doneSec = 0;
+      catalog.items.forEach(item => {
+        const searchStr = (item.key + ' ' + (item.comment || '')).toLowerCase();
+        if (sec.match(searchStr)) {
+          totalSec++;
+          if (completedKeys.has(item.key)) doneSec++;
+        }
+      });
+      if (totalSec === 0) totalSec = 1;
+      const pct = Math.min(100, Math.round((doneSec / totalSec) * 100));
+
+      let activeBars = 1;
+      let color = '#fb923c';
+      if (pct >= 90) { activeBars = 4; color = '#2ed573'; }
+      else if (pct >= 60) { activeBars = 3; color = '#38bdf8'; }
+      else if (pct >= 30) { activeBars = 2; color = '#facc15'; }
+      else if (pct > 0) { activeBars = 1; color = '#fb923c'; }
+      else { activeBars = 0; color = '#64748b'; }
+
+      const barHeights = [6, 10, 13, 16];
+      let barsHtml = '';
+      for (let b = 0; b < 4; b++) {
+        const isActive = b < activeBars;
+        const bg = isActive ? color : 'rgba(255, 255, 255, 0.1)';
+        barsHtml += `<span class="eq-bar" style="height: ${barHeights[b]}px; background: ${bg};"></span>`;
+      }
+
+      rowsHtml += `
+        <div class="eq-row">
+          <span class="eq-label">${sec.label}</span>
+          <div class="eq-bars">${barsHtml}</div>
+          <span class="eq-pct" style="color: ${color};">${pct}%</span>
+        </div>
+      `;
+    });
+
+    hud.innerHTML = `
+      <div class="eq-panel">
+        <div class="eq-header">
+          <span>App Section Readiness</span>
+          <span style="color: #60cdff;">Audio HUD</span>
+        </div>
+        ${rowsHtml}
+      </div>
+    `;
   }
 
   function triggerWorkspaceFilter(filterKey) {
