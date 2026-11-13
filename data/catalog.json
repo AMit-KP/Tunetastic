@@ -2,8 +2,22 @@
   "version": "2.0",
   "totalStrings": 840,
   "languages": {
-    "ru-RU": {
-      "code": "ru-RU",
+    "zh-CN": {
+      "code": "zh-CN",
+      "translatedCount": 0,
+      "totalCount": 840,
+      "progressPct": 0,
+      "translations": {}
+    },
+    "nl-NL": {
+      "code": "nl-NL",
+      "translatedCount": 0,
+      "totalCount": 840,
+      "progressPct": 0,
+      "translations": {}
+    },
+    "es-ES": {
+      "code": "es-ES",
       "translatedCount": 0,
       "totalCount": 840,
       "progressPct": 0,
@@ -16,15 +30,29 @@
       "progressPct": 0,
       "translations": {}
     },
-    "it-IT": {
-      "code": "it-IT",
+    "id-ID": {
+      "code": "id-ID",
       "translatedCount": 0,
       "totalCount": 840,
       "progressPct": 0,
       "translations": {}
     },
-    "zh-CN": {
-      "code": "zh-CN",
+    "ja-JP": {
+      "code": "ja-JP",
+      "translatedCount": 0,
+      "totalCount": 840,
+      "progressPct": 0,
+      "translations": {}
+    },
+    "ru-RU": {
+      "code": "ru-RU",
+      "translatedCount": 0,
+      "totalCount": 840,
+      "progressPct": 0,
+      "translations": {}
+    },
+    "ar-SA": {
+      "code": "ar-SA",
       "translatedCount": 0,
       "totalCount": 840,
       "progressPct": 0,
@@ -32,6 +60,20 @@
     },
     "pl-PL": {
       "code": "pl-PL",
+      "translatedCount": 0,
+      "totalCount": 840,
+      "progressPct": 0,
+      "translations": {}
+    },
+    "it-IT": {
+      "code": "it-IT",
+      "translatedCount": 0,
+      "totalCount": 840,
+      "progressPct": 0,
+      "translations": {}
+    },
+    "fr-FR": {
+      "code": "fr-FR",
       "translatedCount": 0,
       "totalCount": 840,
       "progressPct": 0,
@@ -51,50 +93,8 @@
       "progressPct": 0,
       "translations": {}
     },
-    "es-ES": {
-      "code": "es-ES",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "nl-NL": {
-      "code": "nl-NL",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
     "pt-BR": {
       "code": "pt-BR",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "ja-JP": {
-      "code": "ja-JP",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "ar-SA": {
-      "code": "ar-SA",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "id-ID": {
-      "code": "id-ID",
-      "translatedCount": 0,
-      "totalCount": 840,
-      "progressPct": 0,
-      "translations": {}
-    },
-    "fr-FR": {
-      "code": "fr-FR",
       "translatedCount": 0,
       "totalCount": 840,
       "progressPct": 0,
