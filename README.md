@@ -45,7 +45,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="Assets/charts/github-views-dark.svg">
-  <img alt="Repo views" src="Assets/charts/github-views-light.svg">
+  <img alt="Github Repo views" src="Assets/charts/github-views-light.svg">
 </picture>
 
 <picture>

@@ -1,4 +1,5 @@
 ﻿"""Builds the README graphics (light + dark SVGs) from stored data."""
+import datetime as dt
 import math
 from xml.sax.saxutils import escape
 
@@ -229,17 +230,18 @@ def installs_card(c, weeks, vals, total, last3, updates, stamp):
                 boxes + body, stamp, defs, icss)
 
 
-def traffic_card(c, dates, values, title, hint, stamp, p_label):
+def traffic_card(c, dates, values, title, hint, stamp, p_label, last3=None):
     """Daily line for one metric: one graph per year, newest first."""
     step, top = axis(max(values + [1]))
     slices = year_slices(dates, values) or [(dates[0].year, dates, values)]
 
     total = sum(values)
-    peak = max(values)
-    peak_day = dates[values.index(peak)]
+    if last3 is None:
+        cutoff = (dates[-1] - dt.timedelta(days=90)) if dates else None
+        last3 = sum(v for d, v in zip(dates, values) if d >= cutoff) if cutoff else 0
     boxes = ""
     for i, (num, lab) in enumerate([(f"{total:,}", f"{p_label} (all time)"),
-                                    (f"{peak:,}", f"Best day: {peak_day.day} {peak_day:%b %Y}")]):
+                                    (f"{last3:,}", "Last 3 months")]):
         x = PAD + i * 216
         boxes += (f'<rect x="{x}" y="78" width="204" height="70" rx="10" fill="none" stroke="{c["bd"]}"/>'
                   f'<text x="{x+16}" y="115" font-size="30" font-weight="700" fill="url(#lg)">{num}</text>'
@@ -260,17 +262,18 @@ def map_card(c, world, rows, total, stamp):
     land, brd = world["land"], world["borders"]
     bub, labels = "", ""
     plotted = [r for r in rows if r[0] in world["c"]]
+    min_label_v = plotted[min(4, len(plotted) - 1)][2] if plotted else 0
     for i, (code, name, v) in enumerate(plotted):
         _, x, y = world["c"][code]
         r = 2.5 + 16 * math.sqrt(v / vmax)
         d = 0.25 + i * 0.018
         bub += (f'<circle class="bp" cx="{x}" cy="{y}" r="{r:.1f}" fill="url(#bg2)" stroke="{c["a"]}" stroke-width="1"'
                 f' style="animation-delay:{d:.2f}s"/>')
-        if v > 5:
+        if v > 7:
             phase = (i * 0.37) % 2.8
             bub += (f'<circle class="ph" cx="{x}" cy="{y}" r="{r:.1f}" fill="none" stroke="{c["a"]}" stroke-width="1.5"'
                     f' vector-effect="non-scaling-stroke" style="animation-delay:{d + .6 + phase:.2f}s"/>')
-        if i < 3:
+        if v >= min_label_v and v > 0:
             labels += (f'<text x="{x}" y="{y - r - 5:.1f}" font-size="13" font-weight="700" fill="{c["tx"]}" text-anchor="middle"'
                        f' style="animation:fade .6s ease {d + .2:.2f}s backwards">{escape(name)}</text>')
     mapsvg = (f'<g transform="translate({PAD},{my}) scale({k:.4f}) translate({-vb[0]},{-vb[1]})" style="animation:fade .5s ease backwards">'

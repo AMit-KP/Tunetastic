@@ -6,6 +6,7 @@ on:
 
 jobs:
   label:
+    if: github.event.pull_request.base.ref != 'feature/localization' && !startsWith(github.event.pull_request.head.ref, 'l10n/')
     runs-on: ubuntu-latest
     permissions:
       contents: read
