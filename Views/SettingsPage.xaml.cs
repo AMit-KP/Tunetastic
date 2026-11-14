@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using Tunetastic.Common.Infrastructure;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Services.Store;
 using Windows.UI;
@@ -1405,35 +1406,35 @@ public sealed partial class SettingsPage : Page
 	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
 	{
 		CheckForUpdates.ProgressRingVisibility = Visibility.Visible;
-		var context = StoreContext.GetDefault();
+			var context = StoreContext.GetDefault();
 
-		WinRT.Interop.InitializeWithWindow.Initialize(context,
-			WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+			WinRT.Interop.InitializeWithWindow.Initialize(context,
+				WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
 
-		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+			var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
 
-		if (updates.Count == 0)
-		{
-			CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-			CheckForUpdates.IsChecked = false;
-			await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
-		}
-		else
-		{
-			var result = await context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates).AsTask();
-
-			if (result.OverallState == StorePackageUpdateState.Completed)
-			{
-				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-				await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
-			}
-			else
+			if (updates.Count == 0)
 			{
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 				CheckForUpdates.IsChecked = false;
+				await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
+			}
+			else
+			{
+				var result = await context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates).AsTask();
+
+				if (result.OverallState == StorePackageUpdateState.Completed)
+				{
+					CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+					await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
+				}
+				else
+				{
+					CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+					CheckForUpdates.IsChecked = false;
+				}
 			}
 		}
-	}
 
 	private void LoadAboutSectionSettings()
 	{
@@ -1580,5 +1581,10 @@ public sealed partial class SettingsPage : Page
 	private void ResetHistoryConfirm_Click(object sender, RoutedEventArgs e)
 	{
 		ResetHistoryFlyout.Hide();
+	}
+
+	private async void CommunityTranslation_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
 	}
 }

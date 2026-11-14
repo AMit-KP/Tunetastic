@@ -120,6 +120,8 @@ public sealed partial class MainPage : Page
 
 		WhatsNewService.ShowIfEligible();
 
+		ShowCommunityTranslationDialog();
+
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
 
@@ -1512,6 +1514,99 @@ ShowEditSongInfo:
 		SongPlayCount.Text = "0";
 		SongLastPlayed.Text = "Never";
 		ClearButton.IsEnabled = false;
+	}
+
+	private void ShowCommunityTranslationDialog()
+	{
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		var noticeVal = localSettings.Values[nameof(LocalSave.CommunityTranslationNoticeShown)]?.ToString();
+		if (!string.IsNullOrEmpty(noticeVal) && bool.TryParse(noticeVal, out bool seen) && seen)
+			return;
+
+		DispatcherQueue.TryEnqueue(async () =>
+		{
+			try
+			{
+				await Task.Delay(600);
+				if (this.Content?.XamlRoot is null && App.MainWindow.Content?.XamlRoot is null)
+					return;
+
+				var titlePanel = new StackPanel
+				{
+					Orientation = Orientation.Horizontal,
+					Spacing = 10,
+					Children =
+					{
+						new FontIcon
+						{
+							Glyph = "\uE774",
+							FontSize = 20,
+							VerticalAlignment = VerticalAlignment.Center
+						},
+						new TextBlock
+						{
+							Text = "Help Translate Tunetastic!",
+							Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"],
+							VerticalAlignment = VerticalAlignment.Center
+						}
+					}
+				};
+
+				var contentStack = new StackPanel
+				{
+					Spacing = 12,
+					MaxWidth = 460,
+					Children =
+					{
+						new TextBlock
+						{
+							Text = "I've launched the Tunetastic Community Localization Studio, an interactive web portal where you can translate Tunetastic into your native language directly in your browser!",
+							TextWrapping = TextWrapping.WrapWholeWords,
+							Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
+						},
+						new TextBlock
+						{
+							Text = "• No coding, XML, or Git knowledge required.\n• Built-in context paths show where every phrase appears.\n• All approved translations earn full contributor credit in release notes.",
+							TextWrapping = TextWrapping.WrapWholeWords,
+							Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+						},
+						new TextBlock
+						{
+							Text = "You can also access the studio anytime from Settings → Appearance & Behavior → App language.",
+							TextWrapping = TextWrapping.WrapWholeWords,
+							FontSize = 12,
+							Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]
+						}
+					}
+				};
+
+				var dialog = new ContentDialog
+				{
+					Title = titlePanel,
+					Content = contentStack,
+					PrimaryButtonText = "Open Translation Studio ↗",
+					CloseButtonText = "Maybe Later",
+					DefaultButton = ContentDialogButton.Primary,
+					RequestedTheme = App.Current.ThemeService.ActualTheme,
+					Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
+					XamlRoot = this.Content?.XamlRoot ?? App.MainWindow.Content.XamlRoot
+				};
+
+				MainWindow._instance?.WindowResizePermission(false);
+				var result = await dialog.ShowAsync();
+				MainWindow._instance?.WindowResizePermission(true);
+
+				localSettings.Values[nameof(LocalSave.CommunityTranslationNoticeShown)] = true;
+
+				if (result == ContentDialogResult.Primary)
+				{
+					await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
+				}
+			}
+			catch
+			{
+			}
+		});
 	}
 
 	private async void CheckForUpdate()

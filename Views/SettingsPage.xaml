@@ -351,6 +351,13 @@
 				           Style="{ThemeResource TitleTextBlockStyle}"
 				           Text="Appearance &amp; Behavior" />
 			</StackPanel>
+			<dev:SettingsCard Description="Help translate Tunetastic into your native language via our Community Translation Studio."
+			                  Header="App language">
+				<Button x:Name="CommunityTranslation"
+				        Click="CommunityTranslation_Click"
+				        Content="Help Translate Tunetastic ↗"
+				        Style="{ThemeResource AccentButtonStyle}" />
+			</dev:SettingsCard>
 			<dev:SettingsCard Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."
 			                  Header="App theme">
 				<ComboBox x:Name="Theme">

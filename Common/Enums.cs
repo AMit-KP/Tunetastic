@@ -301,7 +301,8 @@ public enum LocalSave
 	PostUpdateScanDoneVersion,
 	SystemTrayIconStyle,
 	CLIOutputColorEnabled,
-	WhatsNewDoneVersion
+	WhatsNewDoneVersion,
+	CommunityTranslationNoticeShown
 }
 
 public enum SystemTrayIconStyle
