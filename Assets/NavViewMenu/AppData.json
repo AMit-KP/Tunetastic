@@ -106,6 +106,21 @@
           "HideItem": false
         }
       ]
+    },
+    {
+      "UniqueId": "CommunityTranslationGroup",
+      "Title": "Help Translate",
+      "IconGlyph": "E774",
+      "IsFooterNavigationViewItem": true,
+      "ShowItemsWithoutGroup": true,
+      "Items": [
+        {
+          "UniqueId": "CommunityTranslation",
+          "Title": "Help Translate",
+          "IconGlyph": "E774",
+          "HideItem": false
+        }
+      ]
     }
   ]
 }

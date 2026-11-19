@@ -56,6 +56,8 @@ public sealed partial class MainPage : Page
 	public event EventHandler<bool>? MainPlayerPageOpened;
 
 	private bool _isMainPlayerPageOpened = false;
+	private bool _isDismissingTranslationNavItem = false;
+	private bool _isCommunityTranslationInitialized = false;
 
 	/// <summary>
 	/// Indicates whether the main player page is currently opened.
@@ -113,14 +115,14 @@ public sealed partial class MainPage : Page
 		MusicControlsArea.Navigate(typeof(MusicControl));
 		NavFrame.Navigated += NavFrame_Navigated;
 
+		InitializeCommunityTranslationNavItem();
+
 		InitializeVolumeSliderAndService();
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		VersionInfo.Visibility = bool.Parse(localSettings.Values[nameof(LocalSave.ShowVersionInfoOnTitleBar)]?.ToString() ?? "true") ? Visibility.Visible : Visibility.Collapsed;
 
 		WhatsNewService.ShowIfEligible();
-
-		ShowCommunityTranslationDialog();
 
 		if (bool.Parse(localSettings.Values[nameof(LocalSave.CheckForUpdatesAtStatup)]?.ToString() ?? "true"))
 			CheckForUpdate();
@@ -382,6 +384,11 @@ public sealed partial class MainPage : Page
 		if (args.SelectedItem is NavigationViewItem selectedItem)
 		{
 			string? selectedTag = selectedItem.Tag?.ToString();
+			if (selectedTag == "CommunityTranslation" || (selectedItem.DataContext as DataItem)?.UniqueId == "CommunityTranslation")
+			{
+				selectedItem.IsSelected = false;
+				return;
+			}
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
 		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem &&
@@ -411,7 +418,25 @@ public sealed partial class MainPage : Page
 	/// <param name="args">Event arguments containing details of the invoked item.</param>
 	private async void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
 	{
-		if (args.InvokedItem is string itemText && itemText == "Add New Playlist")
+		if (args.InvokedItem is string itemText && itemText == "Help Translate"
+			|| (args.InvokedItemContainer as NavigationViewItem)?.Tag?.ToString() == "CommunityTranslation"
+			|| ((args.InvokedItemContainer as NavigationViewItem)?.Tag as DataItem)?.UniqueId == "CommunityTranslation")
+		{
+			if (args.InvokedItemContainer is NavigationViewItem nvi)
+			{
+				nvi.SelectsOnInvoked = false;
+				nvi.IsSelected = false;
+			}
+			if (_isDismissingTranslationNavItem)
+			{
+				_isDismissingTranslationNavItem = false;
+				return;
+			}
+			await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
+			return;
+		}
+
+		if (args.InvokedItem is string text && text == "Add New Playlist")
 		{
 			await ShowAddPlaylistDialog();
 		}
@@ -686,6 +711,7 @@ public sealed partial class MainPage : Page
 		AddPlayLists();
 		HidePreDefinedPlayLists();
 		HidePreDefinedLibraries();
+		InitializeCommunityTranslationNavItem();
 		await Task.Delay(1000);
 		NavView.IsPaneOpen = false;
 	}
@@ -1516,97 +1542,90 @@ ShowEditSongInfo:
 		ClearButton.IsEnabled = false;
 	}
 
-	private void ShowCommunityTranslationDialog()
+	private async void InitializeCommunityTranslationNavItem()
 	{
-		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-		var noticeVal = localSettings.Values[nameof(LocalSave.CommunityTranslationNoticeShown)]?.ToString();
-		if (!string.IsNullOrEmpty(noticeVal) && bool.TryParse(noticeVal, out bool seen) && seen)
+		if (_isCommunityTranslationInitialized)
 			return;
 
-		DispatcherQueue.TryEnqueue(async () =>
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		bool isDismissed = bool.Parse(localSettings.Values[nameof(LocalSave.CommunityTranslationNavDismissed)]?.ToString() ?? "false");
+
+		NavigationViewItem? translationItem = null;
+		for (int i = 0; i < 40; i++)
 		{
-			try
-			{
-				await Task.Delay(600);
-				if (this.Content?.XamlRoot is null && App.MainWindow.Content?.XamlRoot is null)
-					return;
+			translationItem = NavView.FooterMenuItems
+				.OfType<NavigationViewItem>()
+				.FirstOrDefault(item => (item.Tag as DataItem)?.UniqueId == "CommunityTranslation"
+									 || item.Tag?.ToString() == "CommunityTranslation"
+									 || (item.DataContext as DataItem)?.UniqueId == "CommunityTranslation"
+									 || item.Content?.ToString() == "Help Translate");
 
-				var titlePanel = new StackPanel
-				{
-					Orientation = Orientation.Horizontal,
-					Spacing = 10,
-					Children =
-					{
-						new FontIcon
-						{
-							Glyph = "\uE774",
-							FontSize = 20,
-							VerticalAlignment = VerticalAlignment.Center
-						},
-						new TextBlock
-						{
-							Text = "Help Translate Tunetastic!",
-							Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"],
-							VerticalAlignment = VerticalAlignment.Center
-						}
-					}
-				};
+			if (translationItem != null)
+				break;
 
-				var contentStack = new StackPanel
-				{
-					Spacing = 12,
-					MaxWidth = 460,
-					Children =
-					{
-						new TextBlock
-						{
-							Text = "I've launched the Tunetastic Community Localization Studio, an interactive web portal where you can translate Tunetastic into your native language directly in your browser!",
-							TextWrapping = TextWrapping.WrapWholeWords,
-							Style = (Style)Application.Current.Resources["BodyTextBlockStyle"]
-						},
-						new TextBlock
-						{
-							Text = "• No coding, XML, or Git knowledge required.\n• Built-in context paths show where every phrase appears.\n• All approved translations earn full contributor credit in release notes.",
-							TextWrapping = TextWrapping.WrapWholeWords,
-							Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
-						},
-						new TextBlock
-						{
-							Text = "You can also access the studio anytime from Settings → Appearance & Behavior → App language.",
-							TextWrapping = TextWrapping.WrapWholeWords,
-							FontSize = 12,
-							Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]
-						}
-					}
-				};
+			await Task.Delay(100);
+		}
 
-				var dialog = new ContentDialog
-				{
-					Title = titlePanel,
-					Content = contentStack,
-					PrimaryButtonText = "Open Translation Studio ↗",
-					CloseButtonText = "Maybe Later",
-					DefaultButton = ContentDialogButton.Primary,
-					RequestedTheme = App.Current.ThemeService.ActualTheme,
-					Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AcrylicBackgroundFillColorBaseBrush"],
-					XamlRoot = this.Content?.XamlRoot ?? App.MainWindow.Content.XamlRoot
-				};
+		if (translationItem is null)
+			return;
 
-				MainWindow._instance?.WindowResizePermission(false);
-				var result = await dialog.ShowAsync();
-				MainWindow._instance?.WindowResizePermission(true);
+		_isCommunityTranslationInitialized = true;
+		translationItem.SelectsOnInvoked = false;
+		translationItem.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+		translationItem.InfoBadge = null;
 
-				localSettings.Values[nameof(LocalSave.CommunityTranslationNoticeShown)] = true;
+		if (isDismissed)
+		{
+			translationItem.Visibility = Visibility.Collapsed;
+			return;
+		}
 
-				if (result == ContentDialogResult.Primary)
-				{
-					await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
-				}
-			}
-			catch
-			{
-			}
-		});
+		var dismissButton = new Button
+		{
+			Content = new FontIcon { Glyph = "\uE711", FontSize = 10 },
+			Width = 24,
+			Height = 24,
+			Margin = new Thickness(0, 0, -14.5, 0),
+			Padding = new Thickness(0),
+			BorderThickness = new Thickness(0),
+			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+			CornerRadius = new CornerRadius(12),
+			HorizontalAlignment = HorizontalAlignment.Right,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		ToolTipService.SetToolTip(dismissButton, "Dismiss button. It will never appear here again.");
+
+		dismissButton.Tapped += (s, e) => e.Handled = true;
+		dismissButton.Click += (s, e) =>
+		{
+			_isDismissingTranslationNavItem = true;
+			localSettings.Values[nameof(LocalSave.CommunityTranslationNavDismissed)] = true;
+			translationItem.Visibility = Visibility.Collapsed;
+			GlobalNotification.Info("You can still access Community Localization anytime from Settings → Appearance & Behavior → App language.");
+		};
+
+		var grid = new Grid
+		{
+			HorizontalAlignment = HorizontalAlignment.Stretch,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+		var textBlock = new TextBlock
+		{
+			Text = "Help Translate",
+			VerticalAlignment = VerticalAlignment.Center,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
+
+		Grid.SetColumn(textBlock, 0);
+		Grid.SetColumn(dismissButton, 1);
+
+		grid.Children.Add(textBlock);
+		grid.Children.Add(dismissButton);
+
+		translationItem.Content = grid;
 	}
 
 	private async void CheckForUpdate()

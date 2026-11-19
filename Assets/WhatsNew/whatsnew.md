@@ -1,4 +1,4 @@
-﻿## 1.82.13
+﻿## 1.82.27
 - Add dynamic system tray icon style option
 - Add CLI command to import local music files into playlists by [@MikaKrul](https://github.com/MikaKrul)
 - Playlist Re-arrange options added

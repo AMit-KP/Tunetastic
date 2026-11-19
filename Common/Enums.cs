@@ -302,7 +302,8 @@ public enum LocalSave
 	SystemTrayIconStyle,
 	CLIOutputColorEnabled,
 	WhatsNewDoneVersion,
-	CommunityTranslationNoticeShown
+	CommunityTranslationNoticeShown,
+	CommunityTranslationNavDismissed
 }
 
 public enum SystemTrayIconStyle
