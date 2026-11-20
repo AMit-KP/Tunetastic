@@ -24,7 +24,7 @@
 </a>
 
 <p>
-  🌐 <strong>Help translate Tunetastic into your language!</strong> Learn more in the <a href="#-community-localization">Community Localization</a> section.
+  🌐 <strong>Help translate Tunetastic into your language!</strong> Learn more in the <a href="#-community-localization-">Community Localization</a> section.
 </p>
 
 </div>
