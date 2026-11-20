@@ -55,6 +55,12 @@
           "Title": "Years",
           "IconGlyph": "E787",
           "HideItem": false
+        },
+        {
+          "UniqueId": "Tunetastic.Views.LibraryViews.FoldersViewPage",
+          "Title": "Folders",
+          "IconGlyph": "E838",
+          "HideItem": false
         }
       ]
     },
@@ -97,6 +103,21 @@
           "UniqueId": "AddNewPlaylist",
           "Title": "Add New Playlist",
           "IconGlyph": "F8AA",
+          "HideItem": false
+        }
+      ]
+    },
+    {
+      "UniqueId": "CommunityTranslationGroup",
+      "Title": "Help Translate",
+      "IconGlyph": "E774",
+      "IsFooterNavigationViewItem": true,
+      "ShowItemsWithoutGroup": true,
+      "Items": [
+        {
+          "UniqueId": "CommunityTranslation",
+          "Title": "Help Translate",
+          "IconGlyph": "E774",
           "HideItem": false
         }
       ]

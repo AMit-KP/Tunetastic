@@ -109,12 +109,12 @@ public partial class App : Application
 	{
 		AudioService = new AudioService();
 
-		MainWindow = new MainWindow();
+		var mainWindow = new MainWindow();
+		MainWindow = mainWindow;
 		MainWindow.Title = MainWindow.AppWindow.Title = ProcessInfoHelper.ProductName;
 		MainWindow.AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.png"));
 
-		var rootFrame = new Frame();
-		MainWindow.Content = rootFrame;
+		var rootFrame = mainWindow.RootFrame;
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 
@@ -228,5 +228,6 @@ public partial class App : Application
 		var menuFolder = await ContextMenuService.CreateDefualtMenusFolderAsync();
 		ContextMenuService menuService = new ContextMenuService(menuFolder);
 		await menuService.SaveAsync(menu);
+		_ = Task.Run(CoverArtHelper.CleanOrphanedThumbnailFolders);
 	}
 }

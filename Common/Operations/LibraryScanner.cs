@@ -77,6 +77,7 @@ public class LibraryScanner
 		}
 
 		_isScanning = false;
+		FolderOperations.InvalidateCache();
 		MusicPlayer.Instance.ResetOrReloadPlayer();
 		TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.NoProgress);
 	}
@@ -111,8 +112,8 @@ public class LibraryScanner
 
 		var extensions = await GetEnabledExtensions();
 
-		var path = Path.Combine(Constants.ThumbnailsFolder);
-		if (Directory.Exists(path)) Directory.Delete(path, true);
+		using var thumbnailSession = CoverArtHelper.CreateThumbnailBackupSession();
+
 
 		ScanProgress = 0.5;
 
@@ -191,13 +192,18 @@ public class LibraryScanner
 				await DatabaseHelper.Instance.UpdateSongsDatabase(songsContainer.ToList());
 				await DatabaseHelper.Instance.WipeFileScanMeta();
 				await DatabaseHelper.Instance.UpdateFileScanMeta(scanMetaContainer.ToList());
+				thumbnailSession.Commit();
+				CoverImageConverter.ClearCache();
 			}
 			catch (Exception)
 			{
-				await DatabaseHelper.Instance.DeleteAllSongsFromDB();
-				await RefreshAutoScanResultMessage(message: "No tracks could be added");
+				// Never wipe the library on a failed scan: the failure can be transient (e.g. a locked
+				// database while another process writes), and deleting everything destroys data that the
+				// scan never touched. Leave the previous library and thumbnail covers in place and report the failure.
+				thumbnailSession.Rollback();
+				await RefreshAutoScanResultMessage(message: "Library scan failed; kept the existing library.");
 				TaskbarHelper.SetProgressState(App.Hwnd, TaskbarStates.Error);
-				return ("Error", "No tracks could be added", failedFiles.ToList());
+				return ("Error", "Library scan failed; kept the existing library.", failedFiles.ToList());
 			}
 
 			var librariesCount = libraries.Count;
@@ -216,6 +222,8 @@ public class LibraryScanner
 		}
 		else
 		{
+			thumbnailSession.Commit();
+			CoverImageConverter.ClearCache();
 			await DatabaseHelper.Instance.DeleteAllSongsFromDB();
 			await DatabaseHelper.Instance.WipeFileScanMeta();
 			await RefreshAutoScanResultMessage(0, "No libraries found");
@@ -258,7 +266,9 @@ public class LibraryScanner
 				Year = audioModel.Tag.Year <= 0 ? "Unknown Year" : audioModel.Tag.Year.ToString(),
 				Genre = audioModel.Tag.Genres?.FirstOrDefault(g => !string.IsNullOrEmpty(g)) ?? "Unknown Genre",
 				Track = (int)audioModel.Tag.Track,
-				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300),
+				Cover = audioModel.Tag.Pictures?.Length > 0
+					? CoverArtHelper.CreateThumbnailImage(ThumbnailFolder.AllSongView, audioModel.Tag.Pictures, 300)
+					: CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				Lyrics = audioModel.Tag.Lyrics,
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension,
@@ -322,7 +332,7 @@ public class LibraryScanner
 				Path = filePath,
 				Year = "Unknown Year",
 				Genre = "Unknown Genre",
-				Cover = ImageResizer.CreateThumbnailImage(ThumbnailFolder.AllSongView, null, 300),
+				Cover = CoverArtHelper.GetOrCreateDefaultCover(ThumbnailFolder.AllSongView, 300),
 				DateAdded = fileInfo.LastWriteTime,
 				Extension = fileInfo.Extension
 			};
@@ -395,7 +405,7 @@ public class LibraryScanner
 	/// The comparison is separator aware, so sibling folders that only share a name prefix
 	/// (e.g. "D:\Music" and "D:\Music2") are not mistaken for nested ones and silently dropped.
 	/// </remarks>
-	private static bool IsSameOrNestedPath(string path, string parent)
+	internal static bool IsSameOrNestedPath(string path, string parent)
 	{
 		var trimmedParent = parent.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 

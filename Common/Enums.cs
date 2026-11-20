@@ -275,6 +275,13 @@ public enum LocalSave
 	ArtistDetailViewSortOrder,
 	ArtistDetailViewStyle,
 	SelectedArtist,
+	FoldersEnabled,
+	FoldersViewMode,
+	FoldersViewSortOrder,
+	FolderDetailViewSortBy,
+	FolderDetailViewSortOrder,
+	FolderDetailViewStyle,
+	SelectedFolder,
 	CheckForUpdatesAtStatup,
 	ShowVersionInfoOnTitleBar,
 	ForwardRewindButtonVisibility,
@@ -291,7 +298,20 @@ public enum LocalSave
 	ScanResult_FolderCount,
 	ScanResult_Time,
 	ScanResult_Message,
-	PostUpdateScanDoneVersion
+	PostUpdateScanDoneVersion,
+	SystemTrayIconStyle,
+	CLIOutputColorEnabled,
+	WhatsNewDoneVersion,
+	CommunityTranslationNoticeShown,
+	CommunityTranslationNavDismissed
+}
+
+public enum SystemTrayIconStyle
+{
+	FullColor,
+	MonochromeAuto,
+	Dark,
+	Light
 }
 
 public enum AddPlaylistResult
@@ -299,3 +319,4 @@ public enum AddPlaylistResult
 	Cancelled,
 	Created
 }
+

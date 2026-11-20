@@ -299,6 +299,9 @@ public class CoverImageConverter : IValueConverter
 
 	private static readonly ConcurrentDictionary<string, BitmapImage> Cache = new(StringComparer.OrdinalIgnoreCase);
 
+	/// <summary>Clears the cached cover images from memory.</summary>
+	public static void ClearCache() => Cache.Clear();
+
 	/// <summary>Converts a cover path (or empty/null) into a cached, decode-sized <see cref="BitmapImage"/>.</summary>
 	/// <param name="value">The cover file path. Empty/null yields <c>null</c> so the Image shows nothing.</param>
 	/// <param name="targetType">Unused.</param>

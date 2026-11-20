@@ -21,6 +21,7 @@ public partial class NavigationPageMappings
         {"Tunetastic.Views.LibraryViews.AlbumsViewPage", typeof(Tunetastic.Views.LibraryViews.AlbumsViewPage)},
         {"Tunetastic.Views.LibraryViews.GenresViewPage", typeof(Tunetastic.Views.LibraryViews.GenresViewPage)},
         {"Tunetastic.Views.LibraryViews.YearsViewPage", typeof(Tunetastic.Views.LibraryViews.YearsViewPage)},
+        {"Tunetastic.Views.LibraryViews.FoldersViewPage", typeof(Tunetastic.Views.LibraryViews.FoldersViewPage)},
         {"Tunetastic.Views.PlaylistViews.QueuedList", typeof(Tunetastic.Views.PlaylistViews.QueuedList)},
         {"Tunetastic.Views.PlaylistViews.RecentlyAdded", typeof(Tunetastic.Views.PlaylistViews.RecentlyAdded)},
         {"Tunetastic.Views.PlaylistViews.RecentlyPlayed", typeof(Tunetastic.Views.PlaylistViews.RecentlyPlayed)},

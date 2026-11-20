@@ -5,6 +5,17 @@ namespace Tunetastic.ViewModels;
 public partial class SettingViewModel : ObservableObject
 {
 	/// <summary>
+	/// Resets the playback history for all songs in the library.
+	/// Resets the play count to zero and clears the last played timestamp.
+	/// </summary>
+	[RelayCommand]
+	public async Task ResetHistory()
+	{
+		await DatabaseHelper.Instance.ResetAllPlaybackHistory();
+		GlobalNotification.Success("Playback history reset successfully.");
+	}
+
+	/// <summary>
 	/// Initiates a reset of all application settings and restarts the application.
 	/// This method clears user preferences and persistent data, then triggers an application restart
 	/// to apply the changes and reinitialize the app with default settings.

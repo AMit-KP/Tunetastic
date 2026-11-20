@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using Tunetastic.Common.Infrastructure;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Windows.Services.Store;
 using Windows.UI;
@@ -803,6 +804,7 @@ public sealed partial class SettingsPage : Page
 		RainbowToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RainbowFrameStatus)]?.ToString() ?? "false");
 		RainbowToggle_OnToggled(RainbowToggle, null);
 		MinimizeToTray.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.MinimizeToTray)]?.ToString() ?? "true");
+		SystemTrayIconStyle.SelectedItem = SystemTrayIconStyle.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.SystemTrayIconStyle)]?.ToString() ?? "MonochromeAuto"));
 		TaskBarOverlay.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.TaskBarOverlayStatus)]?.ToString() ?? "true");
 		TaskBarOverlayDesign.SelectedItem = TaskBarOverlayDesign.Items.Cast<OverlayLayoutInfo>().FirstOrDefault(item => item.DisplayName == (localSettings.Values[nameof(LocalSave.TaskBarOverlayDesign)]?.ToString() ?? "Compact Pill"));
 		TaskBarOverlayTheme.SelectedItem = TaskBarOverlayTheme.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.TaskBarOverlayTheme)]?.ToString() ?? "LightTBOL"));
@@ -814,6 +816,7 @@ public sealed partial class SettingsPage : Page
 		Backdrop.SelectionChanged += Backdrop_SelectionChanged;
 		MainPlayerBlurSlider.ValueChanged += MainPlayerBlurSlider_OnValueChanged;
 		RainbowSpeedSlider.ValueChanged += RainbowSpeedSlider_OnValueChanged;
+		SystemTrayIconStyle.SelectionChanged += SystemTrayIconStyle_SelectionChanged;
 		TaskBarOverlayTheme.SelectionChanged += TaskBarOverlayTheme_SelectionChanged;
 		TaskBarOverlayPosition.SelectionChanged += TaskBarOverlayPosition_SelectionChanged;
 	}
@@ -855,6 +858,8 @@ public sealed partial class SettingsPage : Page
 
 		YearsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true");
 
+		FoldersToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.FoldersEnabled)]?.ToString() ?? "true");
+
 		RecentlyAddedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)]?.ToString() ?? "true");
 
 		RecentlyPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true");
@@ -865,11 +870,14 @@ public sealed partial class SettingsPage : Page
 		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
 		GenresToggle.Toggled += GenresToggle_Toggled;
 		YearsToggle.Toggled += YearsToggle_Toggled;
+		FoldersToggle.Toggled += FoldersToggle_Toggled;
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
 		IgnoretracksDuration.ValueChanged += NumberBox_ValueChanged;
 		AutoSyncSwitch.Toggled += AutoSyncSwitch_Toggled;
+		CLIOutputColor.SelectedItem = CLIOutputColor.Items.Cast<ComboBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == (localSettings.Values[nameof(LocalSave.CLIOutputColorEnabled)]?.ToString() ?? "True"));
+		CLIOutputColor.SelectionChanged += CLIOutputColor_SelectionChanged;
 	}
 
 	/// <summary>
@@ -1019,6 +1027,62 @@ public sealed partial class SettingsPage : Page
 	}
 
 	/// <summary>
+	/// Handles the event triggered when the selection in the System Tray Icon Style ComboBox changes.
+	/// Updates the application's tray icon style and persists the preference to local settings.
+	/// </summary>
+	/// <param name="sender">The source of the event, typically the SystemTrayIconStyle ComboBox.</param>
+	/// <param name="e">Event data for the SelectionChanged event.</param>
+	private void SystemTrayIconStyle_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (SystemTrayIconStyle.SelectedItem is ComboBoxItem selectedItem)
+		{
+			var style = selectedItem.Tag?.ToString() ?? "FullColor";
+			TrayIconService.SetStyle(style);
+		}
+	}
+
+	/// <summary>
+	/// Prompts the user for confirmation if music is currently playing from the specified library section or playlist before disabling it.
+	/// </summary>
+	/// <param name="sectionName">The display name of the section or playlist (e.g. "Artists", "Albums").</param>
+	/// <param name="isPlayingFrom">A predicate that tests whether the current playlist key belongs to this section.</param>
+	/// <returns><c>true</c> if disabling should proceed (either not playing from this section, or the user confirmed); otherwise, <c>false</c>.</returns>
+	private async Task<bool> ConfirmDisableWhenCurrentlyPlaying(string sectionName, Func<string?, bool> isPlayingFrom)
+	{
+		var currentList = Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString();
+		if (!MusicPlayer.Instance.IsPlaying || !isPlayingFrom(currentList))
+		{
+			return true;
+		}
+
+		var dialog = new ContentDialog
+		{
+			Title = $"Disable {sectionName}",
+			PrimaryButtonText = "Continue",
+			CloseButtonText = "Cancel",
+			RequestedTheme = App.Current.ThemeService.ActualTheme,
+			DefaultButton = ContentDialogButton.Primary,
+			Content = new TextBlock
+			{
+				Text = $"Music is currently playing from {sectionName}. Disabling it will switch playback to All Songs.\n\nDo you want to continue?",
+				TextWrapping = TextWrapping.WrapWholeWords
+			},
+			XamlRoot = this.Content?.XamlRoot ?? App.MainWindow.Content.XamlRoot
+		};
+
+		try
+		{
+			MainWindow._instance?.WindowResizePermission(false);
+			var result = await dialog.ShowAsync();
+			return result == ContentDialogResult.Primary;
+		}
+		finally
+		{
+			MainWindow._instance?.WindowResizePermission(true);
+		}
+	}
+
+	/// <summary>
 	/// Handles the toggled event for the "Artists" toggle switch in the settings page.
 	/// Updates the visibility of the "Artists" navigation library item in the application's menu,
 	/// modifies associated application settings, and adjusts the behavior of the music player
@@ -1028,12 +1092,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void ArtistsToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!ArtistsToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Artists", list => list?.StartsWith("ArtistGroup>") == true))
+			{
+				ArtistsToggle.Toggled -= ArtistsToggle_Toggled;
+				ArtistsToggle.IsOn = true;
+				ArtistsToggle.Toggled += ArtistsToggle_Toggled;
+				return;
+			}
+		}
+
 		var librariesGroup = App.Current.NavService.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.ArtistsViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = ArtistsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		if (!ArtistsToggle.IsOn)
 		{
@@ -1061,12 +1134,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void AlbumsToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!AlbumsToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Albums", list => list?.StartsWith("AlbumGroup>") == true))
+			{
+				AlbumsToggle.Toggled -= AlbumsToggle_Toggled;
+				AlbumsToggle.IsOn = true;
+				AlbumsToggle.Toggled += AlbumsToggle_Toggled;
+				return;
+			}
+		}
+
 		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.AlbumsViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = AlbumsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		if (!AlbumsToggle.IsOn)
 		{
@@ -1077,7 +1159,7 @@ public sealed partial class SettingsPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.AlbumsEnabled)] = AlbumsToggle.IsOn;
 
-		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "AlbumGroup>")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("AlbumGroup>") == true)
 		{
 			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -1094,12 +1176,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void GenresToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!GenresToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Genres", list => list?.StartsWith("GenreGroup>") == true))
+			{
+				GenresToggle.Toggled -= GenresToggle_Toggled;
+				GenresToggle.IsOn = true;
+				GenresToggle.Toggled += GenresToggle_Toggled;
+				return;
+			}
+		}
+
 		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.GenresViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = GenresToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		if (!GenresToggle.IsOn)
 		{
@@ -1110,7 +1201,7 @@ public sealed partial class SettingsPage : Page
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		localSettings.Values[nameof(LocalSave.GenresEnabled)] = GenresToggle.IsOn;
 
-		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "GenreGroup>")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("GenreGroup>") == true)
 		{
 			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -1126,12 +1217,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void YearsToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!YearsToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Years", list => list?.StartsWith("YearGroup>") == true))
+			{
+				YearsToggle.Toggled -= YearsToggle_Toggled;
+				YearsToggle.IsOn = true;
+				YearsToggle.Toggled += YearsToggle_Toggled;
+				return;
+			}
+		}
+
 		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
 		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.YearsViewPage");
 
 		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = YearsToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
 		if (!YearsToggle.IsOn)
@@ -1142,7 +1242,43 @@ public sealed partial class SettingsPage : Page
 
 		localSettings.Values[nameof(LocalSave.YearsEnabled)] = YearsToggle.IsOn;
 
-		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString() == "YearGroup>")
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("YearGroup>") == true)
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
+	/// Handles the toggled state change of the "Folders" toggle switch.
+	/// </summary>
+	private async void FoldersToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		if (!FoldersToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Folders", list => list?.StartsWith("FolderGroup>") == true))
+			{
+				FoldersToggle.Toggled -= FoldersToggle_Toggled;
+				FoldersToggle.IsOn = true;
+				FoldersToggle.Toggled += FoldersToggle_Toggled;
+				return;
+			}
+		}
+
+		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.FoldersViewPage");
+
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = FoldersToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (!FoldersToggle.IsOn)
+		{
+			MainPage._instance?.RemovePageFromHistory("Folders");
+		}
+
+		localSettings.Values[nameof(LocalSave.FoldersEnabled)] = FoldersToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("FolderGroup>") == true)
 		{
 			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
 			MusicPlayer.Instance.ResetOrReloadPlayer();
@@ -1159,12 +1295,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void RecentlyAddedToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!RecentlyAddedToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Recently Added", list => list == "RecentlyAdded"))
+			{
+				RecentlyAddedToggle.Toggled -= RecentlyAddedToggle_Toggled;
+				RecentlyAddedToggle.IsOn = true;
+				RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
+				return;
+			}
+		}
+
 		var playlistsGroup = App.Current.NavService!.MenuItems![2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyAdded");
 
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyAddedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		if (!RecentlyAddedToggle.IsOn) MainPage._instance?.RemovePageFromHistory("Recently Added");
 
@@ -1187,12 +1332,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void RecentlyPlayedToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!RecentlyPlayedToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Recently Played", list => list == "RecentlyPlayed"))
+			{
+				RecentlyPlayedToggle.Toggled -= RecentlyPlayedToggle_Toggled;
+				RecentlyPlayedToggle.IsOn = true;
+				RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
+				return;
+			}
+		}
+
 		var playlistsGroup = App.Current.NavService!.MenuItems![2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.RecentlyPlayed");
 
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = RecentlyPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		if (!RecentlyPlayedToggle.IsOn) MainPage._instance?.RemovePageFromHistory("Recently Played");
 
@@ -1215,12 +1369,21 @@ public sealed partial class SettingsPage : Page
 	/// <param name="e">An instance of RoutedEventArgs containing the event data.</param>
 	private async void MostPlayedToggle_Toggled(object sender, RoutedEventArgs e)
 	{
+		if (!MostPlayedToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Most Played", list => list == "MostPlayed"))
+			{
+				MostPlayedToggle.Toggled -= MostPlayedToggle_Toggled;
+				MostPlayedToggle.IsOn = true;
+				MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
+				return;
+			}
+		}
+
 		var playlistsGroup = App.Current.NavService!.MenuItems![2] as NavigationViewItem;
 		var playListNavigationItem = playlistsGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.PlaylistViews.MostPlayed");
 
 		if (playListNavigationItem != null) playListNavigationItem.Visibility = MostPlayedToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
-
-		//TODO: Ask confirmation when currently playing from it
 
 		if (!MostPlayedToggle.IsOn) MainPage._instance?.RemovePageFromHistory("Most Played");
 
@@ -1243,35 +1406,35 @@ public sealed partial class SettingsPage : Page
 	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
 	{
 		CheckForUpdates.ProgressRingVisibility = Visibility.Visible;
-		var context = StoreContext.GetDefault();
+			var context = StoreContext.GetDefault();
 
-		WinRT.Interop.InitializeWithWindow.Initialize(context,
-			WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+			WinRT.Interop.InitializeWithWindow.Initialize(context,
+				WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
 
-		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+			var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
 
-		if (updates.Count == 0)
-		{
-			CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-			CheckForUpdates.IsChecked = false;
-			await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
-		}
-		else
-		{
-			var result = await context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates).AsTask();
-
-			if (result.OverallState == StorePackageUpdateState.Completed)
-			{
-				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
-				await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
-			}
-			else
+			if (updates.Count == 0)
 			{
 				CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
 				CheckForUpdates.IsChecked = false;
+				await MessageBox.ShowSuccessAsync("Your app is up to date.", "Update check", buttons: MessageBoxButtons.OK);
+			}
+			else
+			{
+				var result = await context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates).AsTask();
+
+				if (result.OverallState == StorePackageUpdateState.Completed)
+				{
+					CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+					await MessageBox.ShowInfoAsync("Update installed", "The update will apply next time you launch the app.");
+				}
+				else
+				{
+					CheckForUpdates.ProgressRingVisibility = Visibility.Collapsed;
+					CheckForUpdates.IsChecked = false;
+				}
 			}
 		}
-	}
 
 	private void LoadAboutSectionSettings()
 	{
@@ -1309,6 +1472,11 @@ public sealed partial class SettingsPage : Page
 	private async void BuyMeACoffee_Click(object sender, RoutedEventArgs e)
 	{
 		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://ko-fi.com/tunetastic"));
+	}
+
+	private async void WhatsNewButton_Click(object sender, RoutedEventArgs e)
+	{
+		await WhatsNewService.ShowManualAsync();
 	}
 
 	private void TaskBarOverlay_Toggled(object sender, RoutedEventArgs e)
@@ -1388,6 +1556,12 @@ public sealed partial class SettingsPage : Page
 		}
 	}
 
+	private void CLIOutputColor_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (CLIOutputColor.SelectedItem is ComboBoxItem selectedItem)
+			Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CLIOutputColorEnabled)] = selectedItem.Tag?.ToString() == "True";
+	}
+
 	private void MusicDownloader_Reveal(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
 	{
 		clickCounter--;
@@ -1402,5 +1576,15 @@ public sealed partial class SettingsPage : Page
 		}
 		else
 			ToolTipService.SetToolTip(MusicDownloader_Panel, $"Click {clickCounter} times to reveal");
+	}
+
+	private void ResetHistoryConfirm_Click(object sender, RoutedEventArgs e)
+	{
+		ResetHistoryFlyout.Hide();
+	}
+
+	private async void CommunityTranslation_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
 	}
 }

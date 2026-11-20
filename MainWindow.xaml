@@ -8,4 +8,11 @@
                   xmlns:winuiex="using:WinUIEx"
                   PersistenceId="Tunetastic"
                   mc:Ignorable="d">
+
+	<Grid>
+		<Frame x:Name="RootFrame"
+		       x:FieldModifier="public" />
+		<dev:ModernWindowCaptionButtonToolTip x:Name="CaptionToolTip" />
+	</Grid>
 </winuiex:WindowEx>
+

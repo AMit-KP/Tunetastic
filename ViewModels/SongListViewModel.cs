@@ -22,13 +22,15 @@ public partial class SongListViewModel : ObservableObject
 	/// Disables shuffle, stores <paramref name="playlistKey"/> as the current playing list and loads
 	/// every displayed song into the player. Returns the first song for the view to scroll to.
 	/// </summary>
-	public Song PlayAll(string playlistKey)
+	public Song? PlayAll(string playlistKey)
 	{
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.Off);
-		List<string> songPaths = Songs.Select(s => s.Path).ToList();
+		var playable = Songs.Where(s => !s.IsFolder).ToList();
+		if (playable.Count == 0) return null;
+		List<string> songPaths = playable.Select(s => s.Path).ToList();
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = playlistKey;
 		MusicPlayer.Instance.LoadPlaylist(songPaths);
-		return Songs[0];
+		return playable[0];
 	}
 
 	/// <summary>
@@ -39,10 +41,12 @@ public partial class SongListViewModel : ObservableObject
 	public Song? ShuffleAndPlay(string playlistKey)
 	{
 		MusicPlayer.Instance.ToggleShuffle(ShuffleMode.On);
-		List<string> songPaths = Songs.Select(s => s.Path).ToList();
+		var playable = Songs.Where(s => !s.IsFolder).ToList();
+		if (playable.Count == 0) return null;
+		List<string> songPaths = playable.Select(s => s.Path).ToList();
 		Windows.Storage.ApplicationData.Current.LocalSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = playlistKey;
 		var startingSong = songPaths[new Random().Next(songPaths.Count)];
 		MusicPlayer.Instance.LoadPlaylist(songPaths, startingSong);
-		return Songs.Select(s => s).Where(s => s.Path == startingSong).FirstOrDefault();
+		return playable.FirstOrDefault(s => s.Path == startingSong);
 	}
 }

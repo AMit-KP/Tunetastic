@@ -454,9 +454,26 @@
 				<RowDefinition />
 				<RowDefinition />
 				<RowDefinition />
+				<RowDefinition />
 			</Grid.RowDefinitions>
-			<Button x:Name="MusicInfoButton"
+			<Button x:Name="AddToPlaylistButton"
 			        Grid.Row="2"
+			        Width="40"
+			        Height="40"
+			        Margin="5"
+			        Padding="3"
+			        Background="{ThemeResource LayerOnMicaBaseAltFillColorDefault}"
+			        ToolTipService.ToolTip="Add to Playlist"
+			        Visibility="Collapsed">
+				<FontIcon Glyph="&#xE728;" />
+				<Button.Flyout>
+					<MenuFlyout x:Name="AddToPlaylistFlyout"
+					            Opening="AddToPlaylistFlyout_Opening"
+					            Placement="TopEdgeAlignedRight" />
+				</Button.Flyout>
+			</Button>
+			<Button x:Name="MusicInfoButton"
+			        Grid.Row="3"
 			        Width="40"
 			        Height="40"
 			        Margin="5"
