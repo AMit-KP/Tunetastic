@@ -23,6 +23,10 @@
   </picture>
 </a>
 
+<p>
+  🌐 <strong>Help translate Tunetastic into your language!</strong> Learn more in the <a href="#-community-localization">Community Localization</a> section.
+</p>
+
 </div>
 
 
@@ -131,6 +135,7 @@ Tunetastic automatically organizes your music collection into clean, browsable v
 | Albums | Grouped by album, with artwork |
 | Genres | Sorted by genre tag |
 | Years | Sorted by release year |
+| Folders | Browse by folder structure on disk |
 
 **🔄 Real-Time Folder Auto Sync**
 Keep your music collection synchronized effortlessly without having to manually trigger re-scans:
@@ -318,6 +323,17 @@ Tunetastic stays accessible without cluttering your workspace:
 
 ---
 
+### 🌐 Community Localization <a id="community-localization"></a>
+
+Tunetastic features an interactive web-based [Community Localization Studio](https://amit-kp.github.io/Tunetastic/) where anyone can help translate the app into their native language:
+
+- **Browser-Based Translation** — No coding, XML editing, Git experience, or even account needed. Translate phrases directly in your browser.
+- **Full Context Paths** — See exactly where each string appears across the player, library, and settings pages.
+- **Accessible In-App** — Open the studio anytime via the **Help Translate** navigation footer item or through **Settings > Appearance & Behavior > App language**.
+- If you provide any name, email id, github handle, or any username/aliases, **all community translation submissions** receive contributor recognition in release notes,
+
+---
+
 ## Settings
 
 ### 📁 Library Management
@@ -327,7 +343,7 @@ Tunetastic stays accessible without cluttering your workspace:
 - **File Extensions** — Choose which audio formats to include (see [Supported Formats](#-supported-formats))
 - **Minimum Track Duration** — Ignore files below a set length (great for skipping short intros or sound effects)
 - **Duplicate Detection** — Options to detect and handle duplicate tracks
-- **Show / Hide Library Views** — Independently toggle the visibility of Artists, Albums, Genres, Years, and each individual playlist (All Songs is always shown)
+- **Show / Hide Library Views** — Independently toggle the visibility of Artists, Albums, Genres, Years, Folders, and each individual playlist (All Songs is always shown)
   - Note: Built-in smart playlists can be hidden; user-created playlists can be renamed or deleted
 - **Reset Playback History** — Clear song play counts and last played timestamps anytime for a clean slate, without modifying your audio files
 
@@ -388,6 +404,9 @@ Add an animated rainbow border to the player:
 
 **Window Behavior**
 - **Minimize to tray on close** — Keep Tunetastic running silently in the background instead of fully quitting
+
+**Language & Localization**
+- Switch between supported app languages or contribute new translations via the [Community Localization Studio](https://amit-kp.github.io/Tunetastic/)
 
 ---
 
@@ -463,6 +482,8 @@ Then press **F5** to build and run.
 ## Contributing
 
 Contributions are welcome! Please open an issue to discuss what you'd like to change before submitting a pull request. Make sure your code follows the existing style and that all builds pass cleanly.
+
+To help translate Tunetastic into your native language, you can contribute directly through the [Community Localization Studio](https://amit-kp.github.io/Tunetastic/) without modifying code or Git repositories.
 
 Each contributor needs their own SixLabors license key. Do not share keys or commit them to the repository. Pull requests from forks will not have access to the maintainer's CI secrets, so the automated build may fail on them until a maintainer reviews the change.
 
