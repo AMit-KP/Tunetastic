@@ -3348,146 +3348,146 @@
   </data>
   <data name="Nav_Folders.Title" xml:space="preserve">
     <value>Folders</value>
-    <comment>Navigation -&gt; Library -&gt; Folders View Title</comment>
+    <comment>Main Navigation -&gt; Menu Items -&gt; Library Section -&gt; Folders Item Title</comment>
   </data>
   <data name="Nav_Folders.Content" xml:space="preserve">
     <value>Folders</value>
-    <comment>Navigation -&gt; Library -&gt; Folders View Content</comment>
+    <comment>Main Navigation -&gt; Menu Items -&gt; Library Section -&gt; Folders Item Label</comment>
   </data>
   <data name="Nav_CommunityTranslation.Title" xml:space="preserve">
     <value>Help Translate</value>
-    <comment>Navigation -&gt; Footer -&gt; Help Translate Title</comment>
+    <comment>Main Navigation -&gt; Footer -&gt; Help Translate Item -&gt; Item Title</comment>
   </data>
   <data name="Nav_CommunityTranslation.Content" xml:space="preserve">
     <value>Help Translate</value>
-    <comment>Navigation -&gt; Footer -&gt; Help Translate Content</comment>
+    <comment>Main Navigation -&gt; Footer -&gt; Help Translate Item -&gt; Item Label</comment>
   </data>
   <data name="FoldersView_Title.Text" xml:space="preserve">
     <value>Folders</value>
-    <comment>Library Views -&gt; Folders View -&gt; Header Title</comment>
+    <comment>Library Views -&gt; Folders -&gt; Page Title</comment>
   </data>
   <data name="FoldersView_Title_ToolTip" xml:space="preserve">
     <value>All music folders will be displayed here</value>
-    <comment>Library Views -&gt; Folders View -&gt; Header ToolTip</comment>
+    <comment>Library Views -&gt; Folders -&gt; Page Title Tooltip</comment>
   </data>
   <data name="FoldersView_EmptyState.ToolTipService.ToolTip" xml:space="preserve">
     <value>No music folders found. Please, check your settings to ensure your libraries are added and songs have been scanned.</value>
-    <comment>Library Views -&gt; Folders View -&gt; Empty State ToolTip</comment>
+    <comment>Library Views -&gt; Folders -&gt; Empty State Tooltip</comment>
   </data>
   <data name="FolderDetail_EmptyFolder.Text" xml:space="preserve">
     <value>No songs or tracks found in this folder.</value>
-    <comment>Library Views -&gt; Folder Detail Page -&gt; Empty State Text</comment>
+    <comment>Detail Views -&gt; Folder Detail -&gt; Empty State Prompt</comment>
   </data>
   <data name="Tooltip_Path" xml:space="preserve">
     <value>Path</value>
-    <comment>Library Views -&gt; Tile ToolTip -&gt; Path Label</comment>
+    <comment>Library Views -&gt; Card Grid -&gt; Card Hover Card -&gt; Folder Path Label</comment>
   </data>
   <data name="ViewMode_Label" xml:space="preserve">
     <value>Mode</value>
-    <comment>Library Views -&gt; Folders View -&gt; View Mode Dropdown Label</comment>
+    <comment>Library Views -&gt; Folders -&gt; Top Command Bar -&gt; View Mode Dropdown Label</comment>
   </data>
   <data name="ViewMode_CurrentMode_Label" xml:space="preserve">
     <value>Current Mode</value>
-    <comment>Library Views -&gt; Folders View -&gt; View Mode Button ToolTip Prefix</comment>
+    <comment>Library Views -&gt; Folders -&gt; Top Command Bar -&gt; View Mode Dropdown Tooltip Prefix</comment>
   </data>
   <data name="ViewMode_AllMusicFolders.Text" xml:space="preserve">
     <value>All Music Folders</value>
-    <comment>Library Views -&gt; Folders View -&gt; View Mode: Flat</comment>
+    <comment>Library Views -&gt; Folders -&gt; Top Command Bar -&gt; View Mode Dropdown -&gt; All Music Folders Option</comment>
   </data>
   <data name="ViewMode_FolderHierarchy.Text" xml:space="preserve">
     <value>Folder Hierarchy</value>
-    <comment>Library Views -&gt; Folders View -&gt; View Mode: Hierarchical</comment>
+    <comment>Library Views -&gt; Folders -&gt; Top Command Bar -&gt; View Mode Dropdown -&gt; Folder Hierarchy Option</comment>
   </data>
   <data name="ViewStyle_Label" xml:space="preserve">
     <value>View</value>
-    <comment>Library Views -&gt; Folder Detail -&gt; View Style Dropdown Label</comment>
+    <comment>Detail Views -&gt; Folder Detail -&gt; Top Command Bar -&gt; View Style Dropdown Label</comment>
   </data>
   <data name="ViewStyle_CurrentView_Label" xml:space="preserve">
     <value>Current View</value>
-    <comment>Library Views -&gt; Folder Detail -&gt; View Style Button ToolTip Prefix</comment>
+    <comment>Detail Views -&gt; Folder Detail -&gt; Top Command Bar -&gt; View Style Dropdown Tooltip Prefix</comment>
   </data>
   <data name="Notification_FolderSongsAddedToQueue_Singular" xml:space="preserve">
     <value>All {0} song of folder '{1}' added to queue.</value>
-    <comment>Notifications -&gt; Queue -&gt; Added songs from folder ({0}=count, {1}=folder)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Folder Songs Added to Queue ({0}=count of songs, {1}=folder name)</comment>
   </data>
   <data name="Notification_FolderSongsAddedToQueue_Plural" xml:space="preserve">
     <value>All {0} songs of folder '{1}' added to queue.</value>
-    <comment>Notifications -&gt; Queue -&gt; Added songs from folder ({0}=count, {1}=folder)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Folder Songs Added to Queue ({0}=count of songs, {1}=folder name)</comment>
   </data>
   <data name="Notification_SelectedFoldersAddedToQueue_Singular" xml:space="preserve">
     <value>All {0} song of selected folders, added to queue.</value>
-    <comment>Notifications -&gt; Queue -&gt; Added songs from selected folders ({0}=count)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Selected Folders Added to Queue ({0}=count of songs)</comment>
   </data>
   <data name="Notification_SelectedFoldersAddedToQueue_Plural" xml:space="preserve">
     <value>All {0} songs of selected folders, added to queue.</value>
-    <comment>Notifications -&gt; Queue -&gt; Added songs from selected folders ({0}=count)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Selected Folders Added to Queue ({0}=count of songs)</comment>
   </data>
   <data name="DeleteDialog_FolderSongs_Singular" xml:space="preserve">
     <value>Are you sure you want to delete {0} song in '{1}' from your system?</value>
-    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Single Folder Confirm ({0}=count, {1}=folder)</comment>
+    <comment>Popups &amp; Dialogs -&gt; Delete Confirmation Dialog -&gt; Folder Songs Deletion Confirmation ({0}=count of songs, {1}=folder name)</comment>
   </data>
   <data name="DeleteDialog_FolderSongs_Plural" xml:space="preserve">
     <value>Are you sure you want to delete {0} songs in '{1}' from your system?</value>
-    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Single Folder Confirm ({0}=count, {1}=folder)</comment>
+    <comment>Popups &amp; Dialogs -&gt; Delete Confirmation Dialog -&gt; Folder Songs Deletion Confirmation ({0}=count of songs, {1}=folder name)</comment>
   </data>
   <data name="Notification_FolderSongsDeleted_Singular" xml:space="preserve">
     <value>Deleted {0} song from '{1}'.</value>
-    <comment>Notifications -&gt; Deletion -&gt; Single Folder Deleted ({0}=count, {1}=folder)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Folder Songs Deleted ({0}=count of deleted songs, {1}=folder name)</comment>
   </data>
   <data name="Notification_FolderSongsDeleted_Plural" xml:space="preserve">
     <value>Deleted {0} songs from '{1}'.</value>
-    <comment>Notifications -&gt; Deletion -&gt; Single Folder Deleted ({0}=count, {1}=folder)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Folder Songs Deleted ({0}=count of deleted songs, {1}=folder name)</comment>
   </data>
   <data name="DeleteDialog_SelectedFolders_Singular" xml:space="preserve">
     <value>Are you sure you want to delete {0} song from {1} folders from your system?</value>
-    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Multi Folder Confirm ({0}=count, {1}=folders count)</comment>
+    <comment>Popups &amp; Dialogs -&gt; Delete Confirmation Dialog -&gt; Selected Folders Deletion Confirmation ({0}=count of songs, {1}=count of folders)</comment>
   </data>
   <data name="DeleteDialog_SelectedFolders_Plural" xml:space="preserve">
     <value>Are you sure you want to delete {0} songs from {1} folders from your system?</value>
-    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Multi Folder Confirm ({0}=count, {1}=folders count)</comment>
+    <comment>Popups &amp; Dialogs -&gt; Delete Confirmation Dialog -&gt; Selected Folders Deletion Confirmation ({0}=count of songs, {1}=count of folders)</comment>
   </data>
   <data name="Notification_SelectedFoldersDeleted_Singular" xml:space="preserve">
     <value>Deleted {0} song.</value>
-    <comment>Notifications -&gt; Deletion -&gt; Multi Folders Deleted ({0}=count)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Selected Folders Deleted ({0}=count of deleted songs)</comment>
   </data>
   <data name="Notification_SelectedFoldersDeleted_Plural" xml:space="preserve">
     <value>Deleted {0} songs.</value>
-    <comment>Notifications -&gt; Deletion -&gt; Multi Folders Deleted ({0}=count)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playback -&gt; Selected Folders Deleted ({0}=count of deleted songs)</comment>
   </data>
   <data name="Notification_FolderSongsAddedToPlaylist_Singular" xml:space="preserve">
     <value>All {0} song of folder '{1}' added to {2} playlist.</value>
-    <comment>Notifications -&gt; Playlist -&gt; Single Folder Added ({0}=count, {1}=folder, {2}=playlist)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playlist -&gt; Folder Songs Added to Playlist ({0}=count of songs, {1}=folder name, {2}=playlist name)</comment>
   </data>
   <data name="Notification_FolderSongsAddedToPlaylist_Plural" xml:space="preserve">
     <value>All {0} songs of folder '{1}' added to {2} playlist.</value>
-    <comment>Notifications -&gt; Playlist -&gt; Single Folder Added ({0}=count, {1}=folder, {2}=playlist)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playlist -&gt; Folder Songs Added to Playlist ({0}=count of songs, {1}=folder name, {2}=playlist name)</comment>
   </data>
   <data name="Notification_SelectedFoldersAddedToPlaylist_Singular" xml:space="preserve">
     <value>All {0} song of selected folders, added to {1} playlist.</value>
-    <comment>Notifications -&gt; Playlist -&gt; Multi Folders Added ({0}=count, {1}=playlist)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playlist -&gt; Selected Folders Added to Playlist ({0}=count of songs, {1}=playlist name)</comment>
   </data>
   <data name="Notification_SelectedFoldersAddedToPlaylist_Plural" xml:space="preserve">
     <value>All {0} songs of selected folders, added to {1} playlist.</value>
-    <comment>Notifications -&gt; Playlist -&gt; Multi Folders Added ({0}=count, {1}=playlist)</comment>
+    <comment>Toasts &amp; Notifications -&gt; Playlist -&gt; Selected Folders Added to Playlist ({0}=count of songs, {1}=playlist name)</comment>
   </data>
   <data name="Settings_CommunityTranslation.Header" xml:space="preserve">
     <value>Help translate</value>
-    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Community Translation Card Header</comment>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Card -&gt; Community Translation Header</comment>
   </data>
   <data name="Settings_CommunityTranslation.Description" xml:space="preserve">
     <value>Help translate Tunetastic into your native language via our Community Translation Studio.</value>
-    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Community Translation Card Description</comment>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Card -&gt; Community Translation Description</comment>
   </data>
   <data name="Settings_CommunityTranslationButton.Content" xml:space="preserve">
     <value>Help Translate Tunetastic ↗</value>
-    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Community Translation Button Content</comment>
+    <comment>Settings Page -&gt; Appearance Section -&gt; Card -&gt; Community Translation Button Label</comment>
   </data>
   <data name="CommunityTranslation_DismissButton_ToolTip" xml:space="preserve">
     <value>Dismiss button. It will never appear here again.</value>
-    <comment>Navigation -&gt; Footer -&gt; Help Translate Dismiss Button ToolTip</comment>
+    <comment>Main Navigation -&gt; Footer -&gt; Help Translate Item -&gt; Dismiss Button Tooltip</comment>
   </data>
   <data name="CommunityTranslation_Dismissed_Notification" xml:space="preserve">
     <value>You can still access Community Localization anytime from Settings → Appearance &amp; Behavior → App language.</value>
-    <comment>Notifications -&gt; Community Translation Dismiss Notification</comment>
+    <comment>Toasts &amp; Notifications -&gt; In-App Toast -&gt; Community Translation Dismissed Notice</comment>
   </data>
   </root>
