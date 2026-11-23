@@ -70,6 +70,8 @@
         {
           "UniqueId": "Tunetastic.Views.LibraryViews.FoldersViewPage",
           "Title": "Folders",
+          "UsexUid": true,
+          "LocalizeId": "Nav_Folders",
           "IconGlyph": "E838",
           "HideItem": false
         }
@@ -132,6 +134,8 @@
     {
       "UniqueId": "CommunityTranslationGroup",
       "Title": "Help Translate",
+      "UsexUid": true,
+      "LocalizeId": "Nav_CommunityTranslation",
       "IconGlyph": "E774",
       "IsFooterNavigationViewItem": true,
       "ShowItemsWithoutGroup": true,
@@ -139,6 +143,8 @@
         {
           "UniqueId": "CommunityTranslation",
           "Title": "Help Translate",
+          "UsexUid": true,
+          "LocalizeId": "Nav_CommunityTranslation",
           "IconGlyph": "E774",
           "HideItem": false
         }

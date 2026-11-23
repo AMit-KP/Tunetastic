@@ -450,15 +450,15 @@
 							          Width="100"
 							          SelectedIndex="0">
 								<ComboBoxItem x:Uid="ExportFormat_M3U8" Content="M3U8"
-								              ToolTipService.ToolTip="M3U UTF-8" />
+								              ToolTipService.ToolTip="{services:Loc Key=ExportFormat_M3U8_ToolTip}" />
 								<ComboBoxItem x:Uid="ExportFormat_M3U" Content="M3U"
-								              ToolTipService.ToolTip="MP3 URL" />
+								              ToolTipService.ToolTip="{services:Loc Key=ExportFormat_M3U_ToolTip}" />
 								<ComboBoxItem x:Uid="ExportFormat_PLS" Content="PLS"
-								              ToolTipService.ToolTip="Playlist File" />
+								              ToolTipService.ToolTip="{services:Loc Key=ExportFormat_PLS_ToolTip}" />
 								<ComboBoxItem x:Uid="ExportFormat_WPL" Content="WPL"
-								              ToolTipService.ToolTip="Windows Media Player Playlist" />
+								              ToolTipService.ToolTip="{services:Loc Key=ExportFormat_WPL_ToolTip}" />
 								<ComboBoxItem x:Uid="ExportFormat_ZPL" Content="ZPL"
-								              ToolTipService.ToolTip="Zune Playlist" />
+								              ToolTipService.ToolTip="{services:Loc Key=ExportFormat_ZPL_ToolTip}" />
 							</ComboBox>
 						</StackPanel>
 						<TextBlock x:Name="ExportErrorMessage"

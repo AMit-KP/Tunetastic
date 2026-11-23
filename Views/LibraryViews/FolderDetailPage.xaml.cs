@@ -3,6 +3,7 @@ using CommunityToolkit.WinUI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Animation;
+using Tunetastic.Common.Services;
 using Tunetastic.Views.Common;
 
 namespace Tunetastic.Views.LibraryViews;
@@ -240,14 +241,14 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			if (songs.Count > 0)
 			{
 				await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songs.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"Added {songs.Count} songs from '{songData.Title}' to queue.");
+				GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_FolderSongsAddedToQueue", songs.Count, songData.Title));
 			}
 		}
 		else
 		{
 			List<string> songPaths = new() { songData.Path };
 			await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
-			GlobalNotification.Info($"{songData.Title} added to queue.");
+			GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToQueue", songData.Title));
 		}
 	}
 
@@ -264,11 +265,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		if (songData == null || songData.IsFolder) return;
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete this song/track from your system?" +
-								$"\nTitle: {songData.Title}" +
-								$"\nArtist: {songData.Artists}" +
-								$"\nAlbum: {songData.Album}" +
-								$"\nFile: {songData.Path}";
+		DeleteDialogText.Text = LocalizationService.FormatDeleteSingleSongMessage(songData.Title, songData.Artists, songData.Album, songData.Path);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -283,11 +280,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				FolderOperations.InvalidateCache();
 				FolderGroupSongs.Remove(songData);
 				MusicPlayer.Instance.HandleAfterDelete();
-				GlobalNotification.Success("Song/Track deleted." +
-											$"\nTitle: {songData.Title}" +
-											$"\nArtist: {songData.Artists}" +
-											$"\nAlbum: {songData.Album}" +
-											$"\nFile: {songData.Path}");
+				GlobalNotification.Success(LocalizationService.FormatSongDeletedNotification(songData.Title, songData.Artists, songData.Album, songData.Path));
 			}
 		}
 		if (FolderGroupSongs.Count <= 0)
@@ -628,7 +621,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		double buttonsWidth = PageButtons.DesiredSize.Width;
 		double availableSingleLineWidth = headerWidth - buttonsWidth - 25;
 
-		double foldersWidth28 = MeasureText("Folders", 28);
+		double foldersWidth28 = MeasureText(FoldersBreadcrumbText.Text ?? "Folders", 28);
 		double titleWidth28 = MeasureText(ActualFolderGroup.Text ?? string.Empty, 28);
 
 		double singleLineRequired = foldersWidth28 + 24 + 10 + titleWidth28;
@@ -682,7 +675,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				FoldersBreadcrumbChevron.Visibility = Visibility.Visible;
 				BreadcrumbSegmentsPanel.Visibility = Visibility.Visible;
 
-				double foldersWidth18 = MeasureText("Folders", 18);
+				double foldersWidth18 = MeasureText(FoldersBreadcrumbText.Text ?? "Folders", 18);
 				double line1Required = foldersWidth18 + 18 + 8;
 				foreach (var anc in _ancestorChain)
 				{
@@ -934,7 +927,11 @@ public sealed partial class FolderDetailPage : SongListPageBase
 
 	private void ApplyViewStyle(string viewStyle)
 	{
-		if (viewStyle == "List View")
+		var selectedViewItem = ViewStyle.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => (item.Tag?.ToString() ?? item.Text) == viewStyle || (viewStyle == "List View" ? item.Name == "ListViewStyle" : item.Name == "CompactViewStyle"));
+		var resolvedViewStyle = selectedViewItem?.Tag?.ToString() ?? viewStyle;
+		var viewStyleDisplayText = selectedViewItem?.Text ?? resolvedViewStyle;
+
+		if (resolvedViewStyle == "List View")
 		{
 			FolderDetailListViewGrid.Visibility = Visibility.Visible;
 			FolderDetailCompactViewGrid.Visibility = Visibility.Collapsed;
@@ -951,16 +948,20 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		_ = AdjustAlphabetSize();
 
 		var viewDropdownContent = new TextBlock();
-		viewDropdownContent.Inlines.Add(new Run { Text = "View: " });
-		viewDropdownContent.Inlines.Add(new Run { Text = viewStyle == "List View" ? "List" : "Compact" });
+		viewDropdownContent.Inlines.Add(new Run { Text = LocalizationService.FormatFieldLabel("ViewStyle_Label") });
+		viewDropdownContent.Inlines.Add(new Run { Text = viewStyleDisplayText, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		ViewButton.Content = viewDropdownContent;
-		ToolTipService.SetToolTip(ViewButton, $"Current View: {viewStyle}");
+		ToolTipService.SetToolTip(ViewButton, LocalizationService.FormatField("ViewStyle_CurrentView_Label", viewStyleDisplayText));
 	}
 
 	private async Task UpdateListBasedOnSorting()
 	{
-		var sortBy = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "SortBy" && item.IsChecked)?.Text ?? "Title";
-		var orderBy = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Order" && item.IsChecked)?.Text ?? "Ascending";
+		var sortItem = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "SortBy" && item.IsChecked);
+		var orderItem = Sort.Items.OfType<RadioMenuFlyoutItem>().FirstOrDefault(item => item.GroupName == "Order" && item.IsChecked);
+		var sortBy = sortItem?.Tag?.ToString() ?? "Title";
+		var orderBy = orderItem?.Tag?.ToString() ?? "Ascending";
+		var sortDisplayName = sortItem?.Text ?? sortBy;
+		var orderDisplayName = orderItem?.Text ?? orderBy;
 		bool AscOrder = orderBy == "Ascending";
 
 		if (string.IsNullOrEmpty(CurrentFolderPath))
@@ -1040,15 +1041,21 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		PopulateAlphabetNavigation(availableLetters, AscOrder, sortBy, hasSpecialCharacters);
 
 		var sortDropdownContent = new TextBlock();
-		sortDropdownContent.Inlines.Add(new Run { Text = $"{sortBy}: " });
+		sortDropdownContent.Inlines.Add(new Run { Text = LocalizationService.FormatFieldLabel("Sort_SortBy_Label") });
+		sortDropdownContent.Inlines.Add(new Run { Text = sortDisplayName, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
 		sortDropdownContent.Inlines.Add(new Run { Text = $" {(AscOrder ? "⬆️" : "⬇️")}" });
 
-		var orderDropdownTooltip = new TextBlock();
-		orderDropdownTooltip.Inlines.Add(new Run { Text = "The list is sorted by " });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = sortBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = " in " });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = orderBy, FontWeight = Microsoft.UI.Text.FontWeights.Bold });
-		orderDropdownTooltip.Inlines.Add(new Run { Text = " order." });
+		var orderDropdownTooltip = new TextBlock
+		{
+			TextWrapping = TextWrapping.WrapWholeWords,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
+		LocalizationService.AddFormattedInlines(
+			orderDropdownTooltip,
+			"Sort_Tooltip_SortedBy",
+			new LocalizationService.InlineArg(sortDisplayName, Microsoft.UI.Text.FontWeights.Bold),
+			new LocalizationService.InlineArg(orderDisplayName, Microsoft.UI.Text.FontWeights.Bold)
+		);
 
 		SortDropDown.Content = sortDropdownContent;
 		ToolTipService.SetToolTip(SortDropDown, orderDropdownTooltip);
@@ -1080,7 +1087,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			MoreButton.IsEnabled = false;
 			PlayAllButtonStackPanel.Visibility = Visibility.Collapsed;
 			SortAndViewButtonPanel.Visibility = Visibility.Collapsed;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn off multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOff"));
 			view.SelectionMode = ListViewSelectionMode.Multiple;
 			view.IsItemClickEnabled = false;
 			view.IsMultiSelectCheckBoxEnabled = true;
@@ -1099,7 +1106,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			MoreButton.Visibility = Visibility.Collapsed;
 			PlayAllButtonStackPanel.Visibility = Visibility.Visible;
 			SortAndViewButtonPanel.Visibility = Visibility.Visible;
-			ToolTipService.SetToolTip(MultiSelectButton, "Turn on multi-select mode");
+			ToolTipService.SetToolTip(MultiSelectButton, LocalizationService.GetString("Tooltip_MultiSelect_TurnOn"));
 			view.SelectionMode = ListViewSelectionMode.Single;
 			view.IsItemClickEnabled = true;
 			view.IsMultiSelectCheckBoxEnabled = false;
@@ -1135,7 +1142,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		if (songPaths.Count > 0)
 		{
 			await DatabaseHelper.Instance.AddSongsToQueuedPlayingList(songPaths);
-			GlobalNotification.Info($"{songPaths.Count} songs added to queue.");
+			GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Queue_Added", songPaths.Count));
 		}
 	}
 
@@ -1145,7 +1152,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 		if (songs.Count == 0) return;
 
 		DeleteDialog.Visibility = Visibility.Visible;
-		DeleteDialogText.Text = $"Are you sure you want to delete {songs.Count} songs from your system?";
+		DeleteDialogText.Text = LocalizationService.FormatPluralString("DeleteDialog_Confirm", songs.Count);
 
 		MainWindow._instance.WindowResizePermission(false);
 		var result = await DeleteDialog.ShowAsync();
@@ -1165,13 +1172,13 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			}
 			FolderOperations.InvalidateCache();
 			MusicPlayer.Instance.HandleAfterDelete();
-			GlobalNotification.Success($"Deleted {songs.Count} songs.");
+			GlobalNotification.Success(LocalizationService.FormatPluralString("Notification_Deleted", songs.Count));
 		}
 	}
 
 	/// <inheritdoc/>
 	protected override string BuildAddToPlaylistTooltip(bool multiSelect, string playList) =>
-		$"Add {(multiSelect ? "selected songs" : "this song")} to {playList} playlist";
+		base.BuildAddToPlaylistTooltip(multiSelect, playList);
 
 	/// <inheritdoc/>
 	protected override async void AddToPlaylist_Click(object sender, RoutedEventArgs e)
@@ -1186,7 +1193,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			if (songs.Count > 0)
 			{
 				await DatabaseHelper.Instance.AddSongsToPlaylist(playlist, songs.Select(s => s.Path).ToList());
-				GlobalNotification.Info($"{songs.Count} songs added to {playlist} playlist.");
+				GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Songs_AddedToPlaylist", songs.Count, playlist));
 			}
 		}
 		else
@@ -1194,7 +1201,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 			if ((sender as MenuFlyoutItem)?.DataContext is Song song && !song.IsFolder)
 			{
 				await DatabaseHelper.Instance.AddSongToPlaylist(playlist, song.Path);
-				GlobalNotification.Info($"{song.Title} added to {playlist} playlist.");
+				GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToPlaylist", song.Title, playlist));
 			}
 		}
 	}
@@ -1213,7 +1220,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				if (songs.Count > 0)
 				{
 					await DatabaseHelper.Instance.AddSongsToPlaylist(playlistName, songs.Select(s => s.Path).ToList());
-					GlobalNotification.Info($"{songs.Count} songs added to {playlistName} playlist.");
+					GlobalNotification.Info(LocalizationService.FormatPluralString("Notification_Songs_AddedToPlaylist", songs.Count, playlistName));
 				}
 			}
 			else
@@ -1221,7 +1228,7 @@ public sealed partial class FolderDetailPage : SongListPageBase
 				if ((sender as MenuFlyoutItem)?.DataContext is Song song && !song.IsFolder)
 				{
 					await DatabaseHelper.Instance.AddSongToPlaylist(playlistName, song.Path);
-					GlobalNotification.Info($"{song.Title} added to {playlistName} playlist.");
+					GlobalNotification.Info(LocalizationService.FormatString("Notification_Song_AddedToPlaylist", song.Title, playlistName));
 				}
 			}
 		}

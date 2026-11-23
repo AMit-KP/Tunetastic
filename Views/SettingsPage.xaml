@@ -202,11 +202,11 @@
 					<ComboBoxItem x:Uid="CLIOutputColor_Colorful"
 					              Content="Colorful"
 					              Tag="True"
-					              ToolTipService.ToolTip="Enables rich ANSI colors, status badges, and inline code formatting for terminal output." />
+					              ToolTipService.ToolTip="{services:Loc Key=CLIOutputColor_Colorful_ToolTip}" />
 					<ComboBoxItem x:Uid="CLIOutputColor_PlainText"
 					              Content="Plain Text"
 					              Tag="False"
-					              ToolTipService.ToolTip="Monochrome output without escape codes; ideal for redirecting to text files or minimal terminals." />
+					              ToolTipService.ToolTip="{services:Loc Key=CLIOutputColor_PlainText_ToolTip}" />
 				</ComboBox>
 			</dev:SettingsCard>
 
@@ -401,11 +401,11 @@
 					<ComboBoxItem x:Uid="LRCOffsetStandard_Official"
 					              Content="Official Standard"
 					              Tag="Official"
-					              ToolTipService.ToolTip="Follows the formal LRC specification. Positive values subtract time to display lyrics sooner (advancing them), while negative values delay lyrics. Recommended for compatibility with spec-compliant files." />
+					              ToolTipService.ToolTip="{services:Loc Key=LRCOffsetStandard_Official_ToolTip}" />
 					<ComboBoxItem x:Uid="LRCOffsetStandard_Intuitive"
 					              Content="Intuitive/Logical"
 					              Tag="Intuitive"
-					              ToolTipService.ToolTip="Applies straightforward timestamp addition. Positive values add time to delay lyrics, while negative values shift lyrics earlier. Ideal if you expect + to push lyrics forward into the timeline." />
+					              ToolTipService.ToolTip="{services:Loc Key=LRCOffsetStandard_Intuitive_ToolTip}" />
 				</ComboBox>
 			</dev:SettingsCard>
 
@@ -431,11 +431,13 @@
 					              Tag="qps-ploc" />
 				</ComboBox>
 			</dev:SettingsCard>
-			<dev:SettingsCard Description="Help translate Tunetastic into your native language via our Community Translation Studio."
+			<dev:SettingsCard x:Uid="Settings_CommunityTranslation"
+			                  Description="Help translate Tunetastic into your native language via our Community Translation Studio."
 			                  Header="Help translate">
 				<Button x:Name="CommunityTranslation"
+				        x:Uid="Settings_CommunityTranslationButton"
 				        Click="CommunityTranslation_Click"
-				        Content="Help Translate Tunetastic ↗"
+				        Content="{services:Loc Key=Settings_CommunityTranslationButton.Content}"
 				        Style="{ThemeResource AccentButtonStyle}" />
 			</dev:SettingsCard>
 			<dev:SettingsCard x:Uid="Settings_AppTheme"
@@ -782,7 +784,7 @@
 			<dev:SettingsCard x:Name="MusicDownloader_Panel"
 			                  x:Uid="Settings_EasterEggCard"
 			                  PointerPressed="MusicDownloader_Reveal"
-			                  ToolTipService.ToolTip="Click 5 times to reveal">
+			                  ToolTipService.ToolTip="{services:Loc Key=Settings_EasterEggCard_ToolTip}">
 				<dev:SettingsCard.Header>
 					<TextBlock>
 						<Run FontStyle="Italic" FontWeight="SemiBold" Text="{services:Loc Key=MusicDownloader_Quote}" />

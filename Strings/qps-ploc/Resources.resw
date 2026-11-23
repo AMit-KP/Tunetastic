@@ -3346,4 +3346,148 @@
     <value>[ !!! Ĉľôšé !!! ]</value>
     <comment>Popups &amp; Dialogs -&gt; What's New Dialog -&gt; Close Button</comment>
   </data>
+  <data name="Nav_Folders.Title" xml:space="preserve">
+    <value>[ !!! Fôľďéřš !!! ]</value>
+    <comment>Navigation -&gt; Library -&gt; Folders View Title</comment>
+  </data>
+  <data name="Nav_Folders.Content" xml:space="preserve">
+    <value>[ !!! Fôľďéřš !!! ]</value>
+    <comment>Navigation -&gt; Library -&gt; Folders View Content</comment>
+  </data>
+  <data name="Nav_CommunityTranslation.Title" xml:space="preserve">
+    <value>[ !!! Ĥéľρ Ťřáñšľáťé !!! ]</value>
+    <comment>Navigation -&gt; Footer -&gt; Help Translate Title</comment>
+  </data>
+  <data name="Nav_CommunityTranslation.Content" xml:space="preserve">
+    <value>[ !!! Ĥéľρ Ťřáñšľáťé !!! ]</value>
+    <comment>Navigation -&gt; Footer -&gt; Help Translate Content</comment>
+  </data>
+  <data name="FoldersView_Title.Text" xml:space="preserve">
+    <value>[ !!! Fôľďéřš !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; Header Title</comment>
+  </data>
+  <data name="FoldersView_Title_ToolTip" xml:space="preserve">
+    <value>[ !!! Âľľ mûšîč fôľďéřš ŵîľľ bé ďîšρľáýéď ĥéřé !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; Header ToolTip</comment>
+  </data>
+  <data name="FoldersView_EmptyState.ToolTipService.ToolTip" xml:space="preserve">
+    <value>[ !!! Ñô mûšîč fôľďéřš fôûñď. Ρľéášé, čĥéčĸ ýôûř šéťťîñĝš ťô éñšûřé ýôûř ľîbřářîéš ářé áďďéď áñď šôñĝš ĥáṽé bééñ ščáññéď. !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; Empty State ToolTip</comment>
+  </data>
+  <data name="FolderDetail_EmptyFolder.Text" xml:space="preserve">
+    <value>[ !!! Ñô šôñĝš ôř ťřáčĸš fôûñď îñ ťĥîš fôľďéř. !!! ]</value>
+    <comment>Library Views -&gt; Folder Detail Page -&gt; Empty State Text</comment>
+  </data>
+  <data name="Tooltip_Path" xml:space="preserve">
+    <value>[ !!! Ρáťĥ !!! ]</value>
+    <comment>Library Views -&gt; Tile ToolTip -&gt; Path Label</comment>
+  </data>
+  <data name="ViewMode_Label" xml:space="preserve">
+    <value>[ !!! Môďé !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; View Mode Dropdown Label</comment>
+  </data>
+  <data name="ViewMode_CurrentMode_Label" xml:space="preserve">
+    <value>[ !!! Ĉûřřéñť Môďé !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; View Mode Button ToolTip Prefix</comment>
+  </data>
+  <data name="ViewMode_AllMusicFolders.Text" xml:space="preserve">
+    <value>[ !!! Âľľ Mûšîč Fôľďéřš !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; View Mode: Flat</comment>
+  </data>
+  <data name="ViewMode_FolderHierarchy.Text" xml:space="preserve">
+    <value>[ !!! Fôľďéř Ĥîéřářčĥý !!! ]</value>
+    <comment>Library Views -&gt; Folders View -&gt; View Mode: Hierarchical</comment>
+  </data>
+  <data name="ViewStyle_Label" xml:space="preserve">
+    <value>[ !!! Ṽîéŵ !!! ]</value>
+    <comment>Library Views -&gt; Folder Detail -&gt; View Style Dropdown Label</comment>
+  </data>
+  <data name="ViewStyle_CurrentView_Label" xml:space="preserve">
+    <value>[ !!! Ĉûřřéñť Ṽîéŵ !!! ]</value>
+    <comment>Library Views -&gt; Folder Detail -&gt; View Style Button ToolTip Prefix</comment>
+  </data>
+  <data name="Notification_FolderSongsAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝ ôf fôľďéř '{1}' áďďéď ťô qûéûé. !!! ]</value>
+    <comment>Notifications -&gt; Queue -&gt; Added songs from folder ({0}=count, {1}=folder)</comment>
+  </data>
+  <data name="Notification_FolderSongsAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝš ôf fôľďéř '{1}' áďďéď ťô qûéûé. !!! ]</value>
+    <comment>Notifications -&gt; Queue -&gt; Added songs from folder ({0}=count, {1}=folder)</comment>
+  </data>
+  <data name="Notification_SelectedFoldersAddedToQueue_Singular" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝ ôf šéľéčťéď fôľďéřš, áďďéď ťô qûéûé. !!! ]</value>
+    <comment>Notifications -&gt; Queue -&gt; Added songs from selected folders ({0}=count)</comment>
+  </data>
+  <data name="Notification_SelectedFoldersAddedToQueue_Plural" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝš ôf šéľéčťéď fôľďéřš, áďďéď ťô qûéûé. !!! ]</value>
+    <comment>Notifications -&gt; Queue -&gt; Added songs from selected folders ({0}=count)</comment>
+  </data>
+  <data name="DeleteDialog_FolderSongs_Singular" xml:space="preserve">
+    <value>[ !!! Âřé ýôû šûřé ýôû ŵáñť ťô ďéľéťé {0} šôñĝ îñ '{1}' fřôm ýôûř šýšťém? !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Single Folder Confirm ({0}=count, {1}=folder)</comment>
+  </data>
+  <data name="DeleteDialog_FolderSongs_Plural" xml:space="preserve">
+    <value>[ !!! Âřé ýôû šûřé ýôû ŵáñť ťô ďéľéťé {0} šôñĝš îñ '{1}' fřôm ýôûř šýšťém? !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Single Folder Confirm ({0}=count, {1}=folder)</comment>
+  </data>
+  <data name="Notification_FolderSongsDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Ďéľéťéď {0} šôñĝ fřôm '{1}'. !!! ]</value>
+    <comment>Notifications -&gt; Deletion -&gt; Single Folder Deleted ({0}=count, {1}=folder)</comment>
+  </data>
+  <data name="Notification_FolderSongsDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Ďéľéťéď {0} šôñĝš fřôm '{1}'. !!! ]</value>
+    <comment>Notifications -&gt; Deletion -&gt; Single Folder Deleted ({0}=count, {1}=folder)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedFolders_Singular" xml:space="preserve">
+    <value>[ !!! Âřé ýôû šûřé ýôû ŵáñť ťô ďéľéťé {0} šôñĝ fřôm {1} fôľďéřš fřôm ýôûř šýšťém? !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Multi Folder Confirm ({0}=count, {1}=folders count)</comment>
+  </data>
+  <data name="DeleteDialog_SelectedFolders_Plural" xml:space="preserve">
+    <value>[ !!! Âřé ýôû šûřé ýôû ŵáñť ťô ďéľéťé {0} šôñĝš fřôm {1} fôľďéřš fřôm ýôûř šýšťém? !!! ]</value>
+    <comment>Popups &amp; Dialogs -&gt; Delete Dialog -&gt; Multi Folder Confirm ({0}=count, {1}=folders count)</comment>
+  </data>
+  <data name="Notification_SelectedFoldersDeleted_Singular" xml:space="preserve">
+    <value>[ !!! Ďéľéťéď {0} šôñĝ. !!! ]</value>
+    <comment>Notifications -&gt; Deletion -&gt; Multi Folders Deleted ({0}=count)</comment>
+  </data>
+  <data name="Notification_SelectedFoldersDeleted_Plural" xml:space="preserve">
+    <value>[ !!! Ďéľéťéď {0} šôñĝš. !!! ]</value>
+    <comment>Notifications -&gt; Deletion -&gt; Multi Folders Deleted ({0}=count)</comment>
+  </data>
+  <data name="Notification_FolderSongsAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝ ôf fôľďéř '{1}' áďďéď ťô {2} ρľáýľîšť. !!! ]</value>
+    <comment>Notifications -&gt; Playlist -&gt; Single Folder Added ({0}=count, {1}=folder, {2}=playlist)</comment>
+  </data>
+  <data name="Notification_FolderSongsAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝš ôf fôľďéř '{1}' áďďéď ťô {2} ρľáýľîšť. !!! ]</value>
+    <comment>Notifications -&gt; Playlist -&gt; Single Folder Added ({0}=count, {1}=folder, {2}=playlist)</comment>
+  </data>
+  <data name="Notification_SelectedFoldersAddedToPlaylist_Singular" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝ ôf šéľéčťéď fôľďéřš, áďďéď ťô {1} ρľáýľîšť. !!! ]</value>
+    <comment>Notifications -&gt; Playlist -&gt; Multi Folders Added ({0}=count, {1}=playlist)</comment>
+  </data>
+  <data name="Notification_SelectedFoldersAddedToPlaylist_Plural" xml:space="preserve">
+    <value>[ !!! Âľľ {0} šôñĝš ôf šéľéčťéď fôľďéřš, áďďéď ťô {1} ρľáýľîšť. !!! ]</value>
+    <comment>Notifications -&gt; Playlist -&gt; Multi Folders Added ({0}=count, {1}=playlist)</comment>
+  </data>
+  <data name="Settings_CommunityTranslation.Header" xml:space="preserve">
+    <value>[ !!! Ĥéľρ ťřáñšľáťé !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Community Translation Card Header</comment>
+  </data>
+  <data name="Settings_CommunityTranslation.Description" xml:space="preserve">
+    <value>[ !!! Ĥéľρ ťřáñšľáťé Ťûñéťášťîč îñťô ýôûř ñáťîṽé ľáñĝûáĝé ṽîá ôûř Ĉômmûñîťý Ťřáñšľáťîôñ Šťûďîô. !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Community Translation Card Description</comment>
+  </data>
+  <data name="Settings_CommunityTranslationButton.Content" xml:space="preserve">
+    <value>[ !!! Ĥéľρ Ťřáñšľáťé Ťûñéťášťîč ↗ !!! ]</value>
+    <comment>Settings -&gt; Appearance &amp; Behavior -&gt; Community Translation Button Content</comment>
+  </data>
+  <data name="CommunityTranslation_DismissButton_ToolTip" xml:space="preserve">
+    <value>[ !!! Ďîšmîšš bûťťôñ. Îť ŵîľľ ñéṽéř ápρéář ĥéřé áĝáîñ. !!! ]</value>
+    <comment>Navigation -&gt; Footer -&gt; Help Translate Dismiss Button ToolTip</comment>
+  </data>
+  <data name="CommunityTranslation_Dismissed_Notification" xml:space="preserve">
+    <value>[ !!! Ýôû čáñ šťîľľ áččéšš Ĉômmûñîťý Łôčáľîžáťîôñ áñýťîmé fřôm Šéťťîñĝš → Âρρéářáñčé &amp; Béĥáṽîôř → Âρρ ľáñĝûáĝé. !!! ]</value>
+    <comment>Notifications -&gt; Community Translation Dismiss Notification</comment>
+  </data>
   </root>

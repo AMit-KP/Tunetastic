@@ -1621,7 +1621,7 @@ ShowEditSongInfo:
 			HorizontalAlignment = HorizontalAlignment.Right,
 			VerticalAlignment = VerticalAlignment.Center
 		};
-		ToolTipService.SetToolTip(dismissButton, "Dismiss button. It will never appear here again.");
+		ToolTipService.SetToolTip(dismissButton, LocalizationService.GetString("CommunityTranslation_DismissButton_ToolTip"));
 
 		dismissButton.Tapped += (s, e) => e.Handled = true;
 		dismissButton.Click += (s, e) =>
@@ -1629,7 +1629,7 @@ ShowEditSongInfo:
 			_isDismissingTranslationNavItem = true;
 			localSettings.Values[nameof(LocalSave.CommunityTranslationNavDismissed)] = true;
 			translationItem.Visibility = Visibility.Collapsed;
-			GlobalNotification.Info("You can still access Community Localization anytime from Settings → Appearance & Behavior → App language.");
+			GlobalNotification.Info(LocalizationService.GetString("CommunityTranslation_Dismissed_Notification"));
 		};
 
 		var grid = new Grid
@@ -1642,7 +1642,7 @@ ShowEditSongInfo:
 
 		var textBlock = new TextBlock
 		{
-			Text = "Help Translate",
+			Text = LocalizationService.GetString("Nav_CommunityTranslation.Content"),
 			VerticalAlignment = VerticalAlignment.Center,
 			TextTrimming = TextTrimming.CharacterEllipsis
 		};

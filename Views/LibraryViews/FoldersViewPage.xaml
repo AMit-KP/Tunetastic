@@ -11,6 +11,7 @@
                         xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
                         xmlns:libraryviews="using:Tunetastic.Views.LibraryViews"
                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                        xmlns:services="using:Tunetastic.Common.Services"
                         xmlns:views="using:Tunetastic.Views.Common"
                         Loaded="Page_Loaded"
                         SizeChanged="Page_SizeChanged"
@@ -19,23 +20,23 @@
 	<views:TileListPageBase.Resources>
 		<MenuFlyout x:Key="RightClickMenu"
 		            Opened="MenuFlyout_Opened">
-			<MenuFlyoutItem Click="MenuFlyoutItemPlay_OnClick"
-			                Text="Play"
-			                ToolTipService.ToolTip="Play this folder">
+			<MenuFlyoutItem x:Uid="Action_PlayGroup" Click="MenuFlyoutItemPlay_OnClick"
+			                Text="{services:Loc Key=Action_PlayGroup.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=Action_PlayGroup_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE768;" />
 				</MenuFlyoutItem.Icon>
 			</MenuFlyoutItem>
 			<MenuFlyoutSeparator />
-			<MenuFlyoutSubItem x:Name="AddToPlaylist"
-			                   Text="Add to playlist">
+			<MenuFlyoutSubItem x:Name="AddToPlaylist" x:Uid="Action_AddToPlaylist"
+			                   Text="{services:Loc Key=Action_AddToPlaylist.Text}">
 				<MenuFlyoutSubItem.Icon>
 					<FontIcon Glyph="&#xE728;" />
 				</MenuFlyoutSubItem.Icon>
 			</MenuFlyoutSubItem>
-			<MenuFlyoutItem Click="MenuFlyoutItemAddToQueue_OnClick"
-			                Text="Add to queue"
-			                ToolTipService.ToolTip="Add this folder to the queue">
+			<MenuFlyoutItem x:Uid="Action_AddToQueueGroup" Click="MenuFlyoutItemAddToQueue_OnClick"
+			                Text="{services:Loc Key=Action_AddToQueueGroup.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=Action_AddToQueueGroup_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE84F;" />
 				</MenuFlyoutItem.Icon>
@@ -43,9 +44,9 @@
 
 			<MenuFlyoutSeparator />
 
-			<MenuFlyoutItem Click="MenuFlyoutItemDelete_OnClick"
-			                Text="Delete"
-			                ToolTipService.ToolTip="Delete songs in this folder">
+			<MenuFlyoutItem x:Uid="Action_DeleteGroup" Click="MenuFlyoutItemDelete_OnClick"
+			                Text="{services:Loc Key=Action_DeleteGroup.Text}"
+			                ToolTipService.ToolTip="{services:Loc Key=Action_DeleteGroup_ToolTip}">
 				<MenuFlyoutItem.Icon>
 					<FontIcon Glyph="&#xE74D;" />
 				</MenuFlyoutItem.Icon>
@@ -60,18 +61,19 @@
 		</Grid.RowDefinitions>
 		<Grid Grid.Row="0"
 		      Margin="15,10,45,10">
-			<TextBlock HorizontalAlignment="Left"
+			<TextBlock x:Uid="FoldersView_Title"
+			           HorizontalAlignment="Left"
 			           Style="{ThemeResource TitleTextBlockStyle}"
-			           Text="Folders"
-			           ToolTipService.ToolTip="All music folders will be displayed here" />
+			           Text="{services:Loc Key=FoldersView_Title.Text}"
+			           ToolTipService.ToolTip="{services:Loc Key=FoldersView_Title_ToolTip}" />
 
 			<StackPanel x:Name="PageButtons"
 			            HorizontalAlignment="Right"
 			            Orientation="Horizontal"
 			            Spacing="15">
-				<ToggleButton x:Name="MultiSelectButton"
+				<ToggleButton x:Name="MultiSelectButton" x:Uid="ActionBar_MultiSelect"
 				              Click="MultiSelectButton_Click"
-				              ToolTipService.ToolTip="Turn on multi-select mode">
+				              ToolTipService.ToolTip="{services:Loc Key=ActionBar_MultiSelect_ToolTip}">
 					<FontIcon Glyph="&#xE73A;" />
 				</ToggleButton>
 				<StackPanel x:Name="SortAndViewButtonPanel"
@@ -85,11 +87,11 @@
 								<RadioMenuFlyoutItem x:Name="Ascending"
 								                     Click="SortButton_OnClick"
 								                     GroupName="Order"
-								                     Text="Ascending" />
+								                     Tag="Ascending" x:Uid="Sort_Ascending" Text="{services:Loc Key=Sort_Ascending.Text}" />
 								<RadioMenuFlyoutItem x:Name="Descending"
 								                     Click="SortButton_OnClick"
 								                     GroupName="Order"
-								                     Text="Descending" />
+								                     Tag="Descending" x:Uid="Sort_Descending" Text="{services:Loc Key=Sort_Descending.Text}" />
 							</MenuFlyout>
 						</DropDownButton.Flyout>
 					</DropDownButton>
@@ -101,11 +103,11 @@
 								<RadioMenuFlyoutItem x:Name="AllMusicFoldersViewStyle"
 								                     Click="ViewButton_OnClick"
 								                     GroupName="ViewMode"
-								                     Text="All Music Folders" />
+								                     Tag="All Music Folders" x:Uid="ViewMode_AllMusicFolders" Text="{services:Loc Key=ViewMode_AllMusicFolders.Text}" />
 								<RadioMenuFlyoutItem x:Name="FolderHierarchyViewStyle"
 								                     Click="ViewButton_OnClick"
 								                     GroupName="ViewMode"
-								                     Text="Folder Hierarchy" />
+								                     Tag="Folder Hierarchy" x:Uid="ViewMode_FolderHierarchy" Text="{services:Loc Key=ViewMode_FolderHierarchy.Text}" />
 							</MenuFlyout>
 						</DropDownButton.Flyout>
 					</DropDownButton>
@@ -117,22 +119,22 @@
 						<MenuFlyout x:Name="More"
 						            Opened="MenuFlyout_Opened"
 						            Placement="BottomEdgeAlignedRight">
-							<MenuFlyoutSubItem Text="Add to playlist">
+							<MenuFlyoutSubItem x:Uid="ActionBar_Multi_AddToPlaylist" Text="{services:Loc Key=ActionBar_Multi_AddToPlaylist.Text}">
 								<MenuFlyoutSubItem.Icon>
 									<FontIcon Glyph="&#xE728;" />
 								</MenuFlyoutSubItem.Icon>
 							</MenuFlyoutSubItem>
-							<MenuFlyoutItem Click="MenuFlyoutMultiItemAddToQueue_OnClick"
-							                Text="Add to queue"
-							                ToolTipService.ToolTip="Add selected folders to the queue">
+							<MenuFlyoutItem x:Uid="ActionBar_Multi_AddToQueue" Click="MenuFlyoutMultiItemAddToQueue_OnClick"
+							                Text="{services:Loc Key=ActionBar_Multi_AddToQueue.Text}"
+							                ToolTipService.ToolTip="{services:Loc Key=ActionBar_Multi_AddToQueue_ToolTip}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE84F;" />
 								</MenuFlyoutItem.Icon>
 							</MenuFlyoutItem>
 							<MenuFlyoutSeparator />
-							<MenuFlyoutItem Click="MenuFlyoutMultiItemDelete_OnClick"
-							                Text="Delete"
-							                ToolTipService.ToolTip="Delete selected folders">
+							<MenuFlyoutItem x:Uid="ActionBar_Multi_Delete" Click="MenuFlyoutMultiItemDelete_OnClick"
+							                Text="{services:Loc Key=ActionBar_Multi_Delete.Text}"
+							                ToolTipService.ToolTip="{services:Loc Key=ActionBar_Multi_Delete_ToolTip}">
 								<MenuFlyoutItem.Icon>
 									<FontIcon Glyph="&#xE74D;" />
 								</MenuFlyoutItem.Icon>
@@ -149,7 +151,8 @@
 			            VerticalAlignment="Center"
 			            Orientation="Vertical"
 			            Spacing="30"
-			            ToolTipService.ToolTip="No music folders found. Please, check your settings to ensure your libraries are added and songs have been scanned."
+			            x:Uid="FoldersView_EmptyState"
+			            ToolTipService.ToolTip="{services:Loc Key=FoldersView_EmptyState.ToolTipService.ToolTip}"
 			            Visibility="Visible">
 				<TextBlock x:Name="GoToSettingsTextBlock"
 				           HorizontalAlignment="Center"
@@ -161,7 +164,8 @@
 				<Button HorizontalAlignment="Center"
 				        VerticalAlignment="Center"
 				        Click="GotoSettigsButton_Click"
-				        Content="Open Settings" />
+				        x:Uid="EmptyState_OpenSettingsButton"
+				        Content="{services:Loc Key=EmptyState_OpenSettingsButton.Content}" />
 			</StackPanel>
 			<StackPanel x:Name="LoadingProgress"
 			            HorizontalAlignment="Center"
@@ -193,20 +197,20 @@
 			      Height="Auto"
 			      HorizontalAlignment="Center"
 			      VerticalAlignment="Center">
-				<ContentDialog x:Name="DeleteDialog"
-				               Title="Confirm Deletion"
+				<ContentDialog x:Name="DeleteDialog" x:Uid="DeleteDialog_ConfirmDialog"
+				               Title="{services:Loc Key=DeleteDialog_ConfirmDialog.Title}"
 				               Background="{ThemeResource AcrylicBackgroundFillColorBaseBrush}"
 				               DefaultButton="Secondary"
-				               PrimaryButtonText="Delete"
-				               SecondaryButtonText="Cancel"
+				               PrimaryButtonText="{services:Loc Key=DeleteDialog_ConfirmDialog.PrimaryButtonText}"
+				               SecondaryButtonText="{services:Loc Key=DeleteDialog_ConfirmDialog.SecondaryButtonText}"
 				               Visibility="Collapsed">
 					<StackPanel Spacing="10">
 						<TextBlock x:Name="DeleteDialogText"
 						           Style="{ThemeResource BodyTextBlockStyle}"
 						           TextWrapping="WrapWholeWords" />
-						<TextBlock Foreground="Red"
+						<TextBlock x:Uid="DeleteDialog_UndoneWarning" Foreground="Red"
 						           Style="{ThemeResource BodyStrongTextBlockStyle}"
-						           Text="This action cannot be undone."
+						           Text="{services:Loc Key=DeleteDialog_UndoneWarning.Text}"
 						           TextWrapping="WrapWholeWords" />
 					</StackPanel>
 				</ContentDialog>
@@ -300,14 +304,16 @@
 									<Run FontWeight="Bold"
 									     Text="{x:Bind Name}" />
 									<LineBreak />
-									<Run Text="Path: " />
+									<Run Text="{services:Loc Key=Tooltip_Path}" />
+									<Run Text=": " />
 									<Run Text="{x:Bind Path}" />
 									<LineBreak />
-									<Run Text="Songs: " />
+									<Run Text="{services:Loc Key=Tooltip_CountOfSongs}" />
+									<Run Text=": " />
 									<Run FontWeight="Bold"
 									     Text="{x:Bind TotalSongCount}" />
 									<LineBreak />
-									<Run Text="Total Duration: " />
+									<Run Text="{services:Loc Key=Tooltip_TotalDuration}" />
 									<LineBreak />
 									<Run FontWeight="Bold"
 									     Text="{x:Bind TotalDuration, Converter={StaticResource DurationToFullTimeConverter}}" />
