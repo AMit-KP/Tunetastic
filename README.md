@@ -405,9 +405,6 @@ Add an animated rainbow border to the player:
 **Window Behavior**
 - **Minimize to tray on close** — Keep Tunetastic running silently in the background instead of fully quitting
 
-**Language & Localization**
-- Switch between supported app languages or contribute new translations via the [Community Localization Studio](https://amit-kp.github.io/Tunetastic/)
-
 ---
 
 ## Requirements
