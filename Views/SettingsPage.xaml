@@ -235,6 +235,11 @@
 						              OnContent="{services:Loc Key=ToggleSwitch_On}"
 						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
 					</dev:SettingsCard>
+					<dev:SettingsCard x:Uid="Settings_ShowFolders" Header="Folders">
+						<ToggleSwitch x:Name="FoldersToggle"
+						              OnContent="{services:Loc Key=ToggleSwitch_On}"
+						              OffContent="{services:Loc Key=ToggleSwitch_Off}" />
+					</dev:SettingsCard>
 					<dev:SettingsCard x:Uid="Settings_ShowRecentlyAdded" Header="Recently Added">
 						<ToggleSwitch x:Name="RecentlyAddedToggle"
 						              OnContent="{services:Loc Key=ToggleSwitch_On}"
@@ -425,6 +430,13 @@
 					<ComboBoxItem Content="[ !!! Pseudo (qps-ploc) !!! ]"
 					              Tag="qps-ploc" />
 				</ComboBox>
+			</dev:SettingsCard>
+			<dev:SettingsCard Description="Help translate Tunetastic into your native language via our Community Translation Studio."
+			                  Header="Help translate">
+				<Button x:Name="CommunityTranslation"
+				        Click="CommunityTranslation_Click"
+				        Content="Help Translate Tunetastic ↗"
+				        Style="{ThemeResource AccentButtonStyle}" />
 			</dev:SettingsCard>
 			<dev:SettingsCard x:Uid="Settings_AppTheme"
 			                  Description="Select the theme that suits your mood and preference. You can choose from dark, light, or system themes."

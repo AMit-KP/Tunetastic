@@ -928,6 +928,10 @@
     <value>Years</value>
     <comment>Settings Page -&gt; Library Section -&gt; Show Years Toggle</comment>
   </data>
+  <data name="Settings_ShowFolders.Header" xml:space="preserve">
+    <value>Folders</value>
+    <comment>Settings Page -&gt; Library Section -&gt; Show Folders Toggle</comment>
+  </data>
   <data name="Settings_ShowRecentlyAdded.Header" xml:space="preserve">
     <value>Recently Added</value>
     <comment>Settings Page -&gt; Library Section -&gt; Show Recently Added Toggle</comment>

@@ -1,4 +1,4 @@
-﻿## 1.70.18
+﻿## 1.82.27
 - Add dynamic system tray icon style option
 - Add CLI command to import local music files into playlists by [@MikaKrul](https://github.com/MikaKrul)
 - Playlist Re-arrange options added
@@ -7,6 +7,11 @@
 - Optimize storage use
 - Reset Playback History option
 - Added `What's new` dialog
+- Skip songs that fail to open instead of stopping silently by [@kornelko2](https://github.com/kornelko2)
+- Faster delete when doing full scan
+- Add `Add to Playlist` button and flyout menu to MainPlayerPage
+- Folder View Added
+- [Help Translate Tunetastic](https://amit-kp.github.io/Tunetastic/) Button added in the settings
 - Minor improvements
 - Minor fixes
 

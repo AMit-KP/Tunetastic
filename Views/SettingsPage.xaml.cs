@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
+using Tunetastic.Common.Infrastructure;
 using Tunetastic.Common.Services.TaskbarOverlay;
 using Tunetastic.Overlay;
 using Windows.Services.Store;
@@ -948,6 +949,8 @@ public sealed partial class SettingsPage : Page
 
 		YearsToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true");
 
+		FoldersToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.FoldersEnabled)]?.ToString() ?? "true");
+
 		RecentlyAddedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyAddedEnabled)]?.ToString() ?? "true");
 
 		RecentlyPlayedToggle.IsOn = bool.Parse(localSettings.Values[nameof(LocalSave.RecentlyPlayedEnabled)]?.ToString() ?? "true");
@@ -958,6 +961,7 @@ public sealed partial class SettingsPage : Page
 		AlbumsToggle.Toggled += AlbumsToggle_Toggled;
 		GenresToggle.Toggled += GenresToggle_Toggled;
 		YearsToggle.Toggled += YearsToggle_Toggled;
+		FoldersToggle.Toggled += FoldersToggle_Toggled;
 		RecentlyAddedToggle.Toggled += RecentlyAddedToggle_Toggled;
 		RecentlyPlayedToggle.Toggled += RecentlyPlayedToggle_Toggled;
 		MostPlayedToggle.Toggled += MostPlayedToggle_Toggled;
@@ -1337,6 +1341,42 @@ public sealed partial class SettingsPage : Page
 	}
 
 	/// <summary>
+	/// Handles the toggled state change of the "Folders" toggle switch.
+	/// </summary>
+	private async void FoldersToggle_Toggled(object sender, RoutedEventArgs e)
+	{
+		if (!FoldersToggle.IsOn)
+		{
+			if (!await ConfirmDisableWhenCurrentlyPlaying("Folders", list => list?.StartsWith("FolderGroup>") == true))
+			{
+				FoldersToggle.Toggled -= FoldersToggle_Toggled;
+				FoldersToggle.IsOn = true;
+				FoldersToggle.Toggled += FoldersToggle_Toggled;
+				return;
+			}
+		}
+
+		var librariesGroup = App.Current.NavService!.MenuItems![1] as NavigationViewItem;
+		var libraryNavigationItem = librariesGroup?.MenuItems.Select(x => x as NavigationViewItem).FirstOrDefault(x => x?.Tag.ToString() == "Tunetastic.Views.LibraryViews.FoldersViewPage");
+
+		if (libraryNavigationItem != null) libraryNavigationItem.Visibility = FoldersToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		if (!FoldersToggle.IsOn)
+		{
+			MainPage._instance?.RemovePageFromHistory("Folders");
+		}
+
+		localSettings.Values[nameof(LocalSave.FoldersEnabled)] = FoldersToggle.IsOn;
+
+		if (localSettings.Values[nameof(LocalSave.CurrentPlayinglist)]?.ToString()?.StartsWith("FolderGroup>") == true)
+		{
+			localSettings.Values[nameof(LocalSave.CurrentPlayinglist)] = "AllSongsViewPage";
+			MusicPlayer.Instance.ResetOrReloadPlayer();
+		}
+	}
+
+	/// <summary>
 	/// Handles the toggled state change of the "Recently Added" toggle switch.
 	/// This method is responsible for updating the visibility of the "Recently Added" playlist UI element,
 	/// saving the toggle state to local settings, and performing necessary updates to the music player
@@ -1457,12 +1497,12 @@ public sealed partial class SettingsPage : Page
 	private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
 	{
 		CheckForUpdates.ProgressRingVisibility = Visibility.Visible;
-		var context = StoreContext.GetDefault();
+			var context = StoreContext.GetDefault();
 
-		WinRT.Interop.InitializeWithWindow.Initialize(context,
-			WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
+			WinRT.Interop.InitializeWithWindow.Initialize(context,
+				WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindow));
 
-		var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+			var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
 
 		if (updates.Count == 0)
 		{
@@ -1632,5 +1672,10 @@ public sealed partial class SettingsPage : Page
 	private void ResetHistoryConfirm_Click(object sender, RoutedEventArgs e)
 	{
 		ResetHistoryFlyout.Hide();
+	}
+
+	private async void CommunityTranslation_Click(object sender, RoutedEventArgs e)
+	{
+		await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
 	}
 }

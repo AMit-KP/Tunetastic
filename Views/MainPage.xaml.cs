@@ -56,6 +56,8 @@ public sealed partial class MainPage : Page
 	public event EventHandler<bool>? MainPlayerPageOpened;
 
 	private bool _isMainPlayerPageOpened = false;
+	private bool _isDismissingTranslationNavItem = false;
+	private bool _isCommunityTranslationInitialized = false;
 
 	/// <summary>
 	/// Indicates whether the main player page is currently opened.
@@ -116,6 +118,8 @@ public sealed partial class MainPage : Page
 		NavView.Loaded += (_, _) => LocalizeNavSettings();
 		MusicControlsArea.Navigate(typeof(MusicControl));
 		NavFrame.Navigated += NavFrame_Navigated;
+
+		InitializeCommunityTranslationNavItem();
 
 		InitializeVolumeSliderAndService();
 
@@ -304,6 +308,12 @@ public sealed partial class MainPage : Page
 		SearchTeachingTip.IsOpen = false;
 	}
 
+	private static readonly System.Reflection.FieldInfo? NavServiceLastParamField =
+		typeof(JsonNavigationService).GetField("_lastParameterUsed", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+	private static readonly System.Reflection.FieldInfo? NavServiceSuppressSelectionNavField =
+		typeof(JsonNavigationService).GetField("_suppressSelectionNavigation", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
 	/// <summary>
 	/// Handles the Navigated event of the navigation frame to keep the NavigationView selected item in sync,
 	/// particularly after backward navigation across custom playlists or library views.
@@ -312,6 +322,11 @@ public sealed partial class MainPage : Page
 	{
 		if (e.NavigationMode == NavigationMode.Back)
 		{
+			if (App.Current.NavService is JsonNavigationService navService)
+			{
+				NavServiceLastParamField?.SetValue(navService, e.Parameter);
+			}
+
 			if (e.SourcePageType == typeof(PlayListTemplate) && e.Parameter is string playlistTitle)
 			{
 				var playlistsGroup = App.Current.NavService?.MenuItems?[2] as NavigationViewItem;
@@ -319,12 +334,48 @@ public sealed partial class MainPage : Page
 					.FirstOrDefault(item => (item.DataContext as DataGroup)?.Title == playlistTitle);
 				if (matchingItem != null && !ReferenceEquals(NavView.SelectedItem, matchingItem))
 				{
-					NavView.SelectedItem = matchingItem;
+					if (App.Current.NavService is JsonNavigationService nav)
+					{
+						NavServiceSuppressSelectionNavField?.SetValue(nav, true);
+						try
+						{
+							NavView.SelectedItem = matchingItem;
+						}
+						finally
+						{
+							NavServiceSuppressSelectionNavField?.SetValue(nav, false);
+						}
+					}
+					else
+					{
+						NavView.SelectedItem = matchingItem;
+					}
 				}
 			}
 			else if (e.SourcePageType != null && e.SourcePageType != typeof(PlayListTemplate))
 			{
-				App.Current.NavService?.EnsureNavigationSelection(e.SourcePageType.FullName);
+				string? targetUniqueId = e.SourcePageType switch
+				{
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage) => "Tunetastic.Views.LibraryViews.FoldersViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.ArtistDetailPage) => "Tunetastic.Views.LibraryViews.ArtistsViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.AlbumDetailPage) => "Tunetastic.Views.LibraryViews.AlbumsViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.GenreDetailPage) => "Tunetastic.Views.LibraryViews.GenresViewPage",
+					Type t when t == typeof(Tunetastic.Views.LibraryViews.YearDetailPage) => "Tunetastic.Views.LibraryViews.YearsViewPage",
+					_ => e.SourcePageType.FullName
+				};
+
+				if (!string.IsNullOrEmpty(targetUniqueId) && App.Current.NavService is JsonNavigationService nav)
+				{
+					NavServiceSuppressSelectionNavField?.SetValue(nav, true);
+					try
+					{
+						nav.EnsureNavigationSelection(targetUniqueId);
+					}
+					finally
+					{
+						NavServiceSuppressSelectionNavField?.SetValue(nav, false);
+					}
+				}
 			}
 		}
 	}
@@ -343,6 +394,11 @@ public sealed partial class MainPage : Page
 		if (args.SelectedItem is NavigationViewItem selectedItem)
 		{
 			string? selectedTag = selectedItem.Tag?.ToString();
+			if (selectedTag == "CommunityTranslation" || (selectedItem.DataContext as DataItem)?.UniqueId == "CommunityTranslation")
+			{
+				selectedItem.IsSelected = false;
+				return;
+			}
 			IsMainPlayerPageOpened = (selectedTag == "Library") || (selectedTag == "Playlists") || (selectedTag == "AddNewPlaylist") ? IsMainPlayerPageOpened : selectedTag == "Tunetastic.Views.MainPlayerPage";
 		}
 		if (args.SelectedItemContainer is NavigationViewItem navigationViewItem &&
@@ -372,11 +428,29 @@ public sealed partial class MainPage : Page
 	/// <param name="args">Event arguments containing details of the invoked item.</param>
 	private async void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
 	{
+		if (args.InvokedItem is string itemText && (itemText == "Help Translate" || itemText == LocalizationService.GetString("Nav_CommunityTranslation.Content"))
+			|| (args.InvokedItemContainer as NavigationViewItem)?.Tag?.ToString() == "CommunityTranslation"
+			|| ((args.InvokedItemContainer as NavigationViewItem)?.Tag as DataItem)?.UniqueId == "CommunityTranslation")
+		{
+			if (args.InvokedItemContainer is NavigationViewItem nvi)
+			{
+				nvi.SelectsOnInvoked = false;
+				nvi.IsSelected = false;
+			}
+			if (_isDismissingTranslationNavItem)
+			{
+				_isDismissingTranslationNavItem = false;
+				return;
+			}
+			await Windows.System.Launcher.LaunchUriAsync(new Uri("https://amit-kp.github.io/Tunetastic/"));
+			return;
+		}
+
 		var invokedTag = (args.InvokedItemContainer as NavigationViewItem)?.Tag?.ToString()
 			?? (args.InvokedItem as NavigationViewItem)?.Tag?.ToString();
 
 		if (invokedTag == "AddNewPlaylist"
-			|| (args.InvokedItem is string itemText && (itemText == "Add New Playlist" || itemText == LocalizationService.GetString("Nav_AddNewPlaylist.Content"))))
+			|| (args.InvokedItem is string text && (text == "Add New Playlist" || text == LocalizationService.GetString("Nav_AddNewPlaylist.Content"))))
 		{
 			await ShowAddPlaylistDialog();
 		}
@@ -646,6 +720,7 @@ public sealed partial class MainPage : Page
 		AddPlayLists();
 		HidePreDefinedPlayLists();
 		HidePreDefinedLibraries();
+		InitializeCommunityTranslationNavItem();
 		await Task.Delay(1000);
 		NavView.IsPaneOpen = false;
 	}
@@ -678,6 +753,7 @@ public sealed partial class MainPage : Page
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.AlbumsEnabled)]?.ToString() ?? "true")) HideLibrary("Albums");
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.GenresEnabled)]?.ToString() ?? "true")) HideLibrary("Genres");
 		if (!bool.Parse(localSettings.Values[nameof(LocalSave.YearsEnabled)]?.ToString() ?? "true")) HideLibrary("Years");
+		if (!bool.Parse(localSettings.Values[nameof(LocalSave.FoldersEnabled)]?.ToString() ?? "true")) HideLibrary("Folders");
 	}
 
 	/// <summary>
@@ -767,7 +843,7 @@ public sealed partial class MainPage : Page
 			var entry = history[i];
 			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
 			bool matchesParam = entry.Parameter?.ToString() == pageName;
-			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage" || (pageName == "Folders" && entry.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage));
 
 			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
@@ -781,7 +857,7 @@ public sealed partial class MainPage : Page
 			var entry = forward[i];
 			bool isNullParamPlaylist = entry.SourcePageType == typeof(PlayListTemplate) && (entry.Parameter == null || string.IsNullOrWhiteSpace(entry.Parameter.ToString()));
 			bool matchesParam = entry.Parameter?.ToString() == pageName;
-			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage";
+			bool matchesPageType = entry.SourcePageType.FullName == pageName || entry.SourcePageType.Name == pageName || entry.SourcePageType.Name == $"{pageName}ViewPage" || (pageName == "Folders" && entry.SourcePageType == typeof(Tunetastic.Views.LibraryViews.FolderDetailPage));
 
 			if (isNullParamPlaylist || matchesParam || matchesPageType)
 			{
@@ -1492,6 +1568,92 @@ ShowEditSongInfo:
 		SongPlayCount.Text = "0";
 		SongLastPlayed.Text = LocalizationService.GetString("SongInfo_LastPlayed_Never");
 		ClearButton.IsEnabled = false;
+	}
+
+	private async void InitializeCommunityTranslationNavItem()
+	{
+		if (_isCommunityTranslationInitialized)
+			return;
+
+		var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+		bool isDismissed = bool.Parse(localSettings.Values[nameof(LocalSave.CommunityTranslationNavDismissed)]?.ToString() ?? "false");
+
+		NavigationViewItem? translationItem = null;
+		for (int i = 0; i < 40; i++)
+		{
+			translationItem = NavView.FooterMenuItems
+				.OfType<NavigationViewItem>()
+				.FirstOrDefault(item => (item.Tag as DataItem)?.UniqueId == "CommunityTranslation"
+									 || item.Tag?.ToString() == "CommunityTranslation"
+									 || (item.DataContext as DataItem)?.UniqueId == "CommunityTranslation"
+									 || item.Content?.ToString() == "Help Translate");
+
+			if (translationItem != null)
+				break;
+
+			await Task.Delay(100);
+		}
+
+		if (translationItem is null)
+			return;
+
+		_isCommunityTranslationInitialized = true;
+		translationItem.SelectsOnInvoked = false;
+		translationItem.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+		translationItem.InfoBadge = null;
+
+		if (isDismissed)
+		{
+			translationItem.Visibility = Visibility.Collapsed;
+			return;
+		}
+
+		var dismissButton = new Button
+		{
+			Content = new FontIcon { Glyph = "\uE711", FontSize = 10 },
+			Width = 24,
+			Height = 24,
+			Margin = new Thickness(0, 0, -14.5, 0),
+			Padding = new Thickness(0),
+			BorderThickness = new Thickness(0),
+			Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent),
+			CornerRadius = new CornerRadius(12),
+			HorizontalAlignment = HorizontalAlignment.Right,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		ToolTipService.SetToolTip(dismissButton, "Dismiss button. It will never appear here again.");
+
+		dismissButton.Tapped += (s, e) => e.Handled = true;
+		dismissButton.Click += (s, e) =>
+		{
+			_isDismissingTranslationNavItem = true;
+			localSettings.Values[nameof(LocalSave.CommunityTranslationNavDismissed)] = true;
+			translationItem.Visibility = Visibility.Collapsed;
+			GlobalNotification.Info("You can still access Community Localization anytime from Settings → Appearance & Behavior → App language.");
+		};
+
+		var grid = new Grid
+		{
+			HorizontalAlignment = HorizontalAlignment.Stretch,
+			VerticalAlignment = VerticalAlignment.Center
+		};
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+		grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+		var textBlock = new TextBlock
+		{
+			Text = "Help Translate",
+			VerticalAlignment = VerticalAlignment.Center,
+			TextTrimming = TextTrimming.CharacterEllipsis
+		};
+
+		Grid.SetColumn(textBlock, 0);
+		Grid.SetColumn(dismissButton, 1);
+
+		grid.Children.Add(textBlock);
+		grid.Children.Add(dismissButton);
+
+		translationItem.Content = grid;
 	}
 
 	private async void CheckForUpdate()

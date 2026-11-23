@@ -928,6 +928,10 @@
     <value>[ !!! Ýééääŕš !!! ]</value>
     <comment>Settings Page -&gt; Library Section -&gt; Show Years Toggle</comment>
   </data>
+  <data name="Settings_ShowFolders.Header" xml:space="preserve">
+    <value>[ !!! Fôôłđééŕš !!! ]</value>
+    <comment>Settings Page -&gt; Library Section -&gt; Show Folders Toggle</comment>
+  </data>
   <data name="Settings_ShowRecentlyAdded.Header" xml:space="preserve">
     <value>[ !!! Ŕééĉééñţłý Áððééð !!! ]</value>
     <comment>Settings Page -&gt; Library Section -&gt; Show Recently Added Toggle</comment>

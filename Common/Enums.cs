@@ -276,6 +276,13 @@ public enum LocalSave
 	ArtistDetailViewSortOrder,
 	ArtistDetailViewStyle,
 	SelectedArtist,
+	FoldersEnabled,
+	FoldersViewMode,
+	FoldersViewSortOrder,
+	FolderDetailViewSortBy,
+	FolderDetailViewSortOrder,
+	FolderDetailViewStyle,
+	SelectedFolder,
 	CheckForUpdatesAtStatup,
 	ShowVersionInfoOnTitleBar,
 	ForwardRewindButtonVisibility,
@@ -295,7 +302,9 @@ public enum LocalSave
 	PostUpdateScanDoneVersion,
 	SystemTrayIconStyle,
 	CLIOutputColorEnabled,
-	WhatsNewDoneVersion
+	WhatsNewDoneVersion,
+	CommunityTranslationNoticeShown,
+	CommunityTranslationNavDismissed
 }
 
 public enum SystemTrayIconStyle
