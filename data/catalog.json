@@ -1,102 +1,102 @@
 {
   "version": "2.0",
-  "totalStrings": 840,
+  "totalStrings": 877,
   "languages": {
     "fr-FR": {
       "code": "fr-FR",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "pt-BR": {
       "code": "pt-BR",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "ja-JP": {
       "code": "ja-JP",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "pl-PL": {
       "code": "pl-PL",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "id-ID": {
       "code": "id-ID",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "es-ES": {
       "code": "es-ES",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "zh-CN": {
       "code": "zh-CN",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "nl-NL": {
       "code": "nl-NL",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "it-IT": {
       "code": "it-IT",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "hi-IN": {
       "code": "hi-IN",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "tr-TR": {
       "code": "tr-TR",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "ar-SA": {
       "code": "ar-SA",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "ru-RU": {
       "code": "ru-RU",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     },
     "de-DE": {
       "code": "de-DE",
       "translatedCount": 0,
-      "totalCount": 840,
+      "totalCount": 877,
       "progressPct": 0,
       "translations": {}
     }
@@ -2196,6 +2196,12 @@
       "key": "Settings_ShowYears.Header",
       "source": "Years",
       "comment": "Settings Page -> Library Section -> Show Years Toggle",
+      "placeholders": []
+    },
+    {
+      "key": "Settings_ShowFolders.Header",
+      "source": "Folders",
+      "comment": "Settings Page -> Library Section -> Show Folders Toggle",
       "placeholders": []
     },
     {
@@ -6267,6 +6273,388 @@
       "key": "WhatsNew_Dialog_Close",
       "source": "Close",
       "comment": "Popups & Dialogs -> What's New Dialog -> Close Button",
+      "placeholders": []
+    },
+    {
+      "key": "Nav_Folders.Title",
+      "source": "Folders",
+      "comment": "Main Navigation -> Menu Items -> Library Section -> Folders Item Title",
+      "placeholders": []
+    },
+    {
+      "key": "Nav_Folders.Content",
+      "source": "Folders",
+      "comment": "Main Navigation -> Menu Items -> Library Section -> Folders Item Label",
+      "placeholders": []
+    },
+    {
+      "key": "Nav_CommunityTranslation.Title",
+      "source": "Help Translate",
+      "comment": "Main Navigation -> Footer -> Help Translate Item -> Item Title",
+      "placeholders": []
+    },
+    {
+      "key": "Nav_CommunityTranslation.Content",
+      "source": "Help Translate",
+      "comment": "Main Navigation -> Footer -> Help Translate Item -> Item Label",
+      "placeholders": []
+    },
+    {
+      "key": "FoldersView_Title.Text",
+      "source": "Folders",
+      "comment": "Library Views -> Folders -> Page Title",
+      "placeholders": []
+    },
+    {
+      "key": "FoldersView_Title_ToolTip",
+      "source": "All music folders will be displayed here",
+      "comment": "Library Views -> Folders -> Page Title Tooltip",
+      "placeholders": []
+    },
+    {
+      "key": "FoldersView_EmptyState.ToolTipService.ToolTip",
+      "source": "No music folders found. Please, check your settings to ensure your libraries are added and songs have been scanned.",
+      "comment": "Library Views -> Folders -> Empty State Tooltip",
+      "placeholders": []
+    },
+    {
+      "key": "FolderDetail_EmptyFolder.Text",
+      "source": "No songs or tracks found in this folder.",
+      "comment": "Detail Views -> Folder Detail -> Empty State Prompt",
+      "placeholders": []
+    },
+    {
+      "key": "Tooltip_Path",
+      "source": "Path",
+      "comment": "Library Views -> Card Grid -> Card Hover Card -> Folder Path Label",
+      "placeholders": []
+    },
+    {
+      "key": "ViewMode_Label",
+      "source": "Mode",
+      "comment": "Library Views -> Folders -> Top Command Bar -> View Mode Dropdown Label",
+      "placeholders": []
+    },
+    {
+      "key": "ViewMode_CurrentMode_Label",
+      "source": "Current Mode",
+      "comment": "Library Views -> Folders -> Top Command Bar -> View Mode Dropdown Tooltip Prefix",
+      "placeholders": []
+    },
+    {
+      "key": "ViewMode_AllMusicFolders.Text",
+      "source": "All Music Folders",
+      "comment": "Library Views -> Folders -> Top Command Bar -> View Mode Dropdown -> All Music Folders Option",
+      "placeholders": []
+    },
+    {
+      "key": "ViewMode_FolderHierarchy.Text",
+      "source": "Folder Hierarchy",
+      "comment": "Library Views -> Folders -> Top Command Bar -> View Mode Dropdown -> Folder Hierarchy Option",
+      "placeholders": []
+    },
+    {
+      "key": "ViewStyle_Label",
+      "source": "View",
+      "comment": "Detail Views -> Folder Detail -> Top Command Bar -> View Style Dropdown Label",
+      "placeholders": []
+    },
+    {
+      "key": "ViewStyle_CurrentView_Label",
+      "source": "Current View",
+      "comment": "Detail Views -> Folder Detail -> Top Command Bar -> View Style Dropdown Tooltip Prefix",
+      "placeholders": []
+    },
+    {
+      "key": "Notification_FolderSongsAddedToQueue_Singular",
+      "source": "All {0} song of folder '{1}' added to queue.",
+      "comment": "Toasts & Notifications -> Playback -> Folder Songs Added to Queue ({0}=count of songs, {1}=folder name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{1}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "Notification_FolderSongsAddedToQueue_Plural",
+      "source": "All {0} songs of folder '{1}' added to queue.",
+      "comment": "Toasts & Notifications -> Playback -> Folder Songs Added to Queue ({0}=count of songs, {1}=folder name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        },
+        {
+          "token": "{1}",
+          "label": "Total Count",
+          "sample": "100"
+        }
+      ]
+    },
+    {
+      "key": "Notification_SelectedFoldersAddedToQueue_Singular",
+      "source": "All {0} song of selected folders, added to queue.",
+      "comment": "Toasts & Notifications -> Playback -> Selected Folders Added to Queue ({0}=count of songs)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "Notification_SelectedFoldersAddedToQueue_Plural",
+      "source": "All {0} songs of selected folders, added to queue.",
+      "comment": "Toasts & Notifications -> Playback -> Selected Folders Added to Queue ({0}=count of songs)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        }
+      ]
+    },
+    {
+      "key": "DeleteDialog_FolderSongs_Singular",
+      "source": "Are you sure you want to delete {0} song in '{1}' from your system?",
+      "comment": "Popups & Dialogs -> Delete Confirmation Dialog -> Folder Songs Deletion Confirmation ({0}=count of songs, {1}=folder name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{1}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "DeleteDialog_FolderSongs_Plural",
+      "source": "Are you sure you want to delete {0} songs in '{1}' from your system?",
+      "comment": "Popups & Dialogs -> Delete Confirmation Dialog -> Folder Songs Deletion Confirmation ({0}=count of songs, {1}=folder name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        },
+        {
+          "token": "{1}",
+          "label": "Total Count",
+          "sample": "100"
+        }
+      ]
+    },
+    {
+      "key": "Notification_FolderSongsDeleted_Singular",
+      "source": "Deleted {0} song from '{1}'.",
+      "comment": "Toasts & Notifications -> Playback -> Folder Songs Deleted ({0}=count of deleted songs, {1}=folder name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{1}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "Notification_FolderSongsDeleted_Plural",
+      "source": "Deleted {0} songs from '{1}'.",
+      "comment": "Toasts & Notifications -> Playback -> Folder Songs Deleted ({0}=count of deleted songs, {1}=folder name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        },
+        {
+          "token": "{1}",
+          "label": "Total Count",
+          "sample": "100"
+        }
+      ]
+    },
+    {
+      "key": "DeleteDialog_SelectedFolders_Singular",
+      "source": "Are you sure you want to delete {0} song from {1} folders from your system?",
+      "comment": "Popups & Dialogs -> Delete Confirmation Dialog -> Selected Folders Deletion Confirmation ({0}=count of songs, {1}=count of folders)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{1}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "DeleteDialog_SelectedFolders_Plural",
+      "source": "Are you sure you want to delete {0} songs from {1} folders from your system?",
+      "comment": "Popups & Dialogs -> Delete Confirmation Dialog -> Selected Folders Deletion Confirmation ({0}=count of songs, {1}=count of folders)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        },
+        {
+          "token": "{1}",
+          "label": "Total Count",
+          "sample": "100"
+        }
+      ]
+    },
+    {
+      "key": "Notification_SelectedFoldersDeleted_Singular",
+      "source": "Deleted {0} song.",
+      "comment": "Toasts & Notifications -> Playback -> Selected Folders Deleted ({0}=count of deleted songs)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "Notification_SelectedFoldersDeleted_Plural",
+      "source": "Deleted {0} songs.",
+      "comment": "Toasts & Notifications -> Playback -> Selected Folders Deleted ({0}=count of deleted songs)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        }
+      ]
+    },
+    {
+      "key": "Notification_FolderSongsAddedToPlaylist_Singular",
+      "source": "All {0} song of folder '{1}' added to {2} playlist.",
+      "comment": "Toasts & Notifications -> Playlist -> Folder Songs Added to Playlist ({0}=count of songs, {1}=folder name, {2}=playlist name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{1}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{2}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "Notification_FolderSongsAddedToPlaylist_Plural",
+      "source": "All {0} songs of folder '{1}' added to {2} playlist.",
+      "comment": "Toasts & Notifications -> Playlist -> Folder Songs Added to Playlist ({0}=count of songs, {1}=folder name, {2}=playlist name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        },
+        {
+          "token": "{1}",
+          "label": "Total Count",
+          "sample": "100"
+        },
+        {
+          "token": "{2}",
+          "label": "Total Count",
+          "sample": "100"
+        }
+      ]
+    },
+    {
+      "key": "Notification_SelectedFoldersAddedToPlaylist_Singular",
+      "source": "All {0} song of selected folders, added to {1} playlist.",
+      "comment": "Toasts & Notifications -> Playlist -> Selected Folders Added to Playlist ({0}=count of songs, {1}=playlist name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        },
+        {
+          "token": "{1}",
+          "label": "Count (Singular)",
+          "sample": "1"
+        }
+      ]
+    },
+    {
+      "key": "Notification_SelectedFoldersAddedToPlaylist_Plural",
+      "source": "All {0} songs of selected folders, added to {1} playlist.",
+      "comment": "Toasts & Notifications -> Playlist -> Selected Folders Added to Playlist ({0}=count of songs, {1}=playlist name)",
+      "placeholders": [
+        {
+          "token": "{0}",
+          "label": "Count",
+          "sample": "12"
+        },
+        {
+          "token": "{1}",
+          "label": "Total Count",
+          "sample": "100"
+        }
+      ]
+    },
+    {
+      "key": "Settings_CommunityTranslation.Header",
+      "source": "Help translate",
+      "comment": "Settings Page -> Appearance Section -> Card -> Community Translation Header",
+      "placeholders": []
+    },
+    {
+      "key": "Settings_CommunityTranslation.Description",
+      "source": "Help translate Tunetastic into your native language via our Community Translation Studio.",
+      "comment": "Settings Page -> Appearance Section -> Card -> Community Translation Description",
+      "placeholders": []
+    },
+    {
+      "key": "Settings_CommunityTranslationButton.Content",
+      "source": "Help Translate Tunetastic ↗",
+      "comment": "Settings Page -> Appearance Section -> Card -> Community Translation Button Label",
+      "placeholders": []
+    },
+    {
+      "key": "CommunityTranslation_DismissButton_ToolTip",
+      "source": "Dismiss button. It will never appear here again.",
+      "comment": "Main Navigation -> Footer -> Help Translate Item -> Dismiss Button Tooltip",
+      "placeholders": []
+    },
+    {
+      "key": "CommunityTranslation_Dismissed_Notification",
+      "source": "You can still access Community Localization anytime from Settings → Appearance & Behavior → App language.",
+      "comment": "Toasts & Notifications -> In-App Toast -> Community Translation Dismissed Notice",
       "placeholders": []
     }
   ]
